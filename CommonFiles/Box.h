@@ -1,0 +1,163 @@
+// Box.h - AdVisuo Common Source File
+
+#pragma once
+
+#include "Vector.h"
+
+struct BOX
+{
+private:
+	AVVECTOR A;			// internal left front lower
+	AVVECTOR B;			// internal right rear upper
+	AVVECTOR A1, B1;	// external points (including wall thickness)
+
+public:
+	BOX()														{ this->A = this->A1 = Vector(0, 0, 0); this->B = this->B1 = Vector(0, 0, 0); }
+	BOX(AVVECTOR A, AVVECTOR B)									{ this->A = this->A1 = A; this->B = B; }
+	BOX(AVFLOAT x, AVFLOAT y, AVFLOAT z, AVFLOAT w, AVFLOAT d, AVFLOAT h)	{ this->A = this->A1 = Vector(x, y, z); this->B = this->B1 = Vector(x + w, y + d, z + h); }
+	BOX(AVFLOAT x, AVFLOAT y, AVFLOAT w, AVFLOAT d)				{ this->A = this->A1 = Vector(x, y, 0); this->B = this->B1 = Vector(x + w, y + d, 0); }
+
+	operator AVVECTOR&()	{ return A; }
+
+	bool InBox(AVVECTOR &v)	{ return ((v.x >= Left() && v.x <= Right()) || (v.x <= Left() && v.x >= Right())) && ((v.y >= Front() && v.y <= Rear()) || (v.y <= Front() && v.y >= Rear())); }
+	bool InBoxExt(AVVECTOR &v)	{ return ((v.x >= LeftExt() && v.x <= RightExt()) || (v.x <= LeftExt() && v.x >= RightExt())) && ((v.y >= FrontExt() && v.y <= RearExt()) || (v.y <= FrontExt() && v.y >= RearExt())); }
+
+	// divides the bix into nXDiv x nYDiv checkerboard-like sections and returns indices of section corresponding to the given vector
+	bool InBoxSection(AVVECTOR &v, AVFLOAT nXDiv, AVFLOAT nYDiv, AVFLOAT &nX, AVFLOAT &nY)
+	{
+		nX = (v.x - Left()) / (Width() / nXDiv); nY = (v.y - Front()) / (Depth() / nYDiv);
+		return nX >= 0 && nX < nXDiv && nY >= 0 && nY < nYDiv;
+	}
+	// azimuth from the box centre towards the given point; if normalised; corners are at PI/4 + N*PI/2 as if aspect ratio was 1.0
+	AVFLOAT InBoxAzimuth(AVVECTOR &v, bool bNormalise = false)
+	{
+		AVFLOAT f = 1; if (bNormalise) f = 1 / Aspect();
+		return atan2(f * (v.x - CenterX()), v.y - CenterY());
+	}
+
+	AVFLOAT Left()		{ return A.x; }
+	AVFLOAT Right()		{ return B.x; }
+	AVFLOAT Front()		{ return A.y; }
+	AVFLOAT Rear()		{ return B.y; }
+	AVFLOAT Lower()		{ return A.z; }
+	AVFLOAT Upper()		{ return B.z; }
+
+	AVFLOAT CenterX()	{ return (A.x + B.x) / 2; }
+	AVFLOAT CenterY()	{ return (A.y + B.y) / 2; }
+	AVFLOAT CenterZ()	{ return (A.z + B.z) / 2; }
+
+	AVFLOAT LeftExt()	{ return A1.x; }
+	AVFLOAT RightExt()	{ return B1.x; }
+	AVFLOAT FrontExt()	{ return A1.y; }
+	AVFLOAT RearExt()	{ return B1.y; }
+	AVFLOAT LowerExt()	{ return A1.z; }
+	AVFLOAT UpperExt()	{ return B1.z; }
+
+	AVFLOAT CenterXExt()	{ return (A1.x + B1.x) / 2; }
+	AVFLOAT CenterYExt()	{ return (A1.y + B1.y) / 2; }
+	AVFLOAT CenterZExt()	{ return (A1.z + B1.z) / 2; }
+
+	AVFLOAT Width()		{ return B.x - A.x; };
+	AVFLOAT Depth()		{ return B.y - A.y; };
+	AVFLOAT Height()	{ return B.z - A.z; };
+	AVFLOAT Aspect()	{ return Width() / Depth(); }
+
+	AVFLOAT WidthExt()	{ return B1.x - A1.x; };
+	AVFLOAT DepthExt()	{ return B1.y - A1.y; };
+	AVFLOAT HeightExt()	{ return B1.z - A1.z; };
+
+	AVFLOAT WidthLWall()	{ return B.x - A1.x; };
+	AVFLOAT DepthFWall()	{ return B.y - A1.y; };
+	AVFLOAT HeightLSlab()	{ return B.z - A1.z; };
+	AVFLOAT WidthRWall()	{ return B1.x - A.x; };
+	AVFLOAT DepthRWall()	{ return B1.y - A.y; };
+	AVFLOAT HeightUSlab()	{ return B1.z - A.z; };
+
+	AVFLOAT FrontThickness()	{ return A.y - A1.y; }
+	AVFLOAT RearThickness()		{ return B1.y - B.y; }
+	AVFLOAT LeftThickness()		{ return A.x - A1.x; }
+	AVFLOAT RightThickness()	{ return B1.x - B.x; }
+	AVFLOAT LowerThickness()	{ return A.z - A1.z; }
+	AVFLOAT UpperThickness()	{ return B1.z - B.z; }
+
+	void SetThickness(AVFLOAT t)										{ A1 = A; A1.x -= t; A1.y -= t; A1.z -= t; B1 = B; B1.x += t; B1.y += t; B1.z += t; }
+	void SetThickness(AVFLOAT ltrt, AVFLOAT ftre)						{ SetThickness(ltrt, ltrt, ftre, ftre); }
+	void SetThickness(AVFLOAT lt, AVFLOAT rt, AVFLOAT ft, AVFLOAT re)	{ A1 = A; A1.x -= lt; A1.y -= ft; B1 = B; B1.x += rt; B1.y += re; }
+	void SetThickness(AVFLOAT lt, AVFLOAT rt, AVFLOAT ft, AVFLOAT re, AVFLOAT lw, AVFLOAT up)	
+																		{ A1 = A; A1.x -= lt; A1.y -= ft; A1.z -= lw; B1 = B; B1.x += rt; B1.y += re; B1.z += up; }
+	void SetWidth(AVFLOAT w)			{ AVFLOAT dw = w - B.x; B.x += dw; B1.x += dw; }
+	void SetDepth(AVFLOAT d)			{ AVFLOAT dd = d - B.y; B.y += dd; B1.y += dd; }
+	void SetHeight(AVFLOAT h)			{ AVFLOAT dh = h - B.z; B.z += dh; B1.z += dh; }
+
+	AVVECTOR LeftFrontLower()			{ return A; }
+	AVVECTOR LeftFrontLowerExt()		{ return Vector(A.x, A.y, A1.z); }
+	AVVECTOR LeftFrontExtLower()		{ return Vector(A.x, A1.y, A.z); }
+	AVVECTOR LeftFrontExtLowerExt()		{ return Vector(A.x, A1.y, A1.z); }
+	AVVECTOR LeftExtFrontLower()		{ return Vector(A1.x, A.y, A.z); }
+	AVVECTOR LeftExtFrontLowerExt()		{ return Vector(A1.x, A.y, A1.z); }
+	AVVECTOR LeftExtFrontExtLower()		{ return Vector(A1.x, A1.y, A.z); }
+	AVVECTOR LeftExtFrontExtLowerExt()	{ return A1; }
+	
+	AVVECTOR LeftFrontUpper()			{ return Vector(A.x, A.y, B.z); }
+	AVVECTOR LeftFrontUpperExt()		{ return Vector(A.x, A.y, B1.z); }
+	AVVECTOR LeftFrontExtUpper()		{ return Vector(A.x, A1.y, B.z); }
+	AVVECTOR LeftFrontExtUpperExt()		{ return Vector(A.x, A1.y, B1.z); }
+	AVVECTOR LeftExtFrontUpper()		{ return Vector(A1.x, A.y, B.z); }
+	AVVECTOR LeftExtFrontUpperExt()		{ return Vector(A1.x, A.y, B1.z); }
+	AVVECTOR LeftExtFrontExtUpper()		{ return Vector(A1.x, A1.y, B.z); }
+	AVVECTOR LeftExtFrontExtUpperExt()	{ return Vector(A1.x, A1.y, B1.z); }
+	
+	AVVECTOR LeftRearLower()			{ return Vector(A.x, B.y, A.z); }
+	AVVECTOR LeftRearLowerExt()			{ return Vector(A.x, B.y, A1.z); }
+	AVVECTOR LeftRearExtLower()			{ return Vector(A.x, B1.y, A.z); }
+	AVVECTOR LeftRearExtLowerExt()		{ return Vector(A.x, B1.y, A1.z); }
+	AVVECTOR LeftExtRearLower()			{ return Vector(A1.x, B.y, A.z); }
+	AVVECTOR LeftExtRearLowerExt()		{ return Vector(A1.x, B.y, A1.z); }
+	AVVECTOR LeftExtRearExtLower()		{ return Vector(A1.x, B1.y, A.z); }
+	AVVECTOR LeftExtRearExtLowerExt()	{ return Vector(A1.x, B1.y, A1.z); }
+	
+	AVVECTOR LeftRearUpper()			{ return Vector(A.x, B.y, B.z); }
+	AVVECTOR LeftRearUpperExt()			{ return Vector(A.x, B.y, B1.z); }
+	AVVECTOR LeftRearExtUpper()			{ return Vector(A.x, B1.y, B.z); }
+	AVVECTOR LeftRearExtUpperExt()		{ return Vector(A.x, B1.y, B1.z); }
+	AVVECTOR LeftExtRearUpper()			{ return Vector(A1.x, B.y, B.z); }
+	AVVECTOR LeftExtRearUpperExt()		{ return Vector(A1.x, B.y, B1.z); }
+	AVVECTOR LeftExtRearExtUpper()		{ return Vector(A1.x, B1.y, B.z); }
+	AVVECTOR LeftExtRearExtUpperExt()	{ return Vector(A1.x, B1.y, B1.z); }
+	
+	AVVECTOR RightFrontLower()			{ return Vector(B.x, A.y, A.z); }
+	AVVECTOR RightFrontLowerExt()		{ return Vector(B.x, A.y, A1.z); }
+	AVVECTOR RightFrontExtLower()		{ return Vector(B.x, A1.y, A.z); }
+	AVVECTOR RightFrontExtLowerExt()	{ return Vector(B.x, A1.y, A1.z); }
+	AVVECTOR RightExtFrontLower()		{ return Vector(B1.x, A.y, A.z); }
+	AVVECTOR RightExtFrontLowerExt()	{ return Vector(B1.x, A.y, A1.z); }
+	AVVECTOR RightExtFrontExtLower()	{ return Vector(B1.x, A1.y, A.z); }
+	AVVECTOR RightExtFrontExtLowerExt()	{ return Vector(B1.x, A1.y, A1.z); }
+	
+	AVVECTOR RightFrontUpper()			{ return Vector(B.x, A.y, B.z); }
+	AVVECTOR RightFrontUpperExt()		{ return Vector(B.x, A.y, B1.z); }
+	AVVECTOR RightFrontExtUpper()		{ return Vector(B.x, A1.y, B.z); }
+	AVVECTOR RightFrontExtUpperExt()	{ return Vector(B.x, A1.y, B1.z); }
+	AVVECTOR RightExtFrontUpper()		{ return Vector(B1.x, A.y, B.z); }
+	AVVECTOR RightExtFrontUpperExt()	{ return Vector(B1.x, A.y, B1.z); }
+	AVVECTOR RightExtFrontExtUpper()	{ return Vector(B1.x, A1.y, B.z); }
+	AVVECTOR RightExtFrontExtUpperExt()	{ return Vector(B1.x, A1.y, B1.z); }
+	
+	AVVECTOR RightRearLower()			{ return Vector(B.x, B.y, A.z); }
+	AVVECTOR RightRearLowerExt()		{ return Vector(B.x, B.y, A1.z); }
+	AVVECTOR RightRearExtLower()		{ return Vector(B.x, B1.y, A.z); }
+	AVVECTOR RightRearExtLowerExt()		{ return Vector(B.x, B1.y, A1.z); }
+	AVVECTOR RightExtRearLower()		{ return Vector(B1.x, B.y, A.z); }
+	AVVECTOR RightExtRearLowerExt()		{ return Vector(B1.x, B.y, A1.z); }
+	AVVECTOR RightExtRearExtLower()		{ return Vector(B1.x, B1.y, A.z); }
+	AVVECTOR RightExtRearExtLowerExt()	{ return Vector(B1.x, B1.y, A1.z); }
+	
+	AVVECTOR RightRearUpper()			{ return B; }
+	AVVECTOR RightRearUpperExt()		{ return Vector(B.x, B.y, B1.z); }
+	AVVECTOR RightRearExtUpper()		{ return Vector(B.x, B1.y, B.z); }
+	AVVECTOR RightRearExtUpperExt()		{ return Vector(B.x, B1.y, B1.z); }
+	AVVECTOR RightExtRearUpper()		{ return Vector(B1.x, B.y, B.z); }
+	AVVECTOR RightExtRearUpperExt()		{ return Vector(B1.x, B.y, B1.z); }
+	AVVECTOR RightExtRearExtUpper()		{ return Vector(B1.x, B1.y, B.z); }
+	AVVECTOR RightExtRearExtUpperExt()	{ return B1; }
+};

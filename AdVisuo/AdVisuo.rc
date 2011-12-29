@@ -1,0 +1,952 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\AdVisuo.ico"
+IDR_AdVisuoTYPE         ICON                    "res\\AdVisuoDoc.ico"
+IDI_OUTPUT_WND          ICON                    "res\\output_wnd.ico"
+IDI_OUTPUT_WND_HC       ICON                    "res\\output_wnd_hc.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BUTTONS             BITMAP                  "res\\buttons.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR 16, 16
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    SEPARATOR
+    BUTTON      ID_EDIT_CUT
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_FILE_PRINT
+    BUTTON      ID_APP_ABOUT
+END
+
+IDR_MAINFRAME_256 TOOLBAR 16, 16
+BEGIN
+    BUTTON      ID_FILE_NEW
+    BUTTON      ID_FILE_OPEN
+    BUTTON      ID_FILE_SAVE
+    SEPARATOR
+    BUTTON      ID_EDIT_CUT
+    BUTTON      ID_EDIT_COPY
+    BUTTON      ID_EDIT_PASTE
+    SEPARATOR
+    BUTTON      ID_FILE_PRINT
+    BUTTON      ID_APP_ABOUT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "&Close",                      ID_FILE_CLOSE
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        POPUP "&Application Look"
+        BEGIN
+            MENUITEM "Windows &2000",               ID_VIEW_APPLOOK_WIN_2000
+            MENUITEM "Office &XP",                  ID_VIEW_APPLOOK_OFF_XP
+            MENUITEM "&Windows XP",                 ID_VIEW_APPLOOK_WIN_XP
+            MENUITEM "Office 200&3",                ID_VIEW_APPLOOK_OFF_2003
+            MENUITEM "Visual Studio.NET 200&5",     ID_VIEW_APPLOOK_VS_2005
+            POPUP "Office 200&7"
+            BEGIN
+                MENUITEM "&Blue Style",                 ID_VIEW_APPLOOK_OFF_2007_BLUE
+                MENUITEM "B&lack Style",                ID_VIEW_APPLOOK_OFF_2007_BLACK
+                MENUITEM "&Silver Style",               ID_VIEW_APPLOOK_OFF_2007_SILVER
+                MENUITEM "&Aqua Style",                 ID_VIEW_APPLOOK_OFF_2007_AQUA
+            END
+        END
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About AdVisuo...",           ID_APP_ABOUT
+    END
+END
+
+IDR_AdVisuoTYPE MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "&Close",                      ID_FILE_CLOSE
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+        MENUITEM "Open Sim",                    ID_FILE_OPENSIM
+        MENUITEM "Save IFC",                    ID_FILE_SAVEIFC
+        MENUITEM "&Download",                   ID_FILE_DOWNLOAD
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        POPUP "&Application Look"
+        BEGIN
+            MENUITEM "Windows &2000",               ID_VIEW_APPLOOK_WIN_2000
+            MENUITEM "Office &XP",                  ID_VIEW_APPLOOK_OFF_XP
+            MENUITEM "&Windows XP",                 ID_VIEW_APPLOOK_WIN_XP
+            MENUITEM "Office 200&3",                ID_VIEW_APPLOOK_OFF_2003
+            MENUITEM "Visual Studio.NET 200&5",     ID_VIEW_APPLOOK_VS_2005
+            POPUP "Office 200&7"
+            BEGIN
+                MENUITEM "&Blue Style",                 ID_VIEW_APPLOOK_OFF_2007_BLUE
+                MENUITEM "B&lack Style",                ID_VIEW_APPLOOK_OFF_2007_BLACK
+                MENUITEM "&Silver Style",               ID_VIEW_APPLOOK_OFF_2007_SILVER
+                MENUITEM "&Aqua Style",                 ID_VIEW_APPLOOK_OFF_2007_AQUA
+            END
+        END
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&New Window",                 ID_WINDOW_NEW
+        MENUITEM "S&plit",                      ID_WINDOW_SPLIT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About AdVisuo...",           ID_APP_ABOUT
+    END
+    POPUP "Camera"
+    BEGIN
+        POPUP "Layout"
+        BEGIN
+            MENUITEM "Single",                      ID_LAYOUT_SINGLE
+            MENUITEM "Horizontal",                  ID_LAYOUT_HORIZONTAL
+            MENUITEM "Vertical",                    ID_LAYOUT_VERTICAL
+            MENUITEM "Triple (Left)",               ID_LAYOUT_TRIPLE
+            MENUITEM "Triple (Right)",              ID_LAYOUT_TRIPLE32778
+            MENUITEM "Quadruple",                   ID_LAYOUT_QUADRUPLE
+        END
+        POPUP "Camera"
+        BEGIN
+            MENUITEM "Left Rear",                   ID_CAMERA_LEFTREAR
+            MENUITEM "Right Rear",                  ID_CAMERA_RIGHTREAR
+            MENUITEM "Central Rear",                ID_CAMERA_CENTRALREAR
+            MENUITEM "Left Front",                  ID_CAMERA_LEFTFRONT
+            MENUITEM "Right Front",                 ID_CAMERA_RIGHTFRONT
+            MENUITEM "Central Front",               ID_CAMERA_CENTRALFRONT
+            MENUITEM "Left Side",                   ID_CAMERA_LEFTSIDE
+            MENUITEM "Right Side",                  ID_CAMERA_RIGHTSIDE
+            MENUITEM "Lift Left",                   ID_CAMERA_LIFTLEFT
+            MENUITEM "Lift Right",                  ID_CAMERA_LIFTRIGHT
+            MENUITEM "Lift (menu)",                 ID_CAMERA_LIFT_MENU
+            MENUITEM "Overhead",                    ID_CAMERA_OVERHEAD
+            MENUITEM "Ext Front",                   ID_CAMERA_EXT_FRONT
+            MENUITEM "Ext Rear",                    ID_CAMERA_EXT_REAR
+        END
+        POPUP "Floor"
+        BEGIN
+            MENUITEM "One Up",                      ID_STOREY_ONEUP
+            MENUITEM "One Down",                    ID_STOREY_ONEDOWN
+            MENUITEM "Change Floor",                ID_STOREY_MENU
+        END
+        POPUP "Navigation"
+        BEGIN
+            MENUITEM "CCTV",                        ID_NAVIGATION_CCTV
+            MENUITEM "Walk",                        ID_NAVIGATION_WALK
+            MENUITEM "Ghost",                       ID_NAVIGATION_GHOST
+        END
+    END
+    POPUP "View"
+    BEGIN
+        POPUP "Character"
+        BEGIN
+            MENUITEM "Current waiting time",        ID_CHARACTER_CURRENTWAITINGTIME
+            MENUITEM "Expected waiting time",       ID_CHARACTER_EXPECTEDWAITINGTIME
+        END
+    END
+    POPUP "Action"
+    BEGIN
+        MENUITEM "Play",                        ID_ACTION_PLAY
+        MENUITEM "Stop",                        ID_ACTION_STOP
+        MENUITEM "Pause",                       ID_ACTION_PAUSE
+        MENUITEM "Speed up",                    ID_ACTION_SPEEDUP
+        MENUITEM "Slow down",                   ID_ACTION_SLOWDOWN
+        MENUITEM "Normal Pace",                 ID_ACTION_NORMALPACE
+        MENUITEM "Render to AVI",               ID_ACTION_RENDER
+        MENUITEM "Save Still",                  ID_ACTION_SAVESTILL
+        MENUITEM "Play Special",                ID_ACTION_PLAYSPECIAL
+        MENUITEM "Rewind",                      ID_ACTION_REWIND
+    END
+    POPUP "Other"
+    BEGIN
+        MENUITEM "Status Pane 2",               ID_STATUSBAR_PANE2
+        MENUITEM "Report Bug",                  ID_REPORT_BUG
+    END
+    POPUP "HUD"
+    BEGIN
+        MENUITEM "HUD Panel",                   ID_HUD_PANEL
+        MENUITEM "HUD Captions",                ID_HUD_CAPTION
+        MENUITEM "HUD Selection",               ID_HUD_SELECT
+    END
+END
+
+IDR_POPUP_EDIT MENU
+BEGIN
+    POPUP "Edit"
+    BEGIN
+        MENUITEM "&Play",                       ID_ACTION_PLAY
+        MENUITEM "P&ause",                      ID_ACTION_PAUSE
+        MENUITEM "&Stop",                       ID_ACTION_STOP
+        MENUITEM SEPARATOR
+        MENUITEM "Slow &down",                  ID_ACTION_SLOWDOWN
+        MENUITEM "Normap &pace",                ID_ACTION_NORMALPACE
+        MENUITEM "Speed &up",                   ID_ACTION_SPEEDUP
+        MENUITEM SEPARATOR
+        MENUITEM "&Full screen",                ID_VIEW_FULLSCREEN
+    END
+END
+
+IDR_OUTPUT_POPUP MENU
+BEGIN
+    POPUP "Popup"
+    BEGIN
+        MENUITEM "&Copy",                       ID_EDIT_COPY
+        MENUITEM "&Clear",                      ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "&Hide",                       ID_VIEW_OUTPUTWND
+    END
+END
+
+IDR_THEME_MENU MENU
+BEGIN
+    MENUITEM "Office 2007 (&Blue Style)",   ID_VIEW_APPLOOK_OFF_2007_BLUE
+    MENUITEM "Office 2007 (B&lack Style)",  ID_VIEW_APPLOOK_OFF_2007_BLACK
+    MENUITEM "Office 2007 (&Silver Style)", ID_VIEW_APPLOOK_OFF_2007_SILVER
+    MENUITEM "Office 2007 (&Aqua Style)",   ID_VIEW_APPLOOK_OFF_2007_AQUA
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+    "N",            ID_FILE_DOWNLOAD,       VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 204, 108
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About AdVisuo"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "",IDC_STATIC,48,7,149,67,0,WS_EX_CLIENTEDGE
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
+    LTEXT           "AdSimulo Project\nAdVisuo Version 1.00 (RC 3)\nRelease 5 August 2011\npowered by FreeWill+\n\nCopyright (C) 2009-11 by Lerch Bates\nPortions Copyright by Kingston University",IDC_STATIC,54,12,135,59,SS_NOPREFIX
+    DEFPUSHBUTTON   "OK",IDOK,77,87,50,14,WS_GROUP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904e4"
+        BEGIN
+            VALUE "CompanyName", "LerchBates"
+            VALUE "FileDescription", "LerchBates AdVisuo Client"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "AdVisuo.exe"
+            VALUE "LegalCopyright", " (c) Lerch Bates 2009-2011.  All rights reserved."
+            VALUE "OriginalFilename", "AdVisuo.exe"
+            VALUE "ProductName", "LerchBates AdVisuo Client"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 197
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 101
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDP_OLE_INIT_FAILED     "OLE initialization failed.  Make sure that the OLE libraries are the correct version."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_DLGVIDEO_MESSAGE    "The specified video file already exists."
+    IDS_DLGVIDEO_TITLE      "Save video footage"
+    IDS_DLGVIDEO_FOOTER     "Note: Unless you choose another file, existing contents will be lost."
+    IDS_DLGVIDEO_INSTR      "Confirm target path name"
+    IDS_DLGVIDEO_OPTION1    "Choose another video file"
+END
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "AdVisuo"
+    IDR_AdVisuoTYPE         "\nAdVisuo\nAdVisuo\nAdVisuo Saved Project (*.avx)\n.avx\nAdVisuo.Document\nAdVisuo.Document"
+    IDS_WINDOWS_MANAGER     "&Windows..."
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "AdVisuo"
+    AFX_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open a simulation file previously stored on a disk\nOpen Simulation File (XML)"
+    ID_FILE_CLOSE           "Close the active simulation\nClose"
+    ID_FILE_SAVE            "Save the active simulation as an XML file\nSave"
+    ID_FILE_SAVE_AS         "Save the active simulation as an XML file with a new name\nSave As"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_MRU_FILE1       "Open this simulation file"
+    ID_FILE_MRU_FILE2       "Open this document"
+    ID_FILE_MRU_FILE3       "Open this document"
+    ID_FILE_MRU_FILE4       "Open this document"
+    ID_FILE_MRU_FILE5       "Open this document"
+    ID_FILE_MRU_FILE6       "Open this document"
+    ID_FILE_MRU_FILE7       "Open this document"
+    ID_FILE_MRU_FILE8       "Open this document"
+    ID_FILE_MRU_FILE9       "Open this document"
+    ID_FILE_MRU_FILE10      "Open this document"
+    ID_FILE_MRU_FILE11      "Open this document"
+    ID_FILE_MRU_FILE12      "Open this document"
+    ID_FILE_MRU_FILE13      "Open this document"
+    ID_FILE_MRU_FILE14      "Open this document"
+    ID_FILE_MRU_FILE15      "Open this document"
+    ID_FILE_MRU_FILE16      "Open this document"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
+    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
+    ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle Status Bar"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+    AFX_IDS_MDICHILD        "Activate this window"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STATUS_PANE1        " "
+    IDS_STATUS_PANE2        "??? fps"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_OUTPUT_WND          "Output"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_RIBBON_STYLE_DESC   "Choose one of the Office 2007 themes"
+    IDS_RIBBON_STATUSBAR    "Status Bar"
+    IDS_RIBBON_VIEW         "View"
+    IDS_BUILD_TAB           "Build"
+    IDS_DEBUG_TAB           "Debug"
+    IDS_FIND_TAB            "Find"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_RIBBON_FILE         "File"
+    IDS_RIBBON_NEW          "&New"
+    IDS_RIBBON_OPEN         "&Open..."
+    IDS_RIBBON_SAVE         "&Save"
+    IDS_RIBBON_SAVEAS       "Save &As..."
+    IDS_RIBBON_PRINT        "Print"
+    IDS_RIBBON_PRINT_LABEL  "Preview and print the document"
+    IDS_RIBBON_PRINT_QUICK  "&Quick Print"
+    IDS_RIBBON_PRINT_PREVIEW "Print Pre&view"
+    IDS_RIBBON_PRINT_SETUP  "Print Set&up"
+    IDS_RIBBON_CLOSE        "&Close"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_RIBBON_RECENT_DOCS  "Recent Documents"
+    IDS_RIBBON_EXIT         "E&xit"
+    IDS_RIBBON_HOME         "&Home"
+    IDS_RIBBON_CLIPBOARD    "Clipboard\nd"
+    IDS_RIBBON_PASTE        "Paste\nv"
+    IDS_RIBBON_CUT          "Cut\nx"
+    IDS_RIBBON_COPY         "Copy\nc"
+    IDS_RIBBON_SELECTALL    "Select All\na"
+    IDS_RIBBON_WINDOW       "Window\nw"
+    IDS_RIBBON_WINDOWS      "Windows\ni"
+    IDS_RIBBON_STYLE        "Style"
+    IDS_RIBBON_STYLE_TIP    "Modify Visual Style"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_EDIT_MENU           "Edit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_LAYOUT_SINGLE        "Use entire area of the window frame to show a single camera view\nSingle Layout"
+    ID_LAYOUT_HORIZONTAL    "Divide the window frame horizontally to show two independent camera views\nHorizontal Layout"
+    ID_LAYOUT_VERTICAL      "Divide the window frame vertically to show two independent camera views\nVertical Layout"
+    ID_LAYOUT_TRIPLE        "Divide the window frame to show three independent camera views, with vertical view on the left\nTriple (Left) Layout"
+    ID_LAYOUT_TRIPLE32778   "Divide the window frame to show three independent camera views, with vertical view on the right\nTriple (Right) Layout"
+    ID_LAYOUT_QUADRUPLE     "Divide the window frame to show four independent camera views\nQuadruple Layout"
+    ID_CAMERA_OVERHEAD      "Place the camera centrally over the landing, looking down\nCamera: Overhead"
+    ID_CAMERA_LEFTREAR      "Place the camera for the current view in the rear left corner of the landing\nCamera to the rear left corner"
+    ID_CAMERA_CENTRALREAR   "Place the camera for the current view at the centre of the rear side of the landing\nCamera to the rear side"
+    ID_CAMERA_RIGHTREAR     "Place the camera for the current view in the rear right corner of the landing\nCamera to the rear right corner"
+END
+
+STRINGTABLE
+BEGIN
+    ID_CAMERA_RIGHTSIDE     "Place the camera for the current view centrally at the right side of the landing\nCamera to the right side"
+    ID_CAMERA_RIGHTFRONT    "Place the camera for the current view in the front right corner of the landing\nCamera to the front right corner"
+    ID_CAMERA_CENTRALFRONT  "Place the camera for the current view at the centre of the front side of the landing\nCamera to the front side"
+    ID_CAMERA_LEFTFRONT     "Place the camera for the current view in the front left corner of the landing\nCamera to the front left corner"
+    ID_CAMERA_LEFTSIDE      "Place the camera for the current view centrally at the left side of the landing\nCamera to the left side"
+    ID_CAMERA_LIFTLEFT      "Move the camera to the next lift car\nCamera to the next lift"
+    ID_CAMERA_LIFTRIGHT     "Move the camera to the previous lift car\nCamera to the previous lift"
+    ID_STOREY_ONEUP         "Go one floor up\nOne Floor Up"
+    ID_STOREY_ONEDOWN       "Go one floor down\nOne Floor Down"
+    ID_NAVIGATION_CCTV      "This mode emulates a PTZ CCTV camera.\r\rPan - mouse left && right\rTilt - mouse up && down\rZoom - mouse wheel\nCCTV Navigation Mode"
+    ID_NAVIGATION_WALK      "Emulates real life experience while walking around the building. Not available in this version.\nWalk Navigation Mode"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NAVIGATION_GHOST     "Allows unobstructed navigation in all directions and through the walls. Use arrow buttons or WASD to move on and turn.\nGhost Mode"
+    ID_ACTION_PLAY          "Start the animation\nPlay"
+    ID_ACTION_STOP          "Stop the animation and prepare the system to start it again\nStop"
+    ID_ACTION_PAUSE         "Pause or resume the animation\nPause"
+    ID_ACTION_SPEEDUP       "Speed the animation pace up\nSpeed up"
+    ID_ACTION_SLOWDOWN      "Slow the animation down\nSlow down"
+    ID_ACTION_NORMALPACE    "Revert the animation pace\nNormal pace"
+    ID_CHARACTER_NOCOLOURCODING 
+                            "Display all the characters white\nNo Colour Coding"
+    ID_CHARACTER_CURRENTWAITINGTIME 
+                            "Colour characters depending on their current waiting time\nColour code current waiting times"
+    ID_CHARACTER_EXPECTEDWAITINGTIME 
+                            "Colour characters depending on their total expected waiting time\nColour code expected waiting times"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_OPENSIM         "Open a simulation file and prepare for visualisation"
+    ID_FILE_SAVEIFC         "Export the Building Information Model to IFC compliant file"
+    ID_FILE_DOWNLOAD        "Downloads project from a specified web service or URL"
+END
+
+STRINGTABLE
+BEGIN
+    ID_HUD_PANEL            "Show or hide HUD (Head On Display) control panel\nToggle HUD Panel"
+    ID_HUD_CAPTION          "Show or hide the view caption plates\nToggle View Captions"
+    ID_HUD_SELECT           "Show or hide the frame for the selected view in multi-view modes\nToggle view selection"
+END
+
+STRINGTABLE
+BEGIN
+    ID_CAMERA_EXT_REAR      "Place the camera for the rear side external view of the building\nCamera to the rear of the building"
+    ID_CAMERA_EXT_FRONT     "Place the camera for the front side external view of the building\nCamera to the front of the building"
+END
+
+STRINGTABLE
+BEGIN
+    ID_STOREY_MENU          "Choose a floor to go from a drop down menu\nChange Floor"
+END
+
+STRINGTABLE
+BEGIN
+    ID_CAMERA_LIFT_MENU     "Choose a lift from a drop down menu and move the camera there\nCamera to a lift"
+    ID_REPORT_BUG           "Send a bug report or a suggestion of change to the development team\nReport a bug"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_DLGVIDEO_OPTION2    "Use the existing file"
+    IDS_DLGVIDEO_MESSAGE2   "The specified video file already exists. Do you want to choose another file?"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United Kingdom) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_CAMERASMALL         BITMAP                  "res\\camera.bmp"
+IDB_CAMERALARGE         BITMAP                  "res\\cameralarge.bmp"
+IDB_LOGO                BITMAP                  "res\\main.bmp"
+IDB_LOGO2               BITMAP                  "res\\logo2.bmp"
+IDB_LOGO3               BITMAP                  "res\\logo3.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ADV_DOWNLOAD DIALOGEX 0, 0, 337, 242
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Download Project"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Load",IDOK,226,221,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,280,221,50,14
+    LTEXT           "http://",IDC_STATIC,7,20,22,8
+    COMBOBOX        IDC_COMBO1,29,19,222,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Server URL address:",IDC_STATIC,7,7,67,8
+    LTEXT           "Available projects:",IDC_STATIC,7,38,60,8
+    LTEXT           "Project details:",IDC_STATIC,7,159,49,8
+    LTEXT           "Static",IDC_DETAILS,7,168,323,46,SS_SUNKEN
+    PUSHBUTTON      "Load project titles",IDC_REFRESH,255,18,75,14
+    CONTROL         "",IDC_LIST1,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,48,323,107
+END
+
+IDD_ADV_VIDEO DIALOGEX 0, 0, 270, 256
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Video Footage Parameters"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Choose image aspect ratio",IDC_STATIC,7,7,256,46
+    CONTROL         "16:9",IDC_RADIO_ASPECT_16_9,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,18,31,10
+    CONTROL         "16:10",IDC_RADIO_ASPECT_16_10,"Button",BS_AUTORADIOBUTTON,45,18,35,10
+    CONTROL         "4:3",IDC_RADIO_ASPECT_4_3,"Button",BS_AUTORADIOBUTTON,81,18,27,10
+    CONTROL         "Custom:",IDC_RADIO_ASPECT_CUSTOM,"Button",BS_AUTORADIOBUTTON,126,18,37,10
+    EDITTEXT        IDC_EDIT_ASPECT,166,16,42,14,ES_AUTOHSCROLL | WS_GROUP
+    PUSHBUTTON      "Set...",IDC_CUSTOM,213,16,41,14,WS_GROUP
+    PUSHBUTTON      "Switch the main view aspect now",IDC_SWITCH,12,33,111,14
+    PUSHBUTTON      "Revert the main view aspect",IDC_REVERT,127,33,111,14
+    GROUPBOX        "Choose resolution",IDC_STATIC,7,58,256,45
+    COMBOBOX        IDC_COMBO_RES,14,70,126,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Custom:",IDC_STATIC,147,72,26,8
+    EDITTEXT        IDC_EDIT_RESX,177,70,23,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_SPIN2,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,201,70,10,14
+    LTEXT           "x",IDC_STATIC,215,72,8,8
+    EDITTEXT        IDC_EDIT_RESY,220,70,23,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,244,70,10,14
+    CONTROL         "Restrict resolution by the aspect ratio",IDC_CHECK_RESTRICT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,88,137,10
+    GROUPBOX        "Time range:",IDC_STATIC,7,179,256,34
+    GROUPBOX        "Choose frame rate (fps)",IDC_STATIC,7,107,256,30
+    CONTROL         "24p",IDC_RADIO_FPS_24,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,119,28,10
+    CONTROL         "25p",IDC_RADIO_FPS_25P,"Button",BS_AUTORADIOBUTTON,43,119,28,10
+    CONTROL         "30p",IDC_RADIO_FPS_30,"Button",BS_AUTORADIOBUTTON,71,119,28,10
+    CONTROL         "50p",IDC_RADIO_FPS_50,"Button",BS_AUTORADIOBUTTON,99,119,28,10
+    CONTROL         "60p",IDC_RADIO_FPS_60,"Button",BS_AUTORADIOBUTTON,127,119,28,10
+    CONTROL         "Custom:",IDC_RADIO_FPS_CUSTOM,"Button",BS_AUTORADIOBUTTON,172,119,39,10
+    EDITTEXT        IDC_EDIT_FPS,214,117,30,14,ES_AUTOHSCROLL | WS_GROUP
+    CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,244,117,10,14
+    GROUPBOX        "Target file path:",IDC_STATIC,7,141,256,34
+    LTEXT           "from:",IDC_STATIC,15,194,18,8
+    CONTROL         "",IDC_TIME_BEGIN,"SysDateTimePick32",DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP | 0x8,37,191,47,15
+    LTEXT           "to:",IDC_STATIC,91,194,10,8
+    CONTROL         "",IDC_TIME_END,"SysDateTimePick32",DTS_RIGHTALIGN | DTS_UPDOWN | WS_TABSTOP | 0x8,103,191,47,15
+    DEFPUSHBUTTON   "OK",IDOK,159,235,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,213,235,50,14
+    CONTROL         "",IDC_FILEPATH,"MfcEditBrowse",WS_BORDER | WS_TABSTOP | 0x80,14,153,240,14
+    LTEXT           "Show:",IDC_STATIC,9,220,21,8
+    CONTROL         "Camera captions",IDC_CHECK_CAPTIONS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,34,220,69,10
+    CONTROL         "Clock",IDC_CHECK_CLOCK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,103,220,33,10
+END
+
+IDD_ADV_VIDEOCTRL DIALOGEX 0, 0, 138, 68
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "Rendering"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "",IDC_STATIC,7,7,125,24,SS_SUNKEN
+    LTEXT           "Status:",IDC_STATIC,9,8,24,8
+    LTEXT           "Initialising...",IDC_STATIC_STATUS,57,8,69,8
+    LTEXT           "Time elapsed:",IDC_STATIC,9,18,45,8
+    PUSHBUTTON      "Stop",IDC_STOP,7,47,125,14
+    LTEXT           "0",IDC_STATIC_TIME,57,18,69,8
+    CONTROL         "Show preview",IDC_CHECK_PREVIEW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,35,61,10
+END
+
+IDD_ADV_ASPECT DIALOGEX 0, 0, 339, 163
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Set Image Aspect Ratio"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           ":",IDC_STATIC,55,115,8,8
+    CONTROL         "Fit image to the window (no forced aspect ratio)",IDC_RADIO1,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,16,7,170,10
+    CONTROL         "Use screen aspect ratio",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,16,18,91,10
+    CONTROL         "16:9 Widescreen",IDC_RADIO3,"Button",BS_AUTORADIOBUTTON,16,45,70,10
+    CONTROL         "16:10 Widescreen",IDC_RADIO4,"Button",BS_AUTORADIOBUTTON,16,55,74,10
+    CONTROL         "4:3 Standard",IDC_RADIO5,"Button",BS_AUTORADIOBUTTON,16,65,58,10
+    CONTROL         "Custom",IDC_RADIO6,"Button",BS_AUTORADIOBUTTON,16,101,40,10
+    EDITTEXT        IDC_EDIT1,15,114,27,14,ES_AUTOHSCROLL | WS_GROUP
+    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,40,113,11,14
+    EDITTEXT        IDC_EDIT2,61,114,27,14,ES_AUTOHSCROLL | WS_GROUP
+    CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,88,113,11,14
+    EDITTEXT        IDC_EDIT3,114,113,53,14,ES_AUTOHSCROLL | WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,77,142,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,131,142,50,14
+    GROUPBOX        "Standard aspect ratios",IDC_STATIC,7,32,174,48
+    GROUPBOX        "Custom Aspect Ratio",IDC_STATIC,7,86,174,49
+    LTEXT           "or",IDC_STATIC,104,115,8,8
+    LTEXT           ":  1",IDC_STATIC,168,115,12,8
+    CONTROL         "",IDC_STATIC_1,"Static",SS_BLACKRECT,195,7,139,128,WS_EX_TRANSPARENT
+    CONTROL         "",IDC_STATIC_2,"Static",SS_GRAYRECT,195,7,139,128,WS_EX_TRANSPARENT
+END
+
+IDD_ADV_REPORT_BUG DIALOGEX 0, 0, 316, 236
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "This software product is currently being developed by LerchBates. \nYour input is of great value for us and may contribute to a much better product! Your contact details are optional, but it may help us even more if you leave them here.",IDC_STATIC,82,7,227,36
+    LTEXT           "Your name:",IDC_STATIC,7,47,38,8
+    EDITTEXT        IDC_EDIT_NAME,80,44,229,14,ES_AUTOHSCROLL
+    LTEXT           "Your e-mail address:",IDC_STATIC,7,65,66,8
+    EDITTEXT        IDC_EDIT_EMAIL,80,62,229,14,ES_AUTOHSCROLL
+    LTEXT           "Category:",IDC_STATIC,7,84,34,8
+    COMBOBOX        IDC_COMBO_CAT,79,81,229,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Description:",IDC_STATIC,7,103,39,8
+    EDITTEXT        IDC_EDIT_DESC,80,100,229,52,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN
+    LTEXT           "System message sent:",IDC_STATIC,7,159,73,8
+    EDITTEXT        IDC_EDIT_SYSTEM,80,157,229,52,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
+    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,21,20
+    DEFPUSHBUTTON   "Send",IDOK,205,215,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,259,215,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_ADV_DOWNLOAD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 330
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 235
+    END
+
+    IDD_ADV_VIDEO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 263
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 249
+    END
+
+    IDD_ADV_VIDEOCTRL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 132
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 61
+    END
+
+    IDD_ADV_ASPECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 332
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 156
+    END
+
+    IDD_ADV_REPORT_BUG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 229
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\AdVisuo.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#if !defined(_AFXDLL)\r\n"
+    "#include ""afxprint.rc""               // printing/print preview resources\r\n"
+    "#include ""afxribbon.rc""              // MFC ribbon and control bar resources\r\n"
+    "#endif\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Ribbon
+//
+
+IDR_RIBBON              RT_RIBBON_XML           "res\\ribbon1.mfcribbon-ms"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_ADV_VIDEO DLGINIT
+BEGIN
+    IDC_FILEPATH, 0x37c, 42, 0
+0x4d3c, 0x4346, 0x6445, 0x7469, 0x7242, 0x776f, 0x6573, 0x4d5f, 0x646f, 
+0x3e65, 0x3c31, 0x4d2f, 0x4346, 0x6445, 0x7469, 0x7242, 0x776f, 0x6573, 
+0x4d5f, 0x646f, 0x3e65, 
+    0
+END
+
+#endif    // English (United Kingdom) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\AdVisuo.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#if !defined(_AFXDLL)
+#include "afxprint.rc"               // printing/print preview resources
+#include "afxribbon.rc"              // MFC ribbon and control bar resources
+#endif
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

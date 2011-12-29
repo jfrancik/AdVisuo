@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="Header Files\IFC">
+      <UniqueIdentifier>{8405f7ab-0384-4416-86f7-0c09fcf3ec9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\IFC">
+      <UniqueIdentifier>{36fc1b90-e730-4231-b3ee-67977e7ad186}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="adv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseBuilding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseClasses.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Building.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Lift.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Passenger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SimLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ifc\baseIfc.cpp">
+      <Filter>Source Files\IFC</Filter>
+    </ClCompile>
+    <ClCompile Include="ifc\baseIfcObject.cpp">
+      <Filter>Source Files\IFC</Filter>
+    </ClCompile>
+    <ClCompile Include="ifc\boundingBoxIfc.cpp">
+      <Filter>Source Files\IFC</Filter>
+    </ClCompile>
+    <ClCompile Include="ifc\BRepIfc.cpp">
+      <Filter>Source Files\IFC</Filter>
+    </ClCompile>
+    <ClCompile Include="ifc\extrudedPolygonIfc.cpp">
+      <Filter>Source Files\IFC</Filter>
+    </ClCompile>
+    <ClCompile Include="ifc\propertiesIfc.cpp">
+      <Filter>Source Files\IFC</Filter>
+    </ClCompile>
+    <ClCompile Include="ifcscanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ifc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\DBTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="adv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseBuilding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseClasses.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\Box.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Building.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Lift.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Passenger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\Vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ifc\baseIfc.h">
+      <Filter>Header Files\IFC</Filter>
+    </ClInclude>
+    <ClInclude Include="ifc\baseIfcObject.h">
+      <Filter>Header Files\IFC</Filter>
+    </ClInclude>
+    <ClInclude Include="ifc\boundingBoxIfc.h">
+      <Filter>Header Files\IFC</Filter>
+    </ClInclude>
+    <ClInclude Include="ifc\BRepIfc.h">
+      <Filter>Header Files\IFC</Filter>
+    </ClInclude>
+    <ClInclude Include="ifc\extrudedPolygonIfc.h">
+      <Filter>Header Files\IFC</Filter>
+    </ClInclude>
+    <ClInclude Include="ifc\propertiesIfc.h">
+      <Filter>Header Files\IFC</Filter>
+    </ClInclude>
+    <ClInclude Include="ifcscanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ifc\IFCEngine.h">
+      <Filter>Header Files\IFC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\DBTools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="adv.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="res\messages.mc">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="ifc\IFCEngine.lib" />
+  </ItemGroup>
+</Project>

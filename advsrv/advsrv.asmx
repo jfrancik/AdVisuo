@@ -1,0 +1,1 @@
+﻿<%@ WebService Language="C#" CodeBehind="advsrv.asmx.cs" Class="advsrv.AdVServer" %>
