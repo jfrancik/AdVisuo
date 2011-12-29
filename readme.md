@@ -1,3 +1,3 @@
-AdSimulo Visualisation Module:
-* client
-* server
+# AdSimulo Project
+
+Contains client and server visualisation modules.
