@@ -334,6 +334,13 @@ Lift: %5%n
 Deck: %6
 .
 
+MessageId       = +1
+SymbolicName    = ERROR_CONVERSION
+Severity		= Error
+Language        = English
+Bad data conversion.
+.
+
 ;
 ;#endif  //__MESSAGES_H__
 ;

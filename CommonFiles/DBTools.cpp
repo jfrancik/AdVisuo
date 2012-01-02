@@ -144,6 +144,20 @@ string CValue::escaped()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+// CCollection
+
+void CCollection::replace_key(std::string old_key, std::string new_key)
+{
+	if (old_key == new_key) return;
+	CCollection::iterator i = find(old_key);
+	if (i != end())
+	{
+		(*this)[new_key] = (*this)[old_key];
+		erase(i);
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 // CDataBase
 
 CDataBase::CDataBase(LPCOLESTR pConnectionString)

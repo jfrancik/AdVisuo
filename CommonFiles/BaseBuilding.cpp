@@ -76,9 +76,6 @@ void CBuildingBase::DeleteStoreys()
 
 void CBuildingBase::Resolve()
 {
-	if (SideWallThickness < 0) SideWallThickness = FrontWallThickness;
-	if (ShaftWallThickness < 0) ShaftWallThickness = FrontWallThickness;
-	
 	// calculate width of the lobby if lifts in-line, no side walls
 	AVFLOAT w = -IntDivBeamWidth;
 	AVULONG i;

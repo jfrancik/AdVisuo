@@ -53,6 +53,8 @@ SQL UPADTE
 #include <map>
 #import "C:\Program files\Common Files\System\Ado\msado15.dll" rename("EOF", "ADOEOF")
 
+#define ME	(*this)
+
 namespace dbtools
 {
 
@@ -92,10 +94,24 @@ public:
 	operator std::wstring();
 	operator DATE();
 
+	BOOL as_bool()						{ return operator BOOL(); }
+	FLOAT as_float()					{ return operator FLOAT(); }
+	ULONG as_ulong()					{ return operator ULONG(); }
+	LONG as_long()						{ return operator LONG(); }
+	std::string as_string()				{ return operator std::string(); }
+	std::wstring as_wstring()			{ return operator std::wstring(); }
+	DATE as_date()						{ return operator DATE(); }
+
 	std::string escaped();
 };
 
-typedef std::map<std::string, CValue> CCollection;
+class CCollection : public std::map<std::string, CValue>
+{
+public:
+	CCollection() : std::map<std::string, CValue>()		{ }
+
+	void replace_key(std::string old_key, std::string new_key);
+};
 
 class CDataBase
 {

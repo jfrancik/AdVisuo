@@ -433,6 +433,15 @@
 //
 #define WARNING_PASSENGER_4              0x40000024L
 
+//
+// MessageId: ERROR_CONVERSION
+//
+// MessageText:
+//
+// Bad data conversion.
+//
+#define ERROR_CONVERSION                 0x80000025L
+
 
 #endif  //__MESSAGES_H__
 

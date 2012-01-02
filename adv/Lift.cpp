@@ -124,34 +124,24 @@ DWORD CLift::Load(CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcL
 
 HRESULT CLift::Store(CDataBase db, ULONG nProjectID)
 {
-	if (!db) return db;
-	try
+	if (!db) throw db;
+
+	for (AVULONG iJourney = 0; iJourney < GetJourneyCount(); iJourney++)
 	{
-		for (AVULONG iJourney = 0; iJourney < GetJourneyCount(); iJourney++)
-		{
-			// add journey
-			JOURNEY *pJ = GetJourney(iJourney);
+		// add journey
+		JOURNEY *pJ = GetJourney(iJourney);
 			
-			CDataBase::INSERT ins = db.insert("AVJourneys");
-			ins["ProjectID"] = nProjectID;
-			ins["LiftID"] = GetId();
-			ins["ShaftFrom"] = pJ->m_shaftFrom;
-			ins["ShaftTo"] = pJ->m_shaftTo;
-			ins["FloorFrom"] = pJ->m_floorFrom;
-			ins["FloorTo"] = pJ->m_floorTo;
-			ins["TimeGo"] = pJ->m_timeGo;
-			ins["TimeDest"] = pJ->m_timeDest;
-			ins["DC"] = pJ->StringifyDoorCycles();
-			ins.execute();
-		}
-	}
-    catch(HRESULT h)
-    {
-		return Log(ERROR_COM, h);
-	}
-	catch(_com_error &ce)
-	{
-		return Log(ERROR_DB, ce);
+		CDataBase::INSERT ins = db.insert("AVJourneys");
+		ins["ProjectID"] = nProjectID;
+		ins["LiftID"] = GetId();
+		ins["ShaftFrom"] = pJ->m_shaftFrom;
+		ins["ShaftTo"] = pJ->m_shaftTo;
+		ins["FloorFrom"] = pJ->m_floorFrom;
+		ins["FloorTo"] = pJ->m_floorTo;
+		ins["TimeGo"] = pJ->m_timeGo;
+		ins["TimeDest"] = pJ->m_timeDest;
+		ins["DC"] = pJ->StringifyDoorCycles();
+		ins.execute();
 	}
 
 	return S_OK;

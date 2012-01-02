@@ -204,35 +204,23 @@ DWORD CPassenger::Load(AVULONG nId, CSimLoader::Passenger &P)
 
 HRESULT CPassenger::Store(CDataBase db, ULONG nProjectID)
 {
-	if (!db) return db;
-	try
-	{
-		CDataBase::INSERT ins = db.insert("AVPassengers");
-		ins["ProjectID"] = nProjectID;
-		ins["PassengerId"] = GetId();
-		ins["ShaftId"] = GetShaftId();
-		ins["LiftId"] = GetLiftId();
-		ins["DeckId"] = GetDeck();
-		ins["FloorArrival"] = GetArrivalFloor();
-		ins["FloorDest"] = GetDestFloor();
-		ins["TimeBorn"] = GetBornTime();
-		ins["TimeArrival"] = GetArrivalTime();
-		ins["TimeGo"] = GetGoTime();
-		ins["TimeLoad"] = GetLoadTime();
-		ins["TimeUnload"] = GetUnloadTime();
-		ins["SpanWait"] = GetWaitSpan();
-		ins["WP"] = StringifyWayPoints();
-		ins.execute();
-	}
-    catch(HRESULT h)
-    {
-		return Log(ERROR_COM, h);
-	}
-	catch(_com_error &ce)
-	{
-		return Log(ERROR_DB, ce);
-	}
-
+	if (!db) throw db;
+	CDataBase::INSERT ins = db.insert("AVPassengers");
+	ins["ProjectID"] = nProjectID;
+	ins["PassengerId"] = GetId();
+	ins["ShaftId"] = GetShaftId();
+	ins["LiftId"] = GetLiftId();
+	ins["DeckId"] = GetDeck();
+	ins["FloorArrival"] = GetArrivalFloor();
+	ins["FloorDest"] = GetDestFloor();
+	ins["TimeBorn"] = GetBornTime();
+	ins["TimeArrival"] = GetArrivalTime();
+	ins["TimeGo"] = GetGoTime();
+	ins["TimeLoad"] = GetLoadTime();
+	ins["TimeUnload"] = GetUnloadTime();
+	ins["SpanWait"] = GetWaitSpan();
+	ins["WP"] = StringifyWayPoints();
+	ins.execute();
 	return S_OK;
 }
 

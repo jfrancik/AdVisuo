@@ -7,8 +7,40 @@
 #include "Building.h"
 #include "Sim.h"
 #include "ATLComTime.h"
+#include "../CommonFiles/DBTools.h"
 
 #define WARNED(hr) (((DWORD)(hr)) >= 0x40000000L)
+
+#define STD_CATCH(str, num)					\
+	catch(_com_error &ce)					\
+	{										\
+		Log(ERROR_DB, ce);					\
+		Logf(STATUS_FAIL, (str), (num));	\
+		return ce.Error();					\
+	}										\
+	catch (HRESULT h)						\
+	{										\
+		Log(ERROR_COM, h);					\
+		Logf(STATUS_FAIL, (str), (num));	\
+		return h;							\
+	}										\
+	catch (DWORD dw)						\
+	{										\
+		Log(dw);							\
+		Logf(STATUS_FAIL, (str), (num));	\
+		return dw;							\
+	}										\
+	catch (dbtools::CValue val)				\
+	{										\
+		Log(ERROR_CONVERSION);				\
+		Logf(STATUS_FAIL, (str), (num));	\
+		return ERROR_CONVERSION;			\
+	}										\
+	catch(...)								\
+	{										\
+		return Logf(ERROR_UNKNOWN, (str), (num));	\
+	}
+
 
 ADV_API AVULONG AVGetVersion()
 {
@@ -146,11 +178,9 @@ ADV_API HRESULT AVTest(AVULONG nSimulationID)
 		
 		CSim sim(NULL);
 		h = sim.FindProjectID(pConnStr, nSimulationID, nProjectID);
-		if FAILED(h) return S_FALSE;	// visualisation data not found for this simulation
 		if (h == S_FALSE) return S_FALSE;
 
 		h = sim.LoadFromVisualisation(pConnStr, nProjectID);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVTest(%d)", nSimulationID), h;
 
 		FILETIME ft;
 		HANDLE hFile = CreateFileW(sim.m_strSIMFileName.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); 
@@ -167,16 +197,7 @@ ADV_API HRESULT AVTest(AVULONG nSimulationID)
 		else
 			return S_FALSE+1;
 	}
-	catch(_com_error &ce)
-	{
-		Log(ERROR_DB, ce);
-		Logf(ERROR_DBCONN, pConnStr);
-		return ce.Error();
-	}
-	catch(...)
-	{
-		return Logf(ERROR_UNKNOWN, L"AVTest(%d)", nSimulationID);
-	}
+	STD_CATCH(L"AVTest(%d)", nSimulationID);
 }
 
 ADV_API HRESULT AVDelete(AVULONG nSimulationId)
@@ -189,22 +210,12 @@ ADV_API HRESULT AVDelete(AVULONG nSimulationId)
 		DWORD dwStatus = STATUS_OK;
 
 		HRESULT h = CSim::CleanUp(pConnStr, nSimulationId);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVDelete(%d)", nSimulationId), h;
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		lt.Log(L"AVDelete");
 		return Logf(dwStatus, L"AVDelete(%d)", nSimulationId);
 	}
-	catch(_com_error &ce)
-	{
-		Log(ERROR_DB, ce);
-		Logf(ERROR_DBCONN, pConnStr);
-		return ce.Error();
-	}
-	catch(...)
-	{
-		return Logf(ERROR_UNKNOWN, L"AVDelete(%d)", nSimulationId);
-	}
+	STD_CATCH(L"AVDelete(%d)", nSimulationId);
 }
 
 ADV_API HRESULT AVDeleteAll()
@@ -217,22 +228,12 @@ ADV_API HRESULT AVDeleteAll()
 		DWORD dwStatus = STATUS_OK;
 
 		HRESULT h = CSim::CleanUpAll(pConnStr);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVDeleteAll()"), h;
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		lt.Log(L"AVDeleteAll");
 		return Logf(dwStatus, L"AVDeleteAll()");
 	}
-	catch(_com_error &ce)
-	{
-		Log(ERROR_DB, ce);
-		Logf(ERROR_DBCONN, pConnStr);
-		return ce.Error();
-	}
-	catch(...)
-	{
-		return Logf(ERROR_UNKNOWN, L"AVDeleteAll()");
-	}
+	STD_CATCH(L"AVDeleteAll()", 0);
 }
 
 ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
@@ -243,29 +244,25 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 	
 	try
 	{
-		HRESULT h;
+		HRESULT h = S_OK;
 		DWORD dwStatus = STATUS_OK;
 
-		h = CSim::CleanUp(pVisConn, nSimulationId);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVInit(%d)", nSimulationId), h;
+		h = CSim::CleanUp(pVisConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
-
+		
 		CBuilding building;
-		h = building.LoadFromConsole(pConsoleConn, nSimulationId);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVInit(%d)", nSimulationId), h;
+		h = building.LoadFromConsole(pConsoleConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		AVFLOAT fScale;
-		GetScale(&fScale);
-		building.Scale(fScale);
+//		AVFLOAT fScale;
+//		GetScale(&fScale);
+//		building.Scale(fScale);
 
 		CSim sim(&building);
-		h = sim.LoadFromConsole(pConsoleConn, nSimulationId);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVInit(%d)", nSimulationId), h;
+		h = sim.LoadFromConsole(pConsoleConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
-
-		h = sim.Store(pVisConn, nSimulationId);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVInit(%d)", nSimulationId), h;
+		
+		h = sim.Store(pVisConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		nProjectID = sim.m_nProjectID;
@@ -273,16 +270,7 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		lt.Log(L"AVInit");
 		return Logf(dwStatus, L"AVInit(%d)", nSimulationId);
 	}
-	catch(_com_error &ce)
-	{
-		Log(ERROR_DB, ce);
-		Logf(ERROR_DBCONN, pVisConn);
-		return ce.Error();
-	}
-	catch(...)
-	{
-		return Logf(ERROR_UNKNOWN, L"AVInit(%d)", nSimulationId);
-	}
+	STD_CATCH(L"AVInit(%d)", nSimulationId);
 }
 
 ADV_API HRESULT AVProcess(AVULONG nProjectID)
@@ -298,7 +286,6 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 
 		CBuilding building;
 		h = building.LoadFromVisualisation(pVisConn, nProjectID);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVProcess(%d)", nProjectID), h;
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		AVFLOAT fScale;
@@ -307,33 +294,21 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 
 		CSim sim(&building);
 		h = sim.LoadFromVisualisation(pVisConn, nProjectID);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVProcess(%d)", nProjectID), h;
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		lt.Reset(); 
 		h = sim.LoadSim(); lt.Log(L"LoadSim");
- 		if FAILED(h) return Logf(STATUS_FAIL, L"AVProcess(%d)", nProjectID), h;
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		sim.Play(); lt.Log(L"Play");
 
 		h = sim.Update(pVisConn); lt.Log(L"Update");
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVProcess(%d)", nProjectID), h;
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		ltall.Log(L"AVProcess");
 		return Logf(dwStatus, L"AVProcess(%d)", nProjectID);
 	}
-	catch(_com_error &ce)
-	{
-		Log(ERROR_DB, ce);
-		Logf(ERROR_DBCONN, pVisConn);
-		return ce.Error();
-	}
-	catch(...)
-	{
-		return Logf(ERROR_UNKNOWN, L"AVProcess(%d)", nProjectID);
-	}
+	STD_CATCH(L"AVProcess(%d)", nProjectID);
 }
 
 ADV_API HRESULT AVIFC(AVULONG nSimulationId)
@@ -349,7 +324,6 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId)
 
 		CBuilding building;
 		h = building.LoadFromConsole(pConsoleConn, nSimulationId);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVInit(%d)", nSimulationId), h;
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		AVFLOAT fScale;
@@ -358,26 +332,15 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId)
 
 		CSim sim(&building);
 		h = sim.LoadFromConsole(pConsoleConn, nSimulationId);
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVInit(%d)", nSimulationId), h;
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		h = sim.GetBuilding()->SaveAsIFC(sim.m_strIFCFileName.c_str());
-		if FAILED(h) return Logf(STATUS_FAIL, L"AVIFC(%d)", nSimulationId), h;
 		if WARNED(h) dwStatus = STATUS_WARNING;
 		
 		lt.Log(L"AVIFC");
 		Logf(STATUS_GENERIC, L"IFC file saved to: %s", sim.m_strIFCFileName.c_str());
 		return Logf(dwStatus, L"AVIFC(%d)", nSimulationId);
 	}
-	catch(_com_error &ce)
-	{
-		Log(ERROR_DB, ce);
-		Logf(ERROR_DBCONN, pConsoleConn);
-		return ce.Error();
-	}
-	catch(...)
-	{
-		return Logf(ERROR_UNKNOWN, L"AVIFC(%d)", nSimulationId);
-	}
+	STD_CATCH(L"AVIFC(%d)", nSimulationId);
 }
 

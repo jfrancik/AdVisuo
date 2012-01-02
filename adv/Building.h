@@ -12,9 +12,15 @@ public:
 
 	struct SHAFT : public CBuildingBase::SHAFT
 	{
+		HRESULT Store(dbtools::CDataBase db, ULONG nBuildingID, AVFLOAT MachRoomSlab, AVFLOAT LiftBeamHeight, LIFT_STRUCTURE Structure, AVFLOAT IntDivBeamWidth);
+		HRESULT LoadFromConsole(dbtools::CDataBase::SELECT &sel);
+		HRESULT LoadFromVisualisation(dbtools::CDataBase::SELECT &sel, AVFLOAT &MachRoomSlab, AVFLOAT &LiftBeamHeight, LIFT_STRUCTURE &Structure, AVFLOAT &IntDivBeamWidth, AVFLOAT &IntDivBeamHeight);
 	};
 	struct STOREY : public CBuildingBase::STOREY
 	{
+		HRESULT Store(dbtools::CDataBase db, ULONG nBuildingID);
+		HRESULT LoadFromConsole(dbtools::CDataBase::SELECT &sel);
+		HRESULT LoadFromVisualisation(dbtools::CDataBase::SELECT &sel);
 	};
 
 	virtual SHAFT *CreateShaft()			{ return new SHAFT; }
@@ -24,9 +30,9 @@ public:
 
 public:
 	// IO
+	HRESULT Store(dbtools::CDataBase db, ULONG nProjectID);
 	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationID);
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectID);
-	HRESULT Store(dbtools::CDataBase db, ULONG nBuildingID);
 
 	// IFC
 	HRESULT SaveAsIFC(LPCOLESTR pFileName, bool bBrep = true, bool bPresentation = false);

@@ -20,7 +20,7 @@ public:
 	enum LIFT_STRUCTURE		{ STRUCT_CONCRETE, STRUCT_STEEL, STRUCT_UNKNOWN = -1 };
 
 	// Shaft Layout data
-	struct SHAFT
+	struct SHAFT : public dbtools::CCollection
 	{
 		CBuildingBase *m_pBuilding;				// main building
 
@@ -83,7 +83,7 @@ public:
 	};
 
 	// Storey Data
-	struct STOREY
+	struct STOREY : public dbtools::CCollection
 	{
 		CBuildingBase *m_pBuilding;				// main building
 
