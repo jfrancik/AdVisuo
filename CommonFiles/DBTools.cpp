@@ -1,4 +1,4 @@
-// DBTools.cpp - AdVisuo Common Source File
+﻿// DBTools.cpp - AdVisuo Common Source File
 
 #include "StdAfx.h"
 #include "DBTools.h"
@@ -30,11 +30,26 @@ static string _wstr2str(wstring str)
 	return s; 
 }
 
+std::wstring _value_error::ErrorMessage()
+{
+	std::wstring types[] = { L"NULL", L"int", L"bool", L"float", L"date", L"string", L"symbol" };
+	wstringstream s;
+	switch (_error)
+	{
+		case E_VALUE_BAD_VARIANT:		s << L"Cannot convert data from VARIANT (VT = " << _i1 << L")"; break;
+		case E_VALUE_BAD_CONVERSION:	s << L"Cannot convert value from " << types[_i1] << L" to " << types[_i2]; break;
+		case E_VALUE_BAD_DATE_FORMAT:	s << L"Format of date/time value is inconsistent with ISO 8601"; break;
+		case E_VALUE_BAD_XS_TYPE:		s << L"Format of type string definition inconsistent with XML Schema"; break;
+		default:						s << L"Unrecognised error (CValue related)"; break;
+	}
+	return s.str();
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 // CValue
 
 CValue::CValue()			 { type = V_INT;	this->i = 0; }
-CValue::CValue(bool b)		 { type = V_INT;	this->i = b;}
+CValue::CValue(bool b)		 { type = V_BOOL;	this->b = b;}
 CValue::CValue(FLOAT f)		 { type = V_FLOAT;	this->f = f; }
 CValue::CValue(ULONG u)		 { type = V_INT;	this->i = u; }
 CValue::CValue(LONG n)		 { type = V_INT;	this->i = n; }
@@ -57,28 +72,31 @@ CValue::CValue(_variant_t v)
 	case VT_R8:
 	case VT_CY:
 	case VT_DECIMAL:type = V_FLOAT;	f = v;	break;
+	case VT_BOOL:	type = V_BOOL;  b = v;  break;
 	case VT_DATE:	type = V_DATE;	d = v;	break;
 	case VT_BSTR:	type = V_STRING;s = (_bstr_t)v;	break;
-	default:		throw *this;
+	default:		throw _value_error(_value_error::E_VALUE_BAD_VARIANT, v.vt);
 	}
 }
 
-CValue::operator BOOL()				
+CValue::operator BOOL()
 {
 	switch (type)
 	{
+	case V_BOOL:	return b;
 	case V_INT:		return i;
-	default:		throw *this; 
+	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_BOOL); 
 	}
 }
 
 CValue::operator FLOAT()
-{ 
+{
 	switch (type)
 	{
 	case V_FLOAT:	return f;
+	case V_BOOL:	return (FLOAT)b;
 	case V_INT:		return (FLOAT)i;
-	default:		throw *this; 
+	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_FLOAT);
 	}
 }
 
@@ -87,8 +105,9 @@ CValue::operator ULONG()
 	switch (type)
 	{
 	case V_FLOAT:	return (ULONG)f;
+	case V_BOOL:	return (ULONG)b;
 	case V_INT:		return (ULONG)i;
-	default:		throw *this; 
+	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_INT);
 	}
 }
 
@@ -97,8 +116,9 @@ CValue::operator LONG()
 	switch (type)
 	{
 	case V_FLOAT:	return (LONG)f;
+	case V_BOOL:	return (LONG)b;
 	case V_INT:		return (LONG)i;
-	default:		throw *this; 
+	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_INT);
 	}
 }
 
@@ -107,23 +127,27 @@ CValue::operator DATE()
 	switch (type)
 	{
 	case V_DATE:	return d;
-	default:		throw *this; 
+	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_DATE);
 	}
 }
 
 CValue::operator wstring()
 {
-	wstringstream str;
 	switch (type)
 	{
-	case V_NULL:	str << "NULL";	break;
-	case V_INT:		str << i;		break;
-	case V_FLOAT:	str << f;		break;
-	case V_DATE:	throw *this;	// not implemented
-	case V_STRING:	str << s;		break;
-	case V_SYMBOL:	str << s;		break;
+	case V_NULL:	return L"NULL";
+	case V_BOOL:	return to_wstring((_LONGLONG)b);
+	case V_INT:		return to_wstring((_LONGLONG)i);
+	case V_FLOAT:	return to_wstring((long double)f);
+	case V_DATE:
+		{
+			COleDateTime date = d;
+			return wstring(date.Format());
+		}
+	case V_STRING:	return s;
+	case V_SYMBOL:	return s;
+	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_STRING);
 	}
-	return str.str();
 }
 
 CValue::operator string()
@@ -131,30 +155,86 @@ CValue::operator string()
 	return _wstr2str(operator wstring());
 }
 
-string CValue::escaped()
+std::wstring CValue::as_type()
+{
+	switch (type)
+	{
+	case V_INT:		return L"xs:int";
+	case V_BOOL:	return L"xs:boolean";
+	case V_FLOAT:	return L"xs:double";
+	case V_DATE:	return L"xs:dateTime";
+	case V_STRING:	return L"xs:string";
+	case V_SYMBOL:	return L"xs:string";
+	default:		return L"";
+	}
+}
+
+void CValue::from_string(std::string sv)
+{
+	switch (type)
+	{
+	case V_NULL:	break;
+	case V_BOOL:	b = (sv == "1" || sv == "T" || sv == "t" || sv == "true" || sv == "TRUE"); break;
+	case V_INT:		i = stoi(sv); break;
+	case V_FLOAT:	f = stof(sv); break;
+	case V_DATE:	sv = sv.substr(0, 10) + " " + sv.substr(11, 8);
+					if FAILED(VarDateFromStr(_str2wstr(sv).c_str(), LANG_USER_DEFAULT, 0, &d)) throw _value_error(_value_error::E_VALUE_BAD_DATE_FORMAT);
+					break;
+	case V_STRING:	s = _str2wstr(sv); break;
+	case V_SYMBOL:	s = _str2wstr(sv); break;
+	}
+}
+
+void CValue::from_wstring(std::wstring wsv)
+{
+	switch (type)
+	{
+	case V_NULL:	break;
+	case V_BOOL:	b = (wsv == L"1" || wsv == L"T" || wsv == L"t" || wsv == L"true" || wsv == L"TRUE"); break;
+	case V_INT:		i = stoi(wsv); break;
+	case V_FLOAT:	f = stof(wsv); break;
+	case V_DATE:	wsv = wsv.substr(0, 10) + L" " + wsv.substr(11, 8);
+					if FAILED(VarDateFromStr(wsv.c_str(), LANG_USER_DEFAULT, 0, &d)) throw _value_error(_value_error::E_VALUE_BAD_DATE_FORMAT);
+					break;
+	case V_STRING:	s = wsv;		break;
+	case V_SYMBOL:	s = wsv;		break;
+	}
+}
+
+void CValue::from_type(std::wstring type)
+{
+	if (type == L"xs:string")
+		*this = L"";
+	else if (type == L"xs:decimal")
+		*this = 0.0f;
+	else if (type == L"xs:double")
+		*this = 0.0f;
+	else if (type == L"xs:integer")
+		*this = (ULONG)0;
+	else if (type == L"xs:int")
+		*this = (ULONG)0;
+	else if (type == L"xs:boolean")
+		*this = false;
+	else if (type == L"xs:date")
+		*this = (DATE)0;
+	else if (type == L"xs:time")
+		*this = (DATE)0;
+	else if (type == L"xs:dateTime")
+		*this = (DATE)0;
+	else
+		throw _value_error(_value_error::E_VALUE_BAD_XS_TYPE);
+}
+
+wstring CValue::escaped()
 {
 	if (type == V_STRING)
 	{
-		stringstream str;
-		str << "'" << (string)(*this) << "'";
+		wstringstream str;
+		str << L"'" << (wstring)(*this) << L"'";
 		return str.str();
 	}
 	else
 		return *this;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-// CCollection
-
-void CCollection::replace_key(std::string old_key, std::string new_key)
-{
-	if (old_key == new_key) return;
-	CCollection::iterator i = find(old_key);
-	if (i != end())
-	{
-		(*this)[new_key] = (*this)[old_key];
-		erase(i);
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,40 +251,40 @@ CDataBase::CDataBase(LPCOLESTR pConnectionString)
 }
 
 // execute any SQL statement
-void CDataBase::execute(const char *query, ...)
+void CDataBase::execute(const wchar_t *query, ...)
 {
-	char out[1024];
-	va_list body; va_start(body, query); vsprintf_s(out, query, body); va_end(body);
+	wchar_t out[1024];
+	va_list body; va_start(body, query); vswprintf_s(out, query, body); va_end(body);
 	m_h = m_connection->Execute(out, NULL, 1);
 	if FAILED(m_h) throw m_h;
 }
 
 // SQL SELECT
-CDataBase::SELECT CDataBase::select(const char *query, ...)
+CDataBase::SELECT CDataBase::select(const wchar_t *query, ...)
 {
-	char out[1024];
-	va_list body; va_start(body, query); vsprintf_s(out, query, body); va_end(body);
+	wchar_t out[1024];
+	va_list body; va_start(body, query); vswprintf_s(out, query, body); va_end(body);
 	return CDataBase::SELECT(*this, out);
 }
 
 // SQL INSERT
-CDataBase::INSERT CDataBase::insert(const char *table)
+CDataBase::INSERT CDataBase::insert(const wchar_t *table)
 { 
 	return CDataBase::INSERT(this, table); 
 }
 
 // SQL UPDATE
-CDataBase::UPDATE CDataBase::update(const char *table, const char *where_clause, ...)
+CDataBase::UPDATE CDataBase::update(const wchar_t *table, const wchar_t *where_clause, ...)
 { 
-	char out[1024];
-	va_list body; va_start(body, where_clause); vsprintf_s(out, where_clause, body); va_end(body);
+	wchar_t out[1024];
+	va_list body; va_start(body, where_clause); vswprintf_s(out, where_clause, body); va_end(body);
 	return CDataBase::UPDATE(this, table, out);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // CDataBase::SELECT
 
-CDataBase::SELECT::SELECT(CDataBase &db, const char *query)
+CDataBase::SELECT::SELECT(CDataBase &db, const wchar_t *query)
 {
 	m_h = m_recordset.CreateInstance(__uuidof(ADODB::Recordset));
 	if FAILED(m_h) throw m_h;
@@ -223,49 +303,49 @@ void CDataBase::SELECT::operator >> (CCollection &coll)
 
 void CDataBase::QUERY::operator << (CCollection &coll)
 {
-	for each (pair<string, CValue> p in coll)
+	for each (pair<wstring, CValue> p in coll)
 		(*this)[p.first] = p.second;
 }
 
-string CDataBase::INSERT::query()
+wstring CDataBase::INSERT::query()
 {
-	stringstream str;
+	wstringstream str;
 	bool bComma;
 
-	str << "INSERT INTO " << table << "(";
+	str << L"INSERT INTO " << table << L"(";
 	bComma = false;
-	for each (pair<string, CValue> p in *this)
+	for each (pair<wstring, CValue> p in *this)
 	{
-		if (bComma) str << ", ";
+		if (bComma) str << L", ";
 		bComma = true;
 		str << p.first;
 	}
 
-	str << ") VALUES (";
+	str << L") VALUES (";
 	bComma = false;
-	for each (pair<string, CValue> p in *this)
+	for each (pair<wstring, CValue> p in *this)
 	{
-		if (bComma) str << ", ";
+		if (bComma) str << L", ";
 		bComma = true;
-		str << (string)p.second.escaped();
+		str << (wstring)p.second.escaped();
 	}
 
-	str << ")";
+	str << L")";
 	return str.str();
 }
 
-string CDataBase::UPDATE::query()
+wstring CDataBase::UPDATE::query()
 {
-	stringstream str;
-	str << "UPDATE " << table << " SET ";
+	wstringstream str;
+	str << L"UPDATE " << table << L" SET ";
 	bool bComma = false;
-	for each (pair<string, CValue> p in *this)
+	for each (pair<wstring, CValue> p in *this)
 	{
-		if (bComma) str << ", ";
+		if (bComma) str << L", ";
 		bComma = true;
-		str << p.first << "=" << (string)p.second.escaped();
+		str << p.first << L"=" << (wstring)p.second.escaped();
 	}
 
-	str << " " << where_clause;
+	str << L" " << where_clause;
 	return str.str();
 }

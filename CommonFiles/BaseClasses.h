@@ -8,7 +8,7 @@
 class CLiftBase;
 class CPassengerBase;
 
-class CSimBase
+class CSimBase : public dbtools::CCollection
 {
 protected:
 	CBuildingBase *m_pBuilding;
@@ -73,7 +73,7 @@ protected:
 	virtual CLiftBase *CreateLift(AVULONG nId) = 0;
 };
 
-class CLiftBase
+class CLiftBase : public dbtools::CCollection
 {
 protected:
 	CSimBase *m_pSim;			// main sim object
@@ -102,7 +102,7 @@ public:
 	void AddJourney(JOURNEY &j)		{ m_journeys.push_back(j); }
 };
 
-class CPassengerBase
+class CPassengerBase : public dbtools::CCollection
 {
 protected:
 	CSimBase *m_pSim;

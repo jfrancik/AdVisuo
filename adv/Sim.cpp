@@ -33,8 +33,8 @@ HRESULT CSim::LoadSim()
 
 	// check single/double decker consistency
 	for (AVULONG i = 0; i < (ULONG)loader.nLifts;i++)
-		if ((loader.pLifts[i].nDecks == 1 && GetBuilding()->GetShaft(i)->TypeOfLift == CBuildingBase::LIFT_DOUBLE_DECK)
-		|| (loader.pLifts[i].nDecks > 1 && GetBuilding()->GetShaft(i)->TypeOfLift == CBuildingBase::LIFT_SINGLE_DECK))
+		if ((loader.pLifts[i].nDecks == 1 && GetBuilding()->GetShaft(i)->GetType() == CBuildingBase::LIFT_DOUBLE_DECK)
+		|| (loader.pLifts[i].nDecks > 1 && GetBuilding()->GetShaft(i)->GetType() == CBuildingBase::LIFT_SINGLE_DECK))
 			return Log(ERROR_FILE_INCONSISTENT_DECKS);
 
 	m_nSIMVersionID = loader.nVersion;
@@ -79,7 +79,7 @@ HRESULT CSim::FindProjectID(CDataBase db, ULONG nSimulationID, ULONG &nProjectID
 	CDataBase::SELECT sel;
 		
 	// Query for Project Data (test for any existing)
-	sel = db.select("SELECT MAX(ID) AS id FROM AVProjects WHERE SimulationID=%d", nSimulationID);
+	sel = db.select(L"SELECT MAX(ID) AS id FROM AVProjects WHERE SimulationID=%d", nSimulationID);
 	if (!sel) return S_FALSE;
 
 	if (sel[L"id"].isNull()) return S_FALSE;
@@ -93,13 +93,13 @@ HRESULT CSim::LoadFromConsole(CDataBase db, ULONG nSimulationID)
 	CDataBase::SELECT sel;
 
 	// Query for Simulations (for project id)
-	sel = db.select("SELECT * FROM Simulations WHERE SimulationId=%d", nSimulationID);
+	sel = db.select(L"SELECT * FROM Simulations WHERE SimulationId=%d", nSimulationID);
 	if (!sel) throw ERROR_PROJECT;
 	AVULONG nProjectId = sel[L"ProjectId"];
 
 
 	// Query for Projects (project general information)
-	sel = db.select("SELECT * FROM Projects WHERE ProjectId=%d", nProjectId);
+	sel = db.select(L"SELECT * FROM Projects WHERE ProjectId=%d", nProjectId);
 	if (!sel) throw ERROR_PROJECT;
 	m_strProjectName = sel[L"ProjectName"];
 	m_strLanguage = sel[L"Languaje"];
@@ -116,13 +116,13 @@ HRESULT CSim::LoadFromConsole(CDataBase db, ULONG nSimulationID)
 
 
 	// Query for Files (SIM file path)
-	sel = db.select("SELECT * FROM FilePaths WHERE SimulationId=%d", nSimulationID);
+	sel = db.select(L"SELECT * FROM FilePaths WHERE SimulationId=%d", nSimulationID);
 	if (!sel) throw ERROR_PROJECT;
 	m_strSIMFileName = sel[L"SimPath"];
 	m_strIFCFileName = sel[L"VisPath"];
 
 	// Query for AnalysisTypeDataSets (SIM file path)
-	sel = db.select("SELECT * FROM AnalysisTypeDataSets WHERE SimulationId=%d", nSimulationID);
+	sel = db.select(L"SELECT * FROM AnalysisTypeDataSets WHERE SimulationId=%d", nSimulationID);
 	if (!sel) throw ERROR_PROJECT;
 	std::wstring strAlgorithm = sel[L"Algorithm"];
 
@@ -142,7 +142,7 @@ HRESULT CSim::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 	CDataBase::SELECT sel;
 		
 	// Query for Project Data (for project id)
-	sel = db.select("SELECT * FROM AVProjects WHERE ID=%d", m_nProjectID);
+	sel = db.select(L"SELECT * FROM AVProjects WHERE ID=%d", m_nProjectID);
 	if (!sel) throw ERROR_DATA_NOT_FOUND;
 	m_strSIMFileName = sel[L"SIMFileName"];
 	m_strIFCFileName = sel[L"IFCFileName"];
@@ -165,41 +165,41 @@ HRESULT CSim::Store(CDataBase db, ULONG nSimulationID)
 		m_nBldLifts = GetBuilding()->GetLiftCount();
 	}
 
-	CDataBase::INSERT ins = db.insert("AVProjects");
-	ins["SimulationID"] = nSimulationID;
-	ins["SIMVersionID"] = m_nSIMVersionID;
-	ins["AVVersionID"] = (float)(((AVFLOAT)CSim::GetVersion())/100.0);
-	ins["Floors"] = m_nBldFloors;
-	ins["Shafts"] = m_nBldShafts;
-	ins["Lifts"] = m_nBldLifts;
-	ins["Passengers"] = (ULONG)0;
-	ins["SimulationTime"] = (ULONG)0;
-	ins["JourneysSaved"] = (ULONG)0;
-	ins["PassengersSaved"] = (ULONG)0;
-	ins["TimeSaved"] = (ULONG)0;
-	ins["SavedAll"] = (ULONG)0;
-	ins["SIMFileName"] = m_strSIMFileName;
-	ins["IFCFileName"] = m_strIFCFileName;
-	ins["ProjectName"] = m_strProjectName;
-	ins["Language"] = m_strLanguage;
-	ins["MeasurementUnits"] = m_strMeasurementUnits;
-	ins["BuildingName"] = m_strBuildingName;
-	ins["ClientCompany"] = m_strClientCompanyName;
-	ins["City"] = m_strCity;
-	ins["LBRegionDistrict"] = m_strLBRegionDistrict;
-	ins["StateCounty"] = m_strStateCounty;
-	ins["LiftDesigner"] = m_strLiftDesigner;
-	ins["Country"] = m_strCountry;
-	ins["CheckedBy"] = m_strCheckedBy;
-	ins["PostalZipCode"] = m_strPostalZipCode;
-	ins["Algorithm"] = (ULONG)m_nAlgorithm;
-	ins["TimeStamp"] = L"CURRENT_TIMESTAMP";
-	ins["TimeStamp"].act_as_symbol();
+	CDataBase::INSERT ins = db.insert(L"AVProjects");
+	ins[L"SimulationID"] = nSimulationID;
+	ins[L"SIMVersionID"] = m_nSIMVersionID;
+	ins[L"AVVersionID"] = (float)(((AVFLOAT)CSim::GetVersion())/100.0);
+	ins[L"Floors"] = m_nBldFloors;
+	ins[L"Shafts"] = m_nBldShafts;
+	ins[L"Lifts"] = m_nBldLifts;
+	ins[L"Passengers"] = (ULONG)0;
+	ins[L"SimulationTime"] = (ULONG)0;
+	ins[L"JourneysSaved"] = (ULONG)0;
+	ins[L"PassengersSaved"] = (ULONG)0;
+	ins[L"TimeSaved"] = (ULONG)0;
+	ins[L"SavedAll"] = (ULONG)0;
+	ins[L"SIMFileName"] = m_strSIMFileName;
+	ins[L"IFCFileName"] = m_strIFCFileName;
+	ins[L"ProjectName"] = m_strProjectName;
+	ins[L"Language"] = m_strLanguage;
+	ins[L"MeasurementUnits"] = m_strMeasurementUnits;
+	ins[L"BuildingName"] = m_strBuildingName;
+	ins[L"ClientCompany"] = m_strClientCompanyName;
+	ins[L"City"] = m_strCity;
+	ins[L"LBRegionDistrict"] = m_strLBRegionDistrict;
+	ins[L"StateCounty"] = m_strStateCounty;
+	ins[L"LiftDesigner"] = m_strLiftDesigner;
+	ins[L"Country"] = m_strCountry;
+	ins[L"CheckedBy"] = m_strCheckedBy;
+	ins[L"PostalZipCode"] = m_strPostalZipCode;
+	ins[L"Algorithm"] = (ULONG)m_nAlgorithm;
+	ins[L"TimeStamp"] = L"CURRENT_TIMESTAMP";
+	ins[L"TimeStamp"].act_as_symbol();
 	ins.execute();
 		
 	// retrieve the Project ID
 	CDataBase::SELECT sel;
-	sel = db.select("SELECT SCOPE_IDENTITY()");
+	sel = db.select(L"SELECT SCOPE_IDENTITY()");
 	m_nProjectID = sel[(short)0];
 
 	// Store the Building
@@ -242,17 +242,17 @@ HRESULT CSim::Update(CDataBase db, AVLONG nTime)
 		m_nBldLifts = GetBuilding()->GetLiftCount();
 	}
 
-	CDataBase::UPDATE upd = db.update("AVProjects", "WHERE ID=%d", m_nProjectID);
-	upd["SIMVersionID"] = m_nSIMVersionID;
-	upd["Floors"] = m_nBldFloors;
-	upd["Shafts"] = m_nBldShafts;
-	upd["Lifts"] = m_nBldLifts;
-	upd["Passengers"] = GetPassengerCount();
-	upd["SimulationTime"] = m_nSimulationTime;
-	upd["JourneysSaved"] = m_nJourneysSaved;
-	upd["PassengersSaved"] = m_nPassengersSaved;
-	upd["TimeSaved"] = m_nTimeSaved;
-	upd["SavedAll"] = m_bSavedAll;
+	CDataBase::UPDATE upd = db.update(L"AVProjects", L"WHERE ID=%d", m_nProjectID);
+	upd[L"SIMVersionID"] = m_nSIMVersionID;
+	upd[L"Floors"] = m_nBldFloors;
+	upd[L"Shafts"] = m_nBldShafts;
+	upd[L"Lifts"] = m_nBldLifts;
+	upd[L"Passengers"] = GetPassengerCount();
+	upd[L"SimulationTime"] = m_nSimulationTime;
+	upd[L"JourneysSaved"] = m_nJourneysSaved;
+	upd[L"PassengersSaved"] = m_nPassengersSaved;
+	upd[L"TimeSaved"] = m_nTimeSaved;
+	upd[L"SavedAll"] = m_bSavedAll;
 	upd.execute();
 
 	return S_OK;
@@ -261,23 +261,23 @@ HRESULT CSim::Update(CDataBase db, AVLONG nTime)
 HRESULT CSim::CleanUp(CDataBase db, ULONG nSimulationID)
 {
 	if (!db) throw db;
-	db.execute("DELETE FROM AVPassengers WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
-	db.execute("DELETE FROM AVJourneys WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
-	db.execute("DELETE FROM AVFloors WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
-	db.execute("DELETE FROM AVShafts WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
-	db.execute("DELETE FROM AVBuildings WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
-	db.execute("DELETE FROM AVProjects WHERE SimulationID=%d", nSimulationID);
+	db.execute(L"DELETE FROM AVPassengers WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
+	db.execute(L"DELETE FROM AVJourneys WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
+	db.execute(L"DELETE FROM AVFloors WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
+	db.execute(L"DELETE FROM AVShafts WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
+	db.execute(L"DELETE FROM AVBuildings WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
+	db.execute(L"DELETE FROM AVProjects WHERE SimulationID=%d", nSimulationID);
 	return S_OK;
 }
 
 HRESULT CSim::CleanUpAll(CDataBase db)
 {
 	if (!db) throw db;
-	db.execute("DELETE FROM AVPassengers");
-	db.execute("DELETE FROM AVJourneys");
-	db.execute("DELETE FROM AVFloors");
-	db.execute("DELETE FROM AVShafts");
-	db.execute("DELETE FROM AVProjects");
-	db.execute("DELETE FROM AVBuildings");
+	db.execute(L"DELETE FROM AVPassengers");
+	db.execute(L"DELETE FROM AVJourneys");
+	db.execute(L"DELETE FROM AVFloors");
+	db.execute(L"DELETE FROM AVShafts");
+	db.execute(L"DELETE FROM AVProjects");
+	db.execute(L"DELETE FROM AVBuildings");
 	return S_OK;
 }

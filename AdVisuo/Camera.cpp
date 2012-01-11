@@ -46,8 +46,8 @@ void CCamera::SetBuilding(CBuilding *pBuilding)
 	m_box = m_pBuilding->m_box;
 
 	AVFLOAT nLWall = 0, nRWall = 0;
-	if (m_pBuilding->LobbyArrangement == CBuilding::LOBBY_DEADEND_LEFT)  nLWall = m_pBuilding->m_box.LeftThickness();
-	if (m_pBuilding->LobbyArrangement == CBuilding::LOBBY_DEADEND_RIGHT) nRWall = m_pBuilding->m_box.RightThickness();
+	if (m_pBuilding->GetLobbyArrangement() == CBuilding::LOBBY_DEADEND_LEFT)  nLWall = m_pBuilding->m_box.LeftThickness();
+	if (m_pBuilding->GetLobbyArrangement() == CBuilding::LOBBY_DEADEND_RIGHT) nRWall = m_pBuilding->m_box.RightThickness();
 
 	m_box = BOX(
 		m_pBuilding->m_box.Left() + 2 + nLWall,
@@ -279,7 +279,7 @@ void CCamera::GetCameraPos_Lift(AVULONG nLiftId, AVFLOAT fAspect, CAMPARAMS &cp)
 	AVFLOAT fTargetDist = box.Depth();					// distance to the point the camera is looking at
 	AVFLOAT nTargetHeight = m_nTripodHeight * 2 / 4;	// height of the point the camera is looking at
 
-	AVFLOAT fLine = (m_pBuilding->GetShaft(nLiftId)->ShaftLine == 0) ? 1.0f : -1.0f;
+	AVFLOAT fLine = (m_pBuilding->GetShaft(nLiftId)->GetShaftLine() == 0) ? 1.0f : -1.0f;
 	
 	cp.m_pEyeRef = m_pBaseBone;
 	cp.eye = Vector(box.Width()/2, box.Depth()+fLine*10, fEyeHeight);

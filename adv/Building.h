@@ -12,9 +12,9 @@ public:
 
 	struct SHAFT : public CBuildingBase::SHAFT
 	{
-		HRESULT Store(dbtools::CDataBase db, ULONG nBuildingID, AVFLOAT MachRoomSlab, AVFLOAT LiftBeamHeight, LIFT_STRUCTURE Structure, AVFLOAT IntDivBeamWidth);
+		HRESULT Store(dbtools::CDataBase db, ULONG nBuildingID);
 		HRESULT LoadFromConsole(dbtools::CDataBase::SELECT &sel);
-		HRESULT LoadFromVisualisation(dbtools::CDataBase::SELECT &sel, AVFLOAT &MachRoomSlab, AVFLOAT &LiftBeamHeight, LIFT_STRUCTURE &Structure, AVFLOAT &IntDivBeamWidth, AVFLOAT &IntDivBeamHeight);
+		HRESULT LoadFromVisualisation(dbtools::CDataBase::SELECT &sel);
 	};
 	struct STOREY : public CBuildingBase::STOREY
 	{

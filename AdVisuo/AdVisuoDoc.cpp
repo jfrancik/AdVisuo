@@ -105,6 +105,10 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 			else
 				err << ce.ErrorMessage();
 		}
+		catch (dbtools::_value_error ve)
+		{
+			err << "Error while analysing downloaded data: " << ve.ErrorMessage() << ".";
+		}
 		catch(...)
 		{
 			err << L"Unidentified errors while loading from " << lpszPathName;
@@ -141,6 +145,10 @@ BOOL CAdVisuoDoc::OnSaveDocument(LPCTSTR lpszPathName)
 			err << ce.Description();
 		else
 			err << ce.ErrorMessage();
+	}
+	catch (dbtools::_value_error ve)
+	{
+		err << "Error while analysing downloaded data: " << ve.ErrorMessage() << ".";
 	}
 	catch(...)
 	{
@@ -232,6 +240,10 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	{
 		str << L"HTTP error " << xe.status() << L": " << xe.msg() << L" at " << m_http.URL() << L".";
 	}
+	catch (dbtools::_value_error ve)
+	{
+		str << "Error while analysing downloaded data: " << ve.ErrorMessage() << ".";
+	}
 	catch(...)
 	{
 		str << L"Unidentified errors while downloading from " << m_http.URL();
@@ -283,6 +295,10 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded(IAction *pActionTick)
 	catch (_xmlreq_error xe)
 	{
 		str << L"HTTP error " << xe.status() << L": " << xe.msg() << L" at " << m_http.URL() << L".";
+	}
+	catch (dbtools::_value_error ve)
+	{
+		str << "Error while analysing downloaded data: " << ve.ErrorMessage() << ".";
 	}
 	catch(...)
 	{

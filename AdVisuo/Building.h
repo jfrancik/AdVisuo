@@ -3,7 +3,7 @@
 #pragma once
 
 #include "../CommonFiles/BaseBuilding.h"
-#include <xmllite.h>
+#include "../CommonFiles/XMLTools.h"
 #include <functional>
 
 interface ISceneObject;
@@ -54,10 +54,6 @@ public:
 	{
 	public:
 		CBuilding *GetBuilding()				{ return (CBuilding *)CBuildingBase::SHAFT::GetBuilding(); }
-
-		// XML Parse/Feed
-		void XParse(CComPtr<IXmlReader> pReader, LPCWSTR pTagName, CBuilding *pBuilding);
-		void XFeed(CComPtr<IXmlWriter> pWriter, AVULONG nIdBuilding, LPCWSTR pTagName);
 	};
 	struct STOREY : public CBuildingBase::STOREY
 	{
@@ -84,17 +80,9 @@ public:
 		void Construct(AVLONG iStorey);
 
 		void Deconstruct();
-	
-		// XML Parse/Feed
-		void XParse(CComPtr<IXmlReader> pReader, LPCWSTR pTagName);
-		void XFeed(CComPtr<IXmlWriter> pWriter, AVULONG nIdBuilding, LPCWSTR pTagName);
 	};
 
 public:
-	// XML Parse/Feed
-	void XParse(CComPtr<IXmlReader> pReader, LPCWSTR pTagName);
-	void XFeed(CComPtr<IXmlWriter> pWriter, LPCWSTR pTagName);
-
 // Main Implementation
 public:
 	virtual SHAFT *CreateShaft()			{ return new SHAFT; }

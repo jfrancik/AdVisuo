@@ -3,8 +3,7 @@
 #pragma once
 
 #include "../CommonFiles/BaseClasses.h"
-
-#include <xmllite.h>
+#include "../CommonFiles/XMLTools.h"
 #include <list>
 
 interface IBody;
@@ -32,8 +31,7 @@ public:
 // Operations
 
 	// XML Parse/Feed
-	void XParse(CComPtr<IXmlReader> pReader, LPCWSTR pTagName);
-	void XFeed(CComPtr<IXmlWriter> pWriter, LPCWSTR pTagName);
+	void dupaSetupVars();
 
 	void Play(IAction *pActionTick);
 	void Render(IRenderer *pRenderer, AVLONG nPhase = 0);

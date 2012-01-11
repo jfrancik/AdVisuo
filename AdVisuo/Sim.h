@@ -72,32 +72,21 @@ public:
 	void SetTimeLowerBound(AVLONG n){ m_nTimeLowerBound = n; }
 
 	// XML Load/Store/Parse/Feed --- throw _com_error or _sim_errror
-protected:
-	static CComPtr<IXmlReader> GetReaderFromBuf(LPCOLESTR pBuf);
-	static CComPtr<IXmlWriter> GetWriterToBuf(LPCOLESTR pBuf, size_t nSize);
-	static CComPtr<IXmlReader> GetReaderFromFile(LPCOLESTR pFileName);
-	static CComPtr<IXmlWriter> GetWriterToFile(LPCOLESTR pFileName);
 public:
 
+	void LoadFromBuf(LPCOLESTR pBuf)										{ Load(pBuf); }
+	void LoadFromFile(LPCOLESTR pFileName)									{ Load((std::wstring)pFileName); }
+	void Load(xmltools::CXmlReader reader);
 
-
-
-
-
-	void LoadFromBuf(LPCOLESTR pBuf)										{ Load(GetReaderFromBuf(pBuf)); }
-	void LoadFromFile(LPCOLESTR pFileName)									{ Load(GetReaderFromFile(pFileName)); }
-	void Load(CComPtr<IXmlReader> pReader);
-
-	void StoreToFile(LPCOLESTR pFileName)									{ Store(GetWriterToFile(pFileName)); }
+	void StoreToFile(LPCOLESTR pFileName)									{ Store((std::wstring)pFileName); }
 	void StoreToBuf(LPOLESTR pBuffer, size_t nSize)							{ ASSERT(FALSE); } // not implemented at the moment
-	void Store(CComPtr<IXmlWriter> pWriter);
+	void Store(xmltools::CXmlWriter writer);
 
-	static void LoadIndexFromBuf(LPCOLESTR pBuf, vector<CSim*> &sims)		{ LoadIndex(GetReaderFromBuf(pBuf), sims); }
-	static void LoadIndexFromFile(LPCOLESTR pFileName, vector<CSim*> &sims)	{ LoadIndex(GetReaderFromFile(pFileName), sims); }
-	static void LoadIndex(CComPtr<IXmlReader> pReader, vector<CSim*>&);
+	static void LoadIndexFromBuf(LPCOLESTR pBuf, vector<CSim*> &sims)		{ LoadIndex(pBuf, sims); }
+	static void LoadIndexFromFile(LPCOLESTR pFileName, vector<CSim*> &sims)	{ LoadIndex((std::wstring)pFileName, sims); }
+	static void LoadIndex(xmltools::CXmlReader reader, vector<CSim*>&);
 
-	void XParse(CComPtr<IXmlReader> pReader, LPCWSTR pTagName);
-	void XFeed(CComPtr<IXmlWriter> pWriter, LPCWSTR pTagName);
+	void dupaSetupVars();
 
 	// repository
 	IBody *GetBody();

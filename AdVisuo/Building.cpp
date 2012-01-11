@@ -358,7 +358,7 @@ void CBuilding::STOREY::Construct(AVLONG iStorey)
 		SHAFT *pPrevShaft = (j != 0 && j != GetBuilding()->GetShaftCount(0)) ? GetBuilding()->GetShaft(j-1) : GetBuilding()->GetShaft(j);
 		AVFLOAT fBeamLen;
 				
-		switch (pShaft->ShaftLine)
+		switch (pShaft->GetShaftLine())
 		{
 		case 0:
 			{
@@ -475,7 +475,7 @@ void CBuilding::Construct(AVSTRING pLabel, AVVECTOR v)
 //		SHAFT *pShaft = GetShaft(i < 5 ? 0 : 1);
 		SHAFT *pShaft = GetShaft(i);
 
-		AVULONG nDecks = (pShaft->TypeOfLift == LIFT_DOUBLE_DECK) ? DECK_NUM : 1;
+		AVULONG nDecks = (pShaft->GetType() == LIFT_DOUBLE_DECK) ? DECK_NUM : 1;
 
 		// Create skeletal elements (entire lift)
 		_snwprintf(buf, 256, L"Lift_%d", i);

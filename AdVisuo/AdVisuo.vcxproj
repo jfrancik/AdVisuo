@@ -127,6 +127,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\CommonFiles\BaseData.cpp" />
+    <ClCompile Include="..\CommonFiles\DBTools.cpp" />
+    <ClCompile Include="..\CommonFiles\XMLTools.cpp" />
     <ClCompile Include="AdVisuo.cpp" />
     <ClCompile Include="AdVisuoDoc.cpp" />
     <ClCompile Include="AdVisuoView.cpp" />
@@ -153,6 +155,8 @@
     <ClCompile Include="xmlrequest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\CommonFiles\DBTools.h" />
+    <ClInclude Include="..\CommonFiles\XMLTools.h" />
     <ClInclude Include="AdVisuo.h" />
     <ClInclude Include="AdVisuoDoc.h" />
     <ClInclude Include="AdVisuoView.h" />

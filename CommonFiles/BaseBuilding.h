@@ -22,6 +22,7 @@ public:
 	// Shaft Layout data
 	struct SHAFT : public dbtools::CCollection
 	{
+	private:
 		CBuildingBase *m_pBuilding;				// main building
 
 		// CONSOLE based data
@@ -63,6 +64,7 @@ public:
 		AVFLOAT ShaftPos;						// left side of the Lift shaft, without the LeftBeam
 		AVFLOAT ShaftRPos;						// right side of the Lift shaft, without the RightBeam
 
+	public:
 		// Scaled Dimensions - set by Scale
 		BOX m_box;								// scaled shaft plan
 		BOX m_boxDoor;							// scaled shaft door plan
@@ -71,10 +73,23 @@ public:
 		SHAFT();
 		virtual ~SHAFT();
 
+		// Attributes:
+		AVULONG GetId()							{ return ShaftID; }
 		CBuildingBase *GetBuilding()			{ return m_pBuilding; }
 		AVFLOAT GetShaftWidth()					{ return ShaftWidth; }
+		AVULONG GetLiftCount()					{ return NumberOfLifts; }
+		AVFLOAT GetDoorWidth()					{ return LiftDoorWidth; }
+		AVFLOAT GetDoorHeight()					{ return LiftDoorHeight; }
+		AVFLOAT GetPitDepth()					{ return PitDepth; }
+		AVFLOAT GetShaftDepth()					{ return ShaftDepth; }
+		AVFLOAT GetMachRoomHeight()				{ return MachRoomHeight; }
+		TYPE_OF_LIFT GetType()					{ return TypeOfLift; }
+
+		AVULONG GetShaftLine()					{ return ShaftLine; }
 
 		// Operations:
+		void dupaCorrect();
+		void dupaSetupVars();
 		void Resolve(CBuildingBase *pBuilding, AVULONG nIndex);
 		virtual void Scale(AVFLOAT scale);
 		bool InBox(AVVECTOR &pt)								{ return m_box.InBoxExt(pt) || m_boxDoor.InBoxExt(pt); }
@@ -85,19 +100,20 @@ public:
 	// Storey Data
 	struct STOREY : public dbtools::CCollection
 	{
+	private:
 		CBuildingBase *m_pBuilding;				// main building
 
 		// CONSOLE based data
 		AVULONG StoreyID;						// Storey Id
 		AVFLOAT HeightValue;					// Height
-
-		// New Console Based Data
 		std::wstring Name;						// storey name
 		AVFLOAT Area;							// area (m2)
 		AVFLOAT PopDensity;						// population factors
 		AVFLOAT Absentee;						// population factors
 		AVFLOAT StairFactor;					// stair factor
 		AVFLOAT Escalator;						// escalator factor
+
+	public:
 
 		// Derived (resolved) data - set by Resolve
 		AVFLOAT StoreyLevel;					// the level above the lowest storey
@@ -106,26 +122,36 @@ public:
 		AVFLOAT SH, SL;							// Storey Height (Floor to Floor), Level (from Ground)
 		BOX m_box;								// lobby floor plan (the same as building, but includes storey height - from floor to ceiling
 		
+	public:
 		STOREY();
 		virtual ~STOREY();
 
+		// Attributes
+		AVULONG GetId()							{ return StoreyID; }
 		CBuildingBase *GetBuilding()			{ return m_pBuilding; }
+		std::wstring GetName()					{ return Name; }
+		AVFLOAT GetHeight()						{ return HeightValue; }
 
 		// Operations:
+		void dupaCorrect();
+		void dupaSetupVars();
 		void Resolve(CBuildingBase *pBuilding, AVULONG nIndex);
 		virtual void Scale(AVFLOAT scale);
 		bool Within(AVVECTOR &pos)				{ return pos.z >= SL && pos.z < SL + SH; }
-		std::wstring GetName()					{ return Name; }
 	};
 
-protected:
+private:
+
+	AVULONG m_nShaftCount;
+	AVULONG m_nStoreyCount;
+	AVULONG m_nBasementStoreyCount;
 
 	// Lobby Layout Data - CONSOLE based
 	std::wstring BuildingName;
 	AVULONG nBuildingID;				// Building ID
-	AVULONG NoOfShafts;					// No. of shafts
-	AVULONG StoreysAboveGround;			// Number of Storeys above MT1
-	AVULONG StoreysBelowGround;			// Number of Storeys below MT1
+//	AVULONG NoOfShafts;					// No. of shafts
+//	AVULONG StoreysAboveGround;			// Number of Storeys above MT1
+//	AVULONG StoreysBelowGround;			// Number of Storeys below MT1
 	SHAFT_ARRANGEMENT LiftShaftArrang;	// Lift shaft arrangements
 	LOBBY_ARRANGEMENT LobbyArrangement;	// Lobby arrangement
 	LIFT_STRUCTURE Structure;			// Structure (???)
@@ -152,6 +178,7 @@ protected:
 	BOX m_mbox;						// unscaled dimensions of everything
 
 	// Scaled Dimensions
+public:
 	AVFLOAT fScale;						// the scale factor
 	BOX m_box;							// scaled lobby floor plan (size of the lobby & its walls, zero height)
 
@@ -164,16 +191,17 @@ public:
 	~CBuildingBase(void);
 
 	AVULONG GetId()							{ return nBuildingID; }
+	void SetId(AVULONG nId)					{ nBuildingID = nId; }
 
 	BOX *GetBox()							{ return &m_box; }
 	bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
 
 	// Shafts
-	void CreateShafts();
+	void CreateShafts(AVULONG nShaftCount);
 	void DeleteShafts();
 	SHAFT *GetShaft(AVULONG i)				{ return i < GetShaftCount() ? ppShafts[i] : NULL; }
 
-	AVULONG GetShaftCount()					{ return NoOfShafts; }
+	AVULONG GetShaftCount()					{ return m_nShaftCount; }
 	AVULONG GetShaftCount(AVULONG nLine)	{ return ShaftCount[nLine]; }
 	AVULONG GetShaftLinesCount()			{ return ShaftLinesCount; }
 
@@ -182,13 +210,13 @@ public:
 //											  else return GetShaft(GetShaftsPerLineCount())->ShaftRPos - GetShaft(GetShaftCount()-1)->ShaftPos + 2 * ShaftWallThickness; }
 //	AVFLOAT GetMaxShaftLineWidth()			{ return max(GetShaftLineWidth(0), GetShaftLineWidth(1)); }
 
-	AVULONG GetLiftCount()					{ AVULONG n = 0; for (AVULONG i = 0; i < GetShaftCount(); i++) n += GetShaft(i)->NumberOfLifts; return n; }
+	AVULONG GetLiftCount()					{ AVULONG n = 0; for (AVULONG i = 0; i < GetShaftCount(); i++) n += GetShaft(i)->GetLiftCount(); return n; }
 
 	// Storeys
-	void CreateStoreys();
+	void CreateStoreys(AVULONG nStoreyCount, AVULONG nBasementStoreyCount = 0);
 	void DeleteStoreys();
-	AVULONG GetStoreyCount()				{ return StoreysBelowGround + StoreysAboveGround; }
-	AVULONG GetBasementStoreyCount()		{ return StoreysBelowGround; }
+	AVULONG GetStoreyCount()				{ return m_nStoreyCount; }
+	AVULONG GetBasementStoreyCount()		{ return m_nBasementStoreyCount; }
 	STOREY *GetStorey(AVULONG i)			{ return i < GetStoreyCount() ? ppStoreys[i] : NULL; }
 
 	// Various
@@ -199,9 +227,11 @@ public:
 
 
 	// Status
-	bool IsValid()							{ return NoOfShafts && GetStoreyCount() && ppShafts && ppStoreys && GetShaftCount(0); }
+	bool IsValid()							{ return m_nShaftCount && GetStoreyCount() && ppShafts && ppStoreys && GetShaftCount(0); }
 
 	// Calculations!
+	void dupaCorrect();
+	void dupaSetupVars();
 	void Resolve();
 	void Scale(AVFLOAT fScale);
 

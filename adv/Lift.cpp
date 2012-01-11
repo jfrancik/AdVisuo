@@ -131,16 +131,16 @@ HRESULT CLift::Store(CDataBase db, ULONG nProjectID)
 		// add journey
 		JOURNEY *pJ = GetJourney(iJourney);
 			
-		CDataBase::INSERT ins = db.insert("AVJourneys");
-		ins["ProjectID"] = nProjectID;
-		ins["LiftID"] = GetId();
-		ins["ShaftFrom"] = pJ->m_shaftFrom;
-		ins["ShaftTo"] = pJ->m_shaftTo;
-		ins["FloorFrom"] = pJ->m_floorFrom;
-		ins["FloorTo"] = pJ->m_floorTo;
-		ins["TimeGo"] = pJ->m_timeGo;
-		ins["TimeDest"] = pJ->m_timeDest;
-		ins["DC"] = pJ->StringifyDoorCycles();
+		CDataBase::INSERT ins = db.insert(L"AVJourneys");
+		ins[L"ProjectID"] = nProjectID;
+		ins[L"LiftID"] = GetId();
+		ins[L"ShaftFrom"] = pJ->m_shaftFrom;
+		ins[L"ShaftTo"] = pJ->m_shaftTo;
+		ins[L"FloorFrom"] = pJ->m_floorFrom;
+		ins[L"FloorTo"] = pJ->m_floorTo;
+		ins[L"TimeGo"] = pJ->m_timeGo;
+		ins[L"TimeDest"] = pJ->m_timeDest;
+		ins[L"DC"] = pJ->StringifyDoorCycles();
 		ins.execute();
 	}
 

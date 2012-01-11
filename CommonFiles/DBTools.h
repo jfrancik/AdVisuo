@@ -58,12 +58,32 @@ SQL UPADTE
 namespace dbtools
 {
 
+struct CValue;
+typedef std::map<std::wstring, CValue> CCollection;
+
+class _value_error
+{
+public:
+	enum ERROR_CODES {
+		E_VALUE_BAD_VARIANT = 0x80000100,
+		E_VALUE_BAD_CONVERSION,
+		E_VALUE_BAD_DATE_FORMAT,
+		E_VALUE_BAD_XS_TYPE };
+	_value_error(enum ERROR_CODES err_code, ULONG i1 = 0, ULONG i2 = 0)	{ _error = err_code; _i1 = i1; _i2 = i2; }
+	enum ERROR_CODES Error()											{ return _error; }
+	std::wstring ErrorMessage();
+private:
+	enum ERROR_CODES _error;
+	ULONG _i1, _i2;
+};
+
 struct CValue
 {
 private:
-	enum { V_NULL, V_INT, V_FLOAT, V_DATE, V_STRING, V_SYMBOL } type;
+	enum { V_NULL, V_INT, V_BOOL, V_FLOAT, V_DATE, V_STRING, V_SYMBOL } type;
 	union
 	{
+		bool b;
 		int i;
 		float f;
 		DATE d;
@@ -86,6 +106,7 @@ public:
 	bool isNull()						{ return type == V_NULL; }
 	void act_as_symbol(bool b = true)	{ if (b) type = V_SYMBOL; else type = V_STRING; } 
 
+	operator bool()						{ return (bool)(operator BOOL()); }
 	operator BOOL();
 	operator FLOAT();
 	operator ULONG();
@@ -102,15 +123,15 @@ public:
 	std::wstring as_wstring()			{ return operator std::wstring(); }
 	DATE as_date()						{ return operator DATE(); }
 
-	std::string escaped();
-};
+	std::wstring as_type();
 
-class CCollection : public std::map<std::string, CValue>
-{
-public:
-	CCollection() : std::map<std::string, CValue>()		{ }
+	void from_string(std::string);
+	void from_wstring(std::wstring);
 
-	void replace_key(std::string old_key, std::string new_key);
+	void from_type(std::string);
+	void from_type(std::wstring);
+
+	std::wstring escaped();
 };
 
 class CDataBase
@@ -131,16 +152,16 @@ public:
 	struct UPDATE;
 	
 	// execute any SQL statement
-	void execute(const char *query, ...);
+	void execute(const wchar_t *query, ...);
 
 	// SQL SELECT
-	SELECT select(const char *query, ...);
+	SELECT select(const wchar_t *query, ...);
 
 	// SQL INSERT
-	INSERT insert(const char *table);
+	INSERT insert(const wchar_t *table);
 
 	// SQL UPDATE
-	UPDATE update(const char *table, const char *where_clause, ...);
+	UPDATE update(const wchar_t *table, const wchar_t *where_clause, ...);
 
 	struct SELECT
 	{
@@ -149,7 +170,7 @@ public:
 		HRESULT m_h;
 
 		// private constructor: use CDataBase::select to create new objects
-		SELECT(CDataBase &db, const char *query);
+		SELECT(CDataBase &db, const wchar_t *query);
 
 	public:
 		SELECT()							{ m_h = E_POINTER; }
@@ -161,7 +182,7 @@ public:
 		CValue operator[](short i)			{ _variant_t vIndex = i; return m_recordset->Fields->GetItem(&vIndex)->GetValue(); }
 		CValue operator[](LPCOLESTR p)		{ return m_recordset->Fields->GetItem(p)->GetValue(); }
 		LONG getSize()						{ return m_recordset->Fields->GetCount(); }
-		std::string getName(short i)		{ _variant_t vIndex = i; return std::string(m_recordset->Fields->GetItem(&vIndex)->GetName()); }
+		std::wstring getName(short i)		{ _variant_t vIndex = i; return std::wstring(m_recordset->Fields->GetItem(&vIndex)->GetName()); }
 		void operator ++()					{ m_recordset->MoveNext(); }
 		void operator ++(int)				{ m_recordset->MoveNext(); }
 		void operator --()					{ m_recordset->MovePrevious(); }
@@ -169,21 +190,21 @@ public:
 
 		void operator >> (CCollection &coll);
 
-		friend SELECT CDataBase::select(const char *query, ...);
+		friend SELECT CDataBase::select(const wchar_t *query, ...);
 	};
 
 	struct QUERY : public CCollection
 	{
 	protected:
 		CDataBase *pDB;
-		std::string table;
+		std::wstring table;
 
 		// private constructor: use CDataBase::SELECT::operator[] to create new objects
-		QUERY(CDataBase *pDB, std::string table)		 { this->pDB = pDB, this->table = table; }
+		QUERY(CDataBase *pDB, std::wstring table)		 { this->pDB = pDB, this->table = table; }
 
 	public:
 		QUERY()								{ pDB = NULL; }
-		virtual std::string query() = 0;
+		virtual std::wstring query() = 0;
 		void execute()						{ if (pDB) pDB->execute(query().c_str()); }
 
 		void operator << (CCollection &coll);
@@ -192,21 +213,21 @@ public:
 	struct INSERT : public QUERY
 	{
 	private:
-		INSERT(CDataBase *pDB, std::string table) : QUERY(pDB, table)	{ }
-		friend INSERT CDataBase::insert(const char *table);
+		INSERT(CDataBase *pDB, std::wstring table) : QUERY(pDB, table)	{ }
+		friend INSERT CDataBase::insert(const wchar_t *table);
 	public:
 		INSERT()							{ }
-		virtual std::string query();
+		virtual std::wstring query();
 	};
 
 	struct UPDATE : public QUERY
 	{
-		std::string where_clause;
-		UPDATE(CDataBase *pDB, std::string table, std::string where_clause) : QUERY(pDB, table)	{ this->where_clause = where_clause; }
-		friend UPDATE CDataBase::update(const char *table, const char *where_clause, ...);
+		std::wstring where_clause;
+		UPDATE(CDataBase *pDB, std::wstring table, std::wstring where_clause) : QUERY(pDB, table)	{ this->where_clause = where_clause; }
+		friend UPDATE CDataBase::update(const wchar_t *table, const wchar_t *where_clause, ...);
 	public:
 		UPDATE()							{ }
-		virtual std::string query();
+		virtual std::wstring query();
 	};
 };
 

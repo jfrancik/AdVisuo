@@ -36,7 +36,7 @@ void CPassenger::Play()
 	// initial parameters: which likft line (0 for inline arrangement, 1 or 2)
 	int nLine = 0;
 	if (GetSim()->GetBuilding()->GetLiftShaftArrang() != CBuilding::SHAFT_INLINE)
-		nLine = pSHAFT->ShaftLine + 1;
+		nLine = pSHAFT->GetShaftLine() + 1;
 
 	// passengers behaviour
 	enum { DESTINATION, NATURAL } flagBehaviour = DESTINATION;
@@ -205,21 +205,21 @@ DWORD CPassenger::Load(AVULONG nId, CSimLoader::Passenger &P)
 HRESULT CPassenger::Store(CDataBase db, ULONG nProjectID)
 {
 	if (!db) throw db;
-	CDataBase::INSERT ins = db.insert("AVPassengers");
-	ins["ProjectID"] = nProjectID;
-	ins["PassengerId"] = GetId();
-	ins["ShaftId"] = GetShaftId();
-	ins["LiftId"] = GetLiftId();
-	ins["DeckId"] = GetDeck();
-	ins["FloorArrival"] = GetArrivalFloor();
-	ins["FloorDest"] = GetDestFloor();
-	ins["TimeBorn"] = GetBornTime();
-	ins["TimeArrival"] = GetArrivalTime();
-	ins["TimeGo"] = GetGoTime();
-	ins["TimeLoad"] = GetLoadTime();
-	ins["TimeUnload"] = GetUnloadTime();
-	ins["SpanWait"] = GetWaitSpan();
-	ins["WP"] = StringifyWayPoints();
+	CDataBase::INSERT ins = db.insert(L"AVPassengers");
+	ins[L"ProjectID"] = nProjectID;
+	ins[L"PassengerId"] = GetId();
+	ins[L"ShaftId"] = GetShaftId();
+	ins[L"LiftId"] = GetLiftId();
+	ins[L"DeckId"] = GetDeck();
+	ins[L"FloorArrival"] = GetArrivalFloor();
+	ins[L"FloorDest"] = GetDestFloor();
+	ins[L"TimeBorn"] = GetBornTime();
+	ins[L"TimeArrival"] = GetArrivalTime();
+	ins[L"TimeGo"] = GetGoTime();
+	ins[L"TimeLoad"] = GetLoadTime();
+	ins[L"TimeUnload"] = GetUnloadTime();
+	ins[L"SpanWait"] = GetWaitSpan();
+	ins[L"WP"] = StringifyWayPoints();
 	ins.execute();
 	return S_OK;
 }
