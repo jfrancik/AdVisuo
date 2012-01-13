@@ -44,7 +44,7 @@
 
 ADV_API AVULONG AVGetVersion()
 {
-	return CSim::GetVersion();
+	return CSimBase::GetAVNativeVersionId();
 }
 
 ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnVisualisation)
@@ -183,12 +183,12 @@ ADV_API HRESULT AVTest(AVULONG nSimulationID)
 		h = sim.LoadFromVisualisation(pConnStr, nProjectID);
 
 		FILETIME ft;
-		HANDLE hFile = CreateFileW(sim.m_strSIMFileName.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); 
+		HANDLE hFile = CreateFileW(sim.GetSIMFileName().c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); 
 		if (hFile == INVALID_HANDLE_VALUE) return S_FALSE;
 		GetFileTime(hFile, NULL, NULL, &ft);
 		CloseHandle(hFile);
 
-		COleDateTime timeSim(sim.m_dateTimeStamp);
+		COleDateTime timeSim(sim.GetTimeStamp());
 		COleDateTime timeFile(ft);
 
 		lt.Log(L"AVTest");
@@ -251,12 +251,8 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		if WARNED(h) dwStatus = STATUS_WARNING;
 		
 		CBuilding building;
-		h = building.LoadFromConsole(pConsoleConn, nSimulationId); 
+		h = building.LoadFromConsole(pConsoleConn, nSimulationId, 1.0f); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
-
-//		AVFLOAT fScale;
-//		GetScale(&fScale);
-//		building.Scale(fScale);
 
 		CSim sim(&building);
 		h = sim.LoadFromConsole(pConsoleConn, nSimulationId); 
@@ -265,7 +261,7 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		h = sim.Store(pVisConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		nProjectID = sim.m_nProjectID;
+		nProjectID = sim.GetProjectId();
 
 		lt.Log(L"AVInit");
 		return Logf(dwStatus, L"AVInit(%d)", nSimulationId);
@@ -284,13 +280,12 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 		HRESULT h;
 		DWORD dwStatus = STATUS_OK;
 
-		CBuilding building;
-		h = building.LoadFromVisualisation(pVisConn, nProjectID);
-		if WARNED(h) dwStatus = STATUS_WARNING;
-
 		AVFLOAT fScale;
 		GetScale(&fScale);
-		building.Scale(fScale);
+
+		CBuilding building;
+		h = building.LoadFromVisualisation(pVisConn, nProjectID, fScale);
+		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		CSim sim(&building);
 		h = sim.LoadFromVisualisation(pVisConn, nProjectID);
@@ -323,22 +318,18 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId)
 		DWORD dwStatus = STATUS_OK;
 
 		CBuilding building;
-		h = building.LoadFromConsole(pConsoleConn, nSimulationId);
+		h = building.LoadFromConsole(pConsoleConn, nSimulationId, 1.0f);
 		if WARNED(h) dwStatus = STATUS_WARNING;
-
-		AVFLOAT fScale;
-		GetScale(&fScale);
-		building.Scale(fScale);
 
 		CSim sim(&building);
 		h = sim.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		h = sim.GetBuilding()->SaveAsIFC(sim.m_strIFCFileName.c_str());
+		h = sim.GetBuilding()->SaveAsIFC(sim.GetIFCFileName().c_str());
 		if WARNED(h) dwStatus = STATUS_WARNING;
 		
 		lt.Log(L"AVIFC");
-		Logf(STATUS_GENERIC, L"IFC file saved to: %s", sim.m_strIFCFileName.c_str());
+		Logf(STATUS_GENERIC, L"IFC file saved to: %s", sim.GetIFCFileName().c_str());
 		return Logf(dwStatus, L"AVIFC(%d)", nSimulationId);
 	}
 	STD_CATCH(L"AVIFC(%d)", nSimulationId);

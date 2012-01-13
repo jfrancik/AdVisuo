@@ -14,13 +14,8 @@ CSimBase::CSimBase(CBuildingBase *pBuilding)
 	m_nProjectID = 0;
 	m_nSIMVersionID = 0;
 	m_nAVVersionID = 0;
-	m_nBldFloors = 0;
-	m_nBldShafts = 0;
-	m_nBldLifts = 0;
 	m_nSimulationTime = 0;
-	m_bSavedAll = false;
-	m_nJourneysSaved = m_nPassengersSaved = m_nTimeSaved = 0;
-	m_nAlgorithm = COLLECTIVE;
+	m_nTimeSaved = 0;
 }
 
 CSimBase::~CSimBase()
@@ -50,6 +45,37 @@ void CSimBase::DeletePassengers()
 		if (GetPassenger(i)) delete GetPassenger(i);
 	m_passengers.clear();
 }
+
+void CSimBase::ResolveMe()
+{
+	SetProjectId(ME[L"ID"]);
+	SetSimulationId(ME[L"SimulationID"]);
+	SetSIMVersionId(ME[L"SIMVersionID"]);
+	SetAVVersionId(ME[L"AVVersionID"]);
+	m_nSimulationTime = ME[L"SimulationTime"];
+	m_nTimeSaved = ME[L"TimeSaved"];
+}
+
+std::wstring CSimBase::GetProjectInfo(PRJ_INFO what)
+{
+	switch (what)
+	{
+		case PRJ_PROJECT_NAME: return ME[L"ProjectName"];
+		case PRJ_BUILDING_NAME: return ME[L"BuildingName"];
+		case PRJ_LANGUAGE: return ME[L"Language"];
+		case PRJ_UNITS: return ME[L"MeasurementUnits"];
+		case PRJ_COMPANY: return ME[L"ClientCompany"];
+		case PRJ_CITY: return ME[L"City"];
+		case PRJ_LB_RGN: return ME[L"LBRegionDistrict"];
+		case PRJ_COUNTY: return ME[L"County"];
+		case PRJ_DESIGNER: return ME[L"LiftDesigner"];
+		case PRJ_COUNTRY: return ME[L"Country"];
+		case PRJ_CHECKED_BY: return ME[L"CheckedBy"];
+		case PRJ_POST_CODE: return ME[L"PostalZipCode"];
+		default: return L"(unknown)";
+	}
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CLiftBase

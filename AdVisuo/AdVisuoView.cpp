@@ -523,7 +523,6 @@ bool CAdVisuoView::CreateBuilding(CBuilding *pBuilding)
 		pBuilding->SetMaterialLiftPlate(CBuilding::MAT_LIFT_NUMBER_PLATE, i, i);
 	
 	pBuilding->Deconstruct();
-	pBuilding->Scale(0.04f);
 	pBuilding->Construct(L"Building", Vector(0));
 	pBuilding->StoreConfig();
 

@@ -40,13 +40,13 @@ public:
 
 	bool IsSimReady()						{ return m_h == S_OK; }
 	bool IsSIMDataReady()					{ return m_http.ready(); }
-	bool IsDownloadComplete()				{ return m_timeLoaded >= m_sim.m_nTimeSaved; }
+	bool IsDownloadComplete()				{ return m_timeLoaded >= m_sim.GetTimeSaved(); }
 
 	AVULONG GetLoadedTime()					{ return m_timeLoaded; }
-	AVULONG GetSimulationTime()				{ return m_sim.m_nSimulationTime; }
+	AVULONG GetSimulationTime()				{ return m_sim.GetSimulationTime(); }
 	AVLONG GetTimeLowerBound()				{ return m_sim.GetTimeLowerBound(); }
 
-	void ResetTitle()						{ SetTitle(m_sim.m_strProjectName.c_str()); m_strPathName = GetTitle(); }
+	void ResetTitle()						{ SetTitle(m_sim.GetProjectInfo(CSim::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
 
 	// Open/New/Download Operations
 	virtual BOOL OnNewDocument();

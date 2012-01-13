@@ -151,7 +151,6 @@
     <ClInclude Include="..\CommonFiles\Vector.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ReadMe.txt" />
     <CustomBuild Include="res\messages.mc">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">mc -A %(RelativeDir)%(Filename)%(Extension) -r %(RelativeDir)</Command>

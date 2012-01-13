@@ -10,44 +10,20 @@ class CPassengerBase;
 
 class CSimBase : public dbtools::CCollection
 {
+private:
+	// project information
+	AVULONG m_nProjectID;
+	AVULONG m_nSimulationID;
+	AVULONG m_nSIMVersionID;
+	AVULONG m_nAVVersionID;
+	AVLONG m_nSimulationTime;
+	AVULONG m_nTimeSaved;
+	
 protected:
 	CBuildingBase *m_pBuilding;
 
 	std::vector<CLiftBase*> m_lifts;
 	std::vector<CPassengerBase*> m_passengers;
-
-public:
-	// project information
-	std::wstring m_strSIMFileName;			// SIM filename
-	std::wstring m_strIFCFileName;			// IFC filename
-	DATE m_dateTimeStamp;					// time stamp
-
-	std::wstring m_strProjectName;
-	std::wstring m_strLanguage;
-	std::wstring m_strMeasurementUnits;
-	std::wstring m_strBuildingName;
-	std::wstring m_strClientCompanyName;
-	std::wstring m_strCity;
-	std::wstring m_strLBRegionDistrict;
-	std::wstring m_strStateCounty;
-	std::wstring m_strLiftDesigner;
-	std::wstring m_strCountry;
-	std::wstring m_strCheckedBy;
-	std::wstring m_strPostalZipCode;
-
-	AVULONG m_nProjectID;
-	AVULONG m_nSimulationID;
-	AVULONG m_nSIMVersionID;
-	AVULONG m_nAVVersionID;
-	AVULONG m_nBldFloors;
-	AVULONG m_nBldShafts;
-	AVULONG m_nBldLifts;
-	AVULONG m_nPassengers;
-	AVLONG m_nSimulationTime;
-	bool m_bSavedAll;
-	AVULONG m_nJourneysSaved, m_nPassengersSaved, m_nTimeSaved;
-	
-	enum ALGORITHM { DESTINATION, COLLECTIVE } m_nAlgorithm;
 
 public:
 	CSimBase(CBuildingBase *pBuilding);
@@ -56,17 +32,46 @@ public:
 	CBuildingBase *GetBuilding()				{ return m_pBuilding;}
 	void SetBuilding(CBuildingBase *pBuilding)	{ m_pBuilding = pBuilding; }
 
+	std::wstring GetSIMFileName()				{ return ME[L"SIMFileName"]; }
+	std::wstring GetIFCFileName()				{ return ME[L"IFCFileName"]; }
+	AVULONG GetBldgFloors()						{ return ME[L"Floors"]; }
+	AVULONG GetBldgShafts()						{ return ME[L"Shafts"]; }
+	DATE GetTimeStamp()							{ return ME[L"TimeStamp"]; }
+	enum ALGORITHM { DESTINATION, COLLECTIVE } ;
+	ALGORITHM GetAlgorithm()					{ return (ALGORITHM)(ULONG)ME[L"Algorithm"]; }
+	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
+	std::wstring GetProjectInfo(PRJ_INFO what);
+
+	AVULONG GetProjectId()						{ return m_nProjectID; }
+	AVULONG GetSimulationId()					{ return m_nSimulationID; }
+	AVULONG GetSIMVersionId()					{ return m_nSIMVersionID; }
+	AVULONG GetAVVersionId()					{ return m_nAVVersionID; }
+	static AVULONG GetAVNativeVersionId()		{ return 10900; }
+
+	void SetProjectId(AVULONG n)				{ m_nProjectID = n; }
+	void SetSimulationId(AVULONG n)				{ m_nSimulationID = n; }
+	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionID = n; }
+	void SetAVVersionId(AVULONG n)				{ m_nAVVersionID = n; }
+
+	AVLONG GetSimulationTime()					{ return m_nSimulationTime; }
+	void ReportSimulationTime(AVLONG n)			{ if (n > m_nSimulationTime) m_nSimulationTime = n; }
+
+	AVULONG GetTimeSaved()						{ return m_nTimeSaved; }
+	void ReportTimeSaved()						{ m_nTimeSaved = m_nSimulationTime; }
+
 	// access & initialisation
-	AVULONG GetLiftCount()					{ return m_lifts.size(); }
-	CLiftBase *GetLift(AVULONG i)			{ return i < GetLiftCount() ? m_lifts[i] : NULL; }
-	void AddLift(CLiftBase *p)				{ m_lifts.push_back(p); }
+	AVULONG GetLiftCount()						{ return m_lifts.size(); }
+	CLiftBase *GetLift(AVULONG i)				{ return i < GetLiftCount() ? m_lifts[i] : NULL; }
+	void AddLift(CLiftBase *p)					{ m_lifts.push_back(p); }
 	void DeleteLifts();
 	AVULONG GetJourneyTotalCount();
 
-	AVULONG GetPassengerCount()				{ return m_passengers.size(); }
-	CPassengerBase *GetPassenger(AVULONG i)	{ return i < GetPassengerCount() ? m_passengers[i] : NULL; }
-	void AddPassenger(CPassengerBase *p)	{ m_passengers.push_back(p); }
+	AVULONG GetPassengerCount()					{ return m_passengers.size(); }
+	CPassengerBase *GetPassenger(AVULONG i)		{ return i < GetPassengerCount() ? m_passengers[i] : NULL; }
+	void AddPassenger(CPassengerBase *p)		{ m_passengers.push_back(p); }
 	void DeletePassengers();
+
+	void ResolveMe();
 
 protected:
 	virtual CPassengerBase *CreatePassenger(AVULONG nId) = 0;

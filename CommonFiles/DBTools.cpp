@@ -141,8 +141,11 @@ CValue::operator wstring()
 	case V_FLOAT:	return to_wstring((long double)f);
 	case V_DATE:
 		{
-			COleDateTime date = d;
-			return wstring(date.Format());
+			UDATE ud;
+			VarUdateFromDate(d, 0, &ud);
+			wchar_t buf[256];
+			_snwprintf(buf, 256, L"%04d-%02d-%02dT%02d:%02d:%02d", ud.st.wYear, ud.st.wMonth, ud.st.wDay, ud.st.wHour, ud.st.wMinute, ud.st.wSecond);
+			return buf;
 		}
 	case V_STRING:	return s;
 	case V_SYMBOL:	return s;

@@ -38,7 +38,7 @@ CAdVisuoDoc::~CAdVisuoDoc()
 CString CAdVisuoDoc::GetDiagnosticMessage()
 {
 	CString str;
-	str.Format(L"Project id: [%d] %s\r\nPath: %s", GetSim()->m_nSimulationID, GetTitle(), m_strUrl.IsEmpty() ? m_strPathName : m_strUrl);
+	str.Format(L"Project id: [%d] %s\r\nPath: %s", GetSim()->GetSimulationId(), GetTitle(), m_strUrl.IsEmpty() ? m_strPathName : m_strUrl);
 
 	POSITION pos = GetFirstViewPosition();
 	CAdVisuoView *pView = (CAdVisuoView*)GetNextView(pos);
@@ -85,8 +85,8 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 			m_sim.SetBuilding(&m_building);
 			m_sim.LoadFromFile(lpszPathName);	// throws _sim_error and _com_error
 
-			SetTitle(m_sim.m_strProjectName.c_str());
-			m_timeLoaded = m_sim.m_nSimulationTime;
+			SetTitle(m_sim.GetProjectInfo(CSim::PRJ_PROJECT_NAME).c_str());
+			m_timeLoaded = m_sim.GetSimulationTime();
 
 			m_h = S_OK;
 			Debug(L"File successfully loaded.");
@@ -204,17 +204,17 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		//m_strResponse = m_http.response().c_str();
 		//DoSave(L"temp.html"); 
 
-		SetTitle(m_sim.m_strProjectName.c_str());
+		SetTitle(m_sim.GetProjectInfo(CSim::PRJ_PROJECT_NAME).c_str());
 		m_strPathName = GetTitle();
 
-		m_http.AVBuilding(m_sim.m_nProjectID);
+		m_http.AVBuilding(m_sim.GetProjectId());
 		m_http.wait(); 
 		if (!m_http.ok()) m_http.throw_exceptions();
 		m_sim.LoadFromBuf(m_http.response().c_str());
 
 		// first SIM data chunk
 		m_timeLoaded = 0;
-		m_http.AVSim(m_sim.m_nProjectID, m_timeLoaded, m_timeLoaded + 60000);
+		m_http.AVSim(m_sim.GetProjectId(), m_timeLoaded, m_timeLoaded + 60000);
 		m_http.wait(); 
 
 		OnSIMDataLoaded(NULL);
@@ -273,7 +273,7 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded(IAction *pActionTick)
 		{
 			str << L"Simulation data download continued in background (" << m_timeLoaded << L").";
 //			Debug(str.str().c_str());
-			m_http.AVSim(m_sim.m_nProjectID, m_timeLoaded, m_timeLoaded + 60000);
+			m_http.AVSim(m_sim.GetProjectId(), m_timeLoaded, m_timeLoaded + 60000);
 		}
 		else
 			m_http.reset();

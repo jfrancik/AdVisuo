@@ -34,7 +34,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 			m_phase = PHASE_PRJ;
 
 			reader >> ME;
-			dupaSetupVars();
+			ResolveMe();
 		}
 		else
 		if (reader.getName() == L"AVBuilding")
@@ -46,7 +46,6 @@ void CSim::Load(xmltools::CXmlReader reader)
 			pBuilding->CreateStoreys((ULONG)reader[L"FloorsAboveGround"] + (ULONG)reader[L"FloorsBelowGround"], (ULONG)reader[L"FloorsBelowGround"]);
 
 			reader >> *pBuilding;
-			pBuilding->dupaSetupVars();
 		}
 		else
 		if (reader.getName() == L"AVShaft")
@@ -59,7 +58,6 @@ void CSim::Load(xmltools::CXmlReader reader)
 			pShaft = pBuilding->GetShaft(iShaft);
 
 			reader >> *pShaft;
-			pShaft->dupaSetupVars();
 			
 			iShaft++;
 
@@ -81,7 +79,6 @@ void CSim::Load(xmltools::CXmlReader reader)
 			pStorey = pBuilding->GetStorey(iStorey);
 
 			reader >> *pStorey;
-			pStorey->dupaSetupVars();
 
 			iStorey++;
 		}
@@ -116,7 +113,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 	}
 
 	// Some tests
-	if (m_nProjectID == 0)
+	if (GetProjectId() == 0)
 		throw _sim_error(_sim_error::E_SIM_NOT_FOUND);
 	if (m_phase == PHASE_STRUCT && iShaft != GetBuilding()->GetShaftCount())
 		throw _sim_error(_sim_error::E_SIM_LIFTS);
@@ -124,7 +121,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 		throw _sim_error(_sim_error::E_SIM_FLOORS);
 
 	if (m_phase >= PHASE_STRUCT) 
-		GetBuilding()->Resolve();
+		GetBuilding()->ResolveMe(0.04f);
 
 	if (m_phase >= PHASE_STRUCT && !GetBuilding()->IsValid())
 		throw _sim_error(_sim_error::E_SIM_NO_BUILDING);
@@ -137,41 +134,9 @@ void CSim::LoadIndex(xmltools::CXmlReader reader, vector<CSim*> &sims)
 		{
 			CSim *pSim = new CSim(NULL);
 			reader >> *pSim;
-			pSim->dupaSetupVars();
+			pSim->ResolveMe();
 			sims.push_back(pSim);
 		}
-}
-
-void CSim::dupaSetupVars()
-{
-	m_nProjectID = ME[L"ID"];
-	m_nSimulationID = ME[L"SimulationID"];
-	m_nSIMVersionID = ME[L"SIMVersionID"];
-	m_nAVVersionID = ME[L"AVVersionId"];
-	m_nBldFloors = ME[L"Floors"];
-	m_nBldShafts = ME[L"Shafts"];
-	m_nBldLifts = ME[L"Lifts"];
-	m_nPassengers = ME[L"Passengers"];
-	m_nSimulationTime = ME[L"SimulationTime"];
-	m_nJourneysSaved = ME[L"JourneysSaved"];
-	m_nPassengersSaved = ME[L"PassengersSaved"];
-	m_nTimeSaved = ME[L"TimeSaved"];
-	m_bSavedAll = ME[L"SavedAll"];
-	m_strSIMFileName = ME[L"SIMFileName"];
-	m_strIFCFileName = ME[L"IFCFileName"];
-	m_strProjectName = ME[L"ProjectName"];
-	m_strLanguage = ME[L"Language"];
-	m_strMeasurementUnits = ME[L"MeasurementUnits"];
-	m_strBuildingName = ME[L"BuildingName"];
-	m_strClientCompanyName = ME[L"ClientCompany"];
-	m_strCity = ME[L"City"];
-	m_strLBRegionDistrict = ME[L"LBRegionDistrict"];
-	m_strStateCounty = ME[L"StateCounty"];
-	m_strLiftDesigner = ME[L"LiftDesigner"];
-	m_strCountry = ME[L"Country"];
-	m_strCheckedBy = ME[L"CheckedBy"];
-	m_strPostalZipCode = ME[L"PostalZipCode"];
-	m_nAlgorithm = (CSimBase::ALGORITHM)(ULONG)ME[L"Algorithm"];
 }
 
 void Journey_Parse(JOURNEY &j, xmltools::CXmlReader reader, LPCWSTR pTagName, AVULONG &nLiftID)

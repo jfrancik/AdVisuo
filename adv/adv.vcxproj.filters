@@ -160,9 +160,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="adv.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>

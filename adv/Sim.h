@@ -15,20 +15,15 @@ public:
 	CPassenger *GetPassenger(int i)							{ return (CPassenger*)CSimBase::GetPassenger(i); }
 	CBuilding *GetBuilding()								{ return (CBuilding*)CSimBase::GetBuilding(); }
 
-	static AVULONG GetVersion()								{ return 10900; }
-
 	HRESULT LoadSim();
 	void Play();
 
 	// Database operations
 	HRESULT FindProjectID(dbtools::CDataBase db, ULONG nSimulationID, ULONG &nProjectID);
-
 	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationID);
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectId);
-
 	HRESULT Store(dbtools::CDataBase db, ULONG nSimulationID);
 	HRESULT Update(dbtools::CDataBase db, AVLONG nTime = -1);
-
 	static HRESULT CleanUp(dbtools::CDataBase db, ULONG nSimulationID);
 	static HRESULT CleanUpAll(dbtools::CDataBase db);
 

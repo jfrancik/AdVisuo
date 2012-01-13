@@ -23,40 +23,21 @@ public:
 	struct SHAFT : public dbtools::CCollection
 	{
 	private:
+		
 		CBuildingBase *m_pBuilding;				// main building
 
 		// CONSOLE based data
 		AVULONG ShaftID;						// Shaft Id
-		AVULONG Capacity;						// Lift capacity (kg)
-		AVFLOAT Speed;							// Lift speed. (m/s)
-		AVFLOAT Acceleration;					// accelaration (m/s/s)
-		AVFLOAT Jerk;							// jerk (m/s/s/s)
-		DOOR_TYPE DoorType;						// Lift door type
 		AVFLOAT LiftDoorHeight;					// Lift door height. (mm)
 		AVFLOAT LiftDoorWidth;					// Lift door width. (mm)
-		AVFLOAT CarHeight;						// Car height mm
 		TYPE_OF_LIFT TypeOfLift;				// Type of lift
 		AVULONG NumberOfLifts;					// Number of Lifts per Shaft (new to ver. 1.06)
-		CAR_ENTRANCES NoOfCarEntrances;			// Number (Type) of car entrances
-		CNTRWEIGHT_POS CounterWeightPosition;	// Counter weight position
 		AVFLOAT CarWidth;						// Car width. (mm)	
 		AVFLOAT CarDepth;						// Car depth. (mm)	
+		AVFLOAT CarHeight;						// Car height mm
 		AVFLOAT ShaftWidth;						// Shaft width. (mm)	
 		AVFLOAT ShaftDepth;						// Shaft depth. (mm)	
-		AVFLOAT PitDepth;						// Lift pit depth . (mm)	
-		AVFLOAT OverallHeight;					// OverallHeight. (mm)
-		AVFLOAT HeadRoom;						// Lift headroom. (mm)	
-		AVFLOAT MachRoomHeight;					// Lift machine room height . (mm)
 		AVFLOAT MachRoomExt;					// new proposal: extension of the machine room outside the outline of the shafts
-
-		// New Console Based Data (plus: Acceleration and Jerk)
-		AVULONG PreOperTime;					// pre-opening time (s)
-		AVULONG OpeningTime;					// door opening time (s)
-		AVULONG ClosingTime;					// door closing time (s)
-		AVULONG MotorStartDelay;				// motor start delay (s)
-		AVULONG LoadingTime;					// loading time (s)
-		AVULONG UnloadingTime;					// unloading time (s)
-		std::wstring FloorsServed;				// list of served floors
 
 		// Derived (resolved) data - set by Resolve
 		AVULONG ShaftIndex;
@@ -70,28 +51,24 @@ public:
 		BOX m_boxDoor;							// scaled shaft door plan
 		BOX m_boxCar;							// scaled lift car plan
 
-		SHAFT();
-		virtual ~SHAFT();
+		SHAFT() : m_pBuilding(NULL)				{ }
+		virtual ~SHAFT()						{ }
 
 		// Attributes:
 		AVULONG GetId()							{ return ShaftID; }
 		CBuildingBase *GetBuilding()			{ return m_pBuilding; }
-		AVFLOAT GetShaftWidth()					{ return ShaftWidth; }
-		AVULONG GetLiftCount()					{ return NumberOfLifts; }
+		AVFLOAT GetShaftWidth()					{ return ME[L"ShaftWidth"]; }
+		AVULONG GetLiftCount()					{ return ME[L"NumberOfLifts"]; }
 		AVFLOAT GetDoorWidth()					{ return LiftDoorWidth; }
 		AVFLOAT GetDoorHeight()					{ return LiftDoorHeight; }
-		AVFLOAT GetPitDepth()					{ return PitDepth; }
 		AVFLOAT GetShaftDepth()					{ return ShaftDepth; }
-		AVFLOAT GetMachRoomHeight()				{ return MachRoomHeight; }
 		TYPE_OF_LIFT GetType()					{ return TypeOfLift; }
 
 		AVULONG GetShaftLine()					{ return ShaftLine; }
 
 		// Operations:
-		void dupaCorrect();
-		void dupaSetupVars();
-		void Resolve(CBuildingBase *pBuilding, AVULONG nIndex);
-		virtual void Scale(AVFLOAT scale);
+		void ResolveMe(CBuildingBase *pBuilding, AVULONG nIndex, AVFLOAT fScale);
+
 		bool InBox(AVVECTOR &pt)								{ return m_box.InBoxExt(pt) || m_boxDoor.InBoxExt(pt); }
 		bool Within(AVVECTOR &pos, AVFLOAT nLiftZPos = 0)		{ return pos.z >= nLiftZPos && pos.z < nLiftZPos + m_boxCar.Height(); }
 		std::wstring GetName()									{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %d", ShaftID); return buf; }
@@ -107,11 +84,6 @@ public:
 		AVULONG StoreyID;						// Storey Id
 		AVFLOAT HeightValue;					// Height
 		std::wstring Name;						// storey name
-		AVFLOAT Area;							// area (m2)
-		AVFLOAT PopDensity;						// population factors
-		AVFLOAT Absentee;						// population factors
-		AVFLOAT StairFactor;					// stair factor
-		AVFLOAT Escalator;						// escalator factor
 
 	public:
 
@@ -123,8 +95,8 @@ public:
 		BOX m_box;								// lobby floor plan (the same as building, but includes storey height - from floor to ceiling
 		
 	public:
-		STOREY();
-		virtual ~STOREY();
+		STOREY() : m_pBuilding(NULL)			{ }
+		virtual ~STOREY()						{ }
 
 		// Attributes
 		AVULONG GetId()							{ return StoreyID; }
@@ -133,10 +105,8 @@ public:
 		AVFLOAT GetHeight()						{ return HeightValue; }
 
 		// Operations:
-		void dupaCorrect();
-		void dupaSetupVars();
-		void Resolve(CBuildingBase *pBuilding, AVULONG nIndex);
-		virtual void Scale(AVFLOAT scale);
+		void ResolveMe(CBuildingBase *pBuilding, AVULONG nIndex, AVFLOAT fScale);
+
 		bool Within(AVVECTOR &pos)				{ return pos.z >= SL && pos.z < SL + SH; }
 	};
 
@@ -147,20 +117,10 @@ private:
 	AVULONG m_nBasementStoreyCount;
 
 	// Lobby Layout Data - CONSOLE based
-	std::wstring BuildingName;
 	AVULONG nBuildingID;				// Building ID
-//	AVULONG NoOfShafts;					// No. of shafts
-//	AVULONG StoreysAboveGround;			// Number of Storeys above MT1
-//	AVULONG StoreysBelowGround;			// Number of Storeys below MT1
 	SHAFT_ARRANGEMENT LiftShaftArrang;	// Lift shaft arrangements
 	LOBBY_ARRANGEMENT LobbyArrangement;	// Lobby arrangement
-	LIFT_STRUCTURE Structure;			// Structure (???)
 	AVFLOAT LobbyCeilingSlabHeight;		// Ceiling slab height
-
-	AVFLOAT PosLiftBookM;				// Position of lift booking, meters from lobby
-	AVULONG NoOfBook;					// No. of lLift booking points
-	AVFLOAT MachRoomSlab;				// Machine room slab.  (mm)
-	AVFLOAT LiftBeamHeight;				// Lifting beam height. (mm)
 
 	// size (raw data)
 	AVFLOAT LobbyDepth;					// Lobby Depth. mm
@@ -175,7 +135,6 @@ private:
 	AVULONG ShaftCount[2];				// counter of lifts per line
 	AVFLOAT LineWidth[2];				// widths of lifts lines
 	AVFLOAT LobbyWidth;					// Total Lobby Width
-	BOX m_mbox;						// unscaled dimensions of everything
 
 	// Scaled Dimensions
 public:
@@ -222,7 +181,6 @@ public:
 	// Various
 	SHAFT_ARRANGEMENT GetLiftShaftArrang()	{ return LiftShaftArrang; }
 	LOBBY_ARRANGEMENT GetLobbyArrangement()	{ return LobbyArrangement; }
-	AVFLOAT GetLobbyWidth()					{ return LobbyWidth; }
 	
 
 
@@ -230,10 +188,7 @@ public:
 	bool IsValid()							{ return m_nShaftCount && GetStoreyCount() && ppShafts && ppStoreys && GetShaftCount(0); }
 
 	// Calculations!
-	void dupaCorrect();
-	void dupaSetupVars();
-	void Resolve();
-	void Scale(AVFLOAT fScale);
+	void ResolveMe(AVFLOAT fScale);
 
 protected:
 	virtual SHAFT *CreateShaft() = 0;

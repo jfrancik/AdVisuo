@@ -106,7 +106,7 @@ public:
 	bool isNull()						{ return type == V_NULL; }
 	void act_as_symbol(bool b = true)	{ if (b) type = V_SYMBOL; else type = V_STRING; } 
 
-	operator bool()						{ return (bool)(operator BOOL()); }
+	operator bool()						{ return (operator BOOL() != FALSE); }
 	operator BOOL();
 	operator FLOAT();
 	operator ULONG();

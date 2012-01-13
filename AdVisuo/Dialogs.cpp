@@ -610,9 +610,9 @@ END_MESSAGE_MAP()
 		CSim *pSim1 = (CSim*)lParam1, *pSim2 = (CSim*)lParam2;
 		switch (lParamSort % 100)
 		{
-			case 0: nRes = pSim1->m_nSimulationID < pSim2->m_nSimulationID ? -1 : (pSim1->m_nSimulationID > pSim2->m_nSimulationID ? 1 : 0); break;
-			case 1: nRes = wcscmp(pSim1->m_strProjectName.c_str(), pSim2->m_strProjectName.c_str()); break;
-			case 2: nRes = wcscmp(pSim1->m_strBuildingName.c_str(), pSim2->m_strBuildingName.c_str()); break;
+			case 0: nRes = pSim1->GetSimulationId() < pSim2->GetSimulationId() ? -1 : (pSim1->GetSimulationId() > pSim2->GetSimulationId() ? 1 : 0); break;
+			case 1: nRes = wcscmp(pSim1->GetProjectInfo(CSim::PRJ_PROJECT_NAME).c_str(), pSim2->GetProjectInfo(CSim::PRJ_PROJECT_NAME).c_str()); break;
+			case 2: nRes = wcscmp(pSim1->GetProjectInfo(CSim::PRJ_BUILDING_NAME).c_str(), pSim2->GetProjectInfo(CSim::PRJ_BUILDING_NAME).c_str()); break;
 		}
 		return lParamSort < 100 ? nRes : -nRes;
 	}
@@ -702,14 +702,14 @@ void CDlgDownload::OnBnClickedRefresh()
 			CSim *pSim = m_sims[i];
 			LV_ITEM lvItem;
 			lvItem.mask = LVIF_TEXT;
-			wchar_t buf[80]; _snwprintf_s(buf, 80, L"%d", pSim->m_nSimulationID);
+			wchar_t buf[80]; _snwprintf_s(buf, 80, L"%d", pSim->GetSimulationId());
 			lvItem.iItem = m_list.InsertItem(0, buf);
 			m_list.SetItemData(lvItem.iItem, (DWORD_PTR)pSim);
 			lvItem.iSubItem = 1;
-			lvItem.pszText = (LPWSTR)pSim->m_strProjectName.c_str();
+			lvItem.pszText = _wcsdup((LPWSTR)pSim->GetProjectInfo(CSim::PRJ_PROJECT_NAME).c_str());
 			m_list.SetItem(&lvItem);
 			lvItem.iSubItem = 2;
-			lvItem.pszText = (LPWSTR)pSim->m_strBuildingName.c_str();
+			lvItem.pszText = _wcsdup((LPWSTR)pSim->GetProjectInfo(CSim::PRJ_BUILDING_NAME).c_str());
 			m_list.SetItem(&lvItem);
 		}
 		m_list.SortItems(CompareFunc, m_bAscending[m_nSort] ? m_nSort : 100 + m_nSort);
@@ -780,14 +780,14 @@ void CDlgDownload::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 		L"Building: %s (%d floors, %d lift shafts)\n\r"
 		L"Client: %s%s%s%s%s"
 		, 
-		_hlpStr(pSim->m_strProjectName, L"<untitled project>"),
-		_hlpStr(pSim->m_strBuildingName, L"main building"), pSim->m_nBldFloors, pSim->m_nBldShafts,
-		_hlpStr(pSim->m_strClientCompanyName, L"<unknown>"), _hlpStr(pSim->m_strCity), _hlpStr(pSim->m_strPostalZipCode), _hlpStr(pSim->m_strStateCounty), _hlpStr(pSim->m_strCountry)
+		_hlpStr(pSim->GetProjectInfo(CSim::PRJ_PROJECT_NAME), L"<untitled project>"),
+		_hlpStr(pSim->GetProjectInfo(CSim::PRJ_BUILDING_NAME), L"main building"), pSim->GetBldgFloors(), pSim->GetBldgShafts(),
+		_hlpStr(pSim->GetProjectInfo(CSim::PRJ_COMPANY), L"<unknown>"), _hlpStr(pSim->GetProjectInfo(CSim::PRJ_CITY)), _hlpStr(pSim->GetProjectInfo(CSim::PRJ_POST_CODE)), _hlpStr(pSim->GetProjectInfo(CSim::PRJ_COUNTY)), _hlpStr(pSim->GetProjectInfo(CSim::PRJ_COUNTRY))
 		);
 
 	CString str;
-	if (!pSim->m_strLiftDesigner.empty()) { str.Format(L"\n\rDesigned by: %s", pSim->m_strLiftDesigner.c_str()); m_details += str; }
-	if (!pSim->m_strCheckedBy.empty())    { str.Format(L"\n\rChecked by: %s", pSim->m_strCheckedBy.c_str()); m_details += str; }
+	if (!pSim->GetProjectInfo(CSim::PRJ_DESIGNER).empty())	 { str.Format(L"\n\rDesigned by: %s", pSim->GetProjectInfo(CSim::PRJ_DESIGNER).c_str()); m_details += str; }
+	if (!pSim->GetProjectInfo(CSim::PRJ_CHECKED_BY).empty()) { str.Format(L"\n\rChecked by: %s", pSim->GetProjectInfo(CSim::PRJ_CHECKED_BY).c_str()); m_details += str; }
 
 	UpdateData(0);
 
@@ -831,7 +831,7 @@ void CDlgDownload::OnBnClickedOk()
 		m_servers += txt;
 	}
 
-	m_url.Format(L"http://%s/advsrv.asmx?request=%d", m_server, pSim->m_nSimulationID);
+	m_url.Format(L"http://%s/advsrv.asmx?request=%d", m_server, pSim->GetSimulationId());
 
 	CDialog::OnOK();
 }
