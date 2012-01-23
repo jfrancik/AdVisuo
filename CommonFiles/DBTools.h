@@ -123,7 +123,8 @@ public:
 	std::wstring as_wstring()			{ return operator std::wstring(); }
 	DATE as_date()						{ return operator DATE(); }
 
-	std::wstring as_type();
+	std::wstring as_xs_type();
+	std::wstring as_sql_type();
 
 	void from_string(std::string);
 	void from_wstring(std::wstring);
@@ -150,6 +151,7 @@ public:
 	struct SELECT;
 	struct INSERT;
 	struct UPDATE;
+	struct CREATE;
 	
 	// execute any SQL statement
 	void execute(const wchar_t *query, ...);
@@ -162,6 +164,9 @@ public:
 
 	// SQL UPDATE
 	UPDATE update(const wchar_t *table, const wchar_t *where_clause, ...);
+
+	// SQL CREATE TABLE
+	CREATE create(const wchar_t *table);
 
 	struct SELECT
 	{
@@ -205,7 +210,7 @@ public:
 	public:
 		QUERY()								{ pDB = NULL; }
 		virtual std::wstring query() = 0;
-		void execute()						{ if (pDB) pDB->execute(query().c_str()); }
+		virtual void execute()				{ if (pDB) pDB->execute(query().c_str()); }
 
 		void operator << (CCollection &coll);
 	};
@@ -218,6 +223,9 @@ public:
 	public:
 		INSERT()							{ }
 		virtual std::wstring query();
+
+		void createTables();
+		virtual void execute();
 	};
 
 	struct UPDATE : public QUERY
@@ -227,6 +235,16 @@ public:
 		friend UPDATE CDataBase::update(const wchar_t *table, const wchar_t *where_clause, ...);
 	public:
 		UPDATE()							{ }
+		virtual std::wstring query();
+	};
+
+	struct CREATE : public QUERY
+	{
+	private:
+		CREATE(CDataBase *pDB, std::wstring table) : QUERY(pDB, table)	{ }
+		friend CREATE CDataBase::create(const wchar_t *table);
+	public:
+		CREATE()							{ }
 		virtual std::wstring query();
 	};
 };

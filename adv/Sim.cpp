@@ -79,7 +79,14 @@ HRESULT CSim::FindProjectID(CDataBase db, ULONG nSimulationID, ULONG &nProjectID
 	CDataBase::SELECT sel;
 		
 	// Query for Project Data (test for any existing)
-	sel = db.select(L"SELECT MAX(ID) AS id FROM AVProjects WHERE SimulationID=%d", nSimulationID);
+	try
+	{
+		sel = db.select(L"SELECT MAX(ID) AS id FROM AVProjects WHERE SimulationID=%d", nSimulationID);
+	}
+	catch (...)
+	{
+		return S_FALSE;
+	}
 	if (!sel) return S_FALSE;
 
 	if (sel[L"id"].isNull()) return S_FALSE;
@@ -163,6 +170,7 @@ HRESULT CSim::Store(CDataBase db, ULONG nSimulationID)
 
 	ins[L"TimeStamp"] = L"CURRENT_TIMESTAMP";
 	ins[L"TimeStamp"].act_as_symbol();
+
 	ins.execute();
 		
 	// retrieve the Project ID
@@ -216,23 +224,35 @@ HRESULT CSim::Update(CDataBase db, AVLONG nTime)
 HRESULT CSim::CleanUp(CDataBase db, ULONG nSimulationID)
 {
 	if (!db) throw db;
-	db.execute(L"DELETE FROM AVPassengers WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
-	db.execute(L"DELETE FROM AVJourneys WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
-	db.execute(L"DELETE FROM AVFloors WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
-	db.execute(L"DELETE FROM AVShafts WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
-	db.execute(L"DELETE FROM AVBuildings WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
-	db.execute(L"DELETE FROM AVProjects WHERE SimulationID=%d", nSimulationID);
+	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVPassengers WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
+	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVJourneys WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
+	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVFloors WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
+	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVShafts WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
+	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVBuildings WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
+	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVProjects WHERE SimulationID=%d", nSimulationID);
 	return S_OK;
 }
 
 HRESULT CSim::CleanUpAll(CDataBase db)
 {
 	if (!db) throw db;
-	db.execute(L"DELETE FROM AVPassengers");
-	db.execute(L"DELETE FROM AVJourneys");
-	db.execute(L"DELETE FROM AVFloors");
-	db.execute(L"DELETE FROM AVShafts");
-	db.execute(L"DELETE FROM AVProjects");
-	db.execute(L"DELETE FROM AVBuildings");
+	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL DELETE FROM AVPassengers");
+	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL DELETE FROM AVJourneys");
+	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL DELETE FROM AVFloors");
+	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL DELETE FROM AVShafts");
+	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVProjects");
+	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVBuildings");
+	return S_OK;
+}
+
+HRESULT CSim::DropTables(CDataBase db)
+{
+	if (!db) throw db;
+	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL DROP TABLE AVPassengers");
+	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL DROP TABLE AVJourneys");
+	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL DROP TABLE AVFloors");
+	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL DROP TABLE AVShafts");
+	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DROP TABLE AVProjects");
+	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DROP TABLE AVBuildings");
 	return S_OK;
 }

@@ -236,6 +236,24 @@ ADV_API HRESULT AVDeleteAll()
 	STD_CATCH(L"AVDeleteAll()", 0);
 }
 
+ADV_API HRESULT AVDropTables()
+{
+	CLogTime lt;
+	AVSTRING pConnStr;
+	GetConnStrings(NULL, &pConnStr);
+	try
+	{
+		DWORD dwStatus = STATUS_OK;
+
+		HRESULT h = CSim::DropTables(pConnStr);
+		if WARNED(h) dwStatus = STATUS_WARNING;
+
+		lt.Log(L"AVDropTables");
+		return Logf(dwStatus, L"AVDropTables()");
+	}
+	STD_CATCH(L"AVDropTables()", 0);
+}
+
 ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 {
 	CLogTime lt;
@@ -251,7 +269,7 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		if WARNED(h) dwStatus = STATUS_WARNING;
 		
 		CBuilding building;
-		h = building.LoadFromConsole(pConsoleConn, nSimulationId, 1.0f); 
+		h = building.LoadFromConsole(pConsoleConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		CSim sim(&building);
@@ -284,7 +302,8 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 		GetScale(&fScale);
 
 		CBuilding building;
-		h = building.LoadFromVisualisation(pVisConn, nProjectID, fScale);
+		h = building.LoadFromVisualisation(pVisConn, nProjectID);
+		building.Scale(fScale);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		CSim sim(&building);
@@ -318,7 +337,7 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId)
 		DWORD dwStatus = STATUS_OK;
 
 		CBuilding building;
-		h = building.LoadFromConsole(pConsoleConn, nSimulationId, 1.0f);
+		h = building.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		CSim sim(&building);

@@ -158,7 +158,7 @@ CValue::operator string()
 	return _wstr2str(operator wstring());
 }
 
-std::wstring CValue::as_type()
+std::wstring CValue::as_xs_type()
 {
 	switch (type)
 	{
@@ -168,6 +168,20 @@ std::wstring CValue::as_type()
 	case V_DATE:	return L"xs:dateTime";
 	case V_STRING:	return L"xs:string";
 	case V_SYMBOL:	return L"xs:string";
+	default:		return L"";
+	}
+}
+
+std::wstring CValue::as_sql_type()
+{
+	switch (type)
+	{
+	case V_INT:		return L"int";
+	case V_BOOL:	return L"boolean";
+	case V_FLOAT:	return L"float";	// L"decimal(9,2)";
+	case V_DATE:	return L"datetime";
+	case V_STRING:	return L"nvarchar(255)";
+	case V_SYMBOL:	return L"nvarchar(255)";
 	default:		return L"";
 	}
 }
@@ -284,6 +298,12 @@ CDataBase::UPDATE CDataBase::update(const wchar_t *table, const wchar_t *where_c
 	return CDataBase::UPDATE(this, table, out);
 }
 
+// SQL CREATE
+CDataBase::CREATE CDataBase::create(const wchar_t *table)
+{ 
+	return CDataBase::CREATE(this, table); 
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 // CDataBase::SELECT
 
@@ -337,6 +357,24 @@ wstring CDataBase::INSERT::query()
 	return str.str();
 }
 
+void CDataBase::INSERT::createTables()
+{
+	CDataBase::CREATE create = pDB->create(table.c_str());
+	create << *this;
+
+	wstring str = create.query();
+	create.execute();
+}
+
+void CDataBase::INSERT::execute()
+{ 
+	if (pDB)
+	{
+		createTables();
+		pDB->execute(query().c_str());
+	}
+}
+
 wstring CDataBase::UPDATE::query()
 {
 	wstringstream str;
@@ -352,3 +390,20 @@ wstring CDataBase::UPDATE::query()
 	str << L" " << where_clause;
 	return str.str();
 }
+
+wstring CDataBase::CREATE::query()
+{
+	wstringstream str;
+
+	str << L"IF OBJECT_ID('dbo." << table << L"','U') IS NULL CREATE TABLE dbo." << table << L" (";
+	str << L"ID int IDENTITY(1,1) NOT NULL";
+	for each (pair<wstring, CValue> p in *this)
+	{
+		str << L", ";
+		str << p.first << L" " << p.second.as_sql_type() << L" NOT NULL";
+	}
+
+	str << L")";
+	return str.str();
+}
+

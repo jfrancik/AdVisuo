@@ -30,9 +30,6 @@ public:
 
 // Operations
 
-	// XML Parse/Feed
-	void dupaSetupVars();
-
 	void Play(IAction *pActionTick);
 	void Render(IRenderer *pRenderer, AVLONG nPhase = 0);
 

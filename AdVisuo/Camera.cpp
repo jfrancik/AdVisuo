@@ -43,19 +43,19 @@ void CCamera::SetBuilding(CBuilding *pBuilding)
 	m_pBuilding = pBuilding;
 	if (!m_pBuilding) return;
 
-	m_box = m_pBuilding->m_box;
+	m_box = m_pBuilding->GetBox();
 
 	AVFLOAT nLWall = 0, nRWall = 0;
-	if (m_pBuilding->GetLobbyArrangement() == CBuilding::LOBBY_DEADEND_LEFT)  nLWall = m_pBuilding->m_box.LeftThickness();
-	if (m_pBuilding->GetLobbyArrangement() == CBuilding::LOBBY_DEADEND_RIGHT) nRWall = m_pBuilding->m_box.RightThickness();
+	if (m_pBuilding->GetLobbyArrangement() == CBuilding::LOBBY_DEADEND_LEFT)  nLWall = m_pBuilding->GetBox().LeftThickness();
+	if (m_pBuilding->GetLobbyArrangement() == CBuilding::LOBBY_DEADEND_RIGHT) nRWall = m_pBuilding->GetBox().RightThickness();
 
 	m_box = BOX(
-		m_pBuilding->m_box.Left() + 2 + nLWall,
-		m_pBuilding->m_box.Front() + 10,
-		m_pBuilding->m_box.Width() - 4 - nLWall - nRWall, 
-		m_pBuilding->m_box.Depth() - 20);
+		m_pBuilding->GetBox().Left() + 2 + nLWall,
+		m_pBuilding->GetBox().Front() + 10,
+		m_pBuilding->GetBox().Width() - 4 - nLWall - nRWall, 
+		m_pBuilding->GetBox().Depth() - 20);
 
-	m_nTripodHeight = m_pBuilding->GetShaft(0)->m_boxDoor.Height();
+	m_nTripodHeight = m_pBuilding->GetShaft(0)->GetBoxDoor().Height();
 }
 
 void CCamera::SetBaseBone(IKineNode *pNode, bool bKeepCoord)
@@ -180,7 +180,7 @@ void CCamera::GetCameraPos_Lobby(AVULONG nSetupId, AVFLOAT fAspect, CAMPARAMS &c
 {
 	if (nSetupId > 7) nSetupId = 0;
 
-	AVFLOAT nStoreyHeight = min(m_pBuilding->GetStorey(m_nStorey)->m_box.Height(), 2 * m_nTripodHeight);
+	AVFLOAT nStoreyHeight = min(m_pBuilding->GetStorey(m_nStorey)->GetBox().Height(), 2 * m_nTripodHeight);
 	AVFLOAT fEyeHeight = min(nStoreyHeight - 20, m_nTripodHeight);
 
 	// eye position
@@ -262,7 +262,7 @@ void CCamera::GetCameraPos_Overhead(AVFLOAT fAspect, CAMPARAMS &cp)
 	AVFLOAT fEyeHeight = max(fEyeHeight1, fEyeHeight2);
 	cp.m_pEyeRef = m_pBaseBone;
 	cp.eye = Vector(m_box.CenterX(), m_box.CenterY(), fEyeHeight);
-	AVFLOAT nStoreyHeight = m_pBuilding->GetStorey(m_nStorey)->m_box.Height();
+	AVFLOAT nStoreyHeight = m_pBuilding->GetStorey(m_nStorey)->GetBox().Height();
 	cp.fClipNear = fEyeHeight - nStoreyHeight + 20;
 	if (cp.fClipNear < 10) cp.fClipNear = 10;
 	cp.fClipFar = 10000;
@@ -273,7 +273,7 @@ void CCamera::GetCameraPos_Overhead(AVFLOAT fAspect, CAMPARAMS &cp)
 
 void CCamera::GetCameraPos_Lift(AVULONG nLiftId, AVFLOAT fAspect, CAMPARAMS &cp)
 {
-	BOX box = m_pBuilding->GetShaft(nLiftId)->m_boxCar;
+	BOX box = m_pBuilding->GetShaft(nLiftId)->GetBoxCar();
 	AVFLOAT nCarHeight = box.Height();
 	AVFLOAT fEyeHeight = min(nCarHeight - 20, m_nTripodHeight);
 	AVFLOAT fTargetDist = box.Depth();					// distance to the point the camera is looking at
@@ -296,11 +296,11 @@ void CCamera::GetCameraPos_Lift(AVULONG nLiftId, AVFLOAT fAspect, CAMPARAMS &cp)
 
 void CCamera::GetCameraPos_Ext(AVULONG nPos, AVFLOAT fAspect, CAMPARAMS &cp)
 {
-	BOX lbox = m_pBuilding->GetShaft(0)->m_boxCar;
+	BOX lbox = m_pBuilding->GetShaft(0)->GetBoxCar();
 
-	AVFLOAT yFront = (m_pBuilding->GetShaftLinesCount() == 1) ? m_box.Rear() : m_pBuilding->GetShaft(m_pBuilding->GetShaftCount(0))->m_box.RearExt();
-	AVFLOAT yRear  = m_pBuilding->GetShaft(0)->m_box.RearExt();
-	AVFLOAT nHeight = m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->SL + m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->SH;
+	AVFLOAT yFront = (m_pBuilding->GetShaftLinesCount() == 1) ? m_box.Rear() : m_pBuilding->GetShaft(m_pBuilding->GetShaftCount(0))->GetBox().RearExt();
+	AVFLOAT yRear  = m_pBuilding->GetShaft(0)->GetBox().RearExt();
+	AVFLOAT nHeight = m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->GetLevel() + m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->GetHeight();
 
 	cp.m_pEyeRef = m_pBaseBone;
 	switch (nPos)
@@ -340,14 +340,14 @@ void CCamera::GetCameraPos_Storey(AVULONG nStorey, AVFLOAT &fZRelMove)
 	AVVECTOR pos;
 	GetCurLocalPos(pos);
 	bool bOnTripod = pos.z <= m_nTripodHeight;
-	AVFLOAT h = bOnTripod ? pos.z : pStorey->SH - pos.z;
+	AVFLOAT h = bOnTripod ? pos.z : pStorey->GetHeight() - pos.z;
 
-	fZRelMove = -pos.z - pStorey->SL;
+	fZRelMove = -pos.z - pStorey->GetLevel();
 
 	pStorey = GetBuilding()->GetStorey(nStorey);
-	if (!bOnTripod) h = max(pStorey->SH - h, m_nTripodHeight);
+	if (!bOnTripod) h = max(pStorey->GetHeight() - h, m_nTripodHeight);
 
-	fZRelMove += pStorey->SL + h;
+	fZRelMove += pStorey->GetLevel() + h;
 }
 
 void CCamera::MoveTo(CAMPARAMS &cp)
@@ -496,7 +496,7 @@ void CCamera::AnimateToOverhead(IAction *pTickSource, AVFLOAT fAspect)
 		IAction *pAction = NULL;
 
 		// first stage - move under the ceiling and move down
-		AVVECTOR eye1 = { m_cp.eye.x, m_cp.eye.y, m_pBuilding->GetStorey(m_nStorey)->SL + m_pBuilding->GetStorey(m_nStorey)->m_box.Height() };
+		AVVECTOR eye1 = { m_cp.eye.x, m_cp.eye.y, m_pBuilding->GetStorey(m_nStorey)->GetLevel() + m_pBuilding->GetStorey(m_nStorey)->GetBox().Height() };
 
 		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, 600, GetHandle(), *(FWVECTOR*)&eye1, NULL);
 		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
@@ -660,13 +660,13 @@ void CCamera::CheckLocation()
 
 	CBuilding::STOREY *pStorey0 = GetBuilding()->GetStorey(0), *pStoreyTop = GetBuilding()->GetStorey(GetBuilding()->GetStoreyCount() - 1);
 
-	if (pos.z < pStorey0->SL)
+	if (pos.z < pStorey0->GetLevel())
 	{
 		camloc = CAMLOC_BELOW;
 		nStorey = 0;
 		nLift = -1;
 	}
-	else if (pos.z >= pStoreyTop->SL + pStoreyTop->SH)
+	else if (pos.z >= pStoreyTop->GetLevel() + pStoreyTop->GetHeight())
 	{
 		camloc = CAMLOC_ABOVE;
 		nStorey = GetBuilding()->GetStoreyCount() - 1;
@@ -680,12 +680,12 @@ void CCamera::CheckLocation()
 		
 		// within the height of the building; it may be outside, lobby, shaft or lift
 		AVFLOAT x, y;
-		if (m_pBuilding->m_box.InBoxSection(pos, 3, 3, x, y))
+		if (m_pBuilding->GetBox().InBoxSection(pos, 3, 3, x, y))
 		{
 			camloc = CAMLOC_LOBBY;
 			camloc2 = (AVLONG)x + 3 * (AVLONG)y;
 			ASSERT(camloc2 >= 0 && camloc2 < 9); 
-			camloc3 = ((AVLONG)((m_pBuilding->m_box.InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
+			camloc3 = ((AVLONG)((m_pBuilding->GetBox().InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
 			nLift = -1;
 		}
 		else
@@ -694,7 +694,7 @@ void CCamera::CheckLocation()
 				nLift++;
 			if (nLift < (AVLONG)GetBuilding()->GetShaftCount())
 			{
-				AVFLOAT H = GetBuilding()->GetShaft(nLift)->m_boxCar.Height();
+				AVFLOAT H = GetBuilding()->GetShaft(nLift)->GetBoxCar().Height();
 				AVFLOAT Z = GetBuilding()->GetLiftZPos(nLift);
 				if (GetBuilding()->GetShaft(nLift)->Within(pos, GetBuilding()->GetLiftZPos(nLift)))
 				{
@@ -711,7 +711,7 @@ void CCamera::CheckLocation()
 			else
 			{
 				camloc = CAMLOC_OUTSIDE;
-				camloc3 = ((AVLONG)((m_pBuilding->m_box.InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
+				camloc3 = ((AVLONG)((m_pBuilding->GetBox().InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
 				nLift = -1;
 			}
 		}

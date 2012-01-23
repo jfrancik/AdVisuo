@@ -92,7 +92,7 @@ public:
 
 
 public:
-	AVVECTOR GetLiftPos(AVULONG nShaft, AVULONG nStorey)	{ return GetShaft(nShaft)->m_boxCar + Vector(0, 0, GetStorey(nStorey)->SL); }
+	AVVECTOR GetLiftPos(AVULONG nShaft, AVULONG nStorey)	{ return GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetStorey(nStorey)->GetLevel()); }
 	
 	IKineNode *GetStoreyNode(int nStorey)					{ return GetStorey(nStorey)->m_pBone; }
 	ISceneObject *GetStoreyObj(int nStorey)					{ return GetStorey(nStorey)->m_pObj; }

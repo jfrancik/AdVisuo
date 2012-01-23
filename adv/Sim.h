@@ -26,6 +26,7 @@ public:
 	HRESULT Update(dbtools::CDataBase db, AVLONG nTime = -1);
 	static HRESULT CleanUp(dbtools::CDataBase db, ULONG nSimulationID);
 	static HRESULT CleanUpAll(dbtools::CDataBase db);
+	static HRESULT DropTables(dbtools::CDataBase db);
 
 protected:
 	virtual CPassengerBase *CreatePassenger(AVULONG nId)	{ return new CPassenger(this, nId); }

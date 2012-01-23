@@ -126,7 +126,7 @@ AVLONG CSim::FastForward(IAction *pActionTick, AVLONG nTime)
 			AVLONG t = GetPassenger(i)->GetBornTime();
 			nEarliestTime = min(nEarliestTime, t);
 		}
-	return nEarliestTime;
+	return min(nEarliestTime, GetSimulationTime());
 }
 
 void CSim::RenderPassengers(IRenderer *pRenderer, AVLONG nPhase)

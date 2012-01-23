@@ -136,7 +136,7 @@ ADV_API HRESULT AVProcess(AVULONG nProjectId);
 // Uses Advisuo_Console database to acquire data and IFC file desired location
 ADV_API HRESULT AVIFC(AVULONG nSimulationId);
 
-	// Deletes the simulation data from the visualisation database.
+// Deletes the simulation data from the visualisation database.
 // Returns immediately if data not found.
 // Input:  - nSimulationID - simulation id as used in CONSOLE database
 // Returns standard error codes in case of database/connection errors - check with FAILED(...) macro
@@ -146,6 +146,9 @@ ADV_API HRESULT AVDelete(AVULONG nSimulationId);
 // Returns standard error codes in case of database/connection errors - check with FAILED(...) macro
 ADV_API HRESULT AVDeleteAll();
 
+// Drops tables in the VISUALISATION database - may be used to re-initialize
+// Returns standard error codes in case of database/connection errors - check with FAILED(...) macro
+ADV_API HRESULT AVDropTables();
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Legacy

@@ -25,8 +25,8 @@ public:
 public:
 	// IO
 	HRESULT Store(dbtools::CDataBase db, ULONG nProjectID);
-	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationID, AVFLOAT fScale);
-	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectID, AVFLOAT fScale);
+	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationID);
+	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectID);
 
 	// IFC
 	HRESULT SaveAsIFC(LPCOLESTR pFileName, bool bBrep = true, bool bPresentation = false);

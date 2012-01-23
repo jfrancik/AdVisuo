@@ -13,11 +13,13 @@ private:
 
 public:
 	BOX()														{ this->A = this->A1 = Vector(0, 0, 0); this->B = this->B1 = Vector(0, 0, 0); }
-	BOX(AVVECTOR A, AVVECTOR B)									{ this->A = this->A1 = A; this->B = B; }
+	BOX(AVVECTOR A, AVVECTOR B)									{ this->A = this->A1 = A; this->B = this->B1 = B; }
 	BOX(AVFLOAT x, AVFLOAT y, AVFLOAT z, AVFLOAT w, AVFLOAT d, AVFLOAT h)	{ this->A = this->A1 = Vector(x, y, z); this->B = this->B1 = Vector(x + w, y + d, z + h); }
 	BOX(AVFLOAT x, AVFLOAT y, AVFLOAT w, AVFLOAT d)				{ this->A = this->A1 = Vector(x, y, 0); this->B = this->B1 = Vector(x + w, y + d, 0); }
 
 	operator AVVECTOR&()	{ return A; }
+	BOX &operator +=(AVVECTOR v)	{ Translate(v); return *this; }
+	BOX &operator *=(AVFLOAT f)		{ Scale(f); return *this; }
 
 	bool InBox(AVVECTOR &v)	{ return ((v.x >= Left() && v.x <= Right()) || (v.x <= Left() && v.x >= Right())) && ((v.y >= Front() && v.y <= Rear()) || (v.y <= Front() && v.y >= Rear())); }
 	bool InBoxExt(AVVECTOR &v)	{ return ((v.x >= LeftExt() && v.x <= RightExt()) || (v.x <= LeftExt() && v.x >= RightExt())) && ((v.y >= FrontExt() && v.y <= RearExt()) || (v.y <= FrontExt() && v.y >= RearExt())); }
@@ -85,9 +87,22 @@ public:
 	void SetThickness(AVFLOAT lt, AVFLOAT rt, AVFLOAT ft, AVFLOAT re)	{ A1 = A; A1.x -= lt; A1.y -= ft; B1 = B; B1.x += rt; B1.y += re; }
 	void SetThickness(AVFLOAT lt, AVFLOAT rt, AVFLOAT ft, AVFLOAT re, AVFLOAT lw, AVFLOAT up)	
 																		{ A1 = A; A1.x -= lt; A1.y -= ft; A1.z -= lw; B1 = B; B1.x += rt; B1.y += re; B1.z += up; }
+	void SetFrontThickness(AVFLOAT f)	{ A1.y = A.y - f; }
+	void SetRearThickness(AVFLOAT f)	{ B1.y = B.y + f; }
+	void SetLeftThickness(AVFLOAT f)	{ A1.x = A.x - f; }
+	void SetRightThickness(AVFLOAT f)	{ B1.x = B.x + f; }
+	void SetLowerThickness(AVFLOAT f)	{ A1.z = A.z - f; }
+	void SetUpperThickness(AVFLOAT f)	{ B1.z = B.z + f; }
+
 	void SetWidth(AVFLOAT w)			{ AVFLOAT dw = w - B.x; B.x += dw; B1.x += dw; }
 	void SetDepth(AVFLOAT d)			{ AVFLOAT dd = d - B.y; B.y += dd; B1.y += dd; }
 	void SetHeight(AVFLOAT h)			{ AVFLOAT dh = h - B.z; B.z += dh; B1.z += dh; }
+
+	void Translate(AVVECTOR v)			{ A.x += v.x; A.y += v.y; A.z += v.z; B.x += v.x; B.y += v.y; B.z += v.z; A1.x += v.x; A1.y += v.y; A1.z += v.z; B1.x += v.x; B1.y += v.y; B1.z += v.z; }
+	void Scale(AVFLOAT f)				{ A.x *= f; A.y *= f; A.z *= f; B.x *= f; B.y *= f; B.z *= f; A1.x *= f; A1.y *= f; A1.z *= f; B1.x *= f; B1.y *= f; B1.z *= f; }
+	void ScaleX(AVFLOAT f)				{ A.x *= f; B.x *= f; A1.x *= f; B1.x *= f; }
+	void ScaleY(AVFLOAT f)				{ A.y *= f; B.y *= f; A1.y *= f; B1.y *= f; }
+	void ScaleZ(AVFLOAT f)				{ A.z *= f; B.z *= f; A1.z *= f; B1.z *= f; }
 
 	AVVECTOR LeftFrontLower()			{ return A; }
 	AVVECTOR LeftFrontLowerExt()		{ return Vector(A.x, A.y, A1.z); }

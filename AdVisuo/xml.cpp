@@ -14,14 +14,9 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////////////////
 // Load from XML
 
-// in Ruby it would be a class extension
-void Journey_Parse(JOURNEY &j, xmltools::CXmlReader reader, LPCWSTR pTagName, AVULONG &nLiftID);
-
 void CSim::Load(xmltools::CXmlReader reader)
 {
 	CBuilding *pBuilding = GetBuilding();
-	CBuilding::SHAFT *pShaft = NULL;
-	CBuilding::STOREY *pStorey = NULL;
 	if (!pBuilding) throw _sim_error(_sim_error::E_SIM_INTERNAL);
 
 	AVULONG iLift = 0, iShaft = 0, iStorey = 0;
@@ -42,45 +37,30 @@ void CSim::Load(xmltools::CXmlReader reader)
 			if (m_phase != PHASE_PRJ) throw _sim_error(_sim_error::E_SIM_FILE_STRUCT);
 			m_phase = PHASE_BLD;
 
-			pBuilding->CreateShafts(reader[L"NoOfShafts"]);
-			pBuilding->CreateStoreys((ULONG)reader[L"FloorsAboveGround"] + (ULONG)reader[L"FloorsBelowGround"], (ULONG)reader[L"FloorsBelowGround"]);
-
 			reader >> *pBuilding;
+			pBuilding->PreCreate();
 		}
 		else
 		if (reader.getName() == L"AVShaft")
 		{
 			if (m_phase != PHASE_BLD && m_phase != PHASE_STRUCT) throw _sim_error(_sim_error::E_SIM_FILE_STRUCT);
 			m_phase = PHASE_STRUCT;
-
 			if (iShaft >= GetBuilding()->GetShaftCount()) throw _sim_error(_sim_error::E_SIM_LIFTS);
-			CBuilding::SHAFT *pPrevShaft = pShaft;
-			pShaft = pBuilding->GetShaft(iShaft);
-
-			reader >> *pShaft;
 			
-			iShaft++;
+			CBuilding::SHAFT *pShaft = pBuilding->GetShaft(iShaft++);
+			reader >> *pShaft;
 
-			for (AVULONG i = 0; i < pShaft->GetLiftCount(); i++)
-			{
-				CLiftBase *pLift = CreateLift(iLift);
-				AddLift(pLift);
-				iLift++;
-			}
+			for (AVULONG i = 0; i < (ULONG)reader[L"NumberOfLifts"]; i++)
+				AddLift(CreateLift(iLift++));
 		}
 		else
 		if (reader.getName() == L"AVFloor")
 		{
 			if (m_phase != PHASE_BLD && m_phase != PHASE_STRUCT) throw _sim_error(_sim_error::E_SIM_FILE_STRUCT);
 			m_phase = PHASE_STRUCT;
-
 			if (iStorey >= GetBuilding()->GetStoreyCount()) throw _sim_error(_sim_error::E_SIM_FLOORS);
-			CBuilding::STOREY *pPrevStorey = pStorey;
-			pStorey = pBuilding->GetStorey(iStorey);
-
-			reader >> *pStorey;
-
-			iStorey++;
+			
+			reader >> *pBuilding->GetStorey(iStorey++);
 		}
 		else
 		if (reader.getName() == L"AVJourney")
@@ -89,8 +69,14 @@ void CSim::Load(xmltools::CXmlReader reader)
 			m_phase = PHASE_SIM;
 
 			JOURNEY journey;
-			AVULONG nLiftID;
-			Journey_Parse(journey, reader, L"AVJourney", nLiftID);
+			AVULONG nLiftID = reader[L"LiftID"];
+			journey.m_shaftFrom = reader[L"ShaftFrom"];
+			journey.m_shaftTo = reader[L"ShaftTo"];
+			journey.m_floorFrom = reader[L"FloorFrom"];
+			journey.m_floorTo = reader[L"FloorTo"];
+			journey.m_timeGo = reader[L"TimeGo"];
+			journey.m_timeDest = reader[L"TimeDest"];
+			journey.ParseDoorCycles(reader[L"DC"]);
 				  
 			if (nLiftID >= pBuilding->GetLiftCount() || nLiftID >= LIFT_MAXNUM || journey.m_shaftFrom >= pBuilding->GetShaftCount() || journey.m_shaftTo >= pBuilding->GetShaftCount()) 
 				throw _sim_error(_sim_error::E_SIM_LIFTS);
@@ -104,10 +90,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 			m_phase = PHASE_SIM;
 
 			CPassenger *pPassenger = (CPassenger*)CreatePassenger(0);
-
 			reader >> *pPassenger;
-			pPassenger->dupaSetupVars();
-
 			AddPassenger(pPassenger);
 		}
 	}
@@ -120,8 +103,18 @@ void CSim::Load(xmltools::CXmlReader reader)
 	if (m_phase == PHASE_STRUCT && iStorey != GetBuilding()->GetStoreyCount())
 		throw _sim_error(_sim_error::E_SIM_FLOORS);
 
+	if (m_phase == PHASE_STRUCT) 
+		m_phase = PHASE_SIM;
+
 	if (m_phase >= PHASE_STRUCT) 
-		GetBuilding()->ResolveMe(0.04f);
+	{
+		GetBuilding()->Create();
+		GetBuilding()->Scale(0.04f);
+	}
+	if (m_phase == PHASE_SIM)
+	{
+		for_each_passenger([](CPassengerBase *p) { p->ResolveMe(); });
+	}
 
 	if (m_phase >= PHASE_STRUCT && !GetBuilding()->IsValid())
 		throw _sim_error(_sim_error::E_SIM_NO_BUILDING);
@@ -138,38 +131,6 @@ void CSim::LoadIndex(xmltools::CXmlReader reader, vector<CSim*> &sims)
 			sims.push_back(pSim);
 		}
 }
-
-void Journey_Parse(JOURNEY &j, xmltools::CXmlReader reader, LPCWSTR pTagName, AVULONG &nLiftID)
-{
-	std::wstring DC;
-	nLiftID = reader[L"LiftID"];
-	j.m_shaftFrom = reader[L"ShaftFrom"];
-	j.m_shaftTo = reader[L"ShaftTo"];
-	j.m_floorFrom = reader[L"FloorFrom"];
-	j.m_floorTo = reader[L"FloorTo"];
-	j.m_timeGo = reader[L"TimeGo"];
-	j.m_timeDest = reader[L"TimeDest"];
-	j.ParseDoorCycles(reader[L"DC"]);
-}
-
-void CPassenger::dupaSetupVars()
-{
-	SetId(ME[L"PassengerId"]);
-	SetShaftId(ME[L"ShaftId"]);
-	SetLiftId(ME[L"LiftId"]);
-	SetDeck(ME[L"DeckId"]);
-	SetArrivalFloor(ME[L"FloorArrival"]);
-	SetDestFloor(ME[L"FloorDest"]);
-	SetBornTime(ME[L"TimeBorn"]);
-	SetArrivalTime(ME[L"TimeArrival"]);
-	SetGoTime(ME[L"TimeGo"]);
-	SetLoadTime(ME[L"TimeLoad"]);
-	SetUnloadTime(ME[L"TimeUnload"]);
-	SetWaitSpan(ME[L"SpanWait"]);
-
-	ParseWayPoints(ME[L"WP"]);
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Store as XML

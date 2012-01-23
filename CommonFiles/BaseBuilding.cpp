@@ -6,16 +6,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 // CBuildingBase
 
-CBuildingBase::CBuildingBase(void)
+CBuildingBase::CBuildingBase(void) : m_ppShafts(NULL), m_ppStoreys(NULL), m_nShaftCount(0), m_nStoreyCount(0), m_nBasementStoreyCount(0),
+									 nBuildingID(0), LiftShaftArrang(SHAFT_INLINE), LobbyArrangement(LOBBY_OPENPLAN), m_fScale(1.0)
 {
-	m_nShaftCount = 0;
-	m_nStoreyCount = 0;
-	m_nBasementStoreyCount = 0;
-
-	ppShafts = NULL;
-	ppStoreys = NULL;
-
-	fScale = 1.0;
+	ShaftCount[0] = ShaftCount[1] = 0;
+	LineWidth[0] = LineWidth[1] = 0;
 }
 
 CBuildingBase::~CBuildingBase(void)
@@ -28,18 +23,18 @@ void CBuildingBase::CreateShafts(AVULONG nShaftCount)
 {
 	DeleteShafts();
 	m_nShaftCount = nShaftCount;
-	ppShafts = new SHAFT*[GetShaftCount()];
+	m_ppShafts = new SHAFT*[GetShaftCount()];
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
-		ppShafts[i] = CreateShaft();
+		m_ppShafts[i] = CreateShaft();
 }
 
 void CBuildingBase::DeleteShafts()
 {
-	if (!ppShafts) return;
+	if (!m_ppShafts) return;
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
-		if (ppShafts[i]) delete ppShafts[i];
-	delete [] ppShafts;
-	ppShafts = NULL;
+		if (m_ppShafts[i]) delete m_ppShafts[i];
+	delete [] m_ppShafts;
+	m_ppShafts = NULL;
 }
 
 void CBuildingBase::CreateStoreys(AVULONG nStoreyCount, AVULONG nBasementStoreyCount)
@@ -47,219 +42,317 @@ void CBuildingBase::CreateStoreys(AVULONG nStoreyCount, AVULONG nBasementStoreyC
 	DeleteStoreys();
 	m_nStoreyCount = nStoreyCount;
 	m_nBasementStoreyCount = nBasementStoreyCount;
-	ppStoreys = new STOREY*[GetStoreyCount()];
+	m_ppStoreys = new STOREY*[GetStoreyCount()];
 	for (AVULONG i = 0; i < GetStoreyCount(); i++)
-		ppStoreys[i] = CreateStorey();
+		m_ppStoreys[i] = CreateStorey();
 }
 
 void CBuildingBase::DeleteStoreys()
 {
-	if (!ppStoreys) return;
+	if (!m_ppStoreys) return;
 	for (AVULONG i = 0; i < GetStoreyCount(); i++)
-		if (ppStoreys[i]) delete ppStoreys[i];
-	delete [] ppStoreys;
-	ppStoreys = NULL;
+		if (m_ppStoreys[i]) delete m_ppStoreys[i];
+	delete [] m_ppStoreys;
+	m_ppStoreys = NULL;
 }
 
-void CBuildingBase::ResolveMe(AVFLOAT fScale)
+BOX &CBuildingBase::SHAFT::GetBox(CBuildingBase::SHAFT::SHAFT_BOX n)
 {
-	LobbyDepth = 0;
-	FrontWallThickness = 200;
-	SideWallThickness = -1;
-	ShaftWallThickness = -1;
-	IntDivBeamWidth = -1;
-	IntDivBeamHeight = -1;
-	LobbyCeilingSlabHeight = 1100;
-	LiftShaftArrang = SHAFT_INLINE;
-	LobbyArrangement = LOBBY_OPENPLAN;
+	switch (n)
+	{
+	case BOX_SHAFT:	return m_boxShaft;
+	case BOX_CAR:	return m_boxCar;
+	case BOX_BEAM:	return m_boxBeam;
+	case BOX_DOOR:	return m_boxDoor[0];
+	default:		return m_boxShaft;
+	}
+}
 
+void CBuildingBase::PreCreate()
+{
+	CreateShafts(ME[L"NoOfShafts"]);
+	CreateStoreys((ULONG)ME[L"FloorsAboveGround"] + (ULONG)ME[L"FloorsBelowGround"], (ULONG)ME[L"FloorsBelowGround"]);
+	SetId(ME[L"ID"]);
+}
+
+void CBuildingBase::Create()
+{
 	// resolve vars
 	LobbyArrangement = (LOBBY_ARRANGEMENT)(ULONG)ME[L"LobbyArrangement"];
-	LobbyCeilingSlabHeight = ME[L"LobbyCeilingSlabHeight"];
 	LiftShaftArrang = (SHAFT_ARRANGEMENT)(ULONG)ME[L"LiftShaftArrangement"];
-	LobbyDepth = ME[L"LobbyDepth"];
-	FrontWallThickness = ME[L"FrontWallThickness"];
-	IntDivBeamWidth = ME[L"IntDivBeamWidth"];
-	IntDivBeamHeight = ME[L"IntDivBeamHeight"];
+
+	AVFLOAT fLobbyCeilingSlabHeight = ME[L"LobbyCeilingSlabHeight"];
+	AVFLOAT fLobbyDepth = ME[L"LobbyDepth"];
+	AVFLOAT fFrontWallThickness = ME[L"FrontWallThickness"];
+	AVFLOAT fIntDivBeamWidth = ME[L"IntDivBeamWidth"];
+	AVFLOAT fIntDivBeamHeight = ME[L"IntDivBeamHeight"];
+	AVFLOAT fSideWallThickness = fFrontWallThickness;
+	AVFLOAT fShaftWallThicknessRear = fFrontWallThickness;
+	AVFLOAT fShaftWallThicknessSide = fFrontWallThickness;
 
 	// calculate width of the lobby if lifts in-line, no side walls
-	AVFLOAT w = -IntDivBeamWidth;
-	AVULONG i;
-	for (i = 0; i < GetShaftCount(); i++)
-		w += GetShaft(i)->GetShaftWidth() + IntDivBeamWidth;
+	AVFLOAT w = 0;
+	for (AVULONG i = 0; i < GetShaftCount(); i++)
+	{
+		GetShaft(i)->Create(this, i, fFrontWallThickness, fShaftWallThicknessRear);
+		w += GetShaft(i)->GetBox().Width();
+	}
+	w += fIntDivBeamWidth * (GetShaftCount() - 1);
 
-	if (LiftShaftArrang != SHAFT_OPPOSITE)
+	// calculate ShaftCount, LineWidth
+	if (GetLiftShaftArrang() != SHAFT_OPPOSITE)
 	{
 		// in-line
-		ShaftLinesCount = 1;
 		ShaftCount[0] = GetShaftCount();
 		ShaftCount[1] = 0;
-		LineWidth[0] = w + 2 * SideWallThickness;
+		LineWidth[0] = w + 2 * fSideWallThickness;
 		LineWidth[1] = 0;
-		LobbyWidth = LineWidth[0];
 	}
 	else
 	{
-		w -= IntDivBeamWidth;
-		AVFLOAT w0 = -IntDivBeamWidth;
-		for (i = 0; i < GetShaftCount() && w0 + GetShaft(i)->GetShaftWidth() / 2 < w/2; i++)
+		w -= fIntDivBeamWidth;
+		AVFLOAT w0 = -fIntDivBeamWidth;
+		AVULONG i;
+		for (i = 0; i < GetShaftCount() && w0 + GetShaft(i)->GetBox().Width() / 2 < w/2; i++)
 		{
-			AVFLOAT wx = GetShaft(i)->GetShaftWidth() + IntDivBeamWidth;
+			AVFLOAT wx = GetShaft(i)->GetBox().Width() + fIntDivBeamWidth;
 			if (w0 + wx/2 > w / 2) break;
 			w0 += wx;
 		}
 		ShaftCount[0] = i;
 		ShaftCount[1] = GetShaftCount() - ShaftCount[0];
-		LineWidth[0] = w0 + 2 * SideWallThickness;
-		LineWidth[1] = w - w0 + 2 * SideWallThickness;
-		LobbyWidth = max(LineWidth[0], LineWidth[1]);
+		LineWidth[0] = w0 + 2 * fSideWallThickness;
+		LineWidth[1] = w - w0 + 2 * fSideWallThickness;
 	}
+	AVFLOAT LobbyWidth = max(LineWidth[0], LineWidth[1]);
 
-	// Scale
-	this->fScale = fScale;
-	if (SideWallThickness <= 0) SideWallThickness = FrontWallThickness;
+	// calculate lobby box
+	AVFLOAT fLt = 0; if (LobbyArrangement == LOBBY_DEADEND_LEFT)  fLt = fSideWallThickness;
+	AVFLOAT fRt = 0; if (LobbyArrangement == LOBBY_DEADEND_RIGHT) fRt = fSideWallThickness;
+	fLt = fRt = fSideWallThickness;	// temporarily closed space!
 
-	AVFLOAT fWidth = LobbyWidth*fScale;
-	AVFLOAT fDepth = LobbyDepth*fScale;
-	AVFLOAT fLt = 0; if (LobbyArrangement == LOBBY_DEADEND_LEFT)  fLt = SideWallThickness*fScale;
-	AVFLOAT fRt = 0; if (LobbyArrangement == LOBBY_DEADEND_RIGHT) fRt = SideWallThickness*fScale;
-	AVFLOAT fFt = FrontWallThickness*fScale;
-	AVFLOAT fRr = FrontWallThickness*fScale; if (LobbyArrangement == LOBBY_OPENPLAN) fRr = 0;
-
-	// temporarily closed space!
-	fLt = fRt = SideWallThickness*fScale;
-
-	m_box = BOX(-fWidth/2 + fLt, -fDepth/2, 0, fWidth - fLt - fRt, fDepth, 0);
-	m_box.SetThickness(fLt, fRt, fFt, fRr, 1, LobbyCeilingSlabHeight*fScale);
+	m_box = BOX(-LobbyWidth/2 + fLt, -fLobbyDepth/2, 0, LobbyWidth - fLt - fRt, fLobbyDepth, 0);
+	m_box.SetThickness(fLt, fRt, fFrontWallThickness, (LobbyArrangement == LOBBY_OPENPLAN) ? 0 : fFrontWallThickness, 1, fLobbyCeilingSlabHeight);
 
 
-	for (AVULONG i = 0; i < GetShaftCount(); i++)  GetShaft(i)->ResolveMe(this, i, fScale);
-	for (AVULONG i = 0; i < GetStoreyCount(); i++) GetStorey(i)->ResolveMe(this, i, fScale);
+	// Resolve Shafts and Storeys
+
+	// 1st line of shafts
+	AVFLOAT fShaftPosX = GetBox().LeftExt() + fShaftWallThicknessSide;
+	AVFLOAT fShaftPosY = GetBox().FrontExt();
+	AVFLOAT fPrevDepth = 0;
+	for (AVULONG i = 0; i < GetShaftCount(0); i++)
+	{
+		SHAFT *pShaft = GetShaft(i);
+
+		// setup basic structure
+		pShaft->Create(0, fShaftPosX, fShaftPosY);
+		
+		// build int beams and extra shaft walls
+		AVFLOAT fDepth = pShaft->GetBox().Depth();
+		if (fPrevDepth == 0)
+			// no previous shaft: build a wall, not beam
+			pShaft->CreateLeftWall(fShaftWallThicknessSide);
+		else if (fDepth == fPrevDepth)
+			// same depth as previous: just build a beam
+			pShaft->CreateLeftBeam(fIntDivBeamWidth, fDepth, fIntDivBeamHeight);
+		else if (fDepth < fPrevDepth)	// note: both values are negative here!
+		{	// deeper than previous: build a shorter beam and add a wall section
+			pShaft->CreateLeftBeam(fIntDivBeamWidth, fPrevDepth, fIntDivBeamHeight);
+			pShaft->CreateLeftWall(fShaftWallThicknessRear, fPrevDepth - fShaftWallThicknessRear);
+		}
+		else
+		{	// smaller than previous: build a beam and add a wall section to the previous shaft
+			pShaft->CreateLeftBeam(fIntDivBeamWidth, fDepth, fIntDivBeamHeight);
+			GetShaft(i-1)->CreateRightWall(fShaftWallThicknessRear, fDepth - fShaftWallThicknessRear);
+		}
+		fPrevDepth = fDepth;
+
+		// move on
+		fShaftPosX += pShaft->GetBox().Width() + fIntDivBeamWidth;
+	}
+	GetShaft(GetShaftCount(0) - 1)->CreateRightWall(fShaftWallThicknessSide);
+
+	// 2nd line of shafts
+	fShaftPosX = GetBox().RightExt() - fShaftWallThicknessSide;
+	fShaftPosY = GetBox().RearExt();
+	fPrevDepth = 0;
+	for (AVULONG i = GetShaftCount(0); i < GetShaftCount(); i++)
+	{
+		SHAFT *pShaft = GetShaft(i);
+
+		// onto position:
+		fShaftPosX -= pShaft->GetBox().Width();
+
+		// setup basic structure
+		pShaft->Create(1, fShaftPosX, fShaftPosY);
+		
+		// build int beams and extra shaft walls
+		AVFLOAT fDepth = pShaft->GetBox().Depth();
+		if (fPrevDepth == 0)
+			// no previous shaft: build a wall, not beam
+			pShaft->CreateRightWall(fShaftWallThicknessSide);
+		else if (fDepth == fPrevDepth)
+			// same depth as previous: just build a beam
+			pShaft->CreateRightBeam(fIntDivBeamWidth, fDepth, fIntDivBeamHeight);
+		else if (fDepth > fPrevDepth)
+		{	// deeper than previous: build a shorter beam and add a wall section
+			pShaft->CreateRightBeam(fIntDivBeamWidth, fPrevDepth, fIntDivBeamHeight);
+			pShaft->CreateRightWall(fShaftWallThicknessRear, fPrevDepth + fShaftWallThicknessRear);
+		}
+		else
+		{	// smaller than previous: build a beam and add a wall section to the previous shaft
+			pShaft->CreateRightBeam(fIntDivBeamWidth, fDepth, fIntDivBeamHeight);
+			GetShaft(i-1)->CreateLeftWall(fShaftWallThicknessRear, fDepth + fShaftWallThicknessRear);
+		}
+		fPrevDepth = fDepth;
+
+		// move on
+		fShaftPosX -= fIntDivBeamWidth;
+	}
+	GetShaft(GetShaftCount() - 1)->CreateLeftWall(fShaftWallThicknessSide);
+
+	AVFLOAT fLevel = 0;
+	for (AVULONG i = 0; i < GetStoreyCount(); i++)
+	{
+		STOREY *pStorey = GetStorey(i);
+		pStorey->Create(this, i, fLevel);
+		fLevel += pStorey->GetHeight();
+	}
+}
+
+void CBuildingBase::Scale(AVFLOAT fScale)
+{
+	m_fScale = fScale;
+	m_box *= m_fScale;
+	for (AVULONG i = 0; i < GetShaftCount(); i++) 
+		GetShaft(i)->Scale(m_fScale);
+	for (AVULONG i = 0; i < GetStoreyCount(); i++) 
+		GetStorey(i)->Scale(m_fScale);
 }
 
 //////////////////////////////////////////////////////////////////////////////////
 // CBuildingBase::SHAFT
 
-void CBuildingBase::SHAFT::ResolveMe(CBuildingBase *pBuilding, AVULONG nIndex, AVFLOAT fScale)
+CBuildingBase::SHAFT::SHAFT() : m_nId(0), m_pBuilding(NULL), m_nShaftLine(0), m_nLiftCount(0), m_type(LIFT_SINGLE_DECK), m_fWallLtStart(0), m_fWallRtStart(0)	
+{ 
+}
+
+void CBuildingBase::SHAFT::Create(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fFrontWall, AVFLOAT fRearWall)
 {
-	ShaftID = 0;				// unspecified at this stage
-	LiftDoorHeight = 2200;
-	LiftDoorWidth = 1100;
-	TypeOfLift = LIFT_SINGLE_DECK;
-	MachRoomExt = -1.0f;
-	NumberOfLifts = 1;
-	CarWidth = 2000;
-	CarDepth = 1400;
-	CarHeight = 2400;
-	ShaftWidth = 2600;
-	ShaftDepth = 2400;
-
-	// resolve vars
-	CarDepth = ME[L"CarDepth"];
-	CarWidth = ME[L"CarWidth"];
-	CarHeight = ME[L"CarHeight"];
-	LiftDoorHeight = ME[L"LiftDoorHeight"];
-	LiftDoorWidth = ME[L"LiftDoorWidth"];
-	MachRoomExt = ME[L"MachRoomExt"];
-	NumberOfLifts = ME[L"NumberOfLifts"];
-	ShaftDepth = ME[L"ShaftDepth"];
-	ShaftID = ME[L"ShaftID"];
-	ShaftWidth = ME[L"ShaftWidth"];
-	TypeOfLift = (TYPE_OF_LIFT)(ULONG)ME[L"TypeOfLift"];
-
-
+	m_nId = nId;
 	m_pBuilding = pBuilding;
-	AVULONG nLine0 = pBuilding->GetShaftCount(0);
-
-	ShaftIndex = nIndex;
-	ShaftLine = nIndex >= nLine0 ? 1 : 0;
-
-	if (ShaftLine == 0)
-	{
-		ShaftPos = (nIndex > 0)			? pBuilding->GetShaft(nIndex-1)->ShaftRPos + pBuilding->IntDivBeamWidth : pBuilding->ShaftWallThickness;
-		ShaftRPos = ShaftPos + ShaftWidth;
-	}
-	else
-	{
-		ShaftRPos = (nIndex > nLine0)	? pBuilding->GetShaft(nIndex-1)->ShaftPos - pBuilding->IntDivBeamWidth : pBuilding->LobbyWidth - pBuilding->ShaftWallThickness;
-		ShaftPos = ShaftRPos - ShaftWidth;
-	}
-
-	if (MachRoomExt == -1.0f)
-		if (TypeOfLift == LIFT_DOUBLE_DECK) MachRoomExt = 1000.0; else MachRoomExt = 0;
-
-	// Scale
-	BOX lobbyBox = m_pBuilding->m_box;
-
-	AVFLOAT LeftBeam = m_pBuilding->IntDivBeamWidth;
-	AVFLOAT RightBeam = m_pBuilding->IntDivBeamWidth;
-
-	switch (ShaftLine)
-	{
-		case 0:
-			if (ShaftIndex == 0) LeftBeam = m_pBuilding->ShaftWallThickness;
-			if (ShaftIndex == m_pBuilding->GetShaftCount(0)-1) RightBeam = m_pBuilding->ShaftWallThickness;
-			break;
-		case 1:
-			if (ShaftIndex == m_pBuilding->GetShaftCount(0)) RightBeam = m_pBuilding->ShaftWallThickness;
-			if (ShaftIndex == m_pBuilding->GetShaftCount()-1) LeftBeam = m_pBuilding->ShaftWallThickness;
-			break;
-	}
+	m_nShaftLine = 0;
 	
+	m_nLiftCount = ME[L"NumberOfLifts"];
+	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"TypeOfLift"];
 
-	// imposed parameters
-	AVFLOAT wallThickness = m_pBuilding->IntDivBeamWidth*fScale;	// lift wall thickness
-	AVFLOAT doorThickness = lobbyBox.FrontThickness() / 4;		// lift (external) door thickness
-	AVFLOAT gap = 1.0f;											// gap between lift & floor
+	AVFLOAT ShaftWidth = ME[L"ShaftWidth"];
+	AVFLOAT ShaftDepth = ME[L"ShaftDepth"];
+	AVFLOAT CarDepth = ME[L"CarDepth"];
+	AVFLOAT CarWidth = ME[L"CarWidth"];
+	AVFLOAT CarHeight = ME[L"CarHeight"];
+	AVFLOAT LiftDoorHeight = ME[L"LiftDoorHeight"];
+	AVFLOAT LiftDoorWidth = ME[L"LiftDoorWidth"];
 
-	if (ShaftLine == 0)
-	{
-		m_box = BOX(lobbyBox.Left() + ShaftPos*fScale, lobbyBox.FrontExt(), ShaftWidth*fScale, -ShaftDepth*fScale);
-		m_box.SetThickness(LeftBeam*fScale, RightBeam*fScale, 0, -m_pBuilding->ShaftWallThickness*fScale);
+//	MachRoomExt = ME[L"MachRoomExt"];
+//	if (MachRoomExt == -1.0f)
+//		if (TypeOfLift == LIFT_DOUBLE_DECK) MachRoomExt = 1000.0; else MachRoomExt = 0;
 
-		m_boxDoor = BOX(m_box.Left() + (m_box.Width() - LiftDoorWidth*fScale) / 2, m_box.Front(),               0, LiftDoorWidth*fScale, doorThickness,      LiftDoorHeight*fScale);
+	AVFLOAT wallThickness = fFrontWall / 2;		// lift wall thickness
+	AVFLOAT gap = 1.0f;							// gap between lift & floor
 
-		m_boxCar = BOX(m_box.Left() + (m_box.Width() - CarWidth     *fScale) / 2, m_box.Front()-wallThickness-gap, 0, CarWidth     *fScale, -CarDepth * fScale, CarHeight     *fScale);
-		m_boxCar.SetThickness(wallThickness, wallThickness, -wallThickness, -wallThickness, wallThickness, wallThickness);
-	}
-	else
-	{
-		m_box = BOX(lobbyBox.Left() + ShaftPos*fScale, lobbyBox.RearExt(), ShaftWidth*fScale, ShaftDepth*fScale);
-		m_box.SetThickness(LeftBeam*fScale, RightBeam*fScale, 0, m_pBuilding->ShaftWallThickness*fScale);
+	m_boxShaft = BOX(0, 0, ShaftWidth, ShaftDepth);
+	m_boxShaft.SetThickness(0, 0, fFrontWall, fRearWall);
+	
+	m_boxDoor[0] = BOX(m_boxShaft.CenterX() - LiftDoorWidth / 2, m_boxShaft.FrontExt(), 0, LiftDoorWidth, fFrontWall, LiftDoorHeight);
+	m_boxDoor[1] = BOX(m_boxShaft.CenterX() - LiftDoorWidth / 2, m_boxShaft.Rear(), 0, LiftDoorWidth, fFrontWall, LiftDoorHeight);
+	
+	m_boxCar = BOX(m_boxShaft.CenterXExt() - CarWidth / 2, m_boxShaft.Front() + wallThickness + gap, 0, CarWidth, CarDepth, CarHeight);
+	m_boxCar.SetThickness(wallThickness, wallThickness, wallThickness, wallThickness, wallThickness, wallThickness);
 
-		m_boxDoor = BOX(m_box.Left() + (m_box.Width() - LiftDoorWidth*fScale) / 2, m_box.Front(),               0, LiftDoorWidth*fScale, doorThickness,     LiftDoorHeight*fScale);
+	m_boxCarDoor[0] = BOX(m_boxCar.CenterX() - LiftDoorWidth / 2, m_boxCar.FrontExt(), 0, LiftDoorWidth, wallThickness, LiftDoorHeight);
+	m_boxCarDoor[1] = BOX(m_boxCar.CenterX() - LiftDoorWidth / 2, m_boxCar.Rear(), 0, LiftDoorWidth, wallThickness, LiftDoorHeight);
+}
 
-		m_boxCar = BOX(m_box.Left() + (m_box.Width() - CarWidth     *fScale) / 2, m_box.Front()+wallThickness+gap, 0, CarWidth     *fScale, CarDepth * fScale, CarHeight     *fScale);
-		m_boxCar.SetThickness(wallThickness, wallThickness, wallThickness, wallThickness, wallThickness, wallThickness);
-	}
+void CBuildingBase::SHAFT::Create(AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY)
+{
+	m_nShaftLine = nLine;
+	AVVECTOR vec = { fShaftPosX, fShaftPosY, 0 };
+
+	m_boxShaft.ScaleY(GetShaftDir());
+	m_boxShaft += vec;
+	m_boxDoor[0].ScaleY(GetShaftDir());
+	m_boxDoor[0] += vec;
+	m_boxDoor[1].ScaleY(GetShaftDir());
+	m_boxDoor[1] += vec;
+	m_boxCar.ScaleY(GetShaftDir());
+	m_boxCar += vec;
+	m_boxCarDoor[0].ScaleY(GetShaftDir());
+	m_boxCarDoor[0] += vec;
+	m_boxCarDoor[1].ScaleY(GetShaftDir());
+	m_boxCarDoor[1] += vec;
+}
+
+void CBuildingBase::SHAFT::CreateLeftBeam(AVFLOAT w, AVFLOAT d, AVFLOAT h)
+{
+	AVVECTOR pos = m_boxShaft.LeftFrontLower();
+	pos.x -= w;
+	AVVECTOR size = { w, d, h };
+	m_boxBeam = BOX(pos, pos + size);
+}
+
+void CBuildingBase::SHAFT::CreateRightBeam(AVFLOAT w, AVFLOAT d, AVFLOAT h)
+{
+	AVVECTOR pos = m_boxShaft.RightFrontLower();
+	AVVECTOR size = { w, d, h };
+	m_boxBeam = BOX(pos, pos + size);
+}
+
+void CBuildingBase::SHAFT::CreateLeftWall(AVFLOAT fThickness, AVFLOAT fStart)
+{
+	m_boxShaft.SetLeftThickness(fThickness);
+	m_fWallLtStart = fStart;
+}
+
+void CBuildingBase::SHAFT::CreateRightWall(AVFLOAT fThickness, AVFLOAT fStart)
+{
+	m_boxShaft.SetRightThickness(fThickness);
+	m_fWallRtStart = fStart;
+}
+
+void CBuildingBase::SHAFT::Scale(AVFLOAT fScale)
+{
+	m_boxShaft *= fScale;
+	m_fWallLtStart *= fScale;
+	m_fWallRtStart *= fScale;
+	m_boxBeam *= fScale;
+	m_boxDoor[0] *= fScale;
+	m_boxDoor[1] *= fScale;
+	m_boxCar *= fScale;
+	m_boxCarDoor[0] *= fScale;
+	m_boxCarDoor[1] *= fScale;
 }
 
 //////////////////////////////////////////////////////////////////////////////////
 // CBuildingBase::STOREY
 
-void CBuildingBase::STOREY::ResolveMe(CBuildingBase *pBuilding, AVULONG nIndex, AVFLOAT fScale)
-{
-	StoreyID = 0;
-	HeightValue = 4000;
-	Name = L"";
-
-	// resolve vars
-	StoreyID = ME[L"FloorID"];
-	HeightValue = ME[L"HeightValue"];
-	Name = ME[L"Name"];
-
-	m_pBuilding = pBuilding;
-	CBuildingBase::STOREY *pPrev = nIndex > 0 ? m_pBuilding->GetStorey(nIndex - 1) : NULL;
-
-	StoreyLevel = 0;
-	if (pPrev)
-		StoreyLevel = pPrev->StoreyLevel + pPrev->HeightValue;
-
-	// Scale
-	SH = HeightValue*fScale; SL = StoreyLevel*fScale;
-	AVFLOAT ceiling = m_pBuilding->LobbyCeilingSlabHeight*fScale;
-	m_box = m_pBuilding->m_box;
-	m_box.SetHeight(SH - ceiling);
+CBuildingBase::STOREY::STOREY() : m_nId(0), m_pBuilding(NULL), m_fLevel(0)
+{ 
 }
 
+void CBuildingBase::STOREY::Create(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fLevel)
+{
+	m_nId = nId;
+	m_pBuilding = pBuilding;
+	m_fLevel = fLevel;
+	m_strName = ME[L"Name"];
+	m_box = m_pBuilding->m_box;
+	m_box.SetHeight((AVFLOAT)ME[L"HeightValue"] - m_box.UpperThickness());
+}
 
+void CBuildingBase::STOREY::Scale(AVFLOAT fScale)
+{
+	m_fLevel *= fScale;
+	m_box *= fScale;
+}

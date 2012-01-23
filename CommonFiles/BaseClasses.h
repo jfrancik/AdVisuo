@@ -4,13 +4,13 @@
 
 #include "BaseData.h"
 #include "BaseBuilding.h"
+#include <functional>
 
 class CLiftBase;
 class CPassengerBase;
 
 class CSimBase : public dbtools::CCollection
 {
-private:
 	// project information
 	AVULONG m_nProjectID;
 	AVULONG m_nSimulationID;
@@ -19,7 +19,6 @@ private:
 	AVLONG m_nSimulationTime;
 	AVULONG m_nTimeSaved;
 	
-protected:
 	CBuildingBase *m_pBuilding;
 
 	std::vector<CLiftBase*> m_lifts;
@@ -71,6 +70,9 @@ public:
 	void AddPassenger(CPassengerBase *p)		{ m_passengers.push_back(p); }
 	void DeletePassengers();
 
+	void for_each_passenger(std::function<void (CPassengerBase*)> f)		{ for each (CPassengerBase *p in m_passengers) f(p); }
+	void for_each_lift(std::function<void (CLiftBase*)> f)					{ for each (CLiftBase *p in m_lifts) f(p); }
+
 	void ResolveMe();
 
 protected:
@@ -80,12 +82,12 @@ protected:
 
 class CLiftBase : public dbtools::CCollection
 {
-protected:
 	CSimBase *m_pSim;			// main sim object
 
 	AVULONG m_nId;				// lift id
 	AVULONG m_nDecks;			// number of decks (2 for double decker, 1 for single decker)
 
+protected:
 	// Lift Journeys
 	std::vector<JOURNEY> m_journeys;
 
@@ -109,7 +111,6 @@ public:
 
 class CPassengerBase : public dbtools::CCollection
 {
-protected:
 	CSimBase *m_pSim;
 
 	// Simulation & Derived Data
@@ -128,6 +129,7 @@ protected:
 
 	AVULONG m_spanWait;			// read from file or derived from lift data
 
+protected:
 	// Way Points
 	AVULONG m_nWaypoints;
 	WAYPOINT *m_pWaypoints;
@@ -168,6 +170,8 @@ public:
 	AVULONG GetWaypointCount()					{ return m_nWaypoints; }
 	WAYPOINT *GetWaypoint(AVULONG i)			{ return i < GetWaypointCount() ? &m_pWaypoints[i] : NULL; }
 	void SetWaypoint(AVULONG i, WAYPOINT &wp)	{ m_pWaypoints[i] = wp; }
+
+	void ResolveMe();
 
 	std::wstring StringifyWayPoints();
 	void ParseWayPoints(std::wstring);

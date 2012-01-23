@@ -15,8 +15,14 @@ HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
 	CDataBase::INSERT ins;
 
 	// check if already stored...
-	sel = db.select(L"SELECT * FROM AVBuildings WHERE ProjectID=%d", nProjectID);
-	if (sel) return S_FALSE;		// already done!
+	try
+	{
+		sel = db.select(L"SELECT * FROM AVBuildings WHERE ProjectID=%d", nProjectID);
+		if (sel) return S_FALSE;		// already done!
+	}
+	catch (...)
+	{
+	}
 
 	// store lobby layout data
 	ins = db.insert(L"AVBuildings");
@@ -24,6 +30,8 @@ HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
 	ins[L"ProjectId"] = nProjectID;
 	ins.erase(L"ID");
 	ins.execute();
+
+	std::wstring str = ins.query();
 
 	// retrieve the Building ID
 	sel = db.select(L"SELECT SCOPE_IDENTITY()");
@@ -55,7 +63,7 @@ HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
 //////////////////////////////////////////////////////////////////////////////////
 // Database Load
 
-HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationID, AVFLOAT fScale)
+HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationID)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
@@ -81,16 +89,15 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationID, AVFLOAT fS
 	sel >> *this;
 
 	// prepare buffers for shafts and storeys
-	CreateShafts(ME[L"NoOfShafts"]);
-	CreateStoreys((ULONG)ME[L"FloorsAboveGround"] + (ULONG)ME[L"FloorsBelowGround"], (ULONG)ME[L"FloorsBelowGround"]);
+	PreCreate();
 
 	// Query for Shaft Data
-	sel = db.select(L"SELECT Acceleration, Capacity, CarDepth, CarHeight, CarWidth, ClosingTime * 1000 AS ClosingTime, CounterWeightPosition, DoorType, FloorsServed, LiftHeadroom AS HeadRoom, 	Jerk, DoorHeight AS LiftDoorHeight, DoorWidth AS LiftDoorWidth, LoadingTime * 1000 AS LoadingTime, -1 AS MachRoomExt, MachineRoomHeight AS MachRoomHeight, 	MotorStartDelay * 1000 AS MotorStartDelay, NoOfCarEntrance AS NoOfCarEntrances, 1 AS NumberOfLifts, OpeningTime * 1000 AS OpeningTime, 	OverallCarHeight AS OverallHeight, LiftPitDepth AS PitDepth, PreOperTime * 1000 AS PreOperTime, ShaftDepth, Number AS ShaftID, ShaftWidth, Speed, LiftType AS TypeOfLift, UnloadingTime * 1000 AS UnloadingTime FROM Lifts WHERE BuildingId=%d ORDER BY Number", (ULONG)ME[L"ID"]);
+	sel = db.select(L"SELECT Acceleration, Capacity, CarDepth, CarHeight, CarWidth, ClosingTime * 1000 AS ClosingTime, CounterWeightPosition, DoorType, FloorsServed, LiftHeadroom AS HeadRoom, 	Jerk, DoorHeight AS LiftDoorHeight, DoorWidth AS LiftDoorWidth, LoadingTime * 1000 AS LoadingTime, -1 AS MachRoomExt, MachineRoomHeight AS MachRoomHeight, 	MotorStartDelay * 1000 AS MotorStartDelay, NoOfCarEntrance AS NoOfCarEntrances, 1 AS NumberOfLifts, OpeningTime * 1000 AS OpeningTime, 	OverallCarHeight AS OverallHeight, LiftPitDepth AS PitDepth, PreOperTime * 1000 AS PreOperTime, ShaftDepth, Number AS ShaftID, ShaftWidth, Speed, LiftType AS TypeOfLift, UnloadingTime * 1000 AS UnloadingTime FROM Lifts WHERE BuildingId=%d ORDER BY Number", GetId());
 	for (AVULONG i = 0; i < GetShaftCount() && sel; i++, sel++)
 		sel >> *GetShaft(i);
 
 	// Query for Storey Data
-	sel = db.select(L"SELECT Absentee, Area, Escalator, GroundIndex AS FloorID, FloorHeight * 1000 AS HeightValue, Name, PopDensity, StairFactor FROM Floors WHERE BuildingId=%d ORDER BY GroundIndex", (ULONG)ME[L"ID"]);
+	sel = db.select(L"SELECT Absentee, Area, Escalator, GroundIndex AS FloorID, FloorHeight * 1000 AS HeightValue, Name, PopDensity, StairFactor FROM Floors WHERE BuildingId=%d ORDER BY GroundIndex", GetId());
 	for (AVULONG i = 0; i < GetStoreyCount() && sel; i++, sel++)
 		sel >> *GetStorey(i);
 
@@ -128,14 +135,14 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationID, AVFLOAT fS
 	}
 
 	// Resolve and test
-	ResolveMe(fScale);
+	Create();
 	if (!IsValid())
 		throw ERROR_BUILDING;
 
 	return S_OK;
 }
 
-HRESULT CBuilding::LoadFromVisualisation(CDataBase db, ULONG nProjectID, AVFLOAT fScale)
+HRESULT CBuilding::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
@@ -146,9 +153,7 @@ HRESULT CBuilding::LoadFromVisualisation(CDataBase db, ULONG nProjectID, AVFLOAT
 	sel >> *this;
 
 	// prepare buffers for shafts and storeys
-	CreateShafts(ME[L"NoOfShafts"]);
-	CreateStoreys((ULONG)ME[L"FloorsAboveGround"] + (ULONG)ME[L"FloorsBelowGround"], (ULONG)ME[L"FloorsBelowGround"]);
-	SetId(ME[L"ID"]);
+	PreCreate();
 
 	// Query for Lobby Data
 	sel = db.select(L"SELECT * FROM AVShafts WHERE BuildingID=%d ORDER BY ShaftID", GetId());
@@ -161,7 +166,7 @@ HRESULT CBuilding::LoadFromVisualisation(CDataBase db, ULONG nProjectID, AVFLOAT
 		sel >> *GetStorey(i);
 
 	// Resolve and test
-	ResolveMe(fScale);
+	Create();
 	if (!IsValid())
 		throw ERROR_DATA_NOT_FOUND;
 

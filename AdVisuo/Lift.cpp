@@ -51,7 +51,7 @@ void CLift::AnimateToInitialPosition(AVULONG nShaftFrom, AVULONG nStoreyFrom, AV
 
 void CLift::AnimateDoor(AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG timeStart, AVULONG timeDuration)
 {
-	AVFLOAT nDist = GetSim()->GetBuilding()->GetShaft(nShaft)->m_boxDoor.Width() / 2.0f - 0.1f;
+	AVFLOAT nDist = GetSim()->GetBuilding()->GetShaft(nShaft)->GetBoxDoor().Width() / 2.0f - 0.1f;
 	if (!bOpen) nDist = -nDist;
 
 	IKineNode *pDoorLI = GetSim()->GetBuilding()->GetLDoor(GetId());

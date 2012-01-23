@@ -43,8 +43,8 @@ void CPassenger::Play()
 	if (!pSHAFT) flagBehaviour = NATURAL;
 
 
-	AVFLOAT WLobby = abs(GetSim()->GetBuilding()->GetBox()->Width());
-	AVFLOAT DLobby = abs(GetSim()->GetBuilding()->GetBox()->Depth());
+	AVFLOAT WLobby = abs(GetSim()->GetBuilding()->GetBox().Width());
+	AVFLOAT DLobby = abs(GetSim()->GetBuilding()->GetBox().Depth());
 
 	AVFLOAT XLobby = 0;
 	AVFLOAT YOutOfView = -DLobby/2 - 20;
@@ -97,17 +97,17 @@ void CPassenger::Play()
 
 	if (pSHAFT)
 	{
-		AVFLOAT WShaft = abs(pSHAFT->m_box.Width());
-		AVFLOAT WLift = abs(pSHAFT->m_boxCar.Width());
-		AVFLOAT DLift = abs(pSHAFT->m_boxCar.Depth());
-		AVFLOAT WDoor = abs(pSHAFT->m_boxDoor.Width());
+		AVFLOAT WShaft = abs(pSHAFT->GetBox(CBuilding::SHAFT::BOX_SHAFT).Width());
+		AVFLOAT WLift = abs(pSHAFT->GetBox(CBuilding::SHAFT::BOX_CAR).Width());
+		AVFLOAT DLift = abs(pSHAFT->GetBox(CBuilding::SHAFT::BOX_CAR).Depth());
+		AVFLOAT WDoor = abs(pSHAFT->GetBox(CBuilding::SHAFT::BOX_DOOR).Width());
 		AVFLOAT WOpt = (WShaft + WLift) / 2;	// more optimal zone (should be even overlapping?) - 8/8/11
 	
 		AVFLOAT YLiftFront = DLobby * 0.4f;											// 8/8/11: DLobby/3  ==>  DLobby * 0.4
-		AVFLOAT YLiftDoor = -pSHAFT->m_boxDoor.Front();
+		AVFLOAT YLiftDoor = -pSHAFT->GetBox(CBuilding::SHAFT::BOX_DOOR).Front();
 	
-		AVFLOAT XLift  = (pSHAFT->m_boxDoor.Left()+pSHAFT->m_boxDoor.Right())/2;
-		AVFLOAT YLift = -(pSHAFT->m_boxCar.Front()+pSHAFT->m_boxCar.Rear())/2;
+		AVFLOAT XLift  = (pSHAFT->GetBox(CBuilding::SHAFT::BOX_DOOR).Left()+pSHAFT->GetBox(CBuilding::SHAFT::BOX_DOOR).Right())/2;
+		AVFLOAT YLift = -(pSHAFT->GetBox(CBuilding::SHAFT::BOX_CAR).Front()+pSHAFT->GetBox(CBuilding::SHAFT::BOX_CAR).Rear())/2;
 		AVFLOAT XLiftDoor = XLift;
 
 		switch (flagBehaviour)

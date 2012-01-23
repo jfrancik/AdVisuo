@@ -111,12 +111,6 @@ DWORD CLift::Load(CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcL
 			if (bCalcLoad) pPassenger->SetLoadTime(t[nDeck]);
 			t[nDeck] += TT;
 		}
-
-//		for (AVULONG iDeck = 0; iDeck < DECK_NUM; iDeck++)
-//			if (t[iDeck] != UNDEF && t[iDeck] - TT > pJourney->LastClosedTime(iDeck))
-//				Debug(L"Error: Passengers loading after door closed at %d, lift #%d, deck #%d", t[iDeck], myId, iDeck);
-//			else if (t[iDeck] != UNDEF && t[iDeck] - TT > pJourney->LastCloseTime(iDeck))
-//				Debug(L"Warning: Passenger loading while door closing at %d, lift #%d, deck #%d", t[iDeck], myId, iDeck);
 	}
 
 	return dRes == S_OK ? S_OK : WARNING_GENERIC;

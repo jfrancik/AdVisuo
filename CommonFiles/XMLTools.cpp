@@ -189,7 +189,7 @@ void CXmlWriter::write(wstring name)
 		{
 			writeStart(L"element", L"xs");
 			writeAttr(L"name", p.first.c_str());
-			writeAttr(L"type", p.second.as_type().c_str());
+			writeAttr(L"type", p.second.as_xs_type().c_str());
 			writeEnd();
 		}
 		writeEnd(nLevel);

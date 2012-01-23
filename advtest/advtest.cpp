@@ -23,6 +23,7 @@ void usage()
 			<< L"  adv -f [ID]   creates IFC file for the specified simulation" << endl
 			<< L"  adv -d [ID]   deletes visualisation data for the specified simulation" << endl
 			<< L"  adv -dall     deletes all available visualisation data" << endl
+			<< L"  adv -drop     drops all table structure - the next storage will re-initialise" << endl
 			<< L"  adv -t [ID]   calls AVTest for the specified simulation" << endl
 			<< L"  adv -i [ID]   calls AVInit for the specified simulation" << endl
 			<< L"  adv -p [ID]   calls AVProcess for the specified project" << endl
@@ -44,7 +45,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	enum OPTION { DEFAULT, IFC, DEL, DEL_ALL, TEST, INIT, PROCESS, CONN, CONN_ELEVATED, HELP, VERSION, WRONG, WRONG_2 } option = DEFAULT;
+	enum OPTION { DEFAULT, IFC, DEL, DEL_ALL, DROP_TABLES, TEST, INIT, PROCESS, CONN, CONN_ELEVATED, HELP, VERSION, WRONG, WRONG_2 } option = DEFAULT;
 	AVULONG nSimulationID = 0;
 	AVULONG nProjectID;
 	_TCHAR *pParam = NULL;
@@ -79,6 +80,8 @@ int _tmain(int argc, _TCHAR* argv[])
 			case 'd':
 				if (_wcsicmp(argv[i], L"-dall") == 0)
 					option = (option == DEFAULT) ? DEL_ALL : WRONG;
+				if (_wcsicmp(argv[i], L"-drop") == 0)
+					option = (option == DEFAULT) ? DROP_TABLES : WRONG;
 				else
 					option = (option == DEFAULT) ? DEL : WRONG;
 				break;
@@ -111,7 +114,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		else
 			pParam = argv[i];
 
-	if ((option == DEL_ALL || option == CONN || option == CONN_ELEVATED) && nSimulationID > 0)
+	if ((option == DEL_ALL || option == DROP_TABLES || option == CONN || option == CONN_ELEVATED) && nSimulationID > 0)
 		option = WRONG;
 
 	if ((option == CONN || option == CONN_ELEVATED) && pParam == NULL)
@@ -176,6 +179,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		case S_FALSE: wcout << L"Simulation data for id = " << nSimulationID << L": not found." << endl; break;
 		case S_FALSE+1: wcout << L"Simulation data for id = " << nSimulationID << L": outdated." << endl; break;
 		}
+		break;
+	case DROP_TABLES: 
+		h = AVDropTables();
 		break;
 	case INIT: 
 		h = AVInit(nSimulationID, nProjectID);

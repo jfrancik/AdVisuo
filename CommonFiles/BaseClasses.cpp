@@ -122,6 +122,24 @@ void CPassengerBase::CreateWaypoints(AVULONG nCount)
 	if (m_nWaypoints) m_pWaypoints = new WAYPOINT[m_nWaypoints];
 }
 
+void CPassengerBase::ResolveMe()
+{
+	SetId(ME[L"PassengerId"]);
+	SetShaftId(ME[L"ShaftId"]);
+	SetLiftId(ME[L"LiftId"]);
+	SetDeck(ME[L"DeckId"]);
+	SetArrivalFloor(ME[L"FloorArrival"]);
+	SetDestFloor(ME[L"FloorDest"]);
+	SetBornTime(ME[L"TimeBorn"]);
+	SetArrivalTime(ME[L"TimeArrival"]);
+	SetGoTime(ME[L"TimeGo"]);
+	SetLoadTime(ME[L"TimeLoad"]);
+	SetUnloadTime(ME[L"TimeUnload"]);
+	SetWaitSpan(ME[L"SpanWait"]);
+
+	ParseWayPoints(ME[L"WP"]);
+}
+
 std::wstring CPassengerBase::StringifyWayPoints()
 {
 	std::wstringstream s;
