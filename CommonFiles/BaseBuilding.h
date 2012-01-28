@@ -65,12 +65,13 @@ public:
 
 
 		// Operations:
-		void Create(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fFrontWall, AVFLOAT fRearWall);
-		void Create(AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY);
-		void CreateLeftBeam(AVFLOAT w, AVFLOAT d, AVFLOAT h);
-		void CreateRightBeam(AVFLOAT w, AVFLOAT d, AVFLOAT h);
-		void CreateLeftWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
-		void CreateRightWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
+		void Xxxx(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fFrontWall, AVFLOAT fRearWall);
+		void Xxxx(AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY);
+		void XxxxLeftBeam(AVFLOAT w, AVFLOAT d, AVFLOAT h);
+		void XxxxRightBeam(AVFLOAT w, AVFLOAT d, AVFLOAT h);
+		void XxxxLeftWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
+		void XxxxRightWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
+		void Yyyy(CBuildingBase *pBuilding);
 		void Scale(AVFLOAT fScale);
 	};
 
@@ -102,22 +103,22 @@ public:
 		bool Within(AVVECTOR &pos)				{ return pos.z >= GetLevel() && pos.z < GetLevel() + GetHeight(); }
 
 		// Operations:
-		void Create(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fLevel);
+		void Xxxx(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fLevel);
+		void Yyyy(CBuildingBase *pBuilding);
 		void Scale(AVFLOAT fScale);
 	};
 
 private:
 
-	AVULONG m_nShaftCount;
+	AVULONG m_nId;						// Building ID
+
+	AVULONG m_nShaftCount;				// Counters (shafts/floors)
 	AVULONG m_nStoreyCount;
 	AVULONG m_nBasementStoreyCount;
+	AVULONG m_pnShaftCount[2];			// counter of lifts per line
 
-	AVULONG nBuildingID;				// Building ID
-	SHAFT_ARRANGEMENT LiftShaftArrang;	// Lift shaft arrangements
-	LOBBY_ARRANGEMENT LobbyArrangement;	// Lobby arrangement
-
-	AVULONG ShaftCount[2];				// counter of lifts per line
-	AVFLOAT LineWidth[2];				// widths of lifts lines
+	SHAFT_ARRANGEMENT m_LiftShaftArrang;// Lift shaft arrangements
+	LOBBY_ARRANGEMENT m_LobbyArrangement;// Lobby arrangement
 
 	BOX m_box;							// scaled lobby floor plan (size of the lobby & its walls, zero height)
 	AVFLOAT m_fScale;					// the scale factor
@@ -129,8 +130,8 @@ public:
 	CBuildingBase(void);
 	~CBuildingBase(void);
 
-	AVULONG GetId()							{ return nBuildingID; }
-	void SetId(AVULONG nId)					{ nBuildingID = nId; }
+	AVULONG GetId()							{ return m_nId; }
+	void SetId(AVULONG nId)					{ m_nId = nId; }
 
 	BOX &GetBox()							{ return m_box; }
 	bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
@@ -141,8 +142,8 @@ public:
 	SHAFT *GetShaft(AVULONG i)				{ return i < GetShaftCount() ? m_ppShafts[i] : NULL; }
 
 	AVULONG GetShaftCount()					{ return m_nShaftCount; }
-	AVULONG GetShaftCount(AVULONG nLine)	{ return ShaftCount[nLine]; }
-	AVULONG GetShaftLinesCount()			{ return ShaftCount[1] == 0 ? 1 : 2; }
+	AVULONG GetShaftCount(AVULONG nLine)	{ return m_pnShaftCount[nLine]; }
+	AVULONG GetShaftLinesCount()			{ return m_pnShaftCount[1] == 0 ? 1 : 2; }
 
 	AVULONG GetLiftCount()					{ AVULONG n = 0; for (AVULONG i = 0; i < GetShaftCount(); i++) n += GetShaft(i)->GetLiftCount(); return n; }
 
@@ -154,8 +155,8 @@ public:
 	STOREY *GetStorey(AVULONG i)			{ return i < GetStoreyCount() ? m_ppStoreys[i] : NULL; }
 
 	// Various
-	SHAFT_ARRANGEMENT GetLiftShaftArrang()	{ return LiftShaftArrang; }
-	LOBBY_ARRANGEMENT GetLobbyArrangement()	{ return LobbyArrangement; }
+	SHAFT_ARRANGEMENT GetLiftShaftArrang()	{ return m_LiftShaftArrang; }
+	LOBBY_ARRANGEMENT GetLobbyArrangement()	{ return m_LobbyArrangement; }
 	
 
 
@@ -163,8 +164,9 @@ public:
 	bool IsValid()							{ return m_nShaftCount && GetStoreyCount() && m_ppShafts && m_ppStoreys && GetShaftCount(0); }
 
 	// Calculations!
-	void PreCreate();
-	void Create();
+	void PreXxxx();
+	void Xxxx();
+	void Yyyy();
 	void Scale(AVFLOAT fScale);
 
 protected:

@@ -27,8 +27,8 @@ HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
 	// store lobby layout data
 	ins = db.insert(L"AVBuildings");
 	ins << *this;
-	ins[L"ProjectId"] = nProjectID;
 	ins.erase(L"ID");
+	ins[L"ProjectId"] = nProjectID;
 	ins.execute();
 
 	std::wstring str = ins.query();
@@ -43,7 +43,7 @@ HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
 		CDataBase::INSERT ins;
 		ins = db.insert(L"AVShafts");
 		ins << *GetShaft(i);
-		ins[L"BuildingID"] = GetId();
+		ins[L"BuildingId"] = GetId();
 		ins.execute();
 	}
 
@@ -53,7 +53,7 @@ HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
 		CDataBase::INSERT ins;
 		ins = db.insert(L"AVFloors");
 		ins << *GetStorey(i);
-		ins[L"BuildingID"] = GetId();
+		ins[L"BuildingId"] = GetId();
 		ins.execute();
 	}
 
@@ -68,36 +68,65 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationID)
 	if (!db) throw db;
 	CDataBase::SELECT sel;
 
+// NEW DATABASE:
+	//sel = db.select(L"SELECT * FROM FloorDataSets WHERE SimulationId=%d", nSimulationID);
+	//if (!sel) throw ERROR_BUILDING;
+	//sel >> *this;
+
+	//sel = db.select(L"SELECT * FROM LiftGroups WHERE SimulationId=%d", nSimulationID);
+	//if (!sel) throw ERROR_BUILDING;
+	//sel >> *this;
+
+	//AVULONG nLiftGroupId = ME[L"LiftGroupId"];
+
+	//sel = db.select(L"SELECT COUNT(LiftId) AS NumberOfLifts FROM Lifts WHERE LiftGroupId=%d", nLiftGroupId);
+	//if (!sel) throw ERROR_BUILDING;
+	//sel >> *this;
+
+	//ME[L"ID"] = nSimulationID;
+
+
 	// Query for Building (for building id and name - the latter not very useful)
-	sel = db.select(L"SELECT BuildingId AS ID, BuildingName FROM Buildings WHERE SimulationId=%d", nSimulationID);
+	sel = db.select(L"SELECT BuildingId AS ID FROM Buildings WHERE SimulationId=%d", nSimulationID);
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 		
 	// Query for Layout Details (for almost full lobby info)
-	sel = db.select(L"SELECT LobbyArrangement, BookingPointPositionM AS PosLiftBookM, NoBookingPoints AS NoOfBook, LiftLobbyCeilingHeight AS LobbyCeilingSlabHeight, LiftShaftArrangement, LobbyDepth, -1 AS LobbyWidth, FrontWallThickness, FrontWallThickness AS ShaftWallThickness, FrontWallThickness AS SideWallThickness, StructureMaterial AS Structure, MachineRoomSlab AS MachRoomSlab, LiftingBeamHeight AS LiftBeamHeight, IntermediateDividingBeam AS IntDivBeamWidth, IntermediateDividingBeam * 250 / 150 AS IntDivBeamHeight FROM LayoutDetailsDataSets WHERE SimulationId=%d", nSimulationID);
+	sel = db.select(L"SELECT * FROM LayoutDetailsDataSets WHERE SimulationId=%d", nSimulationID);
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 
 	// Query for Lift Dataset (for NoOfShafts only)
-	sel = db.select(L"SELECT NoOfLifts AS NoOfShafts FROM LiftDataSets WHERE SimulationId=%d", nSimulationID);
+	sel = db.select(L"SELECT * FROM LiftDataSets WHERE SimulationId=%d", nSimulationID);
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 
 	// Query for Floor Dataset (for StoreysAboveGround and StoreysBelowGround)
-	sel = db.select(L"SELECT NoFloorsAboveMain + 1 AS FloorsAboveGround, NoFloorsBelowMain AS FloorsBelowGround FROM FloorDataSets WHERE SimulationId=%d", nSimulationID);
+	sel = db.select(L"SELECT * FROM FloorDataSets WHERE SimulationId=%d", nSimulationID);
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 
 	// prepare buffers for shafts and storeys
-	PreCreate();
+	PreXxxx();
+
+// NEW DATABASE
+	//// Query for Shaft Data
+	//sel = db.select(L"SELECT * FROM Lifts WHERE LiftGroupId=%d ORDER BY LiftNumber", nLiftGroupId);
+	//for (AVULONG i = 0; i < GetShaftCount() && sel; i++, sel++)
+	//	sel >> *GetShaft(i);
+
+	//// Query for Storey Data
+	//sel = db.select(L"SELECT * FROM Floors WHERE SimulationId=%d ORDER BY GroundIndex", nSimulationID);
+	//for (AVULONG i = 0; i < GetStoreyCount() && sel; i++, sel++)
+	//	sel >> *GetStorey(i);
 
 	// Query for Shaft Data
-	sel = db.select(L"SELECT Acceleration, Capacity, CarDepth, CarHeight, CarWidth, ClosingTime * 1000 AS ClosingTime, CounterWeightPosition, DoorType, FloorsServed, LiftHeadroom AS HeadRoom, 	Jerk, DoorHeight AS LiftDoorHeight, DoorWidth AS LiftDoorWidth, LoadingTime * 1000 AS LoadingTime, -1 AS MachRoomExt, MachineRoomHeight AS MachRoomHeight, 	MotorStartDelay * 1000 AS MotorStartDelay, NoOfCarEntrance AS NoOfCarEntrances, 1 AS NumberOfLifts, OpeningTime * 1000 AS OpeningTime, 	OverallCarHeight AS OverallHeight, LiftPitDepth AS PitDepth, PreOperTime * 1000 AS PreOperTime, ShaftDepth, Number AS ShaftID, ShaftWidth, Speed, LiftType AS TypeOfLift, UnloadingTime * 1000 AS UnloadingTime FROM Lifts WHERE BuildingId=%d ORDER BY Number", GetId());
+	sel = db.select(L"SELECT * FROM Lifts WHERE BuildingId=%d ORDER BY Number", GetId());
 	for (AVULONG i = 0; i < GetShaftCount() && sel; i++, sel++)
 		sel >> *GetShaft(i);
 
 	// Query for Storey Data
-	sel = db.select(L"SELECT Absentee, Area, Escalator, GroundIndex AS FloorID, FloorHeight * 1000 AS HeightValue, Name, PopDensity, StairFactor FROM Floors WHERE BuildingId=%d ORDER BY GroundIndex", GetId());
+	sel = db.select(L"SELECT * FROM Floors WHERE BuildingId=%d ORDER BY GroundIndex", GetId());
 	for (AVULONG i = 0; i < GetStoreyCount() && sel; i++, sel++)
 		sel >> *GetStorey(i);
 
@@ -110,9 +139,9 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationID)
 	if      (ME[L"LiftShaftArrangement"].as_wstring() == L"Inline") ME[L"LiftShaftArrangement"] = (ULONG)SHAFT_INLINE;
 	else if (ME[L"LiftShaftArrangement"].as_wstring() == L"Opposite") ME[L"LiftShaftArrangement"] = (ULONG)SHAFT_OPPOSITE;
 	else throw (Log(ERROR_UNRECOGNISED_STRING, L"lift shaft arrangement", (ME[L"LiftShaftArrangement"]).as_wstring().c_str()), ERROR_GENERIC);
-	if      (ME[L"Structure"].as_wstring() == L"Concrete") ME[L"Structure"] = (ULONG)STRUCT_CONCRETE;
-	else if (ME[L"Structure"].as_wstring() == L"Steel") ME[L"Structure"] = (ULONG)STRUCT_STEEL;
-	else throw (Log(ERROR_UNRECOGNISED_STRING, L"structure material", (ME[L"Structure"]).as_wstring().c_str()), ERROR_GENERIC);
+	if      (ME[L"StructureMaterial"].as_wstring() == L"Concrete") ME[L"StructureMaterial"] = (ULONG)STRUCT_CONCRETE;
+	else if (ME[L"StructureMaterial"].as_wstring() == L"Steel") ME[L"StructureMaterial"] = (ULONG)STRUCT_STEEL;
+	else throw (Log(ERROR_UNRECOGNISED_STRING, L"structure material", (ME[L"StructureMaterial"]).as_wstring().c_str()), ERROR_GENERIC);
 	if ((ULONG)ME[L"LobbyArrangement"] == (ULONG)LOBBY_OPENPLAN && (ULONG)ME[L"LiftShaftArrangement"] == (ULONG)SHAFT_OPPOSITE)
 		ME[L"LobbyArrangement"] = (ULONG)LOBBY_THROUGH;
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
@@ -121,21 +150,21 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationID)
 		if      (IT[L"DoorType"].as_wstring() == L"Centre")	IT[L"DoorType"] = (ULONG)DOOR_CENTRE;
 		else if (IT[L"DoorType"].as_wstring() == L"Side")	IT[L"DoorType"] = (ULONG)DOOR_SIDE;
 		else throw (Log(ERROR_UNRECOGNISED_STRING, L"door type", (IT[L"DoorType"]).as_wstring().c_str()), ERROR_GENERIC);
-		if      (IT[L"TypeOfLift"].as_wstring() == L"Single Deck") IT[L"TypeOfLift"] = (ULONG)LIFT_SINGLE_DECK;
-		else if (IT[L"TypeOfLift"].as_wstring() == L"Double Deck") IT[L"TypeOfLift"] = (ULONG)LIFT_DOUBLE_DECK;
-		else if (IT[L"TypeOfLift"].as_wstring() == L"Multi Car")   IT[L"TypeOfLift"] = (ULONG)LIFT_MULTI_CAR;
-		else throw (Log(ERROR_UNRECOGNISED_STRING, L"type of lift", (IT[L"TypeOfLift"]).as_wstring().c_str()), ERROR_GENERIC);
-		if      (IT[L"NoOfCarEntrances"].as_wstring() == L"Front") IT[L"NoOfCarEntrances"] = (ULONG)CAR_FRONT;
-		else if (IT[L"NoOfCarEntrances"].as_wstring() == L"Rear")  IT[L"NoOfCarEntrances"] = (ULONG)CAR_REAR;
-		else if (IT[L"NoOfCarEntrances"].as_wstring() == L"Both")  IT[L"NoOfCarEntrances"] = (ULONG)CAR_BOTH;
-		else throw (Log(ERROR_UNRECOGNISED_STRING, L"configuration of car entrances", (IT[L"NoOfCarEntrances"]).as_wstring().c_str()), ERROR_GENERIC);
+		if      (IT[L"LiftType"].as_wstring() == L"Single Deck") IT[L"LiftType"] = (ULONG)LIFT_SINGLE_DECK;
+		else if (IT[L"LiftType"].as_wstring() == L"Double Deck") IT[L"LiftType"] = (ULONG)LIFT_DOUBLE_DECK;
+		else if (IT[L"LiftType"].as_wstring() == L"Multi Car")   IT[L"LiftType"] = (ULONG)LIFT_MULTI_CAR;
+		else throw (Log(ERROR_UNRECOGNISED_STRING, L"type of lift", (IT[L"LiftType"]).as_wstring().c_str()), ERROR_GENERIC);
+		if      (IT[L"NoOfCarEntrance"].as_wstring() == L"Front") IT[L"NoOfCarEntrance"] = (ULONG)CAR_FRONT;
+		else if (IT[L"NoOfCarEntrance"].as_wstring() == L"Rear")  IT[L"NoOfCarEntrance"] = (ULONG)CAR_REAR;
+		else if (IT[L"NoOfCarEntrance"].as_wstring() == L"Both")  IT[L"NoOfCarEntrance"] = (ULONG)CAR_BOTH;
+		else throw (Log(ERROR_UNRECOGNISED_STRING, L"configuration of car entrances", (IT[L"NoOfCarEntrance"]).as_wstring().c_str()), ERROR_GENERIC);
 		if      (IT[L"CounterWeightPosition"].as_wstring() == L"Rear") IT[L"CounterWeightPosition"] = (ULONG)CNTRWEIGHT_REAR;
 		else if (IT[L"CounterWeightPosition"].as_wstring() == L"Side") IT[L"CounterWeightPosition"] = (ULONG)CNTRWEIGHT_SIDE;
 		else throw (Log(ERROR_UNRECOGNISED_STRING, L"counterweight position", (IT[L"CounterWeightPosition"]).as_wstring().c_str()), ERROR_GENERIC);
 	}
 
 	// Resolve and test
-	Create();
+	Xxxx();
 	if (!IsValid())
 		throw ERROR_BUILDING;
 
@@ -153,20 +182,20 @@ HRESULT CBuilding::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 	sel >> *this;
 
 	// prepare buffers for shafts and storeys
-	PreCreate();
+	PreXxxx();
 
 	// Query for Lobby Data
-	sel = db.select(L"SELECT * FROM AVShafts WHERE BuildingID=%d ORDER BY ShaftID", GetId());
+	sel = db.select(L"SELECT * FROM AVShafts WHERE BuildingId=%d ORDER BY ShaftID", GetId());
 	for (AVULONG i = 0; i < GetShaftCount() && sel; i++, sel++)
 		sel >> *GetShaft(i);
 
 	// Query for Storey Data
-	sel = db.select(L"SELECT * FROM AVFloors WHERE BuildingID=%d ORDER BY FloorID", GetId());
+	sel = db.select(L"SELECT * FROM AVFloors WHERE BuildingId=%d ORDER BY FloorId", GetId());
 	for (AVULONG i = 0; i < GetStoreyCount() && sel; i++, sel++)
 		sel >> *GetStorey(i);
 
 	// Resolve and test
-	Create();
+	Yyyy();
 	if (!IsValid())
 		throw ERROR_DATA_NOT_FOUND;
 

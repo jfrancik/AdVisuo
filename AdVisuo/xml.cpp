@@ -38,7 +38,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 			m_phase = PHASE_BLD;
 
 			reader >> *pBuilding;
-			pBuilding->PreCreate();
+			pBuilding->PreXxxx();
 		}
 		else
 		if (reader.getName() == L"AVShaft")
@@ -91,6 +91,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 
 			CPassenger *pPassenger = (CPassenger*)CreatePassenger(0);
 			reader >> *pPassenger;
+			pPassenger->ResolveMe();
 			AddPassenger(pPassenger);
 		}
 	}
@@ -108,13 +109,13 @@ void CSim::Load(xmltools::CXmlReader reader)
 
 	if (m_phase >= PHASE_STRUCT) 
 	{
-		GetBuilding()->Create();
+		GetBuilding()->Yyyy();
 		GetBuilding()->Scale(0.04f);
 	}
-	if (m_phase == PHASE_SIM)
-	{
-		for_each_passenger([](CPassengerBase *p) { p->ResolveMe(); });
-	}
+//	if (m_phase == PHASE_SIM)
+//	{
+//		for_each_passenger([](CPassengerBase *p) { p->ResolveMe(); });
+//	}
 
 	if (m_phase >= PHASE_STRUCT && !GetBuilding()->IsValid())
 		throw _sim_error(_sim_error::E_SIM_NO_BUILDING);

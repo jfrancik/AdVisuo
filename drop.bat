@@ -1,0 +1,2 @@
+debug\advtest -drop
+pause

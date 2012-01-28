@@ -135,7 +135,7 @@ CValue::operator wstring()
 {
 	switch (type)
 	{
-	case V_NULL:	return L"NULL";
+	case V_NULL:	return L"0";
 	case V_BOOL:	return to_wstring((_LONGLONG)b);
 	case V_INT:		return to_wstring((_LONGLONG)i);
 	case V_FLOAT:	return to_wstring((long double)f);
@@ -176,12 +176,13 @@ std::wstring CValue::as_sql_type()
 {
 	switch (type)
 	{
+	case V_NULL:	return L"int";
 	case V_INT:		return L"int";
-	case V_BOOL:	return L"boolean";
+	case V_BOOL:	return L"bit";
 	case V_FLOAT:	return L"float";	// L"decimal(9,2)";
 	case V_DATE:	return L"datetime";
 	case V_STRING:	return L"nvarchar(255)";
-	case V_SYMBOL:	return L"nvarchar(255)";
+	case V_SYMBOL:	return (s == L"CURRENT_TIMESTAMP") ? L"datetime" : L"nvarchar(255)";
 	default:		return L"";
 	}
 }
@@ -270,7 +271,7 @@ CDataBase::CDataBase(LPCOLESTR pConnectionString)
 // execute any SQL statement
 void CDataBase::execute(const wchar_t *query, ...)
 {
-	wchar_t out[1024];
+	wchar_t out[10240];
 	va_list body; va_start(body, query); vswprintf_s(out, query, body); va_end(body);
 	m_h = m_connection->Execute(out, NULL, 1);
 	if FAILED(m_h) throw m_h;
@@ -279,7 +280,7 @@ void CDataBase::execute(const wchar_t *query, ...)
 // SQL SELECT
 CDataBase::SELECT CDataBase::select(const wchar_t *query, ...)
 {
-	wchar_t out[1024];
+	wchar_t out[10240];
 	va_list body; va_start(body, query); vswprintf_s(out, query, body); va_end(body);
 	return CDataBase::SELECT(*this, out);
 }
@@ -293,7 +294,7 @@ CDataBase::INSERT CDataBase::insert(const wchar_t *table)
 // SQL UPDATE
 CDataBase::UPDATE CDataBase::update(const wchar_t *table, const wchar_t *where_clause, ...)
 { 
-	wchar_t out[1024];
+	wchar_t out[10240];
 	va_list body; va_start(body, where_clause); vswprintf_s(out, where_clause, body); va_end(body);
 	return CDataBase::UPDATE(this, table, out);
 }
@@ -362,7 +363,6 @@ void CDataBase::INSERT::createTables()
 	CDataBase::CREATE create = pDB->create(table.c_str());
 	create << *this;
 
-	wstring str = create.query();
 	create.execute();
 }
 

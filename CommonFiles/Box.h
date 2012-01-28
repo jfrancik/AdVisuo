@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Vector.h"
+#include <sstream>
 
 struct BOX
 {
@@ -175,4 +176,19 @@ public:
 	AVVECTOR RightExtRearUpperExt()		{ return Vector(B1.x, B.y, B1.z); }
 	AVVECTOR RightExtRearExtUpper()		{ return Vector(B1.x, B1.y, B.z); }
 	AVVECTOR RightExtRearExtUpperExt()	{ return B1; }
+
+	std::wstring Stringify()
+	{
+		std::wstringstream s;
+		s << A .x << L" "<< A .y << L" "<< A .z << L" "<< B .x << L" "<< B .y << L" "<< B .z << L" "
+		  << A1.x << L" "<< A1.y << L" "<< A1.z << L" "<< B1.x << L" "<< B1.y << L" "<< B1.z << L" ";
+		return s.str();
+	}
+
+	void ParseFromString(std::wstring str)
+	{
+		std::wstringstream s(str);
+		s >> A .x >> A .y >> A .z >> B .x >> B .y >> B .z 
+		  >> A1.x >> A1.y >> A1.z >> B1.x >> B1.y >> B1.z;
+	}
 };
