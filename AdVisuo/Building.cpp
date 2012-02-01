@@ -475,7 +475,7 @@ void CBuilding::Construct(AVSTRING pLabel, AVVECTOR v)
 //		SHAFT *pShaft = GetShaft(i < 5 ? 0 : 1);
 		SHAFT *pShaft = GetShaft(i);
 
-		AVULONG nDecks = (pShaft->GetType() == LIFT_DOUBLE_DECK) ? DECK_NUM : 1;
+		AVULONG nDecks = (pShaft->GetDeck() == DECK_DOUBLE) ? DECK_NUM : 1;
 
 		// Create skeletal elements (entire lift)
 		_snwprintf(buf, 256, L"Lift_%d", i);

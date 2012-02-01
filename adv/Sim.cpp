@@ -33,8 +33,8 @@ HRESULT CSim::LoadSim()
 
 	// check single/double decker consistency
 	for (AVULONG i = 0; i < (ULONG)loader.nLifts;i++)
-		if ((loader.pLifts[i].nDecks == 1 && GetBuilding()->GetShaft(i)->GetType() == CBuildingBase::LIFT_DOUBLE_DECK)
-		|| (loader.pLifts[i].nDecks > 1 && GetBuilding()->GetShaft(i)->GetType() == CBuildingBase::LIFT_SINGLE_DECK))
+		if ((loader.pLifts[i].nDecks == 1 && GetBuilding()->GetShaft(i)->GetDeck() == CBuildingBase::DECK_DOUBLE)
+		|| (loader.pLifts[i].nDecks > 1 && GetBuilding()->GetShaft(i)->GetDeck() == CBuildingBase::DECK_SINGLE))
 			return Log(ERROR_FILE_INCONSISTENT_DECKS);
 
 	SetSIMVersionId(loader.nVersion);
@@ -72,7 +72,7 @@ void CSim::Play()
 	}
 }
 
-HRESULT CSim::FindProjectID(CDataBase db, ULONG nSimulationID, ULONG &nProjectID)
+HRESULT CSim::FindProjectID(CDataBase db, ULONG nSimulationId, ULONG &nProjectID)
 {
 	if (!db) throw db;
 	nProjectID = 0;
@@ -81,7 +81,7 @@ HRESULT CSim::FindProjectID(CDataBase db, ULONG nSimulationID, ULONG &nProjectID
 	// Query for Project Data (test for any existing)
 	try
 	{
-		sel = db.select(L"SELECT MAX(ID) AS id FROM AVProjects WHERE SimulationID=%d", nSimulationID);
+		sel = db.select(L"SELECT MAX(ID) AS id FROM AVProjects WHERE SimulationId=%d", nSimulationId);
 	}
 	catch (...)
 	{
@@ -94,34 +94,35 @@ HRESULT CSim::FindProjectID(CDataBase db, ULONG nSimulationID, ULONG &nProjectID
 	return S_OK;
 }
 
-HRESULT CSim::LoadFromConsole(CDataBase db, ULONG nSimulationID)
+HRESULT CSim::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
 
 	// Query for Simulations (for project id)
-	sel = db.select(L"SELECT * FROM Simulations WHERE SimulationId=%d", nSimulationID);
+	sel = db.select(L"SELECT * FROM Simulations s, Projects p WHERE p.ProjectId = s.ProjectId AND SimulationId=%d", nSimulationId);
 	if (!sel) throw ERROR_PROJECT;
 	AVULONG nProjectId = sel[L"ProjectId"];
-
-	// Query for Projects (project general information)
-	sel = db.select(L"SELECT ProjectName, Languaje AS Language, MeasurementUnits, BuildingName, ClientCompanyName AS ClientCompany, City, LBRegionDistrict, StateCounty, LiftDesigner, Country, CheckedBy, PostalZipCode FROM Projects WHERE ProjectId=%d", nProjectId);
-	if (!sel) throw ERROR_PROJECT;
 	sel >> ME;
 
-	// Query for Files (SIM file path)
-	sel = db.select(L"SELECT SimPath AS SIMFileName, VisPath AS IFCFileName FROM FilePaths WHERE SimulationId=%d", nSimulationID);
-	if (!sel) throw ERROR_PROJECT;
-	sel >> ME;
+	//// Query for Projects (project general information)
+	//sel = db.select(L"SELECT ProjectName, Languaje AS Language, MeasurementUnits, BuildingName, ClientCompanyName AS ClientCompany, City, LBRegionDistrict, StateCounty, LiftDesigner, Country, CheckedBy, PostalZipCode FROM Projects WHERE ProjectId=%d", nProjectId);
+	//if (!sel) throw ERROR_PROJECT;
+	//sel >> ME;
 
-	// Query for AnalysisTypeDataSets (SIM file path)
-	sel = db.select(L"SELECT Algorithm FROM AnalysisTypeDataSets WHERE SimulationId=%d", nSimulationID);
-	if (!sel) throw ERROR_PROJECT;
-	sel >> ME;
+	//// Query for Files (SIM file path)
+	//sel = db.select(L"SELECT SimPath AS SIMFileName, VisPath AS IFCFileName FROM FilePaths WHERE SimulationId=%d", nSimulationId);
+	//if (!sel) throw ERROR_PROJECT;
+	//sel >> ME;
 
-	if      (ME[L"Algorithm"].as_wstring().substr(0, 19) == L"Destination Control")	ME[L"Algorithm"] = (ULONG)DESTINATION;
-	else if (ME[L"Algorithm"].as_wstring().substr(0, 16) == L"Group Collective")		ME[L"Algorithm"] = (ULONG)COLLECTIVE;
-	else throw (Log(ERROR_UNRECOGNISED_STRING, L"dispatcher algorithm", (ME[L"Algorithm"]).as_wstring().c_str()), ERROR_GENERIC);
+	//// Query for AnalysisTypeDataSets (SIM file path)
+	//sel = db.select(L"SELECT Algorithm FROM AnalysisTypeDataSets WHERE SimulationId=%d", nSimulationId);
+	//if (!sel) throw ERROR_PROJECT;
+	//sel >> ME;
+
+	//if      (ME[L"Algorithm"].as_wstring().substr(0, 19) == L"Destination Control")	ME[L"Algorithm"] = (ULONG)DESTINATION;
+	//else if (ME[L"Algorithm"].as_wstring().substr(0, 16) == L"Group Collective")		ME[L"Algorithm"] = (ULONG)COLLECTIVE;
+	//else throw (Log(ERROR_UNRECOGNISED_STRING, L"dispatcher algorithm", (ME[L"Algorithm"]).as_wstring().c_str()), ERROR_GENERIC);
 
 	return S_OK;
 }
@@ -143,21 +144,21 @@ HRESULT CSim::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 	return S_OK;
 }
 
-HRESULT CSim::Store(CDataBase db, ULONG nSimulationID)
+HRESULT CSim::Store(CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
 	if (!GetBuilding())
 		throw (Log(ERROR_INTERNAL, L"Project stored without the building set."), ERROR_GENERIC);
 
-	SetSimulationId(nSimulationID);
+	SetSimulationId(nSimulationId);
 	SetAVVersionId(GetAVNativeVersionId());
 	
 	CDataBase::INSERT ins = db.insert(L"AVProjects");
 
 	ins << ME;
-	ins[L"SimulationID"] = GetSimulationId();
-	ins[L"SIMVersionID"] = GetSIMVersionId();
-	ins[L"AVVersionID"] = (float)(((AVFLOAT)GetAVVersionId())/100.0);
+	ins[L"SimulationId"] = GetSimulationId();
+	ins[L"SIMVersionId"] = GetSIMVersionId();
+	ins[L"AVVersionId"] = (float)(((AVFLOAT)GetAVVersionId())/100.0);
 	ins[L"Floors"] = GetBuilding()->GetStoreyCount();
 	ins[L"Shafts"] = GetBuilding()->GetShaftCount();
 	ins[L"Lifts"] = GetBuilding()->GetLiftCount();
@@ -206,7 +207,7 @@ HRESULT CSim::Update(CDataBase db, AVLONG nTime)
 		GetPassenger(i)->Store(db, GetProjectId());
 
 	CDataBase::UPDATE upd = db.update(L"AVProjects", L"WHERE ID=%d", GetProjectId());
-	upd[L"SIMVersionID"] = GetSIMVersionId();
+	upd[L"SIMVersionId"] = GetSIMVersionId();
 	upd[L"Floors"] = GetBuilding()->GetStoreyCount();
 	upd[L"Shafts"] = GetBuilding()->GetShaftCount();
 	upd[L"Lifts"] = GetBuilding()->GetLiftCount();
@@ -221,15 +222,15 @@ HRESULT CSim::Update(CDataBase db, AVLONG nTime)
 	return S_OK;
 }
 
-HRESULT CSim::CleanUp(CDataBase db, ULONG nSimulationID)
+HRESULT CSim::CleanUp(CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
-	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVPassengers WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
-	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVJourneys WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
-	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVFloors WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
-	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVShafts WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationID=%d)", nSimulationID);
-	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVBuildings WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationID=%d)", nSimulationID);
-	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVProjects WHERE SimulationID=%d", nSimulationID);
+	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVPassengers WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVJourneys WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVFloors WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVShafts WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVBuildings WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVProjects WHERE SimulationId=%d", nSimulationId);
 	return S_OK;
 }
 

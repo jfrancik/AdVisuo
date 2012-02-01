@@ -12,10 +12,10 @@ class CPassengerBase;
 class CSimBase : public dbtools::CCollection
 {
 	// project information
-	AVULONG m_nProjectID;
-	AVULONG m_nSimulationID;
-	AVULONG m_nSIMVersionID;
-	AVULONG m_nAVVersionID;
+	AVULONG m_nProjectId;
+	AVULONG m_nSimulationId;
+	AVULONG m_nSIMVersionId;
+	AVULONG m_nAVVersionId;
 	AVLONG m_nSimulationTime;
 	AVULONG m_nTimeSaved;
 	
@@ -41,16 +41,16 @@ public:
 	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
 	std::wstring GetProjectInfo(PRJ_INFO what);
 
-	AVULONG GetProjectId()						{ return m_nProjectID; }
-	AVULONG GetSimulationId()					{ return m_nSimulationID; }
-	AVULONG GetSIMVersionId()					{ return m_nSIMVersionID; }
-	AVULONG GetAVVersionId()					{ return m_nAVVersionID; }
+	AVULONG GetProjectId()						{ return m_nProjectId; }
+	AVULONG GetSimulationId()					{ return m_nSimulationId; }
+	AVULONG GetSIMVersionId()					{ return m_nSIMVersionId; }
+	AVULONG GetAVVersionId()					{ return m_nAVVersionId; }
 	static AVULONG GetAVNativeVersionId()		{ return 10900; }
 
-	void SetProjectId(AVULONG n)				{ m_nProjectID = n; }
-	void SetSimulationId(AVULONG n)				{ m_nSimulationID = n; }
-	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionID = n; }
-	void SetAVVersionId(AVULONG n)				{ m_nAVVersionID = n; }
+	void SetProjectId(AVULONG n)				{ m_nProjectId = n; }
+	void SetSimulationId(AVULONG n)				{ m_nSimulationId = n; }
+	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionId = n; }
+	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
 
 	AVLONG GetSimulationTime()					{ return m_nSimulationTime; }
 	void ReportSimulationTime(AVLONG n)			{ if (n > m_nSimulationTime) m_nSimulationTime = n; }

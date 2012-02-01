@@ -25,7 +25,7 @@ public:
 public:
 	// IO
 	HRESULT Store(dbtools::CDataBase db, ULONG nProjectID);
-	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationID);
+	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectID);
 
 	// IFC

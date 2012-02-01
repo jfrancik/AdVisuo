@@ -19,12 +19,12 @@ public:
 	void Play();
 
 	// Database operations
-	HRESULT FindProjectID(dbtools::CDataBase db, ULONG nSimulationID, ULONG &nProjectID);
-	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationID);
+	HRESULT FindProjectID(dbtools::CDataBase db, ULONG nSimulationId, ULONG &nProjectID);
+	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectId);
-	HRESULT Store(dbtools::CDataBase db, ULONG nSimulationID);
+	HRESULT Store(dbtools::CDataBase db, ULONG nSimulationId);
 	HRESULT Update(dbtools::CDataBase db, AVLONG nTime = -1);
-	static HRESULT CleanUp(dbtools::CDataBase db, ULONG nSimulationID);
+	static HRESULT CleanUp(dbtools::CDataBase db, ULONG nSimulationId);
 	static HRESULT CleanUpAll(dbtools::CDataBase db);
 	static HRESULT DropTables(dbtools::CDataBase db);
 

@@ -158,13 +158,13 @@ ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScr
 }
 
 // Tests for presence of the simulation data in the visualisation database.
-// Input:  - nSimulationID - simulation id as uded in CONSOLE database
+// Input:  - nSimulationId - simulation id as uded in CONSOLE database
 // Return values:
 // S_OK			if the visualisation data found, processed, up-to-date and ready to start
 // S_FALSE		if the visualisation data not found
 // S_FALSE+1	if the visualisation data found but outdated
 // Standard error code in case of errors - check with FAILED(...) macro
-ADV_API HRESULT AVTest(AVULONG nSimulationID)
+ADV_API HRESULT AVTest(AVULONG nSimulationId)
 {
 	CLogTime lt;
 	AVSTRING pConnStr;
@@ -177,7 +177,7 @@ ADV_API HRESULT AVTest(AVULONG nSimulationID)
 		AVULONG nProjectID;
 		
 		CSim sim(NULL);
-		h = sim.FindProjectID(pConnStr, nSimulationID, nProjectID);
+		h = sim.FindProjectID(pConnStr, nSimulationId, nProjectID);
 		if (h == S_FALSE) return S_FALSE;
 
 		h = sim.LoadFromVisualisation(pConnStr, nProjectID);
@@ -197,7 +197,7 @@ ADV_API HRESULT AVTest(AVULONG nSimulationID)
 		else
 			return S_FALSE+1;
 	}
-	STD_CATCH(L"AVTest(%d)", nSimulationID);
+	STD_CATCH(L"AVTest(%d)", nSimulationId);
 }
 
 ADV_API HRESULT AVDelete(AVULONG nSimulationId)

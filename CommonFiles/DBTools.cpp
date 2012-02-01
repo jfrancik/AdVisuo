@@ -252,6 +252,13 @@ wstring CValue::escaped()
 		return str.str();
 	}
 	else
+	if (type == V_DATE)
+	{
+		wstringstream str;
+		str << L"'" << (wstring)(*this) << L"'";
+		return str.str();
+	}
+	else
 		return *this;
 }
 

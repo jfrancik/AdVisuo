@@ -10,14 +10,14 @@ class CBuildingBase : public dbtools::CCollection
 {
 // enum & struct definitions
 public:
-	
-	enum SHAFT_ARRANGEMENT	{ SHAFT_INLINE, SHAFT_OPPOSITE, SHAFT_UNKNOWN };
-	enum LOBBY_ARRANGEMENT	{ LOBBY_THROUGH, LOBBY_OPENPLAN, LOBBY_DEADEND_LEFT, LOBBY_DEADEND_RIGHT, LOBBY_UNKNOWN };
-	enum DOOR_TYPE			{ DOOR_CENTRE, DOOR_SIDE, DOOR_UNKNOWN };
-	enum TYPE_OF_LIFT		{ LIFT_SINGLE_DECK, LIFT_DOUBLE_DECK, LIFT_MULTI_CAR, LIFT_UNKNOWN };
-	enum CAR_ENTRANCES		{ CAR_FRONT, CAR_REAR, CAR_BOTH, CAR_UNKNOWN };
-	enum CNTRWEIGHT_POS		{ CNTRWEIGHT_SIDE, CNTRWEIGHT_REAR, CNTRWEIGHT_UNKNOWN };
-	enum LIFT_STRUCTURE		{ STRUCT_CONCRETE, STRUCT_STEEL, STRUCT_UNKNOWN = -1 };
+	enum SHAFT_ARRANGEMENT	{ SHAFT_INLINE = 1, SHAFT_OPPOSITE, SHAFT_UNKNOWN = -1 };
+	enum LOBBY_ARRANGEMENT	{ LOBBY_THROUGH = 1, LOBBY_OPENPLAN, LOBBY_DEADEND_LEFT, LOBBY_DEADEND_RIGHT, LOBBY_UNKNOWN = -1 };
+	enum DOOR_TYPE			{ DOOR_CENTRE = 1, DOOR_LSIDE, DOOR_RSIDE, DOOR_CENTRE_2, DOOR_LSIDE_2, DOOR_RSIDE_2, DOOR_CENTRE_3, DOOR_LSIDE_3, DOOR_RSIDE_3, DOOR_UNKNOWN = -1 };
+	enum TYPE_OF_LIFT		{ LIFT_CONVENTIONAL = 1, LIFT_MRL, LIFT_UNKNOWN };
+	enum TYPE_OF_DECK		{ DECK_SINGLE = 1, DECK_DOUBLE, DECK_TWIN, DECK_UNKNOWN = -1 };
+	enum CAR_ENTRANCES		{ CAR_FRONT = 1, CAR_REAR = 999, CAR_BOTH = 2, CAR_UNKNOWN = -1 };
+	enum CNTRWEIGHT_POS		{ CNTRWEIGHT_REAR = 1, CNTRWEIGHT_LSIDE, CNTRWEIGHT_RSIDE, CNTRWEIGHT_UNKNOWN = -1 };
+	enum LIFT_STRUCTURE		{ STRUCT_STEEL = 1, STRUCT_CONCRETE = 2, STRUCT_UNKNOWN = -1 };
 
 	// Shaft Layout data
 	class SHAFT : public dbtools::CCollection
@@ -27,7 +27,8 @@ public:
 		AVULONG m_nShaftLine;					// 0 for SHAFT_INLINE and 0 or 1 for SHAFT_OPPOSITE
 
 		AVULONG m_nLiftCount;					// number of lifts in a shaft (usually 1)
-		TYPE_OF_LIFT m_type;					// type of lift
+		TYPE_OF_LIFT m_type;					// type of lift (conventional/MRL)
+		TYPE_OF_DECK m_deck;					// type of deck (single/double/twin)
 
 		// Dimensions
 		BOX m_boxShaft;							// shaft box (including ext walls thickness)
@@ -51,6 +52,7 @@ public:
 
 		AVULONG GetLiftCount()					{ return m_nLiftCount; }
 		TYPE_OF_LIFT GetType()					{ return m_type; }
+		TYPE_OF_DECK GetDeck()					{ return m_deck; }
 
 
 		enum SHAFT_BOX { BOX_SHAFT, BOX_CAR, BOX_BEAM, BOX_DOOR };
@@ -67,10 +69,11 @@ public:
 		// Operations:
 		void Xxxx(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fFrontWall, AVFLOAT fRearWall);
 		void Xxxx(AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY);
-		void XxxxLeftBeam(AVFLOAT w, AVFLOAT d, AVFLOAT h);
-		void XxxxRightBeam(AVFLOAT w, AVFLOAT d, AVFLOAT h);
+		void XxxxLeftBeam(AVFLOAT fDepth);
+		void XxxxRightBeam(AVFLOAT fDepth);
 		void XxxxLeftWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
 		void XxxxRightWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
+		void XxxxAmend();
 		void Yyyy(CBuildingBase *pBuilding);
 		void Scale(AVFLOAT fScale);
 	};

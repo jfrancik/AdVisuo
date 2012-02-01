@@ -92,7 +92,7 @@ ADV_API HRESULT AVSetScalingFactor(AVFLOAT fScale = 0.04f);
 // The proper DLL interface
 
 // Tests for presence of the simulation data in the visualisation database.
-// Input:  - nSimulationID - simulation id as used in CONSOLE database
+// Input:  - nSimulationId - simulation id as used in CONSOLE database
 // Return values:
 // S_OK			if the visualisation data found, processed, up-to-date and ready to start
 // S_FALSE		if the visualisation data not found
@@ -107,7 +107,7 @@ ADV_API HRESULT AVTest(AVULONG nSimulationId);
 // This function may be called early in the processing queue. It will complete fast
 // even for complex projects, and allows the AdVisuo client software to be executed
 // immediately after the function returns. This function should be followed by AVProcess.
-// Input:  - nSimulationID - simulation id as used in CONSOLE database
+// Input:  - nSimulationId - simulation id as used in CONSOLE database
 //         - the CONSOLE database only
 // Output: - the VISUALISATION database
 //         - nProjectID - project id
@@ -138,7 +138,7 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId);
 
 // Deletes the simulation data from the visualisation database.
 // Returns immediately if data not found.
-// Input:  - nSimulationID - simulation id as used in CONSOLE database
+// Input:  - nSimulationId - simulation id as used in CONSOLE database
 // Returns standard error codes in case of database/connection errors - check with FAILED(...) macro
 ADV_API HRESULT AVDelete(AVULONG nSimulationId);
 
