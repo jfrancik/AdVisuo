@@ -15,6 +15,8 @@ interface IScene;
 
 class CBlock;
 
+#define MAX_DOORS	6
+
 class CBuilding : public CBuildingBase
 {
 public:
@@ -36,13 +38,6 @@ private:
 
 	IScene *m_pScene;
 
-	// Construction Objects & Bones
-	ISceneObject **m_pObjLifts;
-	IKineNode **m_pBoneLifts;
-	IKineNode **m_pBoneLiftDecks[DECK_NUM];
-	IKineNode **m_pBoneLiftLDoors;
-	IKineNode **m_pBoneLiftRDoors;
-
 	// Materials
 	IRenderer *m_pRenderer;
 	IMaterial *m_pMaterials[MAT_RESERVED_LAST * MAT_TEXTURES_PER_ITEM];
@@ -52,37 +47,63 @@ public:
 	// XML-enabled sub-structures
 	struct SHAFT : public CBuildingBase::SHAFT
 	{
-	public:
-		CBuilding *GetBuilding()				{ return (CBuilding *)CBuildingBase::SHAFT::GetBuilding(); }
-	};
-	struct STOREY : public CBuildingBase::STOREY
-	{
-		IKineNode *m_pBone;
+		// lift structure
 		ISceneObject *m_pObj;
-		IKineNode **m_pBoneLDoors;
-		IKineNode **m_pBoneRDoors;
+		IKineNode *m_pBone;
+		IKineNode *m_ppDecks[DECK_NUM];
+		IKineNode *m_ppDoors[MAX_DOORS];
+
+		// storey structures
+		struct FWSTRUCT
+		{
+			ISceneObject *pObj;
+			IKineNode *pBone;
+			IKineNode *ppDoors[MAX_DOORS];
+		} *m_pStoreyBones;
 
 	public:
-		STOREY();
-		~STOREY();
+		SHAFT() : m_pStoreyBones(NULL), m_pObj(NULL), m_pBone(NULL)
+		{
+			memset(m_ppDecks, 0, sizeof(m_ppDecks));
+			memset(m_ppDoors, 0, sizeof(m_ppDoors));
+		}
 
-		CBuilding *GetBuilding()				{ return (CBuilding *)CBuildingBase::STOREY::GetBuilding(); }
+		~SHAFT()											{ }
 
-		IKineNode *GetNode()					{ return m_pBone; }
-		ISceneObject *GetObj()					{ return m_pObj; }
-		IKineNode *GetLDoor(int nLift)			{ return m_pBoneLDoors ? m_pBoneLDoors[nLift] : NULL; }
-		IKineNode *GetRDoor(int nLift)			{ return m_pBoneRDoors ? m_pBoneRDoors[nLift] : NULL; }
+		CBuilding *GetBuilding()				{ return (CBuilding *)CBuildingBase::SHAFT::GetBuilding(); }
 
-		void ConstructWall(AVULONG nWallId, AVLONG nIndex, AVSTRING strName, 
-							AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot = Vector(0),
-							AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL, IKineNode **ppBone = NULL);
+		ISceneObject *GetObj()								{ return m_pObj; }
+		IKineNode *GetBone()								{ return m_pBone; }
+		IKineNode *GetDeck(AVULONG nDeck)					{ return m_ppDecks[nDeck]; }
+		IKineNode *GetDoor(AVULONG nDoor)					{ return m_ppDoors[nDoor]; }
 
-		void Construct(AVLONG iStorey);
+		ISceneObject *GetObj(AVULONG nStorey)				{ return m_pStoreyBones ? m_pStoreyBones[nStorey].pObj : NULL; }
+		IKineNode *GetBone(AVULONG nStorey)					{ return m_pStoreyBones ? m_pStoreyBones[nStorey].pBone : NULL; }
+		IKineNode *GetDoor(AVULONG nStorey, AVULONG nDoor)	{ return m_pStoreyBones ? m_pStoreyBones[nStorey].ppDoors[nDoor] : NULL; }
 
+		void Construct(AVLONG iStorey, AVULONG iShaft);
+		void Construct(AVULONG iShaft);
 		void Deconstruct();
 	};
 
-public:
+	struct STOREY : public CBuildingBase::STOREY
+	{
+		ISceneObject *m_pObj;
+		IKineNode *m_pBone;
+
+	public:
+		STOREY() : m_pObj(NULL), m_pBone(NULL)	{ }
+		~STOREY()								{ }
+
+		CBuilding *GetBuilding()				{ return (CBuilding *)CBuildingBase::STOREY::GetBuilding(); }
+
+		ISceneObject *GetObj()					{ return m_pObj; }
+		IKineNode *GetBone()					{ return m_pBone; }
+
+		void Construct(AVLONG iStorey);
+		void Deconstruct();
+	};
+
 // Main Implementation
 public:
 	virtual SHAFT *CreateShaft()			{ return new SHAFT; }
@@ -92,23 +113,21 @@ public:
 
 
 public:
-	AVVECTOR GetLiftPos(AVULONG nShaft, AVULONG nStorey)	{ return GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetStorey(nStorey)->GetLevel()); }
+	AVVECTOR GetLiftPos(AVULONG nShaft, AVULONG nStorey)		{ return GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetStorey(nStorey)->GetLevel()); }
 	
-	IKineNode *GetStoreyNode(int nStorey)					{ return GetStorey(nStorey)->m_pBone; }
-	ISceneObject *GetStoreyObj(int nStorey)					{ return GetStorey(nStorey)->m_pObj; }
+	ISceneObject *GetStoreyObj(AVULONG nStorey)					{ return GetStorey(nStorey)->GetObj(); }
+	IKineNode *GetStoreyBone(AVULONG nStorey)					{ return GetStorey(nStorey)->GetBone(); }
+	
+	ISceneObject *GetLiftObj(AVULONG nShaft)					{ return GetShaft(nShaft)->GetObj(); }
+	IKineNode *GetLiftBone(AVULONG nShaft)						{ return GetShaft(nShaft)->GetBone(); }
+	IKineNode *GetLiftDeck(AVULONG nShaft, AVULONG nDeck)		{ return GetShaft(nShaft)->GetDeck(nDeck); }
+	IKineNode *GetLiftDoor(AVULONG nShaft, AVULONG nDoor)		{ return GetShaft(nShaft)->GetDoor(nDoor); }
 
-	IKineNode *GetLiftNode(int nLift)						{ return m_pBoneLifts[nLift]; }
-	ISceneObject *GetLiftObj(int nLift)						{ return m_pObjLifts[nLift]; }
-	IKineNode *GetLiftDeck(int nLift, int n)				{ return m_pBoneLiftDecks[n][nLift]; }
-
-	IKineNode *GetLDoor(int nLift)							{ return m_pBoneLiftLDoors[nLift]; }
-	IKineNode *GetRDoor(int nLift)							{ return m_pBoneLiftRDoors[nLift]; }
-	IKineNode *GetExtLDoor(int nLift, AVULONG nStorey)		{ return GetStorey(nStorey)->GetLDoor(nLift); }
-	IKineNode *GetExtRDoor(int nLift, AVULONG nStorey)		{ return GetStorey(nStorey)->GetRDoor(nLift); }
+	ISceneObject *GetShaftObj(AVULONG nStorey, AVULONG nShaft)	{ return GetShaft(nShaft)->GetObj(nStorey); }
+	IKineNode *GetShaftBone(AVULONG nStorey, AVULONG nShaft)	{ return GetShaft(nShaft)->GetBone(nStorey); }
+	IKineNode *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)		{ return GetShaft(nShaft)->GetDoor(nStorey, nDoor); }
 
 	AVFLOAT GetLiftZPos(int nLift);							// returns position of the lift above the ground
-//	AVULONG GetLiftStorey(int nLift);						// returns the floor the lift is on (based on GetLiftZPos)
-//	AVULONG GetLiftDoorPos(int nLift);						// returns the door position (0 = closed, 1 = fully open)
 
 	IRenderer *GetRenderer()								{ return m_pRenderer; }
 	IScene *GetScene()										{ return m_pScene; }

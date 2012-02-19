@@ -663,10 +663,16 @@ void CAdVisuoView::RenderScene(bool bHUDSelection)
 
 		// my own display list goes here... instead of m_pScene->Render(pRenderer);
 		pSim->RenderPassengers(m_pRenderer, 0);
-		for (FWULONG i = 0; i < pBuilding->GetLiftCount(); i++)
-			pBuilding->GetLiftObj(i)->Render(m_pRenderer);
-		for (FWULONG i = 0; i < pBuilding->GetStoreyCount(); i++)
-			pBuilding->GetStoreyObj(i)->Render(m_pRenderer);
+		for (FWULONG iShaft = 0; iShaft < pBuilding->GetShaftCount(); iShaft++)
+			if (pBuilding->GetLiftObj(iShaft)) 
+				pBuilding->GetLiftObj(iShaft)->Render(m_pRenderer);
+		for (FWULONG iStorey = 0; iStorey < pBuilding->GetStoreyCount(); iStorey++)
+			for (FWULONG iShaft = 0; iShaft < pBuilding->GetShaftCount(); iShaft++)
+				if (pBuilding->GetShaftObj(iStorey, iShaft)) 
+					pBuilding->GetShaftObj(iStorey, iShaft)->Render(m_pRenderer);
+		for (FWULONG iStorey = 0; iStorey < pBuilding->GetStoreyCount(); iStorey++)
+			if (pBuilding->GetStoreyObj(iStorey))
+				pBuilding->GetStoreyObj(iStorey)->Render(m_pRenderer);
 //		for (FWULONG i = 0; i < pBuilding->GetStoreyCount(); i++)
 //		{
 //			pBuilding->GetFrontWallObj(i)->Render(m_pRenderer);

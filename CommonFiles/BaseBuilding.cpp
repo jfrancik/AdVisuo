@@ -271,7 +271,7 @@ void CBuildingBase::Scale(AVFLOAT fScale)
 //////////////////////////////////////////////////////////////////////////////////
 // CBuildingBase::SHAFT
 
-CBuildingBase::SHAFT::SHAFT() : m_nId(0), m_pBuilding(NULL), m_nShaftLine(0), m_nLiftCount(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_fWallLtStart(0), m_fWallRtStart(0)	
+CBuildingBase::SHAFT::SHAFT() : m_nId(0), m_pBuilding(NULL), m_nShaftLine(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_fWallLtStart(0), m_fWallRtStart(0)	
 { 
 }
 
@@ -282,7 +282,6 @@ void CBuildingBase::SHAFT::Xxxx(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT f
 	m_pBuilding = pBuilding;
 	m_nShaftLine = 0;
 	
-	m_nLiftCount = 1;
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
 
@@ -369,7 +368,6 @@ void CBuildingBase::SHAFT::XxxxRightWall(AVFLOAT fThickness, AVFLOAT fStart)
 void CBuildingBase::SHAFT::XxxxAmend()
 {
 	ME[L"ShaftId"] = GetId();
-	ME[L"NumberOfLifts"] = m_nLiftCount;
 	ME[L"ShaftLine"] = m_nShaftLine;
 
 	ME[L"BoxShaft"] = m_boxShaft.Stringify();
@@ -409,7 +407,6 @@ void CBuildingBase::SHAFT::Yyyy(CBuildingBase *pBuilding)
 {
 	m_pBuilding = pBuilding;
 	m_nId = ME[L"ShaftId"];
-	m_nLiftCount = ME[L"NumberOfLifts"];
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
 	m_nShaftLine = ME[L"ShaftLine"];

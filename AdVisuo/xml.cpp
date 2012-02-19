@@ -78,7 +78,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 			journey.m_timeDest = reader[L"TimeDest"];
 			journey.ParseDoorCycles(reader[L"DC"]);
 				  
-			if (nLiftID >= pBuilding->GetLiftCount() || nLiftID >= LIFT_MAXNUM || journey.m_shaftFrom >= pBuilding->GetShaftCount() || journey.m_shaftTo >= pBuilding->GetShaftCount()) 
+			if (nLiftID >= pBuilding->GetShaftCount() || nLiftID >= LIFT_MAXNUM || journey.m_shaftFrom >= pBuilding->GetShaftCount() || journey.m_shaftTo >= pBuilding->GetShaftCount()) 
 				throw _sim_error(_sim_error::E_SIM_LIFTS);
 
 			GetLift(nLiftID)->AddJourney(journey);

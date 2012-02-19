@@ -26,7 +26,7 @@ HRESULT CSim::LoadSim()
 	// detect errors...
 	if FAILED(nRes)
 		return Logf(nRes, GetSIMFileName().c_str());
-	if ((ULONG)loader.nLifts != GetBuilding()->GetLiftCount())
+	if ((ULONG)loader.nLifts != GetBuilding()->GetShaftCount())
 		return Log(ERROR_FILE_INCONSISTENT_LIFTS);		// inconsistent number of floors
 	if ((ULONG)loader.nFloors != GetBuilding()->GetStoreyCount())
 		return Log(ERROR_FILE_INCONSISTENT_FLOORS);		// inconsistent number of lifts
@@ -161,7 +161,7 @@ HRESULT CSim::Store(CDataBase db, ULONG nSimulationId)
 	ins[L"AVVersionId"] = (float)(((AVFLOAT)GetAVVersionId())/100.0);
 	ins[L"Floors"] = GetBuilding()->GetStoreyCount();
 	ins[L"Shafts"] = GetBuilding()->GetShaftCount();
-	ins[L"Lifts"] = GetBuilding()->GetLiftCount();
+	ins[L"Lifts"] = GetBuilding()->GetShaftCount();
 	ins[L"Passengers"] = (ULONG)0;
 	ins[L"SimulationTime"] = (ULONG)0;
 	ins[L"JourneysSaved"] = (ULONG)0;
@@ -210,7 +210,7 @@ HRESULT CSim::Update(CDataBase db, AVLONG nTime)
 	upd[L"SIMVersionId"] = GetSIMVersionId();
 	upd[L"Floors"] = GetBuilding()->GetStoreyCount();
 	upd[L"Shafts"] = GetBuilding()->GetShaftCount();
-	upd[L"Lifts"] = GetBuilding()->GetLiftCount();
+	upd[L"Lifts"] = GetBuilding()->GetShaftCount();
 	upd[L"Passengers"] = GetPassengerCount();
 	upd[L"SimulationTime"] = GetSimulationTime();
 	upd[L"JourneysSaved"] = GetJourneyTotalCount();

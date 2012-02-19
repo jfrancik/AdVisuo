@@ -243,12 +243,23 @@ void CValue::from_type(std::wstring type)
 		throw _value_error(_value_error::E_VALUE_BAD_XS_TYPE);
 }
 
+static wstring replace_substring(wstring str, wstring substr, wstring rplcm)
+{
+	int i = str.find(substr, 0);
+	while(i >= 0)
+	{
+		str.replace(i, substr.length(), rplcm);
+		i = str.find(substr, i + rplcm.length());
+	}
+	return str;
+}
+
 wstring CValue::escaped()
 {
 	if (type == V_STRING)
 	{
 		wstringstream str;
-		str << L"'" << (wstring)(*this) << L"'";
+		str << L"'" << replace_substring(*this, L"'", L"''") << L"'";
 		return str.str();
 	}
 	else

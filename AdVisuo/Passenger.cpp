@@ -216,11 +216,11 @@ void CPassenger::Embark(enum ENUM_ACTION nAction, bool bSwitchCoord)
 	switch (nAction)
 	{
 	case ENTER_ARR_FLOOR:
-		pNode = GetSim()->GetBuilding()->GetStoreyNode(GetArrivalFloor()); break;
+		pNode = GetSim()->GetBuilding()->GetStoreyBone(GetArrivalFloor()); break;
 	case ENTER_LIFT:
 		pNode = GetSim()->GetBuilding()->GetLiftDeck(GetLiftId(), GetDeck()); break;
 	case ENTER_DEST_FLOOR:
-		pNode = GetSim()->GetBuilding()->GetStoreyNode(GetDestFloor()); break;
+		pNode = GetSim()->GetBuilding()->GetStoreyBone(GetDestFloor()); break;
 	}
 	Embark(pNode, bSwitchCoord);
 }

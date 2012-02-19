@@ -26,7 +26,6 @@ public:
 		CBuildingBase *m_pBuilding;				// main building
 		AVULONG m_nShaftLine;					// 0 for SHAFT_INLINE and 0 or 1 for SHAFT_OPPOSITE
 
-		AVULONG m_nLiftCount;					// number of lifts in a shaft (usually 1)
 		TYPE_OF_LIFT m_type;					// type of lift (conventional/MRL)
 		TYPE_OF_DECK m_deck;					// type of deck (single/double/twin)
 
@@ -50,7 +49,6 @@ public:
 		AVFLOAT GetShaftDir()					{ return m_nShaftLine == 0 ? -1.0f : 1.0f; }	// -1 for line 0 lifts (far row), 1 for line 1 lifts (near raw)
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
-		AVULONG GetLiftCount()					{ return m_nLiftCount; }
 		TYPE_OF_LIFT GetType()					{ return m_type; }
 		TYPE_OF_DECK GetDeck()					{ return m_deck; }
 
@@ -147,8 +145,6 @@ public:
 	AVULONG GetShaftCount()					{ return m_nShaftCount; }
 	AVULONG GetShaftCount(AVULONG nLine)	{ return m_pnShaftCount[nLine]; }
 	AVULONG GetShaftLinesCount()			{ return m_pnShaftCount[1] == 0 ? 1 : 2; }
-
-	AVULONG GetLiftCount()					{ AVULONG n = 0; for (AVULONG i = 0; i < GetShaftCount(); i++) n += GetShaft(i)->GetLiftCount(); return n; }
 
 	// Storeys
 	void CreateStoreys(AVULONG nStoreyCount, AVULONG nBasementStoreyCount = 0);
