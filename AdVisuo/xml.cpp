@@ -38,7 +38,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 			m_phase = PHASE_BLD;
 
 			reader >> *pBuilding;
-			pBuilding->PreXxxx();
+			pBuilding->PreCreate();
 		}
 		else
 		if (reader.getName() == L"AVShaft")
@@ -109,7 +109,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 
 	if (m_phase >= PHASE_STRUCT) 
 	{
-		GetBuilding()->Yyyy();
+		GetBuilding()->Create();
 		GetBuilding()->Scale(0.04f);
 	}
 //	if (m_phase == PHASE_SIM)

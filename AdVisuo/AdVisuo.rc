@@ -316,7 +316,7 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "",IDC_STATIC,48,7,149,67,0,WS_EX_CLIENTEDGE
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
-    LTEXT           "AdSimulo Project\nAdVisuo Version 1.00 (RC 3)\nRelease 5 August 2011\npowered by FreeWill+\n\nCopyright (C) 2009-11 by Lerch Bates\nPortions Copyright by Kingston University",IDC_STATIC,54,12,135,59,SS_NOPREFIX
+    LTEXT           "AdSimulo Project\nAdVisuo 2.00.20220\nPre-release 20 February 2012\npowered by FreeWill+\n\nCopyright (C) 2009-12 by Lerch Bates\nPortions Copyright by Kingston University",IDC_STATIC,54,12,135,59,SS_NOPREFIX
     DEFPUSHBUTTON   "OK",IDOK,77,87,50,14,WS_GROUP
 END
 
@@ -347,7 +347,7 @@ BEGIN
             VALUE "FileDescription", "LerchBates AdVisuo Client"
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "AdVisuo.exe"
-            VALUE "LegalCopyright", " (c) Lerch Bates 2009-2011.  All rights reserved."
+            VALUE "LegalCopyright", " (c) Lerch Bates 2009-2012.  All rights reserved."
             VALUE "OriginalFilename", "AdVisuo.exe"
             VALUE "ProductName", "LerchBates AdVisuo Client"
             VALUE "ProductVersion", "1.0.0.1"

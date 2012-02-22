@@ -505,7 +505,7 @@ bool CAdVisuoView::CreateBuilding(CBuilding *pBuilding)
 	pBuilding->SetMaterial(CBuilding::MAT_SIDE, 7,  0.0f, 0.3f, 1.0f, 0.8f);
 //	pBuilding->SetMaterial(CBuilding::MAT_SIDE, _stdPathModels + L"yellobrk.jpg", 1.0f, 1.0f);
 	pBuilding->SetMaterial(CBuilding::MAT_SHAFT1, 0, 0.5f, 0.5f, 0.5f);
-	pBuilding->SetMaterial(CBuilding::MAT_SHAFT2, 0, 0.4f, 0.2f, 0.0f, 0.3f);	// 0.4f, 0.2f, 0.0f
+	pBuilding->SetMaterial(CBuilding::MAT_SHAFT2, 0, 0.4f, 0.2f, 0.0f, 0.8f);	// 0.4f, 0.2f, 0.0f
 	pBuilding->SetMaterial(CBuilding::MAT_CEILING, 0, _stdPathModels + L"ceiling.jpg", 2.0f, 2.0f, 1.0f);
 	pBuilding->SetMaterial(CBuilding::MAT_FLOOR, 0, _stdPathModels + L"floor3.jpg", 1.0f, 1.0f, 1.0f);
 //	pBuilding->SetMaterial(CBuilding::MAT_DOOR, 0, _stdPathModels + L"metal1.jpg", 1.0f, 1.0f, 0.75f);

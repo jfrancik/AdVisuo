@@ -86,8 +86,8 @@ int COutputWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 //	m_wndTabs.AddTab(&m_wndOutputFind, strTabName, (UINT)2);
 
 	// Fill output tabs with some dummy text (nothing magic here)
-	OutDebugWindow(L"AdVisuo Module started (a part of AdSimulo system). Copyright (C) 2009-2011 by Lerch Bates");
-	OutDebugWindow(L"Version 1.00 (Release Candidate 3) - 5 August 2011");
+	OutDebugWindow(L"AdVisuo Module started (a part of AdSimulo system). Copyright (C) 2009-2012 by Lerch Bates");
+	OutDebugWindow(L"Version 2.00.20220 (Pre-Release) - 20 February 2012");
 
 	return 0;
 }

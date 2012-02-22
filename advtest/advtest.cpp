@@ -13,7 +13,7 @@ using namespace std;
 
 void version()
 {
-	wcout << L"ADV AdVisuo Server Tool version " << AVGetVersion() / 10000.0 << L". Copyright (C) 2011 Lerch Bates" << endl;
+	wcout << L"ADV AdVisuo Server Tool version " << AVGetVersion() / 10000.0 << L". Copyright (C) 2011-12 Lerch Bates" << endl;
 }
 
 void usage()

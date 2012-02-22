@@ -19,7 +19,7 @@ public:
 	BOX(AVFLOAT x, AVFLOAT y, AVFLOAT w, AVFLOAT d)				{ this->A = this->A1 = Vector(x, y, 0); this->B = this->B1 = Vector(x + w, y + d, 0); }
 
 	operator AVVECTOR&()	{ return A; }
-	BOX &operator +=(AVVECTOR v)	{ Translate(v); return *this; }
+	BOX &operator +=(AVVECTOR v)	{ Move(v); return *this; }
 	BOX &operator *=(AVFLOAT f)		{ Scale(f); return *this; }
 
 	bool InBox(AVVECTOR &v)	{ return ((v.x >= Left() && v.x <= Right()) || (v.x <= Left() && v.x >= Right())) && ((v.y >= Front() && v.y <= Rear()) || (v.y <= Front() && v.y >= Rear())); }
@@ -99,8 +99,13 @@ public:
 	void SetDepth(AVFLOAT d)			{ AVFLOAT dd = d - B.y; B.y += dd; B1.y += dd; }
 	void SetHeight(AVFLOAT h)			{ AVFLOAT dh = h - B.z; B.z += dh; B1.z += dh; }
 
-	void Translate(AVVECTOR v)			{ A.x += v.x; A.y += v.y; A.z += v.z; B.x += v.x; B.y += v.y; B.z += v.z; A1.x += v.x; A1.y += v.y; A1.z += v.z; B1.x += v.x; B1.y += v.y; B1.z += v.z; }
+	void Move(AVVECTOR v)				{ A.x += v.x; A.y += v.y; A.z += v.z; B.x += v.x; B.y += v.y; B.z += v.z; A1.x += v.x; A1.y += v.y; A1.z += v.z; B1.x += v.x; B1.y += v.y; B1.z += v.z; }
+	void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)	{ A.x += x; A.y += y; A.z += z; B.x += x; B.y += y; B.z += z; A1.x += x; A1.y += y; A1.z += z; B1.x += x; B1.y += y; B1.z += z; }
+	void MoveX(AVFLOAT f)				{ A.x += f; B.x += f; A1.x += f; B1.x += f; }
+	void MoveY(AVFLOAT f)				{ A.y += f; B.y += f; A1.y += f; B1.y += f; }
+	void MoveZ(AVFLOAT f)				{ A.z += f; B.z += f; A1.z += f; B1.z += f; }
 	void Scale(AVFLOAT f)				{ A.x *= f; A.y *= f; A.z *= f; B.x *= f; B.y *= f; B.z *= f; A1.x *= f; A1.y *= f; A1.z *= f; B1.x *= f; B1.y *= f; B1.z *= f; }
+	void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z)	{ A.x *= x; A.y *= y; A.z *= z; B.x *= x; B.y *= y; B.z *= z; A1.x *= x; A1.y *= y; A1.z *= z; B1.x *= x; B1.y *= y; B1.z *= z; }
 	void ScaleX(AVFLOAT f)				{ A.x *= f; B.x *= f; A1.x *= f; B1.x *= f; }
 	void ScaleY(AVFLOAT f)				{ A.y *= f; B.y *= f; A1.y *= f; B1.y *= f; }
 	void ScaleZ(AVFLOAT f)				{ A.z *= f; B.z *= f; A1.z *= f; B1.z *= f; }
@@ -182,6 +187,7 @@ public:
 		std::wstringstream s;
 		s << A .x << L" "<< A .y << L" "<< A .z << L" "<< B .x << L" "<< B .y << L" "<< B .z << L" "
 		  << A1.x << L" "<< A1.y << L" "<< A1.z << L" "<< B1.x << L" "<< B1.y << L" "<< B1.z << L" ";
+		std::wstring dupa = s.str();
 		return s.str();
 	}
 

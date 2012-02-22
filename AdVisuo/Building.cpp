@@ -244,7 +244,7 @@ void ConstructWall(CBuilding *pBuilding, IKineNode *pBone, ISceneObject *pObj, A
 					AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot = Vector(0),
 					AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL, IKineNode **ppBone = NULL)
 {
-	TRACE(L"Building wall: pos = (%f, %f, %f), l = %f, h = %f, d = %f\n", vecPos.x, vecPos.y, vecPos.z, l, h, d);
+	TRACE(L"Building wall: pos = (%f, %f, %f), l = %f, h = %f, d = %f\n", vecPos.x/0.04f, vecPos.y/0.04f, vecPos.z/0.04f, l/0.04f, h/0.04f, d/0.04f);
 	CBlock block;
 	block.Open(pObj, pBone, __name(strName, LOWORD(nIndex), HIWORD(nIndex)), l, h, d, vecPos, vecRot.x, vecRot.y, vecRot.z);
 	block.BuildFrontSection();
@@ -266,6 +266,15 @@ void ConstructWall(CBuilding *pBuilding, IKineNode *pBone, ISceneObject *pObj, A
 	block.Close();
 }
 
+void ConstructWall(CBuilding *pBuilding, IKineNode *pBone, ISceneObject *pObj, AVULONG nWallId, AVLONG nIndex, AVSTRING strName, 
+					BOX box, AVVECTOR vecRot = Vector(0),
+					AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL, IKineNode **ppBone = NULL)
+{
+	ConstructWall(pBuilding, pBone, pObj, nWallId, nIndex, strName, 
+					box.LeftFrontLower(), box.Width(), box.Height(), box.Depth(), vecRot,
+					nDoorNum, pDoorData, ppBone);
+}					
+					
 void CBuilding::STOREY::Construct(AVLONG iStorey)
 {
 	iStorey -= GetBuilding()->GetBasementStoreyCount();
@@ -283,15 +292,6 @@ void CBuilding::STOREY::Construct(AVLONG iStorey)
 	pT->FromTranslationXYZ(0, 0, GetLevel());
 	m_pBone->PutLocalTransform(pT);
 	pT->Release();
-
-	// create arrays of objects and bones
-//	m_nDoors = 6;
-//	m_ppObjShaft = new ISceneObject*[GetBuilding()->GetShaftCount()];
-//	memset(m_ppObjShaft, 0, sizeof(ISceneObject*) * GetBuilding()->GetShaftCount());
-//	m_ppBoneShaft = new IKineNode*[GetBuilding()->GetShaftCount()];
-//	memset(m_ppBoneShaft, 0, sizeof(IKineNode*) * GetBuilding()->GetShaftCount());
-//	m_ppBoneDoors = new IKineNode*[GetBuilding()->GetShaftCount() * m_nDoors];
-//	memset(m_ppBoneDoors, 0, sizeof(IKineNode*) * GetBuilding()->GetShaftCount() * m_nDoors);
 
 	// collect door information
 	std::vector<FLOAT> doordata;
@@ -365,12 +365,21 @@ void CBuilding::SHAFT::Construct(AVLONG iStorey, AVULONG iShaft)
 	GetBox().SetHeight(GetBuilding()->GetStorey(iStorey)->GetBox().HeightExt());
 
 	if (GetBoxBeam().Width() > 0)
-		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT1, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Beam", GetBoxBeam().LeftFrontLower(), GetBoxBeam().Width(), GetBoxBeam().Height(), -GetBoxBeam().Depth());
+	{
+		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT1, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Beam", GetBoxBeam().LeftFrontLower(), GetBoxBeam().Width(), -GetBoxBeam().Height(), -GetBoxBeam().Depth());
+		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT2, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_BmRr", GetBoxBeam().LeftRearLower(), GetBoxBeam().Width(), GetBox().Height(), -GetBox().RearThickness());
+	}
+
+//	if (GetBox().LeftThickness() > 0)
+//		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT2, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Lt", GetBox().LeftExtFrontLower(), GetBox().Depth(), GetBox().Height(), GetBox().LeftThickness(), Vector(F_PI_2));
+//	if (GetBox().RightThickness() > 0)
+//		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT2, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Rt", GetBox().RightFrontLower(), GetBox().Depth(), GetBox().Height(), GetBox().RightThickness(), Vector(F_PI_2));
+
 
 	if (GetBox().LeftThickness() > 0)
-		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT2, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Lt", GetBox().LeftExtFrontLower(), GetBox().Depth(), GetBox().Height(), GetBox().LeftThickness(), Vector(F_PI_2));
+		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT2, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Lt", GetLeftWallBox(), Vector(F_PI_2));
 	if (GetBox().RightThickness() > 0)
-		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT2, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Rt", GetBox().RightExtRearLower(), GetBox().Depth(), GetBox().Height(), GetBox().RightThickness(), Vector(-F_PI_2));
+		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT2, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Rt", GetRightWallBox(), Vector(F_PI_2));
 	if (GetBox().RearThickness() < 0)
 		ConstructWall(GetBuilding(), pBone, pObj, MAT_SHAFT2, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Rr", GetBox().LeftExtRearLower(), GetBox().WidthExt(), GetBox().Height(), -GetBox().RearThickness());
 				

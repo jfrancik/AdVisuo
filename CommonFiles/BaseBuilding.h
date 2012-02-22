@@ -53,27 +53,34 @@ public:
 		TYPE_OF_DECK GetDeck()					{ return m_deck; }
 
 
-		enum SHAFT_BOX { BOX_SHAFT, BOX_CAR, BOX_BEAM, BOX_DOOR };
-		BOX &GetBox(enum SHAFT_BOX n = BOX_SHAFT);
+		enum SHAFT_BOX { BOX_SHAFT, BOX_BEAM, BOX_DOOR, BOX_CAR, BOX_CARDOOR };
+		BOX &GetBox(enum SHAFT_BOX n = BOX_SHAFT, AVULONG i = 0);
 		BOX &GetBoxBeam()						{ return m_boxBeam; }
 		BOX &GetBoxDoor(AVULONG i = 0)			{ return m_boxDoor[i]; }
 		BOX &GetBoxCar()						{ return m_boxCar; }
 		BOX &GetBoxCarDoor(AVULONG i = 0)		{ return m_boxCarDoor[i]; }
+		BOX GetLeftWallBox();
+		BOX GetRightWallBox();
+
+		// raw data functions
+		AVFLOAT GetRawWidth()					{ return (*this)[L"ShaftWidth"]; }
+		AVFLOAT GetRawBeamWidth()				{ return (*this)[L"DividingBeamWidth"]; }
 
 		bool InBox(AVVECTOR &pt, enum SHAFT_BOX box = BOX_SHAFT){ return GetBox(box).InBoxExt(pt) || GetBox(BOX_DOOR).InBoxExt(pt); }
 		bool Within(AVVECTOR &pos, AVFLOAT nLiftZPos = 0)		{ return pos.z >= nLiftZPos && pos.z < nLiftZPos + m_boxCar.Height(); }
 
 
 		// Operations:
-		void Xxxx(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fFrontWall, AVFLOAT fRearWall);
-		void Xxxx(AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY);
-		void XxxxLeftBeam(AVFLOAT fDepth);
-		void XxxxRightBeam(AVFLOAT fDepth);
-		void XxxxLeftWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
-		void XxxxRightWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
-		void XxxxAmend();
-		void Yyyy(CBuildingBase *pBuilding);
-		void Scale(AVFLOAT fScale);
+		void ConCreate(CBuildingBase *pBuilding, AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall);
+		void ConCreateLeftBeam(AVFLOAT fDepth, SHAFT *pPrev);
+		void ConCreateRightBeam(AVFLOAT fDepth, SHAFT *pPrev);
+		void ConCreateLeftWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
+		void ConCreateRightWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
+		void ConCreateAmend();
+		void Create(CBuildingBase *pBuilding);
+		void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
+		void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+		void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 	};
 
 	// Storey Data
@@ -104,9 +111,11 @@ public:
 		bool Within(AVVECTOR &pos)				{ return pos.z >= GetLevel() && pos.z < GetLevel() + GetHeight(); }
 
 		// Operations:
-		void Xxxx(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fLevel);
-		void Yyyy(CBuildingBase *pBuilding);
-		void Scale(AVFLOAT fScale);
+		void ConCreate(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fLevel);
+		void Create(CBuildingBase *pBuilding);
+		void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
+		void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+		void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 	};
 
 private:
@@ -122,7 +131,6 @@ private:
 	LOBBY_ARRANGEMENT m_LobbyArrangement;// Lobby arrangement
 
 	BOX m_box;							// scaled lobby floor plan (size of the lobby & its walls, zero height)
-	AVFLOAT m_fScale;					// the scale factor
 
 	SHAFT **m_ppShafts;
 	STOREY **m_ppStoreys;
@@ -163,10 +171,12 @@ public:
 	bool IsValid()							{ return m_nShaftCount && GetStoreyCount() && m_ppShafts && m_ppStoreys && GetShaftCount(0); }
 
 	// Calculations!
-	void PreXxxx();
-	void Xxxx();
-	void Yyyy();
-	void Scale(AVFLOAT fScale);
+	void PreCreate();						// creates shafts and storeys and sets the id, using the database information
+	void ConCreate();
+	void Create();
+	void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
+	void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 
 protected:
 	virtual SHAFT *CreateShaft() = 0;

@@ -281,7 +281,7 @@ m_nWalkMode = 2;	// ghost mode only now...
 		}
 		else
 		{
-			m_servers = L"adsimulo.mylb.eu:8081;localhost:7984";
+			m_servers = L"217.33.230.52:8081;adsimulo.mylb.eu:8081;localhost:7984";
 		}
 	}
 }
