@@ -158,8 +158,10 @@ void CBuildingBase::ConCreate()
 		// build int beams and extra shaft walls
 		AVFLOAT fDepth = pShaft->GetBox().Depth();
 		if (fPrevDepth == 0)
-			// no previous shaft: build a wall, not beam
+		{	// no previous shaft: build a wall, not beam
 			pShaft->ConCreateLeftWall(fShaftWallThicknessSide);
+			pShaft->Move(fShaftWallThicknessSide, 0, 0);
+		}
 		else if (fDepth == fPrevDepth)
 			// same depth as previous: just build a beam
 			pShaft->ConCreateLeftBeam(fDepth, pPrevShaft);
@@ -174,10 +176,7 @@ void CBuildingBase::ConCreate()
 			GetShaft(i-1)->ConCreateRightWall(fShaftWallThicknessRear, fDepth - fShaftWallThicknessRear);
 		}
 		if (i == GetShaftCount(0) - 1)
-		{
 			pShaft->ConCreateRightWall(fShaftWallThicknessSide);
-			pShaft->Move(fShaftWallThicknessSide, 0, 0);
-		}
 
 		// move on
 		fPrevDepth = fDepth;
@@ -200,8 +199,10 @@ void CBuildingBase::ConCreate()
 		// build int beams and extra shaft walls
 		AVFLOAT fDepth = pShaft->GetBox().Depth();
 		if (fPrevDepth == 0)
-			// no previous shaft: build a wall, not beam
+		{	// no previous shaft: build a wall, not beam
 			pShaft->ConCreateRightWall(fShaftWallThicknessSide);
+			pShaft->Move(-fShaftWallThicknessSide, 0, 0);
+		}
 		else if (fDepth == fPrevDepth)
 			// same depth as previous: just build a beam
 			pShaft->ConCreateRightBeam(fDepth, pPrevShaft);
@@ -216,10 +217,7 @@ void CBuildingBase::ConCreate()
 			GetShaft(i-1)->ConCreateLeftWall(fShaftWallThicknessRear, fDepth + fShaftWallThicknessRear);
 		}
 		if (i == GetShaftCount() - 1)
-		{
 			pShaft->ConCreateLeftWall(fShaftWallThicknessSide);
-			pShaft->Move(-fShaftWallThicknessSide, 0, 0);
-		} 
 
 		// move on
 		fPrevDepth = fDepth;
@@ -368,14 +366,12 @@ void CBuildingBase::SHAFT::ConCreateLeftWall(AVFLOAT fThickness, AVFLOAT fStart)
 {
 	m_boxShaft.SetLeftThickness(fThickness);
 	m_fWallLtStart = fStart;
-	Move(fThickness, 0, 0);
 }
 
 void CBuildingBase::SHAFT::ConCreateRightWall(AVFLOAT fThickness, AVFLOAT fStart)
 {
 	m_boxShaft.SetRightThickness(fThickness);
 	m_fWallRtStart = fStart;
-	Move(-fThickness, 0, 0);
 }
 
 void CBuildingBase::SHAFT::ConCreateAmend()

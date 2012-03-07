@@ -70,7 +70,7 @@ public:
 
 		~SHAFT()											{ }
 
-		CBuilding *GetBuilding()				{ return (CBuilding *)CBuildingBase::SHAFT::GetBuilding(); }
+		CBuilding *GetBuilding()							{ return (CBuilding *)CBuildingBase::SHAFT::GetBuilding(); }
 
 		ISceneObject *GetObj()								{ return m_pObj; }
 		IKineNode *GetBone()								{ return m_pBone; }
@@ -113,8 +113,6 @@ public:
 
 
 public:
-	AVVECTOR GetLiftPos(AVULONG nShaft, AVULONG nStorey)		{ return GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetStorey(nStorey)->GetLevel()); }
-	
 	ISceneObject *GetStoreyObj(AVULONG nStorey)					{ return GetStorey(nStorey)->GetObj(); }
 	IKineNode *GetStoreyBone(AVULONG nStorey)					{ return GetStorey(nStorey)->GetBone(); }
 	

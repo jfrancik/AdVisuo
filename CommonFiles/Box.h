@@ -182,6 +182,26 @@ public:
 	AVVECTOR RightExtRearExtUpper()		{ return Vector(B1.x, B1.y, B.z); }
 	AVVECTOR RightExtRearExtUpperExt()	{ return B1; }
 
+	AVVECTOR CentreFrontLower()			{ return Vector((A.x + B.x) / 2, A.y, A.z); }
+	AVVECTOR CentreFrontLowerExt()		{ return Vector((A.x + B.x) / 2, A.y, A1.z); }
+	AVVECTOR CentreFrontExtLower()		{ return Vector((A.x + B.x) / 2, A1.y, A.z); }
+	AVVECTOR CentreFrontExtLowerExt()	{ return Vector((A.x + B.x) / 2, A1.y, A1.z); }
+	
+	AVVECTOR CentreFrontUpper()			{ return Vector((A.x + B.x) / 2, A.y, B.z); }
+	AVVECTOR CentreFrontUpperExt()		{ return Vector((A.x + B.x) / 2, A.y, B1.z); }
+	AVVECTOR CentreFrontExtUpper()		{ return Vector((A.x + B.x) / 2, A1.y, B.z); }
+	AVVECTOR CentreFrontExtUpperExt()	{ return Vector((A.x + B.x) / 2, A1.y, B1.z); }
+	
+	AVVECTOR CentreRearLower()			{ return Vector((A.x + B.x) / 2, B.y, A.z); }
+	AVVECTOR CentreRearLowerExt()		{ return Vector((A.x + B.x) / 2, B.y, A1.z); }
+	AVVECTOR CentreRearExtLower()		{ return Vector((A.x + B.x) / 2, B1.y, A.z); }
+	AVVECTOR CentreRearExtLowerExt()	{ return Vector((A.x + B.x) / 2, B1.y, A1.z); }
+	
+	AVVECTOR CentreRearUpper()			{ return Vector((A.x + B.x) / 2, B.y, B.z); }
+	AVVECTOR CentreRearUpperExt()		{ return Vector((A.x + B.x) / 2, B.y, B1.z); }
+	AVVECTOR CentreRearExtUpper()		{ return Vector((A.x + B.x) / 2, B1.y, B.z); }
+	AVVECTOR CentreRearExtUpperExt()	{ return Vector((A.x + B.x) / 2, B1.y, B1.z); }
+
 	std::wstring Stringify()
 	{
 		std::wstringstream s;

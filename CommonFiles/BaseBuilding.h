@@ -46,11 +46,11 @@ public:
 		AVULONG GetId()							{ return m_nId; }
 		CBuildingBase *GetBuilding()			{ return m_pBuilding; }
 		AVULONG GetShaftLine()					{ return m_nShaftLine; }
-		AVFLOAT GetShaftDir()					{ return m_nShaftLine == 0 ? -1.0f : 1.0f; }	// -1 for line 0 lifts (far row), 1 for line 1 lifts (near raw)
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
 		TYPE_OF_LIFT GetType()					{ return m_type; }
 		TYPE_OF_DECK GetDeck()					{ return m_deck; }
+		AVULONG GetDeckCount()					{ return m_deck == DECK_DOUBLE ? 2 : 1; }
 
 
 		enum SHAFT_BOX { BOX_SHAFT, BOX_BEAM, BOX_DOOR, BOX_CAR, BOX_CARDOOR };
@@ -61,6 +61,8 @@ public:
 		BOX &GetBoxCarDoor(AVULONG i = 0)		{ return m_boxCarDoor[i]; }
 		BOX GetLeftWallBox();
 		BOX GetRightWallBox();
+
+		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetBuilding()->GetStorey(nStorey)->GetLevel()); }
 
 		// raw data functions
 		AVFLOAT GetRawWidth()					{ return (*this)[L"ShaftWidth"]; }
@@ -105,6 +107,8 @@ public:
 		AVFLOAT GetLevel()						{ return m_fLevel; }
 		AVFLOAT GetHeight()						{ return GetBox().HeightExt(); }
 		AVFLOAT GetCeilingHeight()				{ return GetBox().Height(); }
+
+		AVVECTOR GetLiftPos(AVULONG nShaft)		{ return GetBuilding()->GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetLevel()); }
 
 		BOX &GetBox()							{ return m_box; }
 		bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
@@ -160,6 +164,9 @@ public:
 	AVULONG GetStoreyCount()				{ return m_nStoreyCount; }
 	AVULONG GetBasementStoreyCount()		{ return m_nBasementStoreyCount; }
 	STOREY *GetStorey(AVULONG i)			{ return i < GetStoreyCount() ? m_ppStoreys[i] : NULL; }
+
+	// Lifts
+	AVVECTOR GetLiftPos(AVULONG nShaft, AVULONG nStorey)		{ return GetShaft(nShaft)->GetLiftPos(nStorey); }
 
 	// Various
 	SHAFT_ARRANGEMENT GetLiftShaftArrang()	{ return m_LiftShaftArrang; }
