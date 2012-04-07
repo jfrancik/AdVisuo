@@ -82,6 +82,14 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 
+	sel = db.select(L"SELECT COUNT(FloorId) AS NumberOfStoreys FROM Floors WHERE SimulationId=%d", nSimulationId);
+	if (!sel) throw ERROR_BUILDING;
+	sel >> *this;
+
+	sel = db.select(L"SELECT COUNT(FloorId) AS NumberOfBasementStoreys FROM Floors WHERE SimulationId=%d AND GroundIndex < 0", nSimulationId);
+	if (!sel) throw ERROR_BUILDING;
+	sel >> *this;
+
 	ME[L"ID"] = nSimulationId;
 
 	// prepare buffers for shafts and storeys

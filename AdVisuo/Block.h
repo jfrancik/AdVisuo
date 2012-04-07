@@ -14,8 +14,7 @@ class CBlock
 	FWFLOAT m_x;					// current position along the wall
 
 	enum NORMAL_DIR { LT, RT };
-	enum FACE_DIR   { FC_FR, FC_RR, FC_BT, FC_TP, FC_LT, FC_RT, };
-	struct PLANE	{ NORMAL_DIR norm; FACE_DIR fd; AVVECTOR v; FWULONG nI; AVVECTOR vI; FWULONG nJ; AVVECTOR vJ; FWFLOAT uBase; FWFLOAT vBase; };
+	struct PLANE	{ NORMAL_DIR norm; AVVECTOR v; FWULONG nI; AVVECTOR vI; FWULONG nJ; AVVECTOR vJ; FWFLOAT uBase; FWFLOAT vBase; };
 
 	std::vector<PLANE> m_planes;
 
@@ -36,8 +35,8 @@ public:
 	void ProgressCurX(FWFLOAT dx)	{ m_x += dx; }
 
 	void BuildPlane(PLANE&);
-	void BuildPlane(NORMAL_DIR norm, FACE_DIR fd, AVVECTOR v, FWULONG nI, AVVECTOR vI, FWULONG nJ, AVVECTOR vJ, FWFLOAT uBase = 0.0f, FWFLOAT vBase = 0.0f);
-	void BuildPlane(NORMAL_DIR norm, FACE_DIR fd, FWFLOAT vx, FWFLOAT vy, FWFLOAT vz, FWULONG nI, FWFLOAT vix, FWFLOAT viy, FWFLOAT viz, FWULONG nJ, FWFLOAT vjx, FWFLOAT vjy, FWFLOAT vjz, FWFLOAT uBase = 0.0f, FWFLOAT vBase = 0.0f);
+	void BuildPlane(NORMAL_DIR norm, AVVECTOR v, FWULONG nI, AVVECTOR vI, FWULONG nJ, AVVECTOR vJ, FWFLOAT uBase = 0.0f, FWFLOAT vBase = 0.0f);
+	void BuildPlane(NORMAL_DIR norm, FWFLOAT vx, FWFLOAT vy, FWFLOAT vz, FWULONG nI, FWFLOAT vix, FWFLOAT viy, FWFLOAT viz, FWULONG nJ, FWFLOAT vjx, FWFLOAT vjy, FWFLOAT vjz, FWFLOAT uBase = 0.0f, FWFLOAT vBase = 0.0f);
 
 	void BuildSimpleBlock();
 

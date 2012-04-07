@@ -81,7 +81,7 @@ BOX CBuildingBase::SHAFT::GetRightWallBox()
 void CBuildingBase::PreCreate()
 {
 	CreateShafts(ME[L"NumberOfLifts"]);
-	CreateStoreys((ULONG)ME[L"NumberOfFloorsAboveMain"] + 1 + (ULONG)ME[L"NumberOfFloorsBelowMain"], (ULONG)ME[L"NumberOfFloorsBelowMain"]);
+	CreateStoreys((ULONG)ME[L"NumberOfStoreys"], (ULONG)ME[L"NumberOfBasementStoreys"]);
 	SetId(ME[L"ID"]);
 }
 
@@ -153,7 +153,7 @@ void CBuildingBase::ConCreate()
 		SHAFT *pShaft = GetShaft(i);
 
 		// setup basic structure
-		pShaft->ConCreate(this, i, 0, fShaftPosX, fShaftPosY, fFrontWallThickness, fShaftWallThicknessRear);
+		pShaft->ConCreate(i, 0, fShaftPosX, fShaftPosY, fFrontWallThickness, fShaftWallThicknessRear);
 		
 		// build int beams and extra shaft walls
 		AVFLOAT fDepth = pShaft->GetBox().Depth();
@@ -194,7 +194,7 @@ void CBuildingBase::ConCreate()
 		SHAFT *pShaft = GetShaft(i);
 
 		// setup basic structure
-		pShaft->ConCreate(this, i, 1, fShaftPosX, fShaftPosY, fFrontWallThickness, fShaftWallThicknessRear);
+		pShaft->ConCreate(i, 1, fShaftPosX, fShaftPosY, fFrontWallThickness, fShaftWallThicknessRear);
 		
 		// build int beams and extra shaft walls
 		AVFLOAT fDepth = pShaft->GetBox().Depth();
@@ -232,7 +232,7 @@ void CBuildingBase::ConCreate()
 	for (AVULONG i = 0; i < GetStoreyCount(); i++)
 	{
 		STOREY *pStorey = GetStorey(i);
-		pStorey->ConCreate(this, i, fLevel);
+		pStorey->ConCreate(i, fLevel);
 		fLevel += pStorey->GetHeight();
 	}
 
@@ -258,10 +258,10 @@ void CBuildingBase::Create()
 	m_box.ParseFromString(ME[L"BoxLobby"]);
 	
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
-		GetShaft(i)->Create(this);
+		GetShaft(i)->Create();
 
 	for (AVULONG i = 0; i < GetStoreyCount(); i++)
-		GetStorey(i)->Create(this);
+		GetStorey(i)->Create();
 }
 
 void CBuildingBase::Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z)
@@ -285,15 +285,15 @@ void CBuildingBase::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 //////////////////////////////////////////////////////////////////////////////////
 // CBuildingBase::SHAFT
 
-CBuildingBase::SHAFT::SHAFT() : m_nId(0), m_pBuilding(NULL), m_nShaftLine(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_fWallLtStart(0), m_fWallRtStart(0)	
+CBuildingBase::SHAFT::SHAFT(CBuildingBase *pBuilding) : m_nId(0), m_pBuilding(pBuilding), m_nShaftLine(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_fWallLtStart(0), m_fWallRtStart(0)	
 { 
 }
 
-void CBuildingBase::SHAFT::ConCreate(CBuildingBase *pBuilding, AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall)
+void CBuildingBase::SHAFT::ConCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall)
 {
-	//m_nId = nId;
-	m_nId = ME[L"LiftNumber"];
-	m_pBuilding = pBuilding;
+	m_nId = nId;
+	//m_nId = ME[L"LiftNumber"];
+	//m_nId = ME[L"LiftIndex"];
 	m_nShaftLine = nLine;
 
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
@@ -425,9 +425,8 @@ void CBuildingBase::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 	m_boxCarDoor[1].Move(x, y, z);
 }
 
-void CBuildingBase::SHAFT::Create(CBuildingBase *pBuilding)
+void CBuildingBase::SHAFT::Create()
 {
-	m_pBuilding = pBuilding;
 	m_nId = ME[L"ShaftId"];
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
@@ -446,17 +445,16 @@ void CBuildingBase::SHAFT::Create(CBuildingBase *pBuilding)
 //////////////////////////////////////////////////////////////////////////////////
 // CBuildingBase::STOREY
 
-CBuildingBase::STOREY::STOREY() : m_nId(0), m_pBuilding(NULL), m_fLevel(0)
+CBuildingBase::STOREY::STOREY(CBuildingBase *pBuilding) : m_nId(0), m_pBuilding(pBuilding), m_fLevel(0)
 { 
 }
 
-void CBuildingBase::STOREY::ConCreate(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fLevel)
+void CBuildingBase::STOREY::ConCreate(AVULONG nId, AVFLOAT fLevel)
 {
 	m_nId = ME[L"GroundIndex"];
-	m_pBuilding = pBuilding;
 	m_fLevel = fLevel;
 	m_strName = ME[L"Name"];
-	m_box = m_pBuilding->m_box;
+	m_box = GetBuilding()->m_box;
 	m_box.SetHeight((AVFLOAT)ME[L"FloorHeight"] * 1000.0f- m_box.UpperThickness());
 
 	ME[L"FloorId"] = GetId();
@@ -466,10 +464,8 @@ void CBuildingBase::STOREY::ConCreate(CBuildingBase *pBuilding, AVULONG nId, AVF
 	erase(L"GroundIndex");
 }
 
-void CBuildingBase::STOREY::Create(CBuildingBase *pBuilding)
+void CBuildingBase::STOREY::Create()
 {
-	m_pBuilding = pBuilding;
-
 	m_strName = ME[L"Name"];
 
 	m_fLevel = ME[L"FloorLevel"];

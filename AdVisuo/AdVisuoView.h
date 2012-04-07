@@ -32,6 +32,30 @@
 
 #define N_CAMERAS	10						// number of cameras
 
+class CAdVisuoRenderer
+{
+	CBuilding *m_pBuilding;
+	IRenderer *m_pRenderer;
+	CCamera *m_pCamera;
+public:
+	CAdVisuoRenderer(CBuilding *pBuilding, IRenderer *pRenderer, CCamera *pCamera = NULL)
+		: m_pBuilding(pBuilding), m_pRenderer(pRenderer), m_pCamera(pCamera)	{ }
+
+	bool SetupCamera(CCamera *pCamera);
+
+	void RenderLifts(FWULONG nRow);
+	void RenderShaftsForStorey(FWULONG nRow, FWULONG iStorey);
+	void RenderShafts(FWULONG nRow);
+	void RenderShaftsLobbySideForStorey(FWULONG nRow, FWULONG iStorey);
+	void RenderShaftsLobbySide(FWULONG nRow);
+	void RenderStoreys();
+
+	void RenderCentre();
+	void RenderSide(AVLONG nLiftRow = -1);
+	void RenderCentreOuter();
+	void RenderSideOuter(AVLONG nLiftRow = -1);
+};
+
 class CAdVisuoView : public CView
 {
 	// FreeWill Objects
@@ -141,7 +165,6 @@ public:
 
 protected:
 	void BeginFrame();
-	void RenderLightAndCamera(ISceneCamera *pCamera);
 	void RenderScene(bool bHUDSelection = false);
 	void RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaption, bool bHUDSelection, AVLONG nTime = 0);
 	void EndFrame();

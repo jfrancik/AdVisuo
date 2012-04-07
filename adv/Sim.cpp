@@ -20,7 +20,8 @@ HRESULT CSim::LoadSim()
 
 	// load!
 	CSimLoader loader;
-	int nRes = loader.Load(GetSIMFileName().c_str());
+//	int nRes = loader.Load(GetSIMFileName().c_str());
+	int nRes = loader.Load(L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
 
 
 	// detect errors...

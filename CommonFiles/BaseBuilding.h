@@ -39,7 +39,7 @@ public:
 
 	public:
 
-		SHAFT();
+		SHAFT(CBuildingBase *pBuilding);
 		virtual ~SHAFT()						{ }
 
 		// Attributes:
@@ -68,18 +68,22 @@ public:
 		AVFLOAT GetRawWidth()					{ return (*this)[L"ShaftWidth"]; }
 		AVFLOAT GetRawBeamWidth()				{ return (*this)[L"DividingBeamWidth"]; }
 
-		bool InBox(AVVECTOR &pt, enum SHAFT_BOX box = BOX_SHAFT){ return GetBox(box).InBoxExt(pt) || GetBox(BOX_DOOR).InBoxExt(pt); }
-		bool Within(AVVECTOR &pos, AVFLOAT nLiftZPos = 0)		{ return pos.z >= nLiftZPos && pos.z < nLiftZPos + m_boxCar.Height(); }
+		// checks if point within the shaft, beam or door box
+		bool InBox(AVVECTOR &pt)							{ return GetBox().InBoxExt(pt) || GetBox(BOX_DOOR).InBoxExt(pt) || GetBox(BOX_BEAM).InBoxExt(pt); }
+		// checks if x coordinate within the shaft or beam width
+		bool InWidth(AVFLOAT x)								{ return GetBox().InWidthExt(x) || GetBox(BOX_DOOR).InWidthExt(x) || GetBox(BOX_BEAM).InWidthExt(x); }
+		// checks if z coordiante within the height of the lift car, given the car position above 0
+		bool Within(AVFLOAT z, AVFLOAT nLiftZPos = 0)		{ return z >= nLiftZPos && z < nLiftZPos + m_boxCar.Height(); }
 
 
 		// Operations:
-		void ConCreate(CBuildingBase *pBuilding, AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall);
+		void ConCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall);
 		void ConCreateLeftBeam(AVFLOAT fDepth, SHAFT *pPrev);
 		void ConCreateRightBeam(AVFLOAT fDepth, SHAFT *pPrev);
 		void ConCreateLeftWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
 		void ConCreateRightWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
 		void ConCreateAmend();
-		void Create(CBuildingBase *pBuilding);
+		void Create();
 		void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
 		void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 		void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
@@ -96,7 +100,7 @@ public:
 		BOX m_box;								// lobby floor plan (the same as building, but includes storey height - from floor to ceiling
 		
 	public:
-		STOREY();
+		STOREY(CBuildingBase *pBuilding);
 		virtual ~STOREY()						{ }
 
 		// Attributes
@@ -107,6 +111,8 @@ public:
 		AVFLOAT GetLevel()						{ return m_fLevel; }
 		AVFLOAT GetHeight()						{ return GetBox().HeightExt(); }
 		AVFLOAT GetCeilingHeight()				{ return GetBox().Height(); }
+		AVFLOAT GetCeilingLevel()				{ return m_fLevel + GetBox().Height(); }
+		AVFLOAT GetRoofLevel()					{ return m_fLevel + GetBox().HeightExt(); }
 
 		AVVECTOR GetLiftPos(AVULONG nShaft)		{ return GetBuilding()->GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetLevel()); }
 
@@ -115,8 +121,8 @@ public:
 		bool Within(AVVECTOR &pos)				{ return pos.z >= GetLevel() && pos.z < GetLevel() + GetHeight(); }
 
 		// Operations:
-		void ConCreate(CBuildingBase *pBuilding, AVULONG nId, AVFLOAT fLevel);
-		void Create(CBuildingBase *pBuilding);
+		void ConCreate(AVULONG nId, AVFLOAT fLevel);
+		void Create();
 		void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
 		void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 		void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
@@ -156,6 +162,7 @@ public:
 
 	AVULONG GetShaftCount()					{ return m_nShaftCount; }
 	AVULONG GetShaftCount(AVULONG nLine)	{ return m_pnShaftCount[nLine]; }
+	AVULONG GetShaftIndex(AVULONG nLine)	{ return nLine == 0 ? 0 : m_pnShaftCount[0]; }
 	AVULONG GetShaftLinesCount()			{ return m_pnShaftCount[1] == 0 ? 1 : 2; }
 
 	// Storeys
@@ -164,6 +171,7 @@ public:
 	AVULONG GetStoreyCount()				{ return m_nStoreyCount; }
 	AVULONG GetBasementStoreyCount()		{ return m_nBasementStoreyCount; }
 	STOREY *GetStorey(AVULONG i)			{ return i < GetStoreyCount() ? m_ppStoreys[i] : NULL; }
+	STOREY *GetGroundStorey(AVULONG i = 0)	{ return GetStorey(i + GetBasementStoreyCount()); }
 
 	// Lifts
 	AVVECTOR GetLiftPos(AVULONG nShaft, AVULONG nStorey)		{ return GetShaft(nShaft)->GetLiftPos(nStorey); }
@@ -193,7 +201,7 @@ protected:
 class CBuildingBaseEx : public CBuildingBase
 {
 protected:
-	virtual SHAFT *CreateShaft()			{ return new SHAFT; }
-	virtual STOREY *CreateStorey()			{ return new STOREY; }
+	virtual SHAFT *CreateShaft()			{ return new SHAFT(this); }
+	virtual STOREY *CreateStorey()			{ return new STOREY(this); }
 };
 

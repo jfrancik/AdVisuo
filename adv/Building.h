@@ -12,15 +12,18 @@ public:
 
 	struct SHAFT : public CBuildingBase::SHAFT
 	{
+		SHAFT(CBuilding *pBuilding) : CBuildingBase::SHAFT(pBuilding)	{ }
 	};
 	struct STOREY : public CBuildingBase::STOREY
 	{
+		STOREY(CBuilding *pBuilding) : CBuildingBase::STOREY(pBuilding)	{ }
 	};
 
-	virtual SHAFT *CreateShaft()			{ return new SHAFT; }
-	virtual STOREY *CreateStorey()			{ return new STOREY; }
+	virtual SHAFT *CreateShaft()			{ return new SHAFT(this); }
+	virtual STOREY *CreateStorey()			{ return new STOREY(this); }
 	SHAFT *GetShaft(AVULONG i)				{ return (SHAFT*)CBuildingBase::GetShaft(i); }
 	STOREY *GetStorey(AVULONG i)			{ return (STOREY*)CBuildingBase::GetStorey(i); }
+	STOREY *GetGroundStorey(AVULONG i = 0)	{ return (STOREY*)CBuildingBase::GetGroundStorey(i); }
 
 public:
 	// IO

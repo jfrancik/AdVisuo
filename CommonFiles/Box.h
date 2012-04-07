@@ -4,6 +4,7 @@
 
 #include "Vector.h"
 #include <sstream>
+#pragma warning( disable : 4244 )
 
 struct BOX
 {
@@ -20,15 +21,29 @@ public:
 
 	operator AVVECTOR&()	{ return A; }
 	BOX &operator +=(AVVECTOR v)	{ Move(v); return *this; }
+	BOX &operator -=(AVVECTOR v)	{ Move(-v.x, -v.y, -v.z); return *this; }
+	BOX operator +(AVVECTOR v)		{ BOX box = *this; box += v; return box; }
+	BOX operator -(AVVECTOR v)		{ BOX box = *this; box -= v; return box; }
 	BOX &operator *=(AVFLOAT f)		{ Scale(f); return *this; }
 
 	bool InBox(AVVECTOR &v)	{ return ((v.x >= Left() && v.x <= Right()) || (v.x <= Left() && v.x >= Right())) && ((v.y >= Front() && v.y <= Rear()) || (v.y <= Front() && v.y >= Rear())); }
 	bool InBoxExt(AVVECTOR &v)	{ return ((v.x >= LeftExt() && v.x <= RightExt()) || (v.x <= LeftExt() && v.x >= RightExt())) && ((v.y >= FrontExt() && v.y <= RearExt()) || (v.y <= FrontExt() && v.y >= RearExt())); }
 
+	bool InWidth(AVFLOAT x)		{ return (x >= Left() && x <= Right()) || (x <= Left() && x >= Right()); }
+	bool InWidthExt(AVFLOAT x)	{ return (x >= LeftExt() && x <= RightExt()) || (x <= LeftExt() && x >= RightExt()); }
+	bool InDepth(AVFLOAT y)		{ return (y >= Front() && y <= Rear()) || (y <= Front() && y >= Rear()); }
+	bool InDepthExt(AVFLOAT y)	{ return (y >= FrontExt() && y <= RearExt()) || (y <= FrontExt() && y >= RearExt()); }
+	bool InHeight(AVFLOAT z)	{ return (z >= Lower() && z <= Upper()) || (z <= Lower() && z >= Upper()); }
+	bool InHeightExt(AVFLOAT z)	{ return (z >= LowerExt() && z <= UpperExt()) || (z <= LowerExt() && z >= UpperExt()); }
+
 	// divides the bix into nXDiv x nYDiv checkerboard-like sections and returns indices of section corresponding to the given vector
-	bool InBoxSection(AVVECTOR &v, AVFLOAT nXDiv, AVFLOAT nYDiv, AVFLOAT &nX, AVFLOAT &nY)
+	// -1 and nXDiv/nYDiv values reserved for vectors outside the box
+	bool InBoxSection(AVVECTOR &v, AVLONG nXDiv, AVLONG nYDiv, AVLONG &nX, AVLONG &nY)
 	{
-		nX = (v.x - Left()) / (Width() / nXDiv); nY = (v.y - Front()) / (Depth() / nYDiv);
+		nX = (AVLONG)floor((v.x - Left()) / (Width() / (double)nXDiv)); 
+		nY = (AVLONG)floor((v.y - Front()) / (Depth() / (double)nYDiv));
+		nX = max(-1, min(nX, nXDiv)); 
+		nY = max(-1, min(nY, nYDiv));
 		return nX >= 0 && nX < nXDiv && nY >= 0 && nY < nYDiv;
 	}
 	// azimuth from the box centre towards the given point; if normalised; corners are at PI/4 + N*PI/2 as if aspect ratio was 1.0

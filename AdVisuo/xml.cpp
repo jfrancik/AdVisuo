@@ -50,7 +50,10 @@ void CSim::Load(xmltools::CXmlReader reader)
 			CBuilding::SHAFT *pShaft = pBuilding->GetShaft(iShaft++);
 			reader >> *pShaft;
 
-			for (AVULONG i = 0; i < (ULONG)reader[L"NumberOfLifts"]; i++)
+			ULONG nLifts = (ULONG)reader[L"NumberOfLifts"];
+			if (!nLifts) nLifts = 1;
+
+			for (AVULONG i = 0; i < nLifts; i++)
 				AddLift(CreateLift(iLift++));
 		}
 		else

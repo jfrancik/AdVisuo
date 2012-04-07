@@ -80,30 +80,30 @@ namespace advsrv
             DataSet[] myDataSets = new DataSet[2];
             OleDbDataAdapter myDataAdapter;
 
-            //if (timeFrom == 0)
-            //{
-            //    // the journeys
-            //    myDataSets[0] = new DataSet();
-            //    myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVJourneys WHERE ProjectID=" + nProjectId + " AND TimeGo < " + timeTo + " ORDER BY ID", conn);
-            //    myDataAdapter.Fill(myDataSets[0], "AVJourney");
+            if (timeFrom == 0)
+            {
+                // the journeys
+                myDataSets[0] = new DataSet();
+                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVJourneys WHERE ProjectID=" + nProjectId + " AND TimeGo < " + timeTo + " ORDER BY ID", conn);
+                myDataAdapter.Fill(myDataSets[0], "AVJourney");
 
-            //    // the passengers
-            //    myDataSets[1] = new DataSet();
-            //    myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVPassengers WHERE ProjectID=" + nProjectId + " AND TimeBorn < " + timeTo + " ORDER BY ID", conn);
-            //    myDataAdapter.Fill(myDataSets[1], "AVPassenger");
-            //}
-            //else
-            //{
-            //    // the journeys
-            //    myDataSets[0] = new DataSet();
-            //    myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVJourneys WHERE ProjectID=" + nProjectId + " AND TimeGo >= " + timeFrom + "  AND TimeGo < " + timeTo + " ORDER BY ID", conn);
-            //    myDataAdapter.Fill(myDataSets[0], "AVJourney");
+                // the passengers
+                myDataSets[1] = new DataSet();
+                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVPassengers WHERE ProjectID=" + nProjectId + " AND TimeBorn < " + timeTo + " ORDER BY ID", conn);
+                myDataAdapter.Fill(myDataSets[1], "AVPassenger");
+            }
+            else
+            {
+                // the journeys
+                myDataSets[0] = new DataSet();
+                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVJourneys WHERE ProjectID=" + nProjectId + " AND TimeGo >= " + timeFrom + "  AND TimeGo < " + timeTo + " ORDER BY ID", conn);
+                myDataAdapter.Fill(myDataSets[0], "AVJourney");
 
-            //    // the passengers
-            //    myDataSets[1] = new DataSet();
-            //    myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVPassengers WHERE ProjectID=" + nProjectId + " AND TimeBorn >= " + timeFrom + " AND TimeBorn < " + timeTo + " ORDER BY ID", conn);
-            //    myDataAdapter.Fill(myDataSets[1], "AVPassenger");
-            //}
+                // the passengers
+                myDataSets[1] = new DataSet();
+                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVPassengers WHERE ProjectID=" + nProjectId + " AND TimeBorn >= " + timeFrom + " AND TimeBorn < " + timeTo + " ORDER BY ID", conn);
+                myDataAdapter.Fill(myDataSets[1], "AVPassenger");
+            }
 
             return myDataSets;
         }

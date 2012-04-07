@@ -61,12 +61,21 @@ void CBlock::Close()
 {
 	if (!m_pMesh) return;
 
-	std::sort(m_planes.begin(), m_planes.end(), [](PLANE p1, PLANE p2) -> bool { return p1.fd < p2.fd; } );
+	bool bReverseNormals = false;
+	if (m_l < 0) bReverseNormals = !bReverseNormals;
+	if (m_h < 0) bReverseNormals = !bReverseNormals;
+	if (m_d < 0) bReverseNormals = !bReverseNormals;
 
 	FWULONG nVertex = 0;
 	FWULONG nFace = 0;
 	for each (PLANE plane in m_planes)
 	{
+		if (bReverseNormals)
+		{
+			if (plane.norm == LT) plane.norm = RT;
+			else if (plane.norm == RT) plane.norm = LT;
+		}
+
 		AVVECTOR vNormal;
 		switch (plane.norm)
 		{
@@ -87,8 +96,13 @@ void CBlock::Close()
 				FWFLOAT y = plane.v.y + plane.vI.y * fi + plane.vJ.y * fj;
 				FWFLOAT z = plane.v.z + plane.vI.z * fi + plane.vJ.z * fj;
 				m_pMesh->SetVertexXYZ(nVertex, x, y, z);
-				m_pMesh->SetVertexTextureUV(nVertex, 0, plane.uBase + (FWFLOAT)j * UVJ, plane.vBase + (FWFLOAT)i * UVI);
-				m_pMesh->AddNormalVector(&nVertex, __FW(vNormal)); nVertex++;
+				switch (plane.norm)
+				{
+					case LT: m_pMesh->SetVertexTextureUV(nVertex, 0, plane.uBase + (FWFLOAT)j * UVJ, plane.vBase + (FWFLOAT)i * UVI); break;
+					case RT: m_pMesh->SetVertexTextureUV(nVertex, 0, plane.uBase + (FWFLOAT)(plane.nJ - j) * UVJ, plane.vBase + (FWFLOAT)i * UVI); break;
+				}
+				m_pMesh->AddNormalVector(&nVertex, __FW(vNormal)); 
+				nVertex++;
 			}
 
 		for (FWULONG i = 0; i < plane.nI; i++)
@@ -98,8 +112,17 @@ void CBlock::Close()
 				FWULONG n2 = n1 + plane.nJ + 1;
 				FWULONG n3 = n1 + 1;
 				FWULONG n4 = n2 + 1;
-				m_pMesh->SetFace(nFace, n1, n2, n3); nFace++;
-				m_pMesh->SetFace(nFace, n2, n3, n4); nFace++;
+				switch (plane.norm)
+				{
+					case RT: 
+						m_pMesh->SetFace(nFace, n1, n3, n2); nFace++;
+						m_pMesh->SetFace(nFace, n2, n3, n4); nFace++;
+						break;
+					case LT: 
+						m_pMesh->SetFace(nFace, n1, n2, n3); nFace++;
+						m_pMesh->SetFace(nFace, n2, n4, n3); nFace++;
+						break;
+				}
 			}
 	}
 	m_planes.clear();
@@ -124,44 +147,44 @@ void CBlock::BuildPlane(PLANE &plane)
 	m_planes.push_back(plane);
 }
 
-void CBlock::BuildPlane(NORMAL_DIR norm, FACE_DIR fd, AVVECTOR v, FWULONG nI, AVVECTOR vI, FWULONG nJ, AVVECTOR vJ, FWFLOAT uBase, FWFLOAT vBase)
+void CBlock::BuildPlane(NORMAL_DIR norm, AVVECTOR v, FWULONG nI, AVVECTOR vI, FWULONG nJ, AVVECTOR vJ, FWFLOAT uBase, FWFLOAT vBase)
 {
-	PLANE plane = { norm, fd, v, nI, vI, nJ, vJ, uBase, vBase };
+	PLANE plane = { norm, v, nI, vI, nJ, vJ, uBase, vBase };
 	BuildPlane(plane);
 }
 
-void CBlock::BuildPlane(NORMAL_DIR norm, FACE_DIR fd, FWFLOAT vx, FWFLOAT vy, FWFLOAT vz, FWULONG nI, FWFLOAT vix, FWFLOAT viy, FWFLOAT viz, FWULONG nJ, FWFLOAT vjx, FWFLOAT vjy, FWFLOAT vjz, FWFLOAT uBase, FWFLOAT vBase)
+void CBlock::BuildPlane(NORMAL_DIR norm, FWFLOAT vx, FWFLOAT vy, FWFLOAT vz, FWULONG nI, FWFLOAT vix, FWFLOAT viy, FWFLOAT viz, FWULONG nJ, FWFLOAT vjx, FWFLOAT vjy, FWFLOAT vjz, FWFLOAT uBase, FWFLOAT vBase)
 {
 	AVVECTOR v = { vx, vy, vz }, vI = { vix, viy, viz }, vJ = { vjx, vjy, vjz };
-	BuildPlane(norm, fd, v, nI, vI, nJ, vJ, uBase, vBase);
+	BuildPlane(norm, v, nI, vI, nJ, vJ, uBase, vBase);
 }
 
 const FWULONG nSection = 1;
 
 void CBlock::BuildSimpleBlock()
 {
-	BuildPlane(RT, FC_LT, 0, 0, 0,		nSection,	0, m_h, 0,	nSection,  m_l, 0, 0);	// side
-	BuildPlane(LT, FC_RT, 0, 0, m_d,	nSection,	0, m_h, 0,	nSection,  m_l, 0, 0);	// side
+	BuildPlane(RT, 0, 0, 0,		nSection,	0, m_h, 0,	nSection,  m_l, 0, 0);	// side
+	BuildPlane(LT, 0, 0, m_d,	nSection,	0, m_h, 0,	nSection,  m_l, 0, 0);	// side
 
-	BuildPlane(RT, FC_BT, 0, 0, 0,		nSection,	m_l, 0, 0,  nSection,  0, 0, m_d);	// bottom
-	BuildPlane(LT, FC_TP, 0, m_h, 0,	nSection,	m_l, 0, 0,  nSection,  0, 0, m_d);	// upper
+	BuildPlane(RT, 0, 0, 0,		nSection,	m_l, 0, 0,  nSection,  0, 0, m_d);	// bottom
+	BuildPlane(LT, 0, m_h, 0,	nSection,	m_l, 0, 0,  nSection,  0, 0, m_d);	// upper
 
-	BuildPlane(LT, FC_FR, 0, 0, 0,		nSection,	0, m_h, 0,  nSection,  0, 0, m_d);	// front section
-	BuildPlane(RT, FC_RR, m_l, 0, 0,	nSection,	0, m_h, 0,  nSection,  0, 0, m_d);	// rear section
+	BuildPlane(LT, 0, 0, 0,		nSection,	0, m_h, 0,  nSection,  0, 0, m_d);	// front section
+	BuildPlane(RT, m_l, 0, 0,	nSection,	0, m_h, 0,  nSection,  0, 0, m_d);	// rear section
 }
 
 void CBlock::BuildFrontSection(FWFLOAT h0, FWFLOAT h1, FWFLOAT d0, FWFLOAT d1)
 {
 	if (h1 == 0) h1 = m_h;
 	if (d1 == 0) d1 = m_d;
-	BuildPlane(RT, FC_FR, m_x, h0, d0,  nSection,  0, 0, d1-d0,  nSection,  0, h1-h0, 0);	// front section
+	BuildPlane(RT, m_x, h0, d0,  nSection,  0, 0, d1-d0,  nSection,  0, h1-h0, 0);	// front section
 }
 
 void CBlock::BuildRearSection(FWFLOAT h0, FWFLOAT h1, FWFLOAT d0, FWFLOAT d1)
 {
 	if (h1 == 0) h1 = m_h;
 	if (d1 == 0) d1 = m_d;
-	BuildPlane(RT, FC_RR, m_x, h0, d0,  nSection,  0, h1-h0, 0,  nSection,  0, 0, d1-d0);	// rear section
+	BuildPlane(LT, m_x, h0, d0,  nSection,  0, 0, d1-d0,  nSection,  0, h1-h0, 0);	// rear section
 }
 
 void CBlock::BuildWall(FWFLOAT l, FWFLOAT h0, FWFLOAT h1, FWFLOAT d0, FWFLOAT d1)
@@ -169,10 +192,10 @@ void CBlock::BuildWall(FWFLOAT l, FWFLOAT h0, FWFLOAT h1, FWFLOAT d0, FWFLOAT d1
 	if (l  == 0) l = m_l - m_x;
 	if (h1 == 0) h1 = m_h;
 	if (d1 == 0) d1 = m_d;
-	BuildPlane(RT, FC_BT, m_x, h0, d0,		nSection,  l, 0, 0,			nSection,  0, 0, d1 - d0,	m_x, d0);	// bottom
-	BuildPlane(LT, FC_TP, m_x, h1, d0,		nSection,  l, 0, 0,			nSection,  0, 0, d1 - d0,	m_x, d0);	// top
-	BuildPlane(RT, FC_LT, m_x, h0, d0,		nSection,  0, h1 - h0, 0,	nSection,  l, 0, 0,			m_x, h0);	// side
-	BuildPlane(LT, FC_RT, m_x, h0, d1,		nSection,  0, h1 - h0, 0,	nSection,  l, 0, 0,			m_x, h0);	// side
+	BuildPlane(RT, m_x, h0, d0,		nSection,  l, 0, 0,			nSection,  0, 0, d1 - d0,	m_x, d0);	// bottom
+	BuildPlane(LT, m_x, h1, d0,		nSection,  l, 0, 0,			nSection,  0, 0, d1 - d0,	m_x, d0);	// top
+	BuildPlane(RT, m_x, h0, d0,		nSection,  0, h1 - h0, 0,	nSection,  l, 0, 0,			m_x, h0);	// side
+	BuildPlane(LT, m_x, h0, d1,		nSection,  0, h1 - h0, 0,	nSection,  l, 0, 0,			m_x, h0);	// side
 	m_x += l;
 }
 

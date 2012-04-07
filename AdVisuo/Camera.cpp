@@ -335,7 +335,7 @@ void CCamera::GetCameraPos_Ext(AVULONG nPos, AVFLOAT fAspect, CAMPARAMS &cp)
 
 void CCamera::GetCameraPos_Storey(AVULONG nStorey, AVFLOAT &fZRelMove)
 {
-	CBuilding::STOREY *pStorey = GetBuilding()->GetStorey(GetStorey());
+	CBuilding::STOREY *pStorey = GetBuilding()->GetStorey(m_nStorey);
 
 	AVVECTOR pos;
 	GetCurLocalPos(pos);
@@ -650,23 +650,37 @@ void CCamera::CheckLocation()
 
 	// initial values
 	enum CAMLOC camloc = CAMLOC_OUTSIDE;
-	AVLONG camloc2 = -1;
-	AVLONG camloc3 = -1;
 	AVLONG nStorey = 0, nLift = 0, nLiftStorey = 0;
 
 	// position of the camera
 	AVVECTOR pos = { 0, 0, 0 };
 	m_pHandleBone->LtoG((FWVECTOR*)&pos);
 
-	CBuilding::STOREY *pStorey0 = GetBuilding()->GetStorey(0), *pStoreyTop = GetBuilding()->GetStorey(GetBuilding()->GetStoreyCount() - 1);
+	// camera azimouth and zone
+	m_camAzim = ((AVLONG)((m_pBuilding->GetBox().InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
+	if (m_pBuilding->GetBox().InBoxSection(pos, 3, 3, m_camXZone, m_camYZone))
+		m_camZone = m_camXZone + 3 * m_camYZone;
+	else
+		m_camZone = 9;
 
-	if (pos.z < pStorey0->GetLevel())
+	// camera position against the shafts
+	for (AVLONG iRow = 0; iRow < 2; iRow++)
+	{
+		m_nLiftPos[iRow] = GetBuilding()->GetShaftIndex(iRow);
+		while (m_nLiftPos[iRow] < (AVLONG)GetBuilding()->GetShaftIndex(iRow) + (AVLONG)GetBuilding()->GetShaftCount(iRow) && !GetBuilding()->GetShaft(m_nLiftPos[iRow])->InWidth(pos.x))
+			m_nLiftPos[iRow]++;
+		if (m_nLiftPos[iRow] == (AVLONG)GetBuilding()->GetShaftIndex(iRow) + (AVLONG)GetBuilding()->GetShaftCount(iRow))
+			if (iRow == 0 && pos.x < 0 || iRow == 1 && pos.x > 0)
+				m_nLiftPos[iRow] = (AVLONG)GetBuilding()->GetShaftIndex(iRow) - 1;
+	}
+
+	if (pos.z < GetBuilding()->GetStorey(0)->GetLevel())
 	{
 		camloc = CAMLOC_BELOW;
 		nStorey = 0;
 		nLift = -1;
 	}
-	else if (pos.z >= pStoreyTop->GetLevel() + pStoreyTop->GetHeight())
+	else if (pos.z >= GetBuilding()->GetStorey(GetBuilding()->GetStoreyCount() - 1)->GetRoofLevel())
 	{
 		camloc = CAMLOC_ABOVE;
 		nStorey = GetBuilding()->GetStoreyCount() - 1;
@@ -674,18 +688,15 @@ void CCamera::CheckLocation()
 	}
 	else
 	{
+		// within the height of the building; it may be outside, lobby, shaft or lift
+		// first, find the storey...
 		while (nStorey < (AVLONG)GetBuilding()->GetStoreyCount() && !GetBuilding()->GetStorey(nStorey)->Within(pos))
 			nStorey++;
 		ASSERT (nStorey < (AVLONG)GetBuilding()->GetStoreyCount());
 		
-		// within the height of the building; it may be outside, lobby, shaft or lift
-		AVFLOAT x, y;
-		if (m_pBuilding->GetBox().InBoxSection(pos, 3, 3, x, y))
+		if (m_pBuilding->GetBox().InBox(pos))
 		{
 			camloc = CAMLOC_LOBBY;
-			camloc2 = (AVLONG)x + 3 * (AVLONG)y;
-			ASSERT(camloc2 >= 0 && camloc2 < 9); 
-			camloc3 = ((AVLONG)((m_pBuilding->GetBox().InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
 			nLift = -1;
 		}
 		else
@@ -696,7 +707,7 @@ void CCamera::CheckLocation()
 			{
 				AVFLOAT H = GetBuilding()->GetShaft(nLift)->GetBoxCar().Height();
 				AVFLOAT Z = GetBuilding()->GetLiftZPos(nLift);
-				if (GetBuilding()->GetShaft(nLift)->Within(pos, GetBuilding()->GetLiftZPos(nLift)))
+				if (GetBuilding()->GetShaft(nLift)->Within(pos.z, GetBuilding()->GetLiftZPos(nLift)))
 				{
 					camloc = CAMLOC_LIFT;
 					nLiftStorey = nStorey;
@@ -705,13 +716,12 @@ void CCamera::CheckLocation()
 				else
 				{
 					camloc = CAMLOC_SHAFT;
-					nLift = -1;
+//					nLift = -1;
 				}
 			}
 			else
 			{
 				camloc = CAMLOC_OUTSIDE;
-				camloc3 = ((AVLONG)((m_pBuilding->GetBox().InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
 				nLift = -1;
 			}
 		}
@@ -723,8 +733,6 @@ void CCamera::CheckLocation()
 		SetStorey(nStorey);
 
 	m_camloc = camloc;
-	m_camloc2 = camloc2;
-	m_camloc3 = camloc3;
 	m_nStorey = nStorey;
 	m_nLift = nLift;
 	m_nLiftStorey = nLiftStorey;
@@ -734,9 +742,9 @@ CAMLOC CCamera::GetDescription(CAMDESC *pDesc)
 {
 	if (!pDesc) return m_camloc;
 
-	AVLONG LOC2[] = { 0, 1, 2, 7, -1, 3, 6, 5, 4 };
-	AVLONG LOC3[] = { 1, 7, 5, 3 };
-	AVLONG LOC3b[] = { 1, 2, 0, 3 };
+	AVLONG ZONE[] = { 0, 1, 2, 7, -1, 3, 6, 5, 4 };
+	AVLONG AZIM[] = { 1, 7, 5, 3 };
+	AVLONG AZIMb[] = { 1, 2, 0, 3 };
 
 	pDesc->floor = m_nStorey - GetBuilding()->GetBasementStoreyCount();
 	pDesc->camloc = m_camloc;
@@ -745,10 +753,10 @@ CAMLOC CCamera::GetDescription(CAMDESC *pDesc)
 	switch (m_camloc)
 	{
 	case CAMLOC_LOBBY:
-		if (m_camloc2 >= 0 && m_camloc2 < 9)
-			pDesc->index = LOC2[m_camloc2];
-		if (pDesc->index == -1 && m_camloc3 >= 0 && m_camloc3 < 4)
-			pDesc->index = LOC3[m_camloc3];
+		if (m_camZone >= 0 && m_camZone < 9)
+			pDesc->index = ZONE[m_camZone];
+		if (pDesc->index == -1 && m_camAzim >= 0 && m_camAzim < 4)
+			pDesc->index = AZIM[m_camAzim];
 		break;
 	case CAMLOC_LIFT:
 		pDesc->floor = m_nLiftStorey - GetBuilding()->GetBasementStoreyCount();
@@ -758,8 +766,8 @@ CAMLOC CCamera::GetDescription(CAMDESC *pDesc)
 		pDesc->index = m_nLift + 1;
 		break;
 	case CAMLOC_OUTSIDE:
-		if (m_camloc3 >= 0 && m_camloc3 < 4)
-			pDesc->index = LOC3b[m_camloc3];
+		if (m_camAzim >= 0 && m_camAzim < 4)
+			pDesc->index = AZIMb[m_camAzim];
 		break;
 	}
 	return m_camloc;

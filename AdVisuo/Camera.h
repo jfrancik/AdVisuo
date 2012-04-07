@@ -52,9 +52,12 @@ class CCamera
 	
 	// Camera position & state information
 	CAMLOC m_camloc;				// camera location information
-	AVLONG m_camloc2, m_camloc3;	// sub-zone information for m_camloc = CAMLOC_LOBBY or CAMLOC_OUTSIDE
+	AVLONG m_camXZone, m_camYZone;	// sub-zone information for the lobby area (-1 .. 3 in each direction, 0..2 is within the lobby)
+	AVLONG m_camZone;				// sub-zone information: 9 indexed areas within the lobby only
+	AVLONG m_camAzim;				// azimuth information for the area
+	AVLONG m_nLiftPos[2];			// x-coordinate in relation to shafts, shown as shaft index for row 0 and 1, may be out of bounds (e.g. -1) if camera to the left or 
 	AVLONG m_nStorey;				// storey index (-1 if in a lift)
-	AVLONG m_nLift;					// lift index (-1 if outside the lobby)
+	AVLONG m_nLift;					// lift index (-1 if outside the shafts)
 	AVULONG m_nLiftStorey;			// storey index - used only when in lift (and nStorey == -1)
 	CAMPARAMS m_cp;					// full camera params details
 	bool m_bMoved, m_bRotated, m_bZoomed;	// all clear if the camera is as descibed in m_cp; set when moved, rotated or zoomed
@@ -82,10 +85,7 @@ public:
 
 	void SetBaseBone(IKineNode *pNode, bool bKeepCoord = true);
 
-	AVLONG GetStorey()										{ return m_nStorey; }
 	void SetStorey(AVLONG nStorey, bool bKeepCoord = true);	// attaches camera to the storey
-
-	AVLONG GetLift()										{ return m_nLift; }
 	void SetLift(AVLONG nLift, bool bKeepCoord = true);		// attaches camera to the lift
 
 	ISceneCamera *GetCamera()								{ return m_pCamera; }
@@ -111,10 +111,10 @@ public:
 	void MoveToLobby(AVULONG nSetupId, AVFLOAT fAspect);
 	void MoveToOverhead(AVFLOAT fAspect);
 	void MoveToLift(AVULONG nLiftId, AVFLOAT fAspect);
-	void MoveToLiftRel(AVLONG n, AVFLOAT fAspect)				{ if (m_nLift >= 0) MoveToLift(GetLift() + n, fAspect); }
+	void MoveToLiftRel(AVLONG n, AVFLOAT fAspect)				{ if (m_nLift >= 0) MoveToLift(m_nLift + n, fAspect); }
 	void MoveToExt(AVULONG nPos, AVFLOAT fAspect);
 	void MoveToStorey(AVULONG nStorey);
-	void MoveToStoreyRel(AVLONG n)								{ if (m_nStorey >= 0) MoveToStorey(GetStorey() + n); }
+	void MoveToStoreyRel(AVLONG n)								{ if (m_nStorey >= 0) MoveToStorey(m_nStorey + n); }
 
 	void AnimateTo(IAction *pTickSource, CAMPARAMS &cp);
 	void AnimateTo(IAction *pTickSource)						{ AnimateTo(pTickSource); }
@@ -122,10 +122,10 @@ public:
 	void AnimateToOverhead(IAction *pTickSource, AVFLOAT fAspect);
 	void AnimateUndoOverhead(IAction *pTickSource, AVFLOAT fAspect);
 	void AnimateToLift(IAction *pTickSource, AVULONG nLiftId, AVFLOAT fAspect);
-	void AnimateToLiftRel(IAction *pTickSource, AVLONG n, AVFLOAT fAspect)	{ if (m_nLift >= 0) AnimateToLift(pTickSource, GetLift() + n, fAspect); }
+	void AnimateToLiftRel(IAction *pTickSource, AVLONG n, AVFLOAT fAspect)	{ if (m_nLift >= 0) AnimateToLift(pTickSource, m_nLift + n, fAspect); }
 	void AnimateToExt(IAction *pTickSource, AVULONG nPos, AVFLOAT fAspect);
 	void AnimateToStorey(IAction *pTickSource, AVULONG nStorey);
-	void AnimateToStoreyRel(IAction *pTickSource, AVULONG n)				{ AnimateToStorey(pTickSource, GetStorey() + n); }
+	void AnimateToStoreyRel(IAction *pTickSource, AVULONG n)				{ AnimateToStorey(pTickSource, m_nStorey + n); }
 
 	void Reset();
 	void Pan(AVFLOAT f);
@@ -142,6 +142,15 @@ public:
 	// camera information
 	CAMLOC GetDescription(CAMDESC *pDesc = NULL);
 	LPTSTR GetTextDescription();
+
+	AVLONG GetStorey()				{ return m_camloc == CAMLOC_LIFT ? m_nLiftStorey : m_nStorey; }
+	AVLONG GetLift()				{ return m_nLift; }
+	CAMLOC GetLoc()					{ return m_camloc; }
+	AVLONG GetZone()				{ return m_camZone; }
+	AVLONG GetXZone()				{ return m_camXZone; }
+	AVLONG GetYZone()				{ return m_camYZone; }
+	AVLONG GetAzimuth()				{ return m_camAzim; }
+	AVLONG GetLift(AVULONG nRow)	{ return m_nLiftPos[nRow]; }
 
 	// animation callback functions
 	friend int _callback_fun(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, CCamera *pCamera);
