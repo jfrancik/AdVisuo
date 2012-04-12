@@ -90,10 +90,8 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 
-	ME[L"ID"] = nSimulationId;
-
 	// prepare buffers for shafts and storeys
-	PreCreate();
+	Init(nSimulationId);
 
 	// Query for Shaft Data
 	sel = db.select(L"SELECT * FROM Lifts l, Doors d WHERE LiftGroupId=%d  AND d.LiftId = l.LiftId AND d.DoorConfigurationId=1 ORDER BY LiftNumber", nLiftGroupId);
@@ -105,8 +103,10 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	for (AVULONG i = 0; i < GetStoreyCount() && sel; i++, sel++)
 		sel >> *GetStorey(i);
 
+	InitLifts();
+
 	// Resolve and test
-	ConCreate();
+	ConsoleCreate();
 	if (!IsValid())
 		throw ERROR_BUILDING;
 
@@ -124,7 +124,7 @@ HRESULT CBuilding::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 	sel >> *this;
 
 	// prepare buffers for shafts and storeys
-	PreCreate();
+	Init();
 
 	// Query for Lobby Data
 	sel = db.select(L"SELECT * FROM AVShafts WHERE BuildingId=%d ORDER BY ShaftID", GetId());
@@ -135,6 +135,8 @@ HRESULT CBuilding::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 	sel = db.select(L"SELECT * FROM AVFloors WHERE BuildingId=%d ORDER BY FloorId", GetId());
 	for (AVULONG i = 0; i < GetStoreyCount() && sel; i++, sel++)
 		sel >> *GetStorey(i);
+
+	InitLifts();
 
 	// Resolve and test
 	Create();

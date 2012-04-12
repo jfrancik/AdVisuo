@@ -1251,3 +1251,146 @@ void CDlgReportBug::OnOK()
 	CDialogEx::OnOK();
 	AfxMessageBox(L"Message sent, thank you!", MB_ICONINFORMATION);
 }
+// Dialogs.cpp : implementation file
+//
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// CDlgMaterials dialog
+//
+
+IMPLEMENT_DYNAMIC(CDlgMaterials, CDialogEx)
+
+CDlgMaterials *CDlgMaterials::c_dlg = NULL;
+
+CDlgMaterials::CDlgMaterials(CMaterialManager *pMat, CWnd* pParent /*=NULL*/)
+	: CDialogEx(CDlgMaterials::IDD, pParent), m_pMat(pMat)
+	, m_bSolid(FALSE)
+	, m_strFName(_T(""))
+	, m_nAlpha(0)
+	, m_nAlpha2(0)
+{
+
+}
+
+CDlgMaterials::~CDlgMaterials()
+{
+}
+
+void CDlgMaterials::DoDataExchange(CDataExchange* pDX)
+{
+	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LIST1, m_list);
+	DDX_Radio(pDX, IDC_RADIO1, m_bSolid);
+	DDX_Control(pDX, IDC_MFCCOLORBUTTON1, m_ctrlColor);
+	DDX_Text(pDX, IDC_EDIT1, m_strFName);
+	DDX_Text(pDX, IDC_MFCCOLORBUTTON1, m_color);
+	DDX_Text(pDX, IDC_EDIT2, m_nAlpha);
+	DDV_MinMaxInt(pDX, m_nAlpha, 0, 100);
+	DDX_Slider(pDX, IDC_SLIDER1, m_nAlpha2);
+	DDV_MinMaxInt(pDX, m_nAlpha2, 0, 100);
+	DDX_Control(pDX, IDC_SPIN2, m_spinAlpha);
+}
+
+
+BEGIN_MESSAGE_MAP(CDlgMaterials, CDialogEx)
+	ON_LBN_SELCHANGE(IDC_LIST1, &CDlgMaterials::OnLbnSelchangeList1)
+	ON_BN_CLICKED(IDC_MFCCOLORBUTTON1, &CDlgMaterials::OnBnClickedMfccolorbutton1)
+	ON_EN_CHANGE(IDC_EDIT2, &CDlgMaterials::OnEnChangeEdit2)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER1, &CDlgMaterials::OnNMCustomdrawSlider1)
+	ON_BN_CLICKED(IDCANCEL, &CDlgMaterials::OnBnClickedCancel)
+END_MESSAGE_MAP()
+
+
+// CDlgMaterials message handlers
+
+
+BOOL CDlgMaterials::OnInitDialog()
+{
+
+	CDialogEx::OnInitDialog();
+
+	m_spinAlpha.SetRange(0, 100);
+
+	for (int i = 0; i < MAT_NUM; i++)
+		m_list.AddString(m_pMat->GetLabel(i));
+
+	m_list.SetCurSel(1);
+	UpdateControls(m_list.GetCurSel());
+
+	c_dlg = this;
+
+	return TRUE;
+}
+
+void CDlgMaterials::UpdateControls(int i)
+{
+	MATERIAL &mat = (*m_pMat)[i];
+	if (mat.m_bSolid)
+	{
+		m_bSolid = false;
+		m_strFName = "";
+		m_ctrlColor.SetColor(mat.m_color);
+		m_ctrlColor.EnableWindow(TRUE);
+	}
+	else
+	{
+		m_bSolid = true;
+		m_strFName = mat.m_fname.c_str();
+		m_ctrlColor.EnableWindow(FALSE);
+	}
+	m_nAlpha = 100 - mat.m_alpha * 100;
+	m_nAlpha2 = 100 - mat.m_alpha * 100;
+	UpdateData(FALSE);
+}
+
+void CDlgMaterials::SetupMaterial(int i)
+{
+	if (!UpdateData()) return;
+
+	if (m_bSolid == false)
+		m_pMat->Set((MATERIALS)i, m_ctrlColor.GetColor(), 1.0f - (AVFLOAT)m_nAlpha2 / 100.0f);
+	else
+		m_pMat->Set((MATERIALS)i, m_strFName, (*m_pMat)[i].m_fUTile, (*m_pMat)[i].m_fVTile, 1.0f - (AVFLOAT)m_nAlpha2 / 100.0f);
+}
+
+void CDlgMaterials::OnLbnSelchangeList1()
+{
+	UpdateControls(m_list.GetCurSel());
+}
+
+void CDlgMaterials::OnBnClickedMfccolorbutton1()
+{
+	SetupMaterial(m_list.GetCurSel());
+}
+
+void CDlgMaterials::OnEnChangeEdit2()
+{
+	if (c_dlg == NULL) return;
+	if (!UpdateData()) return;
+	m_nAlpha2 = m_nAlpha;
+	UpdateData(FALSE);
+	SetupMaterial(m_list.GetCurSel());
+}
+
+void CDlgMaterials::OnNMCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	if (!UpdateData()) return;
+	m_nAlpha = m_nAlpha2;
+	UpdateData(FALSE);
+	SetupMaterial(m_list.GetCurSel());
+}
+
+void CDlgMaterials::PostNcDestroy()
+{
+	c_dlg = NULL;
+	CDialogEx::PostNcDestroy();
+	delete this;
+}
+
+void CDlgMaterials::OnBnClickedCancel()
+{
+	DestroyWindow();
+}

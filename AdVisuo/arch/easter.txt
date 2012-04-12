@@ -1,0 +1,145 @@
+CBuilding:
+
+	// Easter Specials
+	CBldObject m_bunny;
+	CBldObject m_chicken[12];
+	void ConstructEasterSpecial();
+	CBldObject &GetBunny()	{ return m_bunny; }
+	CBldObject &GetChicken(AVULONG i)	{ return m_chicken[i]; }
+
+	void _tempSetColor(IRenderer *pRenderer, ISceneObject *pObject, wstring name, AVFLOAT r, AVFLOAT g, AVFLOAT b, AVFLOAT a = 1)
+	{
+		FWCOLOR diff = { r, g, b, a };
+		IMaterial *pMaterial = NULL;
+		pRenderer->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+		pMaterial->SetDiffuseColor(diff);
+		pMaterial->SetAmbientColor(diff);
+		pMaterial->SetSpecularColor(diff);
+		IKineChild *pChild = NULL;
+		pObject->GetChild((FWSTRING)name.c_str(), &pChild);
+		IMesh *pMesh = NULL;
+		pChild->QueryInterface(&pMesh);
+		pMesh->SetMaterial(pMaterial);
+		pMesh->SetMaterial(pMaterial);
+		pMesh->Release();
+		pChild->Release();
+		pMaterial->Release();
+	}
+
+void CBuilding::ConstructEasterSpecial()
+{
+	ITransform *pT = NULL;
+
+	m_bunny = CBldObject(this);
+	m_bunny.Create(L"bunny_0");
+	GetBunny().Load((LPOLESTR)(LPCOLESTR)(_stdPathModels + "bunny.obj"), L"bunny_0", 700, 100);
+	GetBunny().GetBone()->CreateCompatibleTransform(&pT);
+	pT->FromRotationX(M_PI/2);
+	pT->MulTranslationXYZ(80, -20, -23);
+	GetBunny().GetBone()->PutLocalTransform(pT);
+	pT->Release();
+
+	IMaterial *pMaterial = NULL;
+	ITexture *pTexture = NULL;
+	m_pRenderer->CreateTexture(&pTexture);
+	pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"dafoldil.jpg"));
+	pTexture->SetUVTile(1, 1);
+	m_pRenderer->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	pMaterial->SetTexture(0, pTexture);
+	IKineChild *pChild = NULL;
+	GetBunny().GetFWObject()->GetChild(L"main", &pChild);
+	IMesh *pMesh = NULL;
+	pChild->QueryInterface(&pMesh);
+	pMesh->SetMaterial(pMaterial);
+	pMesh->Release();
+	pChild->Release();
+	pMaterial->Release();
+	pTexture->Release();
+
+
+	m_chicken[0] = CBldObject(this);
+	m_chicken[0].Create(L"Chicken_0");
+	GetChicken(0).Load((LPOLESTR)(LPCOLESTR)(_stdPathModels + "chicken.obj"), L"Chicken_0", 0.5f, 100);
+	
+	for (int i = 1; i < 12; i++)
+	{
+		IKineNode *pNode = NULL;
+		IKineChild *pBone;
+		ISceneObject *pScene = NULL;
+		GetChicken(0).GetFWObject()->ReproduceEx(IID_IKineNode, (IFWUnknown**)&pNode);
+		pNode->QueryInterface(&pScene);
+		pNode->GetChild(L"Chicken_0", &pBone);
+		pNode->Release();
+		m_chicken[i] = CBldObject(this, pScene, (BONE)pBone);
+	}
+	
+	AVFLOAT rot[] = { 0, 1.35f, 3.35f, 1.05f,		1.75f, 0.4f, 0.35f, 1.15f,			1.35f, 0, -0.8f, 1.15f };
+	AVVECTOR pos[] = {
+		{ 0, 30, 12.5 },
+		{ -40, -20, 12.5 },
+		{ -60, -80, 12.5 },
+		{ -80, -50, 12.5 },
+
+		{ -120, -100, 12.5 },
+		{ -120, 5, 12.5 },
+		{ -80, 25, 12.5 },
+		{ -70, 70, 12.5 },
+
+		{ 40, 40, 12.5 },
+		{ 30, -100, 12.5 },
+		{ 50, -80, 12.5 },
+		{ -140, -30, 12.5 }
+	};
+	for (int i = 0; i < 12; i++)
+	{
+		GetChicken(i).GetBone()->CreateCompatibleTransform(&pT);
+		pT->FromRotationY(rot[i]);
+		pT->MulRotationX(M_PI/2);
+		pT->MulTranslationXYZ(pos[i].x, pos[i].y, pos[i].z);
+		GetChicken(i).GetBone()->PutLocalTransform(pT);
+		pT->Release();
+	}
+		
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Sphere01", 1.0f, 1.0f, 0.17f);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Sphere02", 1.0f, 1.0f, 0.17f);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Sphere03", 0, 0, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Sphere04", 0, 0, 0);
+
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Box02", 0.6f, 0.26f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Box03", 0.6f, 0.26f, 0);
+
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder01", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder02", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder03", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder04", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder05", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder06", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder07", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder08", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder09", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder10", 0.86f, 0.57f, 0);
+	_tempSetColor(m_pRenderer, GetChicken(0).GetFWObject(), L"Cylinder11", 0.86f, 0.57f, 0);
+}
+
+Call 	ConstructEasterSpecial();	from CBuilding::Construct()
+
+Add this to void CAdVisuoView::RenderScene(bool bHUDSelection)
+
+		GetDocument()->GetBuilding()->GetBunny().Render(m_pRenderer);
+		for (AVULONG i = 0; i < 12; i++)
+			GetDocument()->GetBuilding()->GetChicken(i).Render(m_pRenderer);
+		
+
+
+Addition to void CBuilding::SetMaterialFloorPlate(AVULONG nItemId, AVULONG i, AVULONG nFloor)
+
+	HFONT hFont = ::CreateFont(32, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, ANSI_CHARSET,OUT_OUTLINE_PRECIS, CLIP_STROKE_PRECIS, PROOF_QUALITY, DEFAULT_PITCH, L"Arial");
+	HFONT hOldFont = (HFONT)::SelectObject(hDC, hFont);
+	CRect rect(0, 0, 127, 32);
+	::SetBkMode(hDC, TRANSPARENT);
+	::SetTextColor(hDC, RGB(255, 0, 0));
+	::DrawText(hDC, L"HAPPY", -1, rect, DT_CENTER);
+	rect = CRect(0, 29, 127, 64);
+	::DrawText(hDC, L"EASTER", -1, rect, DT_CENTER);
+	::SelectObject(hDC, hOldFont);
+

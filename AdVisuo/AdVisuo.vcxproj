@@ -142,6 +142,7 @@
     <ClCompile Include="HUD.cpp" />
     <ClCompile Include="Lift.cpp" />
     <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="OutputWnd.cpp" />
     <ClCompile Include="Passenger.cpp" />
     <ClCompile Include="Sim.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="HUD.h" />
     <ClInclude Include="Lift.h" />
     <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="OutputWnd.h" />
     <ClInclude Include="Passenger.h" />
     <ClInclude Include="Resource.h" />

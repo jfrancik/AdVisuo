@@ -38,13 +38,13 @@ void CLift::MoveToInitialPosition()
 {
 	JOURNEY *pJourney = GetJourney(0);
 	if (!pJourney) return;
-	MoveTo(GetSim()->GetBuilding()->GetLiftPos(pJourney->m_shaftFrom, pJourney->m_floorFrom));
+	MoveTo(GetSim()->GetBuilding()->GetCarPos(pJourney->m_shaftFrom, pJourney->m_floorFrom));
 }
 
 void CLift::AnimateToInitialPosition(AVULONG nShaftFrom, AVULONG nStoreyFrom, AVULONG timeStart)
 {
 	IKineNode *pBone = GetSim()->GetBuilding()->GetLiftBone(GetId());
-	AVVECTOR vFrom = GetSim()->GetBuilding()->GetLiftPos(nShaftFrom, nStoreyFrom);
+	AVVECTOR vFrom = GetSim()->GetBuilding()->GetCarPos(nShaftFrom, nStoreyFrom);
 	IAction *pAction = NULL;
 	pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"MoveTo", m_pActionTick, timeStart-1, 0, pBone, vFrom.x, vFrom.y, vFrom.z);
 }
@@ -68,7 +68,7 @@ void CLift::AnimateDoor(AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG tim
 void CLift::AnimateJourney(AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeStart, AVULONG timeDuration)
 {
 	IKineNode *pBone = GetSim()->GetBuilding()->GetLiftBone(GetId());
-	AVVECTOR vTo   = GetSim()->GetBuilding()->GetLiftPos(nShaftTo, nStoreyTo);
+	AVVECTOR vTo   = GetSim()->GetBuilding()->GetCarPos(nShaftTo, nStoreyTo);
 	IAction *pAction = NULL;
 	pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"MoveTo", m_pActionTick, timeStart, timeDuration, pBone, vTo.x, vTo.y, vTo.z);
 	pAction->SetParabolicEnvelopeT(2000, 2000);

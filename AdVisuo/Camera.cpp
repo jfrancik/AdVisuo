@@ -666,12 +666,12 @@ void CCamera::CheckLocation()
 	// camera position against the shafts
 	for (AVLONG iRow = 0; iRow < 2; iRow++)
 	{
-		m_nLiftPos[iRow] = GetBuilding()->GetShaftIndex(iRow);
-		while (m_nLiftPos[iRow] < (AVLONG)GetBuilding()->GetShaftIndex(iRow) + (AVLONG)GetBuilding()->GetShaftCount(iRow) && !GetBuilding()->GetShaft(m_nLiftPos[iRow])->InWidth(pos.x))
+		m_nLiftPos[iRow] = GetBuilding()->GetShaftBegin(iRow);
+		while (m_nLiftPos[iRow] < (AVLONG)GetBuilding()->GetShaftEnd(iRow) && !GetBuilding()->GetShaft(m_nLiftPos[iRow])->InWidth(pos.x))
 			m_nLiftPos[iRow]++;
-		if (m_nLiftPos[iRow] == (AVLONG)GetBuilding()->GetShaftIndex(iRow) + (AVLONG)GetBuilding()->GetShaftCount(iRow))
+		if (m_nLiftPos[iRow] == (AVLONG)GetBuilding()->GetShaftEnd(iRow))
 			if (iRow == 0 && pos.x < 0 || iRow == 1 && pos.x > 0)
-				m_nLiftPos[iRow] = (AVLONG)GetBuilding()->GetShaftIndex(iRow) - 1;
+				m_nLiftPos[iRow] = (AVLONG)GetBuilding()->GetShaftBegin(iRow) - 1;
 	}
 
 	if (pos.z < GetBuilding()->GetStorey(0)->GetLevel())

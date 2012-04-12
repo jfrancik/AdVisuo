@@ -57,6 +57,8 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <fstream>
+#include <sstream>
 #include <afxdhtml.h>
 
 ///////////////////////////////////////////////////////////////

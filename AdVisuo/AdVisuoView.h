@@ -44,9 +44,9 @@ public:
 	bool SetupCamera(CCamera *pCamera);
 
 	void RenderLifts(FWULONG nRow);
-	void RenderShaftsForStorey(FWULONG nRow, FWULONG iStorey);
+	void RenderShafts(FWULONG nRow, FWULONG iStorey);
 	void RenderShafts(FWULONG nRow);
-	void RenderShaftsLobbySideForStorey(FWULONG nRow, FWULONG iStorey);
+	void RenderShaftsLobbySide(FWULONG nRow, FWULONG iStorey);
 	void RenderShaftsLobbySide(FWULONG nRow);
 	void RenderStoreys();
 
@@ -263,6 +263,8 @@ protected:
 	afx_msg void OnUpdateStatusbarPane2(CCmdUI *pCmdUI);
 public:
 	afx_msg void OnUpdateViewAspect(CCmdUI *pCmdUI);
+	afx_msg void OnViewMaterials();
+	afx_msg void OnUpdateViewMaterials(CCmdUI *pCmdUI);
 };
    
 

@@ -19,7 +19,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 	CBuilding *pBuilding = GetBuilding();
 	if (!pBuilding) throw _sim_error(_sim_error::E_SIM_INTERNAL);
 
-	AVULONG iLift = 0, iShaft = 0, iStorey = 0;
+	AVULONG iShaft = 0, iStorey = 0;
 
 	while (reader.read())
 	{
@@ -38,7 +38,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 			m_phase = PHASE_BLD;
 
 			reader >> *pBuilding;
-			pBuilding->PreCreate();
+			pBuilding->Init();
 		}
 		else
 		if (reader.getName() == L"AVShaft")
@@ -47,14 +47,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 			m_phase = PHASE_STRUCT;
 			if (iShaft >= GetBuilding()->GetShaftCount()) throw _sim_error(_sim_error::E_SIM_LIFTS);
 			
-			CBuilding::SHAFT *pShaft = pBuilding->GetShaft(iShaft++);
-			reader >> *pShaft;
-
-			ULONG nLifts = (ULONG)reader[L"NumberOfLifts"];
-			if (!nLifts) nLifts = 1;
-
-			for (AVULONG i = 0; i < nLifts; i++)
-				AddLift(CreateLift(iLift++));
+			reader >> *pBuilding->GetShaft(iShaft++);
 		}
 		else
 		if (reader.getName() == L"AVFloor")
@@ -68,6 +61,13 @@ void CSim::Load(xmltools::CXmlReader reader)
 		else
 		if (reader.getName() == L"AVJourney")
 		{
+			if (pBuilding->GetLiftCount() == 0)
+			{
+				pBuilding->InitLifts();
+				for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)
+					AddLift(CreateLift(i));
+			}
+
 			if (m_phase != PHASE_STRUCT && m_phase != PHASE_SIM) throw _sim_error(_sim_error::E_SIM_FILE_STRUCT);
 			m_phase = PHASE_SIM;
 
@@ -81,7 +81,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 			journey.m_timeDest = reader[L"TimeDest"];
 			journey.ParseDoorCycles(reader[L"DC"]);
 				  
-			if (nLiftID >= pBuilding->GetShaftCount() || nLiftID >= LIFT_MAXNUM || journey.m_shaftFrom >= pBuilding->GetShaftCount() || journey.m_shaftTo >= pBuilding->GetShaftCount()) 
+			if (nLiftID >= pBuilding->GetLiftCount() || nLiftID >= LIFT_MAXNUM || journey.m_shaftFrom >= pBuilding->GetShaftCount() || journey.m_shaftTo >= pBuilding->GetShaftCount()) 
 				throw _sim_error(_sim_error::E_SIM_LIFTS);
 
 			GetLift(nLiftID)->AddJourney(journey);
@@ -97,6 +97,14 @@ void CSim::Load(xmltools::CXmlReader reader)
 			pPassenger->ResolveMe();
 			AddPassenger(pPassenger);
 		}
+	}
+
+	// Init lifts when known
+	if (m_phase == PHASE_SIM && pBuilding->GetLiftCount() == 0)
+	{
+		pBuilding->InitLifts();
+		for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)
+			AddLift(CreateLift(i));
 	}
 
 	// Some tests

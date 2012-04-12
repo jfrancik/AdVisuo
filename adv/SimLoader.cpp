@@ -254,6 +254,8 @@ void CSimJourneyResolver::Run(CSimLoader &loader, AVULONG nLiftId)
 	AVULONG nTimeToOpen = (AVULONG)(loader.pLifts[nLiftId].TimeToOpen * 1000);
 	AVULONG nTimeToClose = (AVULONG)(loader.pLifts[nLiftId].TimeToClose * 1000);
 
+	tmpShaft = nLiftId / 9;
+
 	journeys.push_back(JOURNEY());
 	pJourney = &journeys.back();
 	for (int i = 0; i < loader.pIters[nLiftId]; i++)
@@ -282,10 +284,12 @@ void CSimJourneyResolver::Record(CSimLoader::SimIter &simiter, bool bDoubleDeck,
 	AVULONG floorTo   = simiter.destFloor;
 	AVULONG shaft = simiter.curShaft;
 
+	shaft = tmpShaft;
+
 	// identify car event/state as move, stop or between shafts
 	enum CAR  evCar;
 	if (simiter.carState == 1) evCar = CAR_MOVE; 
-	else if (simiter.carState == 4) evCar = CAR_SHAFT;
+	else if (simiter.carState == 4) evCar = CAR_SHAFT_MOVE;
 	else evCar = CAR_STOP;
 
 	// identify door states
@@ -299,7 +303,7 @@ void CSimJourneyResolver::Record(CSimLoader::SimIter &simiter, bool bDoubleDeck,
 		switch (evCar)
 		{
 		case CAR_MOVE:
-		case CAR_SHAFT:
+		case CAR_SHAFT_MOVE:
 			if (stCar != CAR_STOP)
 			{
 				// if change MOVE => SHAFT or SHAFT => MOVE
@@ -327,7 +331,7 @@ void CSimJourneyResolver::Record(CSimLoader::SimIter &simiter, bool bDoubleDeck,
 			pJourney->m_shaftTo = shaft;
 			pJourney->m_timeDest = t;
 			pJourney->m_floorTo = floorTo;
-			if (stCar == CAR_SHAFT) pJourney->m_floorTo = floorFrom;
+			if (stCar == CAR_SHAFT_MOVE) pJourney->m_floorTo = floorFrom;
 			ASSERT(pJourney->m_floorFrom != UNDEF && pJourney->m_floorTo != UNDEF);
 			ASSERT(pJourney->m_timeDest != UNDEF && pJourney->m_timeGo != UNDEF);
 			journeys.push_back(JOURNEY());	// start a new journey
@@ -335,6 +339,8 @@ void CSimJourneyResolver::Record(CSimLoader::SimIter &simiter, bool bDoubleDeck,
 			break;
 		}
 	stCar = evCar;
+
+	if (simiter.carState == 4) tmpShaft = 1 - tmpShaft;
 
 	for (AVULONG i = 0; i < DECK_NUM; i++)
 		if (evDoor[i] != stDoor[i])

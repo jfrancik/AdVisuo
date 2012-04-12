@@ -113,11 +113,12 @@ class CSimJourneyResolver
 
 	JOURNEY::DOOR door[DECK_NUM];
 
-	enum CAR  { CAR_STOP, CAR_MOVE, CAR_SHAFT };
+	enum CAR  { CAR_STOP, CAR_MOVE, CAR_SHAFT_MOVE };
 	enum DOOR { DOOR_CLOSING = 1, DOOR_CLOSED = 0, DOOR_OPENING = 2, DOOR_OPENED = 3 };
 	enum CAR  stCar;
 	enum DOOR stDoor[DECK_NUM];
 	AVULONG lt[DECK_NUM];
+	AVULONG tmpShaft;	// temporary addition!
 
 public:
 	CSimJourneyResolver(std::vector<JOURNEY>&);

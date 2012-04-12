@@ -89,6 +89,7 @@
 #define IDD_ADV_REPORT_BUG              333
 #define IDS_DLGVIDEO_INSTR              334
 #define IDS_DLGVIDEO_OPTION1            335
+#define IDD_ADV_MATERIALS               335
 #define IDS_DLGVIDEO_OPTION2            336
 #define IDS_DLGVIDEO_MESSAGE2           337
 #define IDC_EDIT1                       1000
@@ -156,6 +157,10 @@
 #define IDC_EDIT_DESC                   1074
 #define IDC_EDIT_DESC2                  1075
 #define IDC_EDIT_SYSTEM                 1075
+#define IDC_MFCCOLORBUTTON1             1075
+#define IDC_SLIDER1                     1076
+#define IDC_MFCBUTTON1                  1077
+#define IDC_BUTTON2                     1079
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_CAMERA_LAYOUT                32771
 #define ID_LAYOUT_1                     32772
@@ -201,7 +206,6 @@
 #define ID_ACTION_RENDER                32819
 #define ID_ACTION_SAVESTILL             32820
 #define ID_FILE_DOWNLOAD                32821
-#define ID_BUTTON2                      32822
 #define ID_VIEW_APPLOOK_WINDOWS_7       32822
 #define ID_VIEW_APPLOOK_VS_2008         32823
 #define ID_EDIT_FULLSCREEN              32824
@@ -247,15 +251,15 @@
 #define ID_FLOOR_CHANGEFLOOR            32882
 #define ID_OTHER_REPORTBUG              32883
 #define ID_REPORT_BUG                   32884
-#define ID_CULLING_CCW                  32887
+#define ID_VIEW_MATERIALS               32885
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        335
+#define _APS_NEXT_RESOURCE_VALUE        337
 #define _APS_NEXT_COMMAND_VALUE         32888
-#define _APS_NEXT_CONTROL_VALUE         1075
+#define _APS_NEXT_CONTROL_VALUE         1080
 #define _APS_NEXT_SYMED_VALUE           317
 #endif
 #endif

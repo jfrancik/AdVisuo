@@ -10,20 +10,26 @@ class CBuilding : public CBuildingBase
 public:
 	CBuilding() : CBuildingBase() { }
 
-	struct SHAFT : public CBuildingBase::SHAFT
-	{
-		SHAFT(CBuilding *pBuilding) : CBuildingBase::SHAFT(pBuilding)	{ }
-	};
 	struct STOREY : public CBuildingBase::STOREY
 	{
-		STOREY(CBuilding *pBuilding) : CBuildingBase::STOREY(pBuilding)	{ }
+		STOREY(CBuilding *pBuilding, AVULONG nId) : CBuildingBase::STOREY(pBuilding, nId)	{ }
+	};
+	struct SHAFT : public CBuildingBase::SHAFT
+	{
+		SHAFT(CBuilding *pBuilding, AVULONG nId) : CBuildingBase::SHAFT(pBuilding, nId)	{ }
+	};
+	struct LIFT : public CBuildingBase::LIFT
+	{
+		LIFT(CBuilding *pBuilding, AVULONG nId) : CBuildingBase::LIFT(pBuilding, nId)	{ }
 	};
 
-	virtual SHAFT *CreateShaft()			{ return new SHAFT(this); }
-	virtual STOREY *CreateStorey()			{ return new STOREY(this); }
-	SHAFT *GetShaft(AVULONG i)				{ return (SHAFT*)CBuildingBase::GetShaft(i); }
-	STOREY *GetStorey(AVULONG i)			{ return (STOREY*)CBuildingBase::GetStorey(i); }
-	STOREY *GetGroundStorey(AVULONG i = 0)	{ return (STOREY*)CBuildingBase::GetGroundStorey(i); }
+	virtual STOREY *CreateStorey(AVULONG nId)	{ return new STOREY(this, nId); }
+	virtual SHAFT *CreateShaft(AVULONG nId)		{ return new SHAFT(this, nId); }
+	virtual LIFT *CreateLift(AVULONG nId)		{ return new LIFT(this, nId); }
+	STOREY *GetStorey(AVULONG i)				{ return (STOREY*)CBuildingBase::GetStorey(i); }
+	STOREY *GetGroundStorey(AVULONG i = 0)		{ return (STOREY*)CBuildingBase::GetGroundStorey(i); }
+	SHAFT *GetShaft(AVULONG i)					{ return (SHAFT*)CBuildingBase::GetShaft(i); }
+	LIFT *GetLift(AVULONG i)					{ return (LIFT*)CBuildingBase::GetLift(i); }
 
 public:
 	// IO

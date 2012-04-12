@@ -25,17 +25,18 @@ HRESULT CSim::LoadSim()
 
 
 	// detect errors...
+	AVULONG nnnn = GetBuilding()->GetLiftCount();
 	if FAILED(nRes)
 		return Logf(nRes, GetSIMFileName().c_str());
-	if ((ULONG)loader.nLifts != GetBuilding()->GetShaftCount())
+	if ((ULONG)loader.nLifts != GetBuilding()->GetLiftCount())
 		return Log(ERROR_FILE_INCONSISTENT_LIFTS);		// inconsistent number of floors
 	if ((ULONG)loader.nFloors != GetBuilding()->GetStoreyCount())
 		return Log(ERROR_FILE_INCONSISTENT_FLOORS);		// inconsistent number of lifts
 
 	// check single/double decker consistency
 	for (AVULONG i = 0; i < (ULONG)loader.nLifts;i++)
-		if ((loader.pLifts[i].nDecks == 1 && GetBuilding()->GetShaft(i)->GetDeck() == CBuildingBase::DECK_DOUBLE)
-		|| (loader.pLifts[i].nDecks > 1 && GetBuilding()->GetShaft(i)->GetDeck() == CBuildingBase::DECK_SINGLE))
+		if ((loader.pLifts[i].nDecks == 1 && GetBuilding()->GetLift(i)->GetShaft()->GetDeck() == CBuildingBase::DECK_DOUBLE)
+		|| (loader.pLifts[i].nDecks > 1 && GetBuilding()->GetLift(i)->GetShaft()->GetDeck() == CBuildingBase::DECK_SINGLE))
 			return Log(ERROR_FILE_INCONSISTENT_DECKS);
 
 	SetSIMVersionId(loader.nVersion);

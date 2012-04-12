@@ -93,7 +93,7 @@ void CBldObject::Deconstruct()
 	m_pBone = NULL;
 }
 
-void CBldObject::Wall(BONE pBone, AVULONG nWallId, AVLONG nIndex, AVSTRING strName, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
+void CBldObject::AddWall(BONE pBone, AVULONG nWallId, AVLONG nIndex, AVSTRING strName, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
 					AVULONG nDoorNum, FLOAT *pDoorData, BONE *ppBone)
 {
 	//TRACE(L"Building wall: pos = (%f, %f, %f), l = %f, h = %f, d = %f\n", vecPos.x/0.04f, vecPos.y/0.04f, vecPos.z/0.04f, l/0.04f, h/0.04f, d/0.04f);
@@ -116,14 +116,111 @@ void CBldObject::Wall(BONE pBone, AVULONG nWallId, AVLONG nIndex, AVSTRING strNa
 	block.Close();
 }
 
-void CBldObject::Wall(AVULONG nWallId, AVLONG nIndex, AVSTRING strName, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData, BONE *ppBone)
+void CBldObject::AddWall(AVULONG nWallId, AVLONG nIndex, AVSTRING strName, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData, BONE *ppBone)
 {
-	Wall(GetBone(), nWallId, nIndex, strName, vecPos, l, h, d, vecRot, nDoorNum, pDoorData, ppBone);
+	AddWall(GetBone(), nWallId, nIndex, strName, vecPos, l, h, d, vecRot, nDoorNum, pDoorData, ppBone);
 }
 
-void CBldObject::Wall(AVULONG nWallId, AVLONG nIndex, AVSTRING strName, BOX box, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData, BONE *ppBone)
+void CBldObject::AddWall(AVULONG nWallId, AVLONG nIndex, AVSTRING strName, BOX box, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData, BONE *ppBone)
 {
-	Wall(nWallId, nIndex, strName, box.LeftFrontLower(), box.Width(), box.Height(), box.Depth(), vecRot, nDoorNum, pDoorData, ppBone);
+	AddWall(nWallId, nIndex, strName, box.LeftFrontLower(), box.Width(), box.Height(), box.Depth(), vecRot, nDoorNum, pDoorData, ppBone);
+}
+
+IMesh *CBldObject::AddMesh(AVSTRING strName)
+{
+	IMesh *pMesh = NULL;
+	GetFWObject()->NewMesh(strName, &pMesh);
+	pMesh->Open(NULL, NULL);
+	pMesh->SupportNormal(0);
+	return pMesh;
+}
+
+void CBldObject::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFLOAT fTexScale)
+{
+	IMesh *pVMesh = NULL;
+	IMesh *pFMesh = NULL;
+	wstring name;
+	
+	wifstream verfile(strFilename);
+	wstring line;
+	AVULONG nVertexBase = 1;
+	AVULONG nVertex = 0;
+	AVULONG nFace = 0;
+	while (getline(verfile, line))
+	{
+		auto i = line.find(L" ", 0);
+		if (i == wstring::npos) continue;
+
+		if (line.substr(0, i) == L"g")
+		{
+			line.replace(0, i, L"");
+			wistringstream iss(line);
+			if (!(iss >> name))
+				break;
+		}
+		else
+		if (line.substr(0, i) == L"v")
+		{
+			line.replace(0, i, L"");
+			wistringstream iss(line);
+			FWFLOAT a, b, c;
+			if (!(iss >> a >> b >> c))
+				break;
+
+			if (pFMesh)
+			{
+				pFMesh->SupportBlendWeight(0.01f, 0);
+				for (AVULONG i = 0; i < nVertex; i++)
+					pFMesh->AddBlendWeight(i, 1.0f, strBone);
+				pFMesh->Close();
+				pFMesh = NULL;
+				nVertexBase += nVertex;
+				nVertex = 0;
+			}
+			if (pVMesh == NULL)
+				pVMesh = AddMesh(L"temporary");
+
+			pVMesh->SetVertexXYZ(nVertex, a * fScale, b * fScale, c * fScale);
+			double l = sqrt(a * a + b * b + c * c);
+			pVMesh->AddNormal(&nVertex, a/l, b/l, c/l);
+			pVMesh->SetVertexTextureUV(nVertex, 0, sqrt(a*a+c*c) * fTexScale, b * fTexScale);
+			nVertex++;
+		}
+		else
+		if (line.substr(0, i) == L"f")
+		{
+			line[0] = ' ';
+			wistringstream iss(line);
+			FWFLOAT a, b, c;
+			if (!(iss >> a >> b >> c))
+				break;
+
+			if (pFMesh == NULL)
+			{
+				if (pVMesh == NULL) continue;
+				pFMesh = pVMesh;
+				pVMesh = NULL;
+				IKineChild *pChild = NULL;
+				pFMesh->QueryInterface(&pChild);
+				pChild->PutLabel((FWSTRING)name.c_str());
+				pChild->Release();
+			}
+
+			a -= nVertexBase;
+			b -= nVertexBase;
+			c -= nVertexBase;
+			pFMesh->SetFace(nFace, a, b, c);
+			nFace++;
+		}
+	}
+	
+	if (pFMesh)
+	{
+		pFMesh->SupportBlendWeight(0.01f, 0);
+		for (AVULONG i = 0; i < nVertex; i++)
+			pFMesh->AddBlendWeight(i, 1.0f, strBone);
+		pFMesh->Close();
+	}
 }
 
 void CBldObject::PushState()
@@ -149,7 +246,7 @@ void CBldObject::Render(IRenderer *pRenderer)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CBuilding
 
-CBuilding::CBuilding(void) : CBuildingBase(), m_pRenderer(NULL), m_pScene(NULL)
+CBuilding::CBuilding(void) : CBuildingBase(), m_materials(this), m_pRenderer(NULL), m_pScene(NULL)
 {
 	memset(m_pMaterials, 0, sizeof(m_pMaterials));
 }
@@ -385,28 +482,28 @@ void CBuilding::STOREY::Construct(AVLONG iStorey)
 	AVVECTOR v;
 
 	// build walls
-	GetObject().Wall(MAT_FLOOR,   iStorey, L"Storey_%d_Floor",   GetBox().LeftExtRearExtLower(), GetBox().WidthExt(), GetBox().LowerThickness(), GetBox().DepthExt());
-	GetObject().Wall(MAT_CEILING, iStorey, L"Storey_%d_Ceiling", GetBox().LeftExtRearExtUpper(), GetBox().WidthExt(), GetBox().UpperThickness(), GetBox().DepthExt());
+	GetObject().AddWall(MAT_FLOOR,   iStorey, L"Storey_%d_Floor",   GetBox().LeftExtRearExtLower(), GetBox().WidthExt(), GetBox().LowerThickness(), GetBox().DepthExt());
+	GetObject().AddWall(MAT_CEILING, iStorey, L"Storey_%d_Ceiling", GetBox().LeftExtRearExtUpper(), GetBox().WidthExt(), GetBox().UpperThickness(), GetBox().DepthExt());
 	
 	v = GetBox().LeftFrontUpper() + Vector(1, GetBox().Depth()/2+40, 0);
-	GetObject().Wall(MAT_FLOOR_NUMBER_PLATE, iStorey, L"Storey_%d_Left_Nameplate", v, 2, 80, 40, Vector(0, F_PI_2));
+	GetObject().AddWall(MAT_FLOOR_NUMBER_PLATE, iStorey, L"Storey_%d_Left_Nameplate", v, 2, 80, 40, Vector(0, F_PI_2));
 	v = GetBox().RightRearUpper() + Vector(-1, -GetBox().Depth()/2-40, 0);
-	GetObject().Wall(MAT_FLOOR_NUMBER_PLATE, iStorey, L"Storey_%d_Right_Nameplate", v, -2, 80, 40, Vector(-F_PI, -F_PI_2));
+	GetObject().AddWall(MAT_FLOOR_NUMBER_PLATE, iStorey, L"Storey_%d_Right_Nameplate", v, -2, 80, 40, Vector(-F_PI, -F_PI_2));
 
-//	GetObject().Wall(MAT_FRONT, iStorey+1, L"Storey_%d_Cube",   Vector(-160, 20, 25), 40, 40, 40);
-//	GetObject().Wall(MAT_FRONT, iStorey+2, L"Storey_%d_ExtraWall",	GetBox().CentreRearLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().RearThickness(), Vector(-F_PI/2),
+//	GetObject().AddWall(MAT_FRONT, iStorey+1, L"Storey_%d_Cube",   Vector(-160, 20, 25), 40, 40, 40);
+//	GetObject().AddWall(MAT_FRONT, iStorey+2, L"Storey_%d_ExtraWall",	GetBox().CentreRearLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().RearThickness(), Vector(-F_PI/2),
 //			GetBuilding()->GetShaftCount(1), GetBuilding()->GetShaftCount(1) ? &doordata[3 * GetBuilding()->GetShaftCount(0)] : NULL);
 
 	if (GetBox().FrontThickness() > 0)
-		GetObject().Wall(MAT_REAR, iStorey, L"Storey_%d_RearWall",		GetBox().LeftExtFrontLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().FrontThickness(), Vector(0),
+		GetObject().AddWall(MAT_REAR, iStorey, L"Storey_%d_RearWall",		GetBox().LeftExtFrontLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().FrontThickness(), Vector(0),
 			GetBuilding()->GetShaftCount(0), &doordata[0]);
 	if (GetBox().RearThickness() > 0)
-		GetObject().Wall(MAT_FRONT, iStorey, L"Storey_%d_FrontWall",	GetBox().RightExtRearLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().RearThickness(), Vector(F_PI),
+		GetObject().AddWall(MAT_FRONT, iStorey, L"Storey_%d_FrontWall",	GetBox().RightExtRearLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().RearThickness(), Vector(F_PI),
 				GetBuilding()->GetShaftCount(1), GetBuilding()->GetShaftCount(1) ? &doordata[3 * GetBuilding()->GetShaftCount(0)] : NULL);
 	if (GetBox().LeftThickness() > 0)
-		GetObject().Wall(MAT_SIDE, iStorey, L"Storey_%d_LeftWall", GetBox().LeftExtFrontLower(), GetBox().Depth(), GetBox().Height(), GetBox().LeftThickness(), Vector(F_PI_2));
+		GetObject().AddWall(MAT_SIDE, iStorey, L"Storey_%d_LeftWall", GetBox().LeftExtFrontLower(), GetBox().Depth(), GetBox().Height(), GetBox().LeftThickness(), Vector(F_PI_2));
 	if (GetBox().RightThickness() > 0)
-		GetObject().Wall(MAT_SIDE, iStorey, L"Storey_%d_RightWall", GetBox().RightExtRearLower(), GetBox().Depth(), GetBox().Height(), GetBox().RightThickness(), Vector(-F_PI_2));
+		GetObject().AddWall(MAT_SIDE, iStorey, L"Storey_%d_RightWall", GetBox().RightExtRearLower(), GetBox().Depth(), GetBox().Height(), GetBox().RightThickness(), Vector(-F_PI_2));
 }
 
 void CBuilding::STOREY::Deconstruct()
@@ -445,67 +542,79 @@ void CBuilding::SHAFT::Construct(AVLONG iStorey, AVULONG iShaft)
 
 	if (GetBoxBeam().Width() > 0)
 	{
-		GetObject(iStorey).Wall(MAT_SHAFT1, nIndex, L"Storey_%d_Shaft_%d_Beam", GetBoxBeam().LeftFrontLower(), GetBoxBeam().Width(), -GetBoxBeam().Height(), -GetBoxBeam().Depth());
-		GetObject(iStorey).Wall(MAT_SHAFT2, nIndex, L"Storey_%d_Shaft_%d_BmRr", GetBoxBeam().LeftRearLower(), GetBoxBeam().Width(), GetBox().Height(), -GetBox().RearThickness());
+		GetObject(iStorey).AddWall(MAT_BEAM, nIndex, L"Storey_%d_Shaft_%d_Beam", GetBoxBeam().LeftFrontLower(), GetBoxBeam().Width(), -GetBoxBeam().Height(), -GetBoxBeam().Depth());
+		GetObject(iStorey).AddWall(MAT_SHAFT, nIndex, L"Storey_%d_Shaft_%d_BmRr", GetBoxBeam().LeftRearLower(), GetBoxBeam().Width(), GetBox().Height(), -GetBox().RearThickness());
 	}
 
 	if (GetBox().LeftThickness() > 0)
-		GetObjectLeft(iStorey).Wall(MAT_SHAFT2, nIndex, L"Storey_%d_Shaft_%d_Lt", GetLeftWallBox(), Vector(F_PI_2));
+		GetObjectLeft(iStorey).AddWall(MAT_SHAFT, nIndex, L"Storey_%d_Shaft_%d_Lt", GetLeftWallBox(), Vector(F_PI_2));
 	if (GetBox().RightThickness() > 0)
-		GetObjectRight(iStorey).Wall(MAT_SHAFT2, nIndex, L"Storey_%d_Shaft_%d_Rt", GetRightWallBox(), Vector(F_PI_2));
+		GetObjectRight(iStorey).AddWall(MAT_SHAFT, nIndex, L"Storey_%d_Shaft_%d_Rt", GetRightWallBox(), Vector(F_PI_2));
 	if (GetBox().RearThickness() != 0)
-		GetObject(iStorey).Wall(MAT_SHAFT2, nIndex, L"Storey_%d_Shaft_%d_Rr", GetBox().LeftExtRearLower(), GetBox().WidthExt(), GetBox().Height(), -GetBox().RearThickness());
+		GetObject(iStorey).AddWall(MAT_SHAFT, nIndex, L"Storey_%d_Shaft_%d_Rr", GetBox().LeftExtRearLower(), GetBox().WidthExt(), GetBox().Height(), -GetBox().RearThickness());
 
 	// The Opening
 	AVFLOAT door[] = { opn, GetBoxDoor().Width(), GetBoxDoor().Height() };
-	GetObjectLobbySide(iStorey).Wall(MAT_OPENING, nIndex, L"Storey_%d_Shaft_%d_Opening", 
+	GetObjectLobbySide(iStorey).AddWall(MAT_OPENING, nIndex, L"Storey_%d_Shaft_%d_Opening", 
 		GetBoxDoor().LeftRearLower() + Vector(-opn, 0, 0), 
 		GetBoxDoor().Width() + opn + opn, GetBoxDoor().Height() + opn, fOpeningThickness,
 		Vector(0), 1, door);
 
 	// Plates
 	if (GetShaftLine() == 0)
-		GetObjectLobbySide(iStorey).Wall(MAT_LIFT_NUMBER_PLATE, MAKELONG(iShaft, iStorey), L"Shaft_%d_Storey_%d_Nameplate", 
+		GetObjectLobbySide(iStorey).AddWall(MAT_LIFT_NUMBER_PLATE, MAKELONG(iShaft, iStorey), L"Shaft_%d_Storey_%d_Nameplate", 
 			GetBoxDoor().CentreFrontUpper() + Vector(-5, 0, 15), 10, 10, 0.5, Vector(F_PI, 0, F_PI));
 	else
-		GetObjectLobbySide(iStorey).Wall(MAT_LIFT_NUMBER_PLATE, MAKELONG(iShaft, iStorey), L"Shaft_%d_Storey_%d_Nameplate", 
+		GetObjectLobbySide(iStorey).AddWall(MAT_LIFT_NUMBER_PLATE, MAKELONG(iShaft, iStorey), L"Shaft_%d_Storey_%d_Nameplate", 
 			GetBoxDoor().CentreFrontUpper() + Vector(5, 0, 15), 10, 10, 0.5, Vector(0, 0, F_PI));
 
 	// Door
-	GetObjectLobbySide(iStorey).Wall(MAT_DOOR, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Door_Left" , GetBoxDoor().LeftRearLower(), GetBoxDoor().Width()/2, GetBoxDoor().Height(), fDoorThickness, Vector(0), 0, NULL, &m_pStoreyBones[iStorey].pDoors[0]);
-	GetObjectLobbySide(iStorey).Wall(MAT_DOOR, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Door_Right", GetBoxDoor().RightRearUpper(), GetBoxDoor().Width()/2, GetBoxDoor().Height(), fDoorThickness, Vector(F_PI, F_PI), 0, NULL, &m_pStoreyBones[iStorey].pDoors[1]);
+	GetObjectLobbySide(iStorey).AddWall(MAT_DOOR, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Door_Left" , GetBoxDoor().LeftRearLower(), GetBoxDoor().Width()/2, GetBoxDoor().Height(), fDoorThickness, Vector(0), 0, NULL, &m_pStoreyBones[iStorey].pDoors[0]);
+	GetObjectLobbySide(iStorey).AddWall(MAT_DOOR, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Door_Right", GetBoxDoor().RightRearUpper(), GetBoxDoor().Width()/2, GetBoxDoor().Height(), fDoorThickness, Vector(F_PI, F_PI), 0, NULL, &m_pStoreyBones[iStorey].pDoors[1]);
 }
 
-void CBuilding::SHAFT::Construct(AVULONG iShaft)
+void CBuilding::SHAFT::Deconstruct()
 {
-	// The Lifts
+	if (m_pStoreyBones == NULL) return;
+	for (AVULONG i = 0; i < GetBuilding()->GetStoreyCount(); i++)
+	{
+		m_pStoreyBones[i].m_obj.Deconstruct();
+		m_pStoreyBones[i].m_objLobbySide.Deconstruct();
+		for (AVULONG j = 0; j < MAX_DOORS; j++)
+			if (m_pStoreyBones[i].pDoors[j]) m_pStoreyBones[i].pDoors[j]->Release();
+	}
+	delete [] m_pStoreyBones;
+}
 
+void CBuilding::LIFT::Construct(AVULONG iShaft)
+{
 	// Create skeletal elements (entire lift)
-	m_obj.Create(__name(L"Lift_%d", iShaft), GetLiftPos(0 /*+ iShaft % 4*/));
+	m_obj.Create(__name(L"Lift_%d", iShaft), GetShaft()->GetLiftPos(0 /*+ iShaft % 4*/));
 
-	for (AVULONG iDeck = 0; iDeck < GetDeckCount(); iDeck++)
+	for (AVULONG iDeck = 0; iDeck < GetShaft()->GetDeckCount(); iDeck++)
 	{
 		// Create skeletal elements (the deck)
 		m_pDecks[iDeck] = m_obj.AddBone(__name(L"Deck_%d", iDeck), 0, 0, GetBuilding()->GetGroundStorey(iDeck)->GetLevel() - GetBuilding()->GetGroundStorey()->GetLevel()); 
 
 		AVULONG nIndex = MAKELONG(iShaft, iDeck);
-		BOX box = GetBoxCar() - GetLiftPos(0);
-		BOX boxDoor0 = GetBoxCarDoor(0) - GetLiftPos(0);
+		BOX box = GetShaft()->GetBoxCar() - GetShaft()->GetLiftPos(0);
+		BOX boxDoor0 = GetShaft()->GetBoxCarDoor(0) - GetShaft()->GetLiftPos(0);
 		AVFLOAT door[] = { boxDoor0.Left() - box.LeftExt(), boxDoor0.Width(), boxDoor0.Height() };
 		AVFLOAT fDoorThickness0 = boxDoor0.Depth() * 0.4f;
 
-		m_obj.Wall(m_pDecks[iDeck], MAT_LIFT_FLOOR, iShaft, L"Lift_%d_Deck_%d_Floor", box.LeftExtRearExtLowerExt(), box.WidthExt(), box.LowerThickness(), box.DepthExt());
-		m_obj.Wall(m_pDecks[iDeck], MAT_LIFT_CEILING, iShaft, L"Lift_%d_Deck_%d_Ceiling", box.LeftExtRearExtUpper(), box.WidthExt(), box.LowerThickness(), box.DepthExt());
-		m_obj.Wall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_RearWall", box.RightExtRearLower(), box.WidthExt(), box.Height(), box.RearThickness(), Vector(F_PI));
-		m_obj.Wall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_LeftWall", box.LeftRearLower(), box.Depth(), box.Height(), box.LeftThickness(), Vector(-F_PI_2));
-		m_obj.Wall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_RightWall", box.RightFrontLower(), box.Depth(), box.Height(), box.RightThickness(), Vector(F_PI_2));
-		m_obj.Wall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_FrontWall", box.LeftExtFrontLower(), box.WidthExt(), box.Height(), box.FrontThickness(), Vector(0), 1, door);
-		m_obj.Wall(m_pDecks[iDeck], MAT_DOOR, iShaft, L"Lift_%d_Deck_%d_Door1", boxDoor0.LeftFrontLower(), boxDoor0.Width()/2, boxDoor0.Height(), -fDoorThickness0, Vector(0), 0, NULL, &m_pDoors[0]);
-		m_obj.Wall(m_pDecks[iDeck], MAT_DOOR, iShaft, L"Lift_%d_Deck_%d_Door2", boxDoor0.RightFrontUpper(), boxDoor0.Width()/2, boxDoor0.Height(), -fDoorThickness0, Vector(F_PI, F_PI), 0, NULL, &m_pDoors[1]);
+		if (iShaft > 1)
+		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT_FLOOR, iShaft, L"Lift_%d_Deck_%d_Floor", box.LeftExtRearExtLowerExt(), box.WidthExt(), box.LowerThickness(), box.DepthExt());
+		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT_CEILING, iShaft, L"Lift_%d_Deck_%d_Ceiling", box.LeftExtRearExtUpper(), box.WidthExt(), box.LowerThickness(), box.DepthExt());
+		m_obj.AddWall(m_pDecks[iDeck], MAT_FLOOR_NUMBER_PLATE, iShaft, L"Lift_%d_Deck_%d_RearWall", box.RightExtRearLower(), box.WidthExt(), box.Height(), box.RearThickness(), Vector(F_PI));
+		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_LeftWall", box.LeftRearLower(), box.Depth(), box.Height(), box.LeftThickness(), Vector(-F_PI_2));
+		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_RightWall", box.RightFrontLower(), box.Depth(), box.Height(), box.RightThickness(), Vector(F_PI_2));
+		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_FrontWall", box.LeftExtFrontLower(), box.WidthExt(), box.Height(), box.FrontThickness(), Vector(0), 1, door);
+		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT_DOOR, iShaft, L"Lift_%d_Deck_%d_Door1", boxDoor0.LeftFrontLower(), boxDoor0.Width()/2, boxDoor0.Height(), -fDoorThickness0, Vector(0), 0, NULL, &m_pDoors[0]);
+		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT_DOOR, iShaft, L"Lift_%d_Deck_%d_Door2", boxDoor0.RightFrontUpper(), boxDoor0.Width()/2, boxDoor0.Height(), -fDoorThickness0, Vector(F_PI, F_PI), 0, NULL, &m_pDoors[1]);
 	}
 }
 
-void CBuilding::SHAFT::Deconstruct()
+void CBuilding::LIFT::Deconstruct()
 {
 	m_obj.Deconstruct();
 
@@ -515,76 +624,48 @@ void CBuilding::SHAFT::Deconstruct()
 	for (AVULONG i = 0; i < MAX_DOORS; i++)
 		if (m_pDoors[i]) m_pDoors[i]->Release();
 	memset(m_pDoors, 0, sizeof(m_pDoors));
-
-	if (m_pStoreyBones)
-		for (AVULONG i = 0; i < GetBuilding()->GetStoreyCount(); i++)
-		{
-			m_pStoreyBones[i].m_obj.Deconstruct();
-			m_pStoreyBones[i].m_objLobbySide.Deconstruct();
-			for (AVULONG j = 0; j < MAX_DOORS; j++)
-				if (m_pStoreyBones[i].pDoors[j]) m_pStoreyBones[i].pDoors[j]->Release();
-		}
-	delete [] m_pStoreyBones;
 }
 
-void CBuilding::Construct(AVSTRING pLabel, AVVECTOR v)
+void CBuilding::Construct()
 {
 	ASSERT(GetRenderer() && GetScene());
 	if (!GetRenderer() || !GetScene()) return;
 
-	SetMaterial(CBuilding::MAT_FRONT, 0, 0.0f, 1.0f, 0.0f, 0.3f);	// transparency set
-	SetMaterial(CBuilding::MAT_REAR, 0,	0.0f, 1.0f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_SIDE, 0,	0.0f, 1.0f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_FRONT, 1, 1.0f, 0.0f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_REAR, 1,  1.0f, 0.0f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_SIDE, 1,  1.0f, 0.0f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_FRONT, 2, 1.0f, 1.0f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_REAR, 2,  1.0f, 1.0f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_SIDE, 2,  1.0f, 1.0f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_FRONT, 3, 0.0f, 1.0f, 1.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_REAR, 3,  0.0f, 1.0f, 1.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_SIDE, 3,  0.0f, 1.0f, 1.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_FRONT, 4, 1.0f, 0.7f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_REAR, 4,  1.0f, 0.7f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_SIDE, 4,  1.0f, 0.7f, 0.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_FRONT, 5, 0.8f, 0.0f, 1.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_REAR, 5,  0.8f, 0.0f, 1.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_SIDE, 5,  0.8f, 0.0f, 1.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_FRONT, 6, 1.0f, 1.0f, 0.6f, 0.3f);
-	SetMaterial(CBuilding::MAT_REAR, 6,  1.0f, 1.0f, 0.6f, 0.3f);
-	SetMaterial(CBuilding::MAT_SIDE, 6,  1.0f, 1.0f, 0.6f, 0.3f);
-	SetMaterial(CBuilding::MAT_FRONT, 7, 0.0f, 0.3f, 1.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_REAR, 7,  0.0f, 0.3f, 1.0f, 0.3f);
-	SetMaterial(CBuilding::MAT_SIDE, 7,  0.0f, 0.3f, 1.0f, 0.3f);
-//	SetMaterial(CBuilding::MAT_SIDE, _stdPathModels + L"yellobrk.jpg", 1.0f, 1.0f);
-	SetMaterial(CBuilding::MAT_SHAFT1, 0, 0.5f, 0.5f, 0.3f);
-	SetMaterial(CBuilding::MAT_SHAFT2, 0, 0.4f, 0.2f, 0.0f, 0.3f);	// 0.4f, 0.2f, 0.0f
-	SetMaterial(CBuilding::MAT_CEILING, 0, _stdPathModels + L"ceiling.jpg", 2.0f, 2.0f, 1.0f);
-	SetMaterial(CBuilding::MAT_FLOOR, 0, _stdPathModels + L"floor3.jpg", 1.0f, 1.0f, 1.0f);
-//	SetMaterial(CBuilding::MAT_DOOR, 0, _stdPathModels + L"metal1.jpg", 1.0f, 1.0f, 0.75f);
-//	SetMaterial, CBuilding::MAT_OPENING, 0, _stdPathModels + L"metal2.jpg", 1.0f, 1.0f, 0.8f);
-	SetMaterial(CBuilding::MAT_DOOR, 0,	0.4f, 0.3f, 0.3f, 0.5f);
-	SetMaterial(CBuilding::MAT_OPENING, 0, 0.6f, 0.6f, 0.6f, 0.3f);
+	m_materials.Set(MAT_BACKGROUND, RGB(80, 80, 80));
+	m_materials.Set(MAT_LOBBY_1, RGB(255, 0, 0), 0.3f);
+	m_materials.Set(MAT_LOBBY_2, RGB(255, 255, 0), 0.3f);
+	m_materials.Set(MAT_LOBBY_3, RGB(0, 255, 255), 0.3f);
+	m_materials.Set(MAT_LOBBY_4, RGB(255, 180, 0), 0.3f);
+	m_materials.Set(MAT_LOBBY_5, RGB(203, 0, 255), 0.3f);
+	m_materials.Set(MAT_LOBBY_6, RGB(255, 255, 154), 0.3f);
+	m_materials.Set(MAT_LOBBY_7, RGB(0, 76, 255), 0.3f);
+	m_materials.Set(MAT_LOBBY_0, RGB(0, 255, 0), 0.3f);
 
-	//SetMaterial(CBuilding::MAT_LIFT, 0, _stdPathModels + L"oak.jpg", 1.0f, 0.75f);
-	SetMaterial(CBuilding::MAT_LIFT, 0,	0.3f, 0.31f, 0.35f, 0.3f);
-	SetMaterial(CBuilding::MAT_LIFT_FLOOR, 0, _stdPathModels + L"marble.jpg", 3.0f, 3.0f);
-	SetMaterial(CBuilding::MAT_LIFT_CEILING, 0, _stdPathModels + L"metal3.jpg", 2.0f, 2.0f);
+	m_materials.Set(::MAT_FLOOR,		_stdPathModels + L"floor3.jpg",  1.0f, 1.0f, 1.0f);
+	m_materials.Set(::MAT_CEILING,		_stdPathModels + L"ceiling.jpg", 2.0f, 2.0f, 1.0f);
+	m_materials.Set(::MAT_DOOR,			RGB(102, 76, 76), 0.5f);
+	m_materials.Set(::MAT_LIFT_DOOR,	RGB(102, 76, 76), 0.5f);
+	m_materials.Set(::MAT_OPENING,		RGB(154, 154, 154), 0.3f);
+	m_materials.Set(::MAT_SHAFT,		RGB(102, 51, 0), 0.3f);
+	m_materials.Set(::MAT_BEAM,			RGB(128, 128, 76));
+	m_materials.Set(::MAT_LIFT,			RGB(76, 80, 90), 0.3f);
+	m_materials.Set(::MAT_LIFT_FLOOR,	_stdPathModels + L"marble.jpg", 3.0f, 3.0f);
+	m_materials.Set(::MAT_LIFT_CEILING,	_stdPathModels + L"metal3.jpg", 2.0f, 2.0f);
 
 	for (AVLONG i = -(AVLONG)GetBasementStoreyCount(); i < (AVLONG)(GetStoreyCount() - GetBasementStoreyCount()); i++)
 		SetMaterialFloorPlate(CBuilding::MAT_FLOOR_NUMBER_PLATE, (i+256)%256, i);
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
-		SetMaterialLiftPlate(CBuilding::MAT_LIFT_NUMBER_PLATE, i, i);	
-	
+		SetMaterialLiftPlate(CBuilding::MAT_LIFT_NUMBER_PLATE, i, i);
+
+	for (AVULONG iLift = 0; iLift < GetLiftCount(); iLift++)
+		GetLift(iLift)->Construct(iLift);
+
 	for (AVULONG iStorey = 0; iStorey < GetStoreyCount(); iStorey++)
 	{
 		GetStorey(iStorey)->Construct(iStorey);
 		for (AVULONG iShaft = 0; iShaft < GetShaftCount(); iShaft++)
 			GetShaft(iShaft)->Construct(iStorey, iShaft);
 	}
-
-	for (AVULONG iShaft = 0; iShaft < GetShaftCount(); iShaft++)
-		GetShaft(iShaft)->Construct(iShaft);
 }
 
 void CBuilding::Deconstruct()
