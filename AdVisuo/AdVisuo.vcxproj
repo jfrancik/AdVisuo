@@ -145,6 +145,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="OutputWnd.cpp" />
     <ClCompile Include="Passenger.cpp" />
+    <ClCompile Include="Script.cpp" />
     <ClCompile Include="Sim.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -176,6 +177,7 @@
     <ClInclude Include="OutputWnd.h" />
     <ClInclude Include="Passenger.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="Script.h" />
     <ClInclude Include="Sim.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="stdafx.h" />

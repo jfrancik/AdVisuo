@@ -1,4 +1,4 @@
-// Camera.h
+// Material.h
 
 #pragma once
 
@@ -12,7 +12,6 @@ enum MATERIALS
 	MAT_NUM
 };
 
-// camera locations
 struct MATERIAL
 {
 	AVULONG m_index;

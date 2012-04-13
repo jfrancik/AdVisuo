@@ -13,6 +13,7 @@
 #define IDR_MAINFRAME                   128
 #define IDR_MAINFRAME_256               129
 #define IDR_AdVisuoTYPE                 130
+#define ID_                             130
 #define ID_WINDOW_MANAGER               131
 #define IDS_WINDOWS_MANAGER             132
 #define ID_VIEW_OUTPUTWND               149
@@ -92,6 +93,8 @@
 #define IDD_ADV_MATERIALS               335
 #define IDS_DLGVIDEO_OPTION2            336
 #define IDS_DLGVIDEO_MESSAGE2           337
+#define IDD_ADV_SCRIPT                  337
+#define IDD_ADV_SCRIPT_PROPERTIES       338
 #define IDC_EDIT1                       1000
 #define IDC_EDIT2                       1001
 #define IDC_EDIT3                       1002
@@ -159,8 +162,14 @@
 #define IDC_EDIT_SYSTEM                 1075
 #define IDC_MFCCOLORBUTTON1             1075
 #define IDC_SLIDER1                     1076
-#define IDC_MFCBUTTON1                  1077
 #define IDC_BUTTON2                     1079
+#define IDC_LIST2                       1081
+#define IDC_ADD_EVENT                   1082
+#define IDC_REMOVE_EVENT                1083
+#define IDC_PLAY_EVENT                  1084
+#define IDC_PROPERTIES                  1085
+#define IDC_DATETIMEPICKER1             1086
+#define IDC_DATETIMEPICKER2             1087
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_CAMERA_LAYOUT                32771
 #define ID_LAYOUT_1                     32772
@@ -252,14 +261,18 @@
 #define ID_OTHER_REPORTBUG              32883
 #define ID_REPORT_BUG                   32884
 #define ID_VIEW_MATERIALS               32885
+#define ID_REC_SCRIPT                   32888
+#define ID_REC_RECORD                   32889
+#define ID_REC_PLAY                     32890
+#define ID_EDIT_SCRIPT                  32893
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        337
-#define _APS_NEXT_COMMAND_VALUE         32888
-#define _APS_NEXT_CONTROL_VALUE         1080
+#define _APS_NEXT_RESOURCE_VALUE        339
+#define _APS_NEXT_COMMAND_VALUE         32894
+#define _APS_NEXT_CONTROL_VALUE         1087
 #define _APS_NEXT_SYMED_VALUE           317
 #endif
 #endif

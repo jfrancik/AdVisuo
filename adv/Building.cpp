@@ -37,7 +37,7 @@ HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
 	sel = db.select(L"SELECT SCOPE_IDENTITY()");
 	SetId(sel[(short)0]);
 
-	// store lift data
+	// store shaft/lift data
 	for (ULONG i = 0; i < GetShaftCount(); i++)
 	{
 		CDataBase::INSERT ins;

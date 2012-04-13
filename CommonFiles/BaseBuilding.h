@@ -119,9 +119,6 @@ public:
 		bool InBox(AVVECTOR &pt)							{ return GetBox().InBoxExt(pt) || GetBox(BOX_DOOR).InBoxExt(pt) || GetBox(BOX_BEAM).InBoxExt(pt); }
 		// checks if x coordinate within the shaft or beam width
 		bool InWidth(AVFLOAT x)								{ return GetBox().InWidthExt(x) || GetBox(BOX_DOOR).InWidthExt(x) || GetBox(BOX_BEAM).InWidthExt(x); }
-		// checks if z coordiante within the height of the lift car, given the car position above 0
-		bool Within(AVFLOAT z, AVFLOAT nLiftZPos = 0)		{ return z >= nLiftZPos && z < nLiftZPos + m_boxCar.Height(); }
-
 
 		// Operations:
 		void ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall);
@@ -153,6 +150,16 @@ public:
 		void SetShaftId(AVULONG nShaftId)		{ m_nShaftId = nShaftId; }
 		SHAFT *GetShaft()						{ return m_pBuilding->GetShaft(GetShaftId() >= 0 ? GetShaftId() : 0); }
 		CBuildingBase *GetBuilding()			{ return m_pBuilding; }
+
+		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
+
+		// checks if pos is within the lift car bounds, given the lift position posLift
+		bool Within(AVVECTOR pos, AVVECTOR posLift)			
+		{
+			BOX box(posLift.x, posLift.y, posLift.z, GetShaft()->GetBoxCar().Width(), GetShaft()->GetBoxCar().Depth(), GetShaft()->GetBoxCar().Height());
+			return box.InWidth(pos.x) && box.InDepth(pos.y) && box.InHeight(pos.z);
+		}
+
 	};
 
 private:

@@ -40,12 +40,12 @@ BEGIN_MESSAGE_MAP(CAdVisuoView, CView)
 
 	ON_COMMAND_RANGE(ID_CAMERA, ID_STOREY_ONEDOWN, &CAdVisuoView::OnCamera)
 	ON_COMMAND_RANGE(ID_CAMERA_EXT_REAR, ID_CAMERA_EXT_SIDE, &CAdVisuoView::OnCamera)
-	ON_COMMAND_RANGE(ID_STOREY_MENU + 1000, ID_STOREY_MENU + 1200, &CAdVisuoView::OnCamera)
+	ON_COMMAND_RANGE(ID_STOREY_MENU + 1000, ID_STOREY_MENU + 1300, &CAdVisuoView::OnCamera)
 	ON_COMMAND_RANGE(ID_CAMERA_LIFT_MENU + 2000, ID_CAMERA_LIFT_MENU + 2200, &CAdVisuoView::OnCamera)
 
 	ON_UPDATE_COMMAND_UI_RANGE(ID_CAMERA, ID_STOREY_ONEDOWN, &CAdVisuoView::OnUpdateCamera)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_CAMERA_EXT_REAR, ID_CAMERA_EXT_SIDE, &CAdVisuoView::OnUpdateCamera)
-	ON_UPDATE_COMMAND_UI_RANGE(ID_STOREY_MENU + 1000, ID_STOREY_MENU + 1200, &CAdVisuoView::OnUpdateCamera)
+	ON_UPDATE_COMMAND_UI_RANGE(ID_STOREY_MENU + 1000, ID_STOREY_MENU + 1300, &CAdVisuoView::OnUpdateCamera)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_CAMERA_LIFT_MENU + 2000, ID_CAMERA_LIFT_MENU + 2200, &CAdVisuoView::OnUpdateCamera)
 
 	ON_UPDATE_COMMAND_UI(ID_STOREY_MENU, &CAdVisuoView::OnUpdateStoreyMenu)
@@ -99,13 +99,17 @@ BEGIN_MESSAGE_MAP(CAdVisuoView, CView)
 	ON_UPDATE_COMMAND_UI(ID_ACTION_SAVESTILL, &CAdVisuoView::OnUpdateActionSavestill)
 	ON_COMMAND(ID_VIEW_MATERIALS, &CAdVisuoView::OnViewMaterials)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_MATERIALS, &CAdVisuoView::OnUpdateViewMaterials)
+	ON_COMMAND(ID_REC_SCRIPT, &CAdVisuoView::OnRecScript)
+	ON_UPDATE_COMMAND_UI(ID_REC_SCRIPT, &CAdVisuoView::OnUpdateRecScript)
+	ON_COMMAND(ID_REC_RECORD, &CAdVisuoView::OnRecRecord)
+	ON_COMMAND(ID_REC_PLAY, &CAdVisuoView::OnRecPlay)
 END_MESSAGE_MAP()
 
 // CAdVisuoView construction/destruction
 
 DWORD CAdVisuoView::c_fpsNUM = 21;
 
-CAdVisuoView::CAdVisuoView() : m_screen(NULL, 2), m_plateCam(&m_sprite), m_hud(&m_sprite)
+CAdVisuoView::CAdVisuoView() : m_screen(NULL, 2), m_plateCam(&m_sprite), m_hud(&m_sprite), m_script(this)
 {
 	m_pFWDevice = NULL;
 	m_pRenderer = NULL;
@@ -619,7 +623,7 @@ void CAdVisuoView::EndFrame()
 
 	void CAdVisuoRenderer::RenderLifts(FWULONG nRow)
 	{
-		AVLONG iShaft = m_pCamera->GetLift(nRow);
+		AVLONG iShaft = m_pCamera->GetShaftPos(nRow);
 		iShaft = max((AVLONG)m_pBuilding->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)m_pBuilding->GetShaftBegin(nRow) + (AVLONG)m_pBuilding->GetShaftCount(nRow)));
 		for (FWLONG i = m_pBuilding->GetShaftBegin(nRow); i < iShaft; i++)
 			for (AVULONG j = m_pBuilding->GetShaft(i)->GetLiftBegin(); j < m_pBuilding->GetShaft(i)->GetLiftEnd(); j++)
@@ -635,7 +639,7 @@ void CAdVisuoView::EndFrame()
 	// Render Shafts
 	void CAdVisuoRenderer::RenderShafts(FWULONG nRow, FWULONG iStorey)
 	{
-		AVLONG iShaft = m_pCamera->GetLift(nRow);
+		AVLONG iShaft = m_pCamera->GetShaftPos(nRow);
 		iShaft = max((AVLONG)m_pBuilding->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)m_pBuilding->GetShaftBegin(nRow) + (AVLONG)m_pBuilding->GetShaftCount(nRow)));
 		for (FWLONG i = m_pBuilding->GetShaftBegin(nRow); i < iShaft; i++)
 		{
@@ -671,7 +675,7 @@ void CAdVisuoView::EndFrame()
 	// Render Shafts Lobby Side
 	void CAdVisuoRenderer::RenderShaftsLobbySide(FWULONG nRow, FWULONG iStorey)
 	{
-		AVLONG iShaft = m_pCamera->GetLift(nRow); 
+		AVLONG iShaft = m_pCamera->GetShaftPos(nRow); 
 		iShaft = max((AVLONG)m_pBuilding->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)m_pBuilding->GetShaftBegin(nRow) + (AVLONG)m_pBuilding->GetShaftCount(nRow)));
 		for (FWLONG i = m_pBuilding->GetShaftBegin(nRow); i < iShaft; i++)
 			m_pBuilding->GetShaftObjectLobbySide(iStorey, i).Render(m_pRenderer);
@@ -718,7 +722,7 @@ void CAdVisuoView::EndFrame()
 	void CAdVisuoRenderer::RenderSide(AVLONG nLiftRow)
 	{
 		if (nLiftRow < 0)
-			nLiftRow = m_pBuilding->GetShaft(m_pCamera->GetLift())->GetShaftLine();
+			nLiftRow = m_pBuilding->GetShaft(m_pCamera->GetShaft())->GetShaftLine();
 		RenderShafts(1-nLiftRow);
 		RenderLifts(1-nLiftRow);
 		RenderShaftsLobbySide(1-nLiftRow);
@@ -742,7 +746,7 @@ void CAdVisuoView::EndFrame()
 	void CAdVisuoRenderer::RenderSideOuter(AVLONG nLiftRow)
 	{
 		if (nLiftRow < 0)
-			nLiftRow = m_pBuilding->GetShaft(m_pCamera->GetLift())->GetShaftLine();
+			nLiftRow = m_pBuilding->GetShaft(m_pCamera->GetShaft())->GetShaftLine();
 		RenderLifts(1-nLiftRow);
 		RenderShafts(1-nLiftRow);
 		RenderShaftsLobbySide(1-nLiftRow);
@@ -1005,7 +1009,9 @@ bool CAdVisuoView::Proceed(FWULONG nMSec)
 
 bool CAdVisuoView::Proceed()
 {
-	return Proceed(GetPlayTime());
+	AVULONG nTime = GetPlayTime();
+	m_script.Proceed(nTime);
+	return Proceed(nTime);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1017,6 +1023,7 @@ void CAdVisuoView::Play()
 	PutAccel(1);
 	m_pRenderer->Play();
 	m_pRenderer->PutPlayTime(-GetDocument()->GetTimeLowerBound());
+	m_script.Play();
 }
 
 void CAdVisuoView::Rewind(FWULONG nMSec)
@@ -1311,7 +1318,7 @@ void CAdVisuoView::OnCamera(UINT nCmd)
 		AuxPlay(&pAction); 
 		if (pAction)
 		{
-			if (nCmd >= ID_STOREY_MENU + 1000 && nCmd < ID_STOREY_MENU + 1200)
+			if (nCmd >= ID_STOREY_MENU + 1000 && nCmd < ID_STOREY_MENU + 1300)
 				GetCurCamera()->AnimateToStorey(pAction, nCmd - ID_STOREY_MENU - 1000);
 			else if (nCmd >= ID_CAMERA_LIFT_MENU + 2000 && nCmd < ID_CAMERA_LIFT_MENU + 2200)
 				GetCurCamera()->AnimateToLift(pAction, nCmd - ID_CAMERA_LIFT_MENU - 2000, GetViewAspectRatio());
@@ -1392,7 +1399,7 @@ void CAdVisuoView::OnUpdateCamera(CCmdUI *pCmdUI)
 	CAMDESC desc;
 	GetCurCamera()->GetDescription(&desc);
 
-	if (pCmdUI->m_nID >= ID_STOREY + 1000 && pCmdUI->m_nID < ID_STOREY + 1200)
+	if (pCmdUI->m_nID >= ID_STOREY + 1000 && pCmdUI->m_nID < ID_STOREY + 1050)
 	{
 		pCmdUI->Enable(desc.camloc != CAMLOC_LIFT);
 		pCmdUI->SetCheck(pCmdUI->m_nID - ID_STOREY - 1000 == GetCurCamera()->GetStorey());
@@ -1411,7 +1418,7 @@ void CAdVisuoView::OnUpdateCamera(CCmdUI *pCmdUI)
 	case ID_CAMERA_LEFTFRONT:		pCmdUI->SetCheck(desc.camloc == CAMLOC_LOBBY && desc.index == 6); break;
 	case ID_CAMERA_LEFTSIDE:		pCmdUI->SetCheck(desc.camloc == CAMLOC_LOBBY && desc.index == 7); break;
 	case ID_CAMERA_LIFTRIGHT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() > 0);  break;
-	case ID_CAMERA_LIFTLEFT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() < (AVLONG)GetDocument()->GetBuilding()->GetShaftCount() - 1); break;
+	case ID_CAMERA_LIFTLEFT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() < (AVLONG)GetDocument()->GetBuilding()->GetLiftCount() - 1); break;
 	case ID_STOREY_ONEUP:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() < (AVLONG)GetDocument()->GetBuilding()->GetStoreyCount() - 1); break;
 	case ID_STOREY_ONEDOWN:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() > 0);break;
 
@@ -1459,6 +1466,12 @@ void CAdVisuoView::OnUpdateStoreyMenu(CCmdUI *pCmdUI)
 			m_pbutFloor = new CMFCRibbonButton(ID_STOREY_MENU + 1000 + i, pBuilding->GetStorey(i)->GetName().c_str());
 			m_pbutFloor->SetDefaultMenuLook();
 			pButton->AddSubItem(m_pbutFloor);
+
+			if ((AVLONG)i < (AVLONG)pBuilding->GetStoreyCount() - 10)
+			{
+				if (pBuilding->GetStoreyCount() > 60 && i > 30) i += 4;
+				if (pBuilding->GetStoreyCount() > 120 && i > 100) i += 5;
+			}
 		}
 	}
 }
@@ -1475,17 +1488,17 @@ void CAdVisuoView::OnUpdateCameraLiftMenu(CCmdUI *pCmdUI)
 		if (n && (*pSubItems)[n - 1] == m_pbutLift)
 			return;		// we already have this menu in place
 
-		// create the floors menu
+		// create the lifts menu
 		pButton->RemoveAllSubItems();
 		CBuilding *pBuilding = GetDocument()->GetBuilding();
-		for (AVULONG i = 0; i < pBuilding->GetShaftCount(); i++)
+		for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)
 		{
 			if (i == pBuilding->GetShaftCount(0))
 			{
 				m_pbutLift = new CMFCRibbonSeparator(TRUE);
 				pButton->AddSubItem(m_pbutLift);
 			}
-			m_pbutLift = new CMFCRibbonButton(ID_CAMERA_LIFT_MENU + 2000 + i, pBuilding->GetShaft(i)->GetName().c_str());
+			m_pbutLift = new CMFCRibbonButton(ID_CAMERA_LIFT_MENU + 2000 + i, pBuilding->GetLift(i)->GetName().c_str());
 			m_pbutLift->SetDefaultMenuLook();
 			pButton->AddSubItem(m_pbutLift);
 		}
@@ -1829,4 +1842,38 @@ void CAdVisuoView::OnViewMaterials()
 void CAdVisuoView::OnUpdateViewMaterials(CCmdUI *pCmdUI)
 {
 	pCmdUI->SetCheck(CDlgMaterials::c_dlg != NULL);
+}
+
+
+void CAdVisuoView::OnRecScript()
+{
+	if (CDlgScript::c_dlg == NULL)
+	{
+		CDlgScript *pDlg = new CDlgScript(&m_script);
+		pDlg->Create(CDlgScript::IDD);
+		pDlg->CenterWindow();
+		pDlg->ShowWindow(SW_SHOW);
+	}
+	else if (CDlgScript::c_dlg->IsWindowVisible())
+		CDlgScript::c_dlg->ShowWindow(SW_HIDE);
+	else
+		CDlgScript::c_dlg->ShowWindow(SW_SHOW);
+}
+
+
+void CAdVisuoView::OnUpdateRecScript(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(CDlgScript::c_dlg != NULL && CDlgScript::c_dlg->IsWindowVisible());
+}
+
+
+void CAdVisuoView::OnRecRecord()
+{
+	//m_script.Record();
+}
+
+
+void CAdVisuoView::OnRecPlay()
+{
+	//m_script.Play();
 }

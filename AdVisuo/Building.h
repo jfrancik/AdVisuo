@@ -192,7 +192,7 @@ public:
 	CBldObject &GetShaftObjectLeftOrRight(AVULONG nStorey, AVULONG nShaft, AVULONG n){ return GetShaft(nShaft)->GetObjectLeftOrRight(nStorey, n); }
 	BONE GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)		{ return GetShaft(nShaft)->GetDoor(nStorey, nDoor); }
 
-	AVFLOAT GetLiftZPos(int nLift);							// returns position of the lift above the ground
+	AVVECTOR GetLiftPos(int nLift);							// returns position of the lift
 
 	IRenderer *GetRenderer()								{ return m_pRenderer; }
 	IScene *GetScene()										{ return m_pScene; }

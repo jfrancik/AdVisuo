@@ -1,4 +1,4 @@
-// Camera.cpp
+// Material.cpp
 
 #include "StdAfx.h"
 #include "Material.h"

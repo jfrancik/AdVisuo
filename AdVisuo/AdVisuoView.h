@@ -22,6 +22,7 @@
 #include "Screen.h"
 #include "Sprite.h"
 #include "HUD.h"
+#include "Script.h"
 #include "Dialogs.h"
 
 #include <freewill.h>	// obligatory
@@ -83,6 +84,10 @@ class CAdVisuoView : public CView
 
 	// Screen Configuration Object
 	CScreen2x2 m_screen;
+
+	// Script
+	CScript m_script;
+	friend class CScriptEvent;
 
 	// Flags
 	bool m_bSelectOnWheel, m_bSelectOnMove;		// specify when focus is switched between viewports (always false at the moment)
@@ -265,6 +270,10 @@ public:
 	afx_msg void OnUpdateViewAspect(CCmdUI *pCmdUI);
 	afx_msg void OnViewMaterials();
 	afx_msg void OnUpdateViewMaterials(CCmdUI *pCmdUI);
+	afx_msg void OnRecScript();
+	afx_msg void OnUpdateRecScript(CCmdUI *pCmdUI);
+	afx_msg void OnRecRecord();
+	afx_msg void OnRecPlay();
 };
    
 
