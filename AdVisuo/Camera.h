@@ -15,7 +15,7 @@ interface ISceneCamera;
 // camera locations
 enum CAMLOC
 {
-	CAMLOC_LOBBY, CAMLOC_OVERHEAD, CAMLOC_LIFT, CAMLOC_SHAFT, CAMLOC_OUTSIDE, CAMLOC_BELOW, CAMLOC_ABOVE, CAMLOC_UNKNOWN
+	CAMLOC_LOBBY, CAMLOC_STOREY, CAMLOC_OVERHEAD, CAMLOC_LIFT, CAMLOC_SHAFT, CAMLOC_OUTSIDE, CAMLOC_BELOW, CAMLOC_ABOVE, CAMLOC_UNKNOWN
 };
 
 // camera description - for the external use
@@ -30,16 +30,21 @@ struct CAMDESC
 // specifies camera params - for positioning and animation (internal use)
 struct CAMPARAMS
 {
+	CAMLOC camloc;			// camera location
+	AVULONG nId;			// lift id for CAMLOC_LIFT, storey id otherwise
+	AVFLOAT fAspectRatio;	// aspect ratio
+
 	AVVECTOR eye;			// camera eye position
-	IKineNode *m_pEyeRef;	// camera eye reference object (used only for lifts) - WEAK REFERENCE (no AddRef/Release)
 	AVFLOAT fPan;			// camera pan angle
 	AVFLOAT fTilt;			// camera tilt angle
 	AVFLOAT fHFOV, fVFOV;	// fiels of view (zoom): horizontal and vertical angle
 	AVFLOAT fZoom;			// user-imposed zoom
-	AVFLOAT FOV()			{ return max(fHFOV, fVFOV) + fZoom; }
 	AVFLOAT fClipNear;		// clip near value
 	AVFLOAT fClipFar;		// clip far value
-	AVFLOAT fAspectRatio;	// aspect ratio
+
+	// Camera Eye-Reference object - Weak Reference (no need for Release)
+	IKineNode *EyeRef(CBuilding *pBuilding)		{ return camloc == CAMLOC_LIFT ? pBuilding->GetLiftBone(nId) : pBuilding->GetStoreyBone(nId); }
+	AVFLOAT FOV()								{ return max(fHFOV, fVFOV) + fZoom; }
 };
 
 class CCamera
@@ -97,43 +102,24 @@ public:
 	void GetCurPos(AVVECTOR &pos);
 	void GetCurLocalPos(AVVECTOR &pos);
 	
-	void GetCameraPos_Lobby(AVULONG nSetupId, AVFLOAT fAspect, CAMPARAMS &cp);
-	void GetCameraPos_Overhead(AVFLOAT fAspect, CAMPARAMS &cp);
-	void GetCameraPos_Lift(AVULONG nLiftId, AVFLOAT fAspect, CAMPARAMS &cp);
-	void GetCameraPos_Ext(AVULONG nPos, AVFLOAT fAspect, CAMPARAMS &cp);
-	void GetCameraPos_Storey(AVULONG nStorey, AVFLOAT &fZRelMove);
+	CAMPARAMS GetCameraParams();
+	CAMPARAMS GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLOAT fAspect);
 
 	bool Create();
 	bool Destroy();
 
 	// Camera Motions
 	void MoveTo(CAMPARAMS &cp);
-	void MoveTo()												{ MoveTo(m_cp); }
-	void MoveToLobby(AVULONG nSetupId, AVFLOAT fAspect);
-	void MoveToOverhead(AVFLOAT fAspect);
-	void MoveToLift(AVULONG nLiftId, AVFLOAT fAspect);
-	void MoveToLiftRel(AVLONG n, AVFLOAT fAspect)				{ if (m_nLift >= 0) MoveToLift(m_nLift + n, fAspect); }
-	void MoveToExt(AVULONG nPos, AVFLOAT fAspect);
-	void MoveToStorey(AVULONG nStorey);
-	void MoveToStoreyRel(AVLONG n)								{ if (m_nStorey >= 0) MoveToStorey(m_nStorey + n); }
+	void MoveTo(CAMLOC camloc, AVULONG nId, AVFLOAT fAspect = 1)		{ MoveTo(GetDefCameraParams(camloc, nId, fAspect)); }
 
-	void AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime = 1000);
-	void AnimateToLobby(IAction *pTickSource, AVULONG nSetupId, AVFLOAT fAspect);
-	void AnimateToOverhead(IAction *pTickSource, AVFLOAT fAspect);
-	void AnimateUndoOverhead(IAction *pTickSource, AVFLOAT fAspect);
-	void AnimateToLift(IAction *pTickSource, AVULONG nLiftId, AVFLOAT fAspect);
-	void AnimateToLiftRel(IAction *pTickSource, AVLONG n, AVFLOAT fAspect)	{ if (m_nLift >= 0) AnimateToLift(pTickSource, m_nLift + n, fAspect); }
-	void AnimateToExt(IAction *pTickSource, AVULONG nPos, AVFLOAT fAspect);
-	void AnimateToStorey(IAction *pTickSource, AVULONG nStorey);
-	void AnimateToStoreyRel(IAction *pTickSource, AVULONG n)				{ AnimateToStorey(pTickSource, m_nStorey + n); }
+	void AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime);
+	void AnimateTo(CAMLOC camloc, IAction *pTickSource, AVULONG nId, AVFLOAT fAspect = 1, AVULONG nTime = 1000)	{ AnimateTo(pTickSource, GetDefCameraParams(camloc, nId, fAspect), nTime); }
 
 	void Reset();
 	void Pan(AVFLOAT f);
 	void Tilt(AVFLOAT f);
 	void Zoom(AVFLOAT f);
 	void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z, IKineNode *pRef = NULL);
-
-	CAMPARAMS GetCameraParams();
 
 	// adjust the camera after aspect ratio change
 	void Adjust(AVFLOAT fAspect);

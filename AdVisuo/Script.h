@@ -18,13 +18,7 @@ class CScriptEvent
 	AVULONG m_nTimeFF;
 	CString m_desc;
 
-	struct
-	{
-		CAMPARAMS params;
-		CAMLOC camloc;
-		AVULONG nStorey;
-		AVULONG nLift;
-	} m_camera[N_CAMERAS];
+	CAMPARAMS m_camera[N_CAMERAS];
 
 public:
 	CScriptEvent(CAdVisuoView *pView) : m_pView(pView), m_nTime(0), m_nTimeAnim(0), m_nTimeFF(0) { } 

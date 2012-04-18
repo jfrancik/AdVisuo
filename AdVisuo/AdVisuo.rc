@@ -260,6 +260,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Full screen",                ID_VIEW_FULLSCREEN
         MENUITEM "Sc&ript...",                  ID_REC_SCRIPT
+        MENUITEM "Instant record",              ID_REC_RECORD
+        MENUITEM "Instanr play",                ID_REC_PLAY
     END
 END
 

@@ -93,6 +93,8 @@ private:
 	IRenderer *m_pRenderer;
 	IMaterial *m_pMaterials[MAT_RESERVED_LAST * MAT_TEXTURES_PER_ITEM];
 
+	bool bFastLoad;	// press Shift+Esc to stop building most of the building structures
+
 // XML Load / Store --- see xml.cpp for implementation
 public:
 	// XML-enabled sub-structures
@@ -111,6 +113,8 @@ public:
 			memset(m_pDoors, 0, sizeof(m_pDoors));
 		}
 		~LIFT()												{ }
+
+		CBuilding *GetBuilding()							{ return (CBuilding *)CBuildingBase::LIFT::GetBuilding(); }
 
 		CBldObject &GetObject()								{ return m_obj; }
 		BONE GetDeck(AVULONG nDeck)							{ return m_pDecks[nDeck]; }

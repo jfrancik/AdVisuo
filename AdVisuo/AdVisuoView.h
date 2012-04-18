@@ -87,6 +87,7 @@ class CAdVisuoView : public CView
 
 	// Script
 	CScript m_script;
+	CScriptEvent m_instRec;
 	friend class CScriptEvent;
 
 	// Flags

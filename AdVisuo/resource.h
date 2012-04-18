@@ -265,13 +265,14 @@
 #define ID_REC_RECORD                   32889
 #define ID_REC_PLAY                     32890
 #define ID_EDIT_SCRIPT                  32893
+#define ID_EDIT_INSTANTRECORD           32894
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        339
-#define _APS_NEXT_COMMAND_VALUE         32894
+#define _APS_NEXT_COMMAND_VALUE         32895
 #define _APS_NEXT_CONTROL_VALUE         1087
 #define _APS_NEXT_SYMED_VALUE           317
 #endif

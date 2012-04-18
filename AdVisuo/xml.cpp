@@ -100,7 +100,7 @@ void CSim::Load(xmltools::CXmlReader reader)
 	}
 
 	// Init lifts when known
-	if (m_phase == PHASE_SIM && pBuilding->GetLiftCount() == 0)
+	if (m_phase >= PHASE_STRUCT && pBuilding->GetLiftCount() == 0)
 	{
 		pBuilding->InitLifts();
 		for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)

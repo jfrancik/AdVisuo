@@ -30,17 +30,14 @@ void CScriptEvent::Record()
 {
 	m_desc = m_pView->GetCamera(0)->GetShortTextDescription();
 	SetTime(m_pView->GetPlayTime());
-	SetAnimTime(0);
+	SetAnimTime(1000);
 	SetFFTime(0);
 
-	for (AVULONG i = 0; i < 1; i++)
+	for (AVULONG i = 0; i < N_CAMERAS; i++)
 	{
 		CCamera *pCamera = m_pView->GetCamera(i);
 		pCamera->CheckLocation();
-		m_camera[i].camloc = pCamera->GetLoc();
-		m_camera[i].nStorey = pCamera->GetStorey();
-		m_camera[i].nLift = pCamera->GetLift();
-		m_camera[i].params = m_pView->GetCamera(i)->GetCameraParams();
+		m_camera[i] = m_pView->GetCamera(i)->GetCameraParams();
 	}
 }
 
@@ -48,23 +45,11 @@ void CScriptEvent::Play()
 {
 	IAction *pAction = NULL;
 	m_pView->AuxPlay(&pAction); 
-	for (AVULONG i = 0; i < 1; i++)
-	{
+	for (AVULONG i = 0; i < N_CAMERAS; i++)
 		if (GetAnimTime() == 0)
-		{
-			m_pView->GetCamera(i)->MoveTo(m_camera[i].params);
-			m_pView->GetCamera(i)->SetStorey(m_camera[i].nStorey, false);
-			if (m_camera[i].camloc == CAMLOC_LIFT)
-				m_pView->GetCamera(i)->SetLift(m_camera[i].nLift, true);
-			//if (m_camera[i].camloc != CAMLOC_LIFT)
-		}
+			m_pView->GetCamera(i)->MoveTo(m_camera[i]);
 		else
-		{
-			//m_pView->GetCamera(i)->SetStorey(m_camera[i].nStorey, false);
-			m_pView->GetCamera(i)->AnimateTo(pAction, m_camera[i].params, GetAnimTime());
-			//m_pView->GetCamera(i)->AnimateToStorey(pAction, m_camera[i].nStorey);
-		}
-	}
+			m_pView->GetCamera(i)->AnimateTo(pAction, m_camera[i], GetAnimTime());
 	pAction->Release();
 }
 

@@ -176,243 +176,264 @@ void CCamera::GetCurLocalPos(AVVECTOR &pos)
 	m_pBaseBone->GtoL((FWVECTOR*)&pos);
 }
 
+CAMPARAMS CCamera::GetCameraParams()
+{
+	CAMPARAMS cp;
+	memset(&cp, 0, sizeof(cp));
+
+	cp.camloc = m_camloc;
+	cp.nId = m_camloc == CAMLOC_LIFT ? GetLift() : GetStorey();
+
+	ITransform *pT = NULL;
+	m_pHandleBone->CreateCompatibleTransform(&pT);
+
+	FWVECTOR vecPan = { 0, 1, 0 };
+	m_pHandleBone->GetLocalTransform(pT);
+	pT->AsVector((FWVECTOR*)&cp.eye);
+	pT->ApplyRotationTo(&vecPan);
+	cp.fPan = atan2(vecPan.x, -vecPan.y);
+
+	FWVECTOR vecTilt = { 0, 1, 0 };
+	m_pCamera->GetLocalTransform(pT);
+	pT->ApplyRotationTo(&vecTilt);
+	cp.fTilt = atan2(vecTilt.z, vecTilt.y);
+
+	pT->Release();
+
+	AVFLOAT fov;
+	m_pCamera->GetPerspective(&fov, &cp.fClipNear, &cp.fClipFar, &cp.fAspectRatio);
+	cp.fHFOV = cp.fVFOV = fov;
+
+	return cp;
+}
+
 AVFLOAT hypotenuse(AVFLOAT a, AVFLOAT b)	{ return sqrt(a*a+b*b); }
 
-void CCamera::GetCameraPos_Lobby(AVULONG nSetupId, AVFLOAT fAspect, CAMPARAMS &cp)
+CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLOAT fAspect)
 {
-	if (nSetupId > 7) nSetupId = 0;
+	CAMPARAMS cp;
 
-	AVFLOAT nStoreyHeight = min(m_pBuilding->GetStorey(m_nStorey)->GetBox().Height(), 2 * m_nTripodHeight);
-	AVFLOAT fEyeHeight = min(nStoreyHeight - 20, m_nTripodHeight);
+	cp.fClipNear = 10;
+	cp.fClipFar = 10000;
+	cp.fZoom = 0;
 
-	// eye position
-	cp.m_pEyeRef = m_pBaseBone;
-	switch (nSetupId)
+	switch (camloc)
 	{
-	case 0: cp.eye = Vector(m_box.Left(), m_box.Front(), fEyeHeight); break;		// rear left
-	case 1: cp.eye = Vector(m_box.CenterX(), m_box.Front(), fEyeHeight); break;	// rear centre
-	case 2: cp.eye = Vector(m_box.Right(), m_box.Front(), fEyeHeight); break;	// rear right
-	case 3: cp.eye = Vector(m_box.Right(), m_box.CenterY(), fEyeHeight); break;	// right side
-	case 4: cp.eye = Vector(m_box.Right(), m_box.Rear(), fEyeHeight); break;	// front right
-	case 5: cp.eye = Vector(m_box.CenterX(), m_box.Rear(), fEyeHeight); break;	// front centre
-	case 6: cp.eye = Vector(m_box.Left(), m_box.Rear(), fEyeHeight); break;	// front left
-	case 7: cp.eye = Vector(m_box.Left(), m_box.CenterY(), fEyeHeight); break;	// left side
-	}
+	case CAMLOC_STOREY:
+		cp = GetCameraParams();
+		if (cp.camloc == CAMLOC_LIFT) break;	// cannot change floor while in lift!
+		cp.nId = nId;
 
-	AVFLOAT fTargetDist;								// distance to the point the camera is looking at
-	AVFLOAT nTargetHeight = m_nTripodHeight * 2 / 4;	// height of the point the camera is looking at
-	AVFLOAT fHalfwayDist;		// distance to the location used to setup FOV vertically, roughly halfway to the back of the room
-	AVFLOAT fRealFOV;			// real FOV
+		if (cp.eye.z <= m_nTripodHeight * 1.1)
+		{
+			// camera mounted on a tripod
+			if (cp.eye.z > GetBuilding()->GetStorey(nId)->GetHeight())
+				cp.eye.z = GetBuilding()->GetStorey(nId)->GetHeight();
+		}
+		else
+		{
+			// if camera mounted below the ceiling (above the standard tripod height)
+			cp.eye.z = GetBuilding()->GetStorey(nId)->GetHeight() - GetBuilding()->GetStorey(GetStorey())->GetHeight() + cp.eye.z;
 
-	switch (nSetupId)
-	{
-	case 0:
-	case 2:
-	case 4:
-	case 6:	// looking from the corners of the lobby
-		fTargetDist = hypotenuse(m_box.Depth(), m_box.Width()/2);
-		fHalfwayDist = hypotenuse(m_box.Depth()/2, m_box.Width()/2);
-		fRealFOV = (AVFLOAT)M_PI/2;
-		cp.fHFOV = 2 * atan(1.0f / fAspect);
-		break;
-	case 1:
-	case 5:	// looking from the front or rear
-		fTargetDist = m_box.Depth();
-		fHalfwayDist = fTargetDist * 0.5f;
-		fRealFOV = 2*atan2(m_box.Width()/2, m_box.Depth());
-		cp.fHFOV = 2*atan2(m_box.Width()/2/fAspect, m_box.Depth());
-		break;
-	case 3:
-	case 7:	// looking from the sides
-		fTargetDist = m_box.Width();
-		fHalfwayDist = fTargetDist * 0.3f;
-		fRealFOV = (AVFLOAT)M_PI/2;
-		cp.fHFOV = 2 * atan(1.0f / fAspect);
-		break;
-	}
-
-	cp.fVFOV = 2 * atan2(nStoreyHeight / 2, fHalfwayDist);
-	cp.fTilt = -atan2(fEyeHeight - nTargetHeight, fTargetDist);
-
-	switch (nSetupId)
-	{
-	case 0: cp.fPan = (AVFLOAT)M_PI - fRealFOV / 2; break;	// rear left
-	case 1: cp.fPan = (AVFLOAT)M_PI; break;					// rear centre
-	case 2: cp.fPan = (AVFLOAT)M_PI + fRealFOV / 2; break;	// rear right
-	case 3: cp.fPan = -(AVFLOAT)M_PI/2; break;				// right side
-	case 4: cp.fPan = -fRealFOV / 2; break;					// front right
-	case 5: cp.fPan = 0; break;								// front centre
-	case 6: cp.fPan = fRealFOV / 2; break;					// front left
-	case 7: cp.fPan = (AVFLOAT)M_PI/2; break;				// left side
-	}
+			if (cp.eye.z > GetBuilding()->GetStorey(nId)->GetHeight())
+				cp.eye.z = GetBuilding()->GetStorey(nId)->GetHeight();
+			if (cp.eye.z < m_nTripodHeight)
+				cp.eye.z = m_nTripodHeight;
+		}
 		
-	cp.fClipNear = 10;
-	cp.fClipFar = 10000;
-	cp.fAspectRatio = fAspect;
-	cp.fZoom = 0;
-}
+		break;
 
-void CCamera::GetCameraPos_Overhead(AVFLOAT fAspect, CAMPARAMS &cp)
-{
-	// top centre
-	cp.fPan = 0;
-	cp.fTilt = -(AVFLOAT)M_PI / 2;
-	cp.fHFOV = (AVFLOAT)(M_PI) / 4;
-	cp.fVFOV = 0;
-	AVFLOAT fEyeHeight1 = 1.25f * m_box.Depth() / 2 / tan(cp.fHFOV/2);
-	AVFLOAT fEyeHeight2 = 1.10f * m_box.Width() / fAspect / 2 / tan(cp.fHFOV/2);
-	AVFLOAT fEyeHeight = max(fEyeHeight1, fEyeHeight2);
-	cp.m_pEyeRef = m_pBaseBone;
-	cp.eye = Vector(m_box.CenterX(), m_box.CenterY(), fEyeHeight);
-	AVFLOAT nStoreyHeight = m_pBuilding->GetStorey(m_nStorey)->GetBox().Height();
-	cp.fClipNear = fEyeHeight - nStoreyHeight + 20;
-	if (cp.fClipNear < 10) cp.fClipNear = 10;
-	cp.fClipFar = 10000;
-	cp.fAspectRatio = fAspect;
-	cp.fZoom = 0;
-}
-
-
-void CCamera::GetCameraPos_Lift(AVULONG nLiftId, AVFLOAT fAspect, CAMPARAMS &cp)
-{
-	BOX box = m_pBuilding->GetLift(nLiftId)->GetShaft()->GetBoxCar();
-	AVFLOAT nCarHeight = box.Height();
-	AVFLOAT fEyeHeight = min(nCarHeight - 20, m_nTripodHeight);
-	AVFLOAT fTargetDist = box.Depth();					// distance to the point the camera is looking at
-	AVFLOAT nTargetHeight = m_nTripodHeight * 2 / 4;	// height of the point the camera is looking at
-
-	AVFLOAT fLine = (m_pBuilding->GetLift(nLiftId)->GetShaft()->GetShaftLine() == 0) ? 1.0f : -1.0f;
-	
-	cp.m_pEyeRef = m_pBaseBone;
-	cp.eye = Vector(box.Width()/2, box.Depth()+fLine*10, fEyeHeight);
-	cp.fHFOV = 0;
-	cp.fVFOV = (AVFLOAT)M_PI / 2;
-	cp.fTilt = -atan2(fEyeHeight - nTargetHeight, abs(fTargetDist));
-	cp.fPan = (fLine > 0) ? (AVFLOAT)M_PI : 0;
-
-	cp.fClipNear = 10;
-	cp.fClipFar = 10000;
-	cp.fAspectRatio = fAspect;
-	cp.fZoom = 0;
-}
-
-void CCamera::GetCameraPos_Ext(AVULONG nPos, AVFLOAT fAspect, CAMPARAMS &cp)
-{
-	BOX lbox = m_pBuilding->GetShaft(0)->GetBoxCar();
-
-	AVFLOAT yFront = (m_pBuilding->GetShaftLinesCount() == 1) ? m_box.Rear() : m_pBuilding->GetShaft(m_pBuilding->GetShaftCount(0))->GetBox().RearExt();
-	AVFLOAT yRear  = m_pBuilding->GetShaft(0)->GetBox().RearExt();
-	AVFLOAT nHeight = m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->GetLevel() + m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->GetHeight();
-
-	cp.m_pEyeRef = m_pBaseBone;
-	switch (nPos)
+	case CAMLOC_LOBBY:
 	{
-	case 0: 
-		cp.eye = Vector(0, yFront + nHeight, nHeight/2);
-		cp.fPan = 0;
-		break;
-	case 1: 
-		cp.eye = Vector(0, yRear - nHeight, nHeight/2);
-		cp.fPan = (FLOAT)M_PI;
-		break;
-	case 2: 
-		cp.eye = Vector(m_box.Left() - nHeight, 0, nHeight/2);
-		cp.fPan = (FLOAT)(M_PI/2);
-		break;
-	case 3: 
-		cp.eye = Vector(m_box.Right() + nHeight, 0, nHeight/2);
-		cp.fPan = -(FLOAT)(M_PI/2);;
+		cp.camloc = camloc;
+		cp.nId = GetStorey();
+		cp.fAspectRatio = fAspect;
+
+		if (nId > 7) nId = 0;
+
+		AVFLOAT nStoreyHeight = min(m_pBuilding->GetStorey(GetStorey())->GetBox().Height(), 2 * m_nTripodHeight);
+		AVFLOAT fEyeHeight = min(nStoreyHeight - 20, m_nTripodHeight);
+
+		// eye position
+		switch (nId)
+		{
+		case 0: cp.eye = Vector(m_box.Left(), m_box.Front(), fEyeHeight); break;		// rear left
+		case 1: cp.eye = Vector(m_box.CenterX(), m_box.Front(), fEyeHeight); break;	// rear centre
+		case 2: cp.eye = Vector(m_box.Right(), m_box.Front(), fEyeHeight); break;	// rear right
+		case 3: cp.eye = Vector(m_box.Right(), m_box.CenterY(), fEyeHeight); break;	// right side
+		case 4: cp.eye = Vector(m_box.Right(), m_box.Rear(), fEyeHeight); break;	// front right
+		case 5: cp.eye = Vector(m_box.CenterX(), m_box.Rear(), fEyeHeight); break;	// front centre
+		case 6: cp.eye = Vector(m_box.Left(), m_box.Rear(), fEyeHeight); break;	// front left
+		case 7: cp.eye = Vector(m_box.Left(), m_box.CenterY(), fEyeHeight); break;	// left side
+		}
+
+		AVFLOAT fTargetDist;								// distance to the point the camera is looking at
+		AVFLOAT nTargetHeight = m_nTripodHeight * 2 / 4;	// height of the point the camera is looking at
+		AVFLOAT fHalfwayDist;		// distance to the location used to setup FOV vertically, roughly halfway to the back of the room
+		AVFLOAT fRealFOV;			// real FOV
+
+		switch (nId)
+		{
+		case 0:
+		case 2:
+		case 4:
+		case 6:	// looking from the corners of the lobby
+			fTargetDist = hypotenuse(m_box.Depth(), m_box.Width()/2);
+			fHalfwayDist = hypotenuse(m_box.Depth()/2, m_box.Width()/2);
+			fRealFOV = (AVFLOAT)M_PI/2;
+			cp.fHFOV = 2 * atan(1.0f / fAspect);
+			break;
+		case 1:
+		case 5:	// looking from the front or rear
+			fTargetDist = m_box.Depth();
+			fHalfwayDist = fTargetDist * 0.5f;
+			fRealFOV = 2*atan2(m_box.Width()/2, m_box.Depth());
+			cp.fHFOV = 2*atan2(m_box.Width()/2/fAspect, m_box.Depth());
+			break;
+		case 3:
+		case 7:	// looking from the sides
+			fTargetDist = m_box.Width();
+			fHalfwayDist = fTargetDist * 0.3f;
+			fRealFOV = (AVFLOAT)M_PI/2;
+			cp.fHFOV = 2 * atan(1.0f / fAspect);
+			break;
+		}
+
+		cp.fVFOV = 2 * atan2(nStoreyHeight / 2, fHalfwayDist);
+		cp.fTilt = -atan2(fEyeHeight - nTargetHeight, fTargetDist);
+
+		switch (nId)
+		{
+		case 0: cp.fPan = (AVFLOAT)M_PI - fRealFOV / 2; break;	// rear left
+		case 1: cp.fPan = (AVFLOAT)M_PI; break;					// rear centre
+		case 2: cp.fPan = (AVFLOAT)M_PI + fRealFOV / 2; break;	// rear right
+		case 3: cp.fPan = -(AVFLOAT)M_PI/2; break;				// right side
+		case 4: cp.fPan = -fRealFOV / 2; break;					// front right
+		case 5: cp.fPan = 0; break;								// front centre
+		case 6: cp.fPan = fRealFOV / 2; break;					// front left
+		case 7: cp.fPan = (AVFLOAT)M_PI/2; break;				// left side
+		}
+		
 		break;
 	}
+	case CAMLOC_OVERHEAD:
+	{
+		cp.camloc = camloc;
+		cp.nId = GetStorey();
+		cp.fAspectRatio = fAspect;
 
-	cp.fHFOV = 0;
-	cp.fVFOV = 0.98f;
-	cp.fTilt = 0;
+		// top centre
+		cp.fPan = 0;
+		cp.fTilt = -(AVFLOAT)M_PI / 2;
+		cp.fHFOV = (AVFLOAT)(M_PI) / 4;
+		cp.fVFOV = 0;
+		AVFLOAT fEyeHeight1 = 1.25f * m_box.Depth() / 2 / tan(cp.fHFOV/2);
+		AVFLOAT fEyeHeight2 = 1.10f * m_box.Width() / fAspect / 2 / tan(cp.fHFOV/2);
+		AVFLOAT fEyeHeight = max(fEyeHeight1, fEyeHeight2);
+		cp.eye = Vector(m_box.CenterX(), m_box.CenterY(), fEyeHeight);
+		AVFLOAT nStoreyHeight = m_pBuilding->GetStorey(GetStorey())->GetBox().Height();
+		cp.fClipNear = fEyeHeight - nStoreyHeight + 20;
+		if (cp.fClipNear < 10) cp.fClipNear = 10;
 
-	cp.fClipNear = 10;
-	cp.fClipFar = 10000;
-	cp.fAspectRatio = fAspect;
-	cp.fZoom = 0;
-}
+		break;
+	}
+	case CAMLOC_LIFT:
+	{
+		cp.camloc = camloc;
+		cp.nId = nId;
+		cp.fAspectRatio = fAspect;
 
-void CCamera::GetCameraPos_Storey(AVULONG nStorey, AVFLOAT &fZRelMove)
-{
-	CBuilding::STOREY *pStorey = GetBuilding()->GetStorey(m_nStorey);
+		cp.camloc = camloc;
+		cp.nId = nId;
 
-	AVVECTOR pos;
-	GetCurLocalPos(pos);
-	bool bOnTripod = pos.z <= m_nTripodHeight;
-	AVFLOAT h = bOnTripod ? pos.z : pStorey->GetHeight() - pos.z;
+		BOX box = m_pBuilding->GetLift(nId)->GetShaft()->GetBoxCar();
+		AVFLOAT nCarHeight = box.Height();
+		AVFLOAT fEyeHeight = min(nCarHeight - 20, m_nTripodHeight);
+		AVFLOAT fTargetDist = box.Depth();					// distance to the point the camera is looking at
+		AVFLOAT nTargetHeight = m_nTripodHeight * 2 / 4;	// height of the point the camera is looking at
 
-	fZRelMove = -pos.z - pStorey->GetLevel();
+		AVFLOAT fLine = (m_pBuilding->GetLift(nId)->GetShaft()->GetShaftLine() == 0) ? 1.0f : -1.0f;
+	
+		cp.eye = Vector(box.Width()/2, box.Depth()+fLine*10, fEyeHeight);
+		cp.fHFOV = 0;
+		cp.fVFOV = (AVFLOAT)M_PI / 2;
+		cp.fTilt = -atan2(fEyeHeight - nTargetHeight, abs(fTargetDist));
+		cp.fPan = (fLine > 0) ? (AVFLOAT)M_PI : 0;
 
-	pStorey = GetBuilding()->GetStorey(nStorey);
-	if (!bOnTripod) h = max(pStorey->GetHeight() - h, m_nTripodHeight);
+		break;
+	}
+	case CAMLOC_OUTSIDE:
+	{
+		cp.camloc = camloc;
+		cp.nId = 0;
+		cp.fAspectRatio = fAspect;
 
-	fZRelMove += pStorey->GetLevel() + h;
+		BOX lbox = m_pBuilding->GetShaft(0)->GetBoxCar();
+
+		AVFLOAT yFront = (m_pBuilding->GetShaftLinesCount() == 1) ? m_box.Rear() : m_pBuilding->GetShaft(m_pBuilding->GetShaftCount(0))->GetBox().RearExt();
+		AVFLOAT yRear  = m_pBuilding->GetShaft(0)->GetBox().RearExt();
+		AVFLOAT nHeight = m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->GetLevel() + m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->GetHeight();
+
+		switch (nId)
+		{
+		case 0: 
+			cp.eye = Vector(0, yFront + nHeight, nHeight/2);
+			cp.fPan = 0;
+			break;
+		case 1: 
+			cp.eye = Vector(0, yRear - nHeight, nHeight/2);
+			cp.fPan = (FLOAT)M_PI;
+			break;
+		case 2: 
+			cp.eye = Vector(m_box.Left() - nHeight, 0, nHeight/2);
+			cp.fPan = (FLOAT)(M_PI/2);
+			break;
+		case 3: 
+			cp.eye = Vector(m_box.Right() + nHeight, 0, nHeight/2);
+			cp.fPan = -(FLOAT)(M_PI/2);;
+			break;
+		}
+
+		cp.fHFOV = 0;
+		cp.fVFOV = 0.98f;
+		cp.fTilt = 0;
+
+		cp.fClipNear = 25;
+		cp.fClipFar = 50000;
+
+		break;
+	}
+	
+	case CAMLOC_SHAFT:
+	case CAMLOC_BELOW:
+	case CAMLOC_ABOVE:
+	case CAMLOC_UNKNOWN:
+	default:
+		ASSERT(FALSE);
+		break;
+	}
+	return cp;
 }
 
 void CCamera::MoveTo(CAMPARAMS &cp)
 {
+	if (m_camloc == CAMLOC_LIFT)
+		SetStorey(m_nLiftStorey);
+	if (cp.camloc == CAMLOC_LIFT)
+		SetLift(cp.nId);
+	else
+		SetStorey(cp.nId);
+
+	m_camloc = cp.camloc;
+	m_cp = cp;
+
 	Reset();
-	Move(cp.eye.x, cp.eye.y, cp.eye.z, cp.m_pEyeRef);
+	Move(cp.eye.x, cp.eye.y, cp.eye.z, cp.EyeRef(GetBuilding()));
 	Pan((AVFLOAT)M_PI + cp.fPan);
 	Tilt(cp.fTilt);
 	m_pCamera->PutPerspective(cp.FOV(), cp.fClipNear, cp.fClipFar, 0);
-}
 
-void CCamera::MoveToLobby(AVULONG nSetupId, AVFLOAT fAspect)
-{
-	if (m_camloc == CAMLOC_LIFT) 
-		SetStorey(m_nLiftStorey);
-
-	GetCameraPos_Lobby(nSetupId, fAspect, m_cp);
-	m_camloc = CAMLOC_LOBBY;
-
-	MoveTo(m_cp);
 	m_bMoved = m_bRotated = m_bZoomed = false;
-}
-
-void CCamera::MoveToOverhead(AVFLOAT fAspect)
-{
-	if (m_camloc == CAMLOC_LIFT) 
-		SetStorey(m_nLiftStorey);
-
-	GetCameraPos_Overhead(fAspect, m_cp);
-	m_camloc = CAMLOC_OVERHEAD;
-
-	MoveTo(m_cp);
-	m_bMoved = m_bRotated = m_bZoomed = false;
-}
-
-void CCamera::MoveToLift(AVULONG nLiftId, AVFLOAT fAspect)
-{
-	SetLift(nLiftId);
-
-	GetCameraPos_Lift(nLiftId, fAspect, m_cp);
-	m_camloc = CAMLOC_LIFT;
-
-	MoveTo(m_cp);
-	m_bMoved = m_bRotated = m_bZoomed = false;
-}
-
-void CCamera::MoveToExt(AVULONG nPos, AVFLOAT fAspect)
-{
-	SetStorey(0);
-
-	GetCameraPos_Ext(nPos, fAspect, m_cp);
-	m_camloc = CAMLOC_OUTSIDE;
-
-	MoveTo(m_cp);
-	m_bMoved = m_bRotated = m_bZoomed = false;
-}
-
-void CCamera::MoveToStorey(AVULONG nStorey)
-{
-	AVFLOAT z;
-	GetCameraPos_Storey(nStorey, z);
-	SetStorey(nStorey);
-	Move(0, 0, z);
 }
 
 	int _callback_fun(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, CCamera *pCamera)
@@ -436,9 +457,25 @@ void CCamera::MoveToStorey(AVULONG nStorey)
 
 void CCamera::AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime)
 {
+	if (m_camloc == CAMLOC_LIFT)
+		SetStorey(m_nLiftStorey);
+	if (cp.camloc == CAMLOC_LIFT)
+		SetLift(cp.nId);
+	else
+		SetStorey(cp.nId);
+
+	m_camloc = cp.camloc;
+	m_cp = cp;
+
 	IAction *pAction;
 
-	pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, nTime * 6 / 10, GetHandle(), *(FWVECTOR*)&cp.eye, cp.m_pEyeRef);
+	if (cp.camloc == CAMLOC_OVERHEAD) 
+	{
+		AVVECTOR eye1 = { cp.eye.x, cp.eye.y, m_pBuilding->GetStorey(cp.nId)->GetLevel() + m_pBuilding->GetStorey(cp.nId)->GetBox().Height() };
+		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, nTime * 6 / 10, GetHandle(), *(FWVECTOR*)&eye1, NULL);
+	}
+	else
+		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, nTime * 6 / 10, GetHandle(), *(FWVECTOR*)&cp.eye, cp.EyeRef(GetBuilding()));
 	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
 
 	ITransform *pT = NULL;
@@ -452,6 +489,20 @@ void CCamera::AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime)
 	pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"RotateTo", pTickSource, nTime/2, nTime/2, m_pCamera, pT, NOBONE);
 	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
 
+	if (cp.camloc == CAMLOC_OVERHEAD) 
+	{
+		// second stage: move up, change the fClipNear
+		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, nTime, nTime, GetHandle(), *(FWVECTOR*)&cp.eye, cp.EyeRef(GetBuilding()));
+		m_pCamera->GetPerspective(&m_fFOV, &m_fClipNear, NULL, NULL); 
+		pAction->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback_fun_oh, 0, this);
+		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
+
+		// third step: adjust zoom
+		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"Generic", pTickSource, pAction, nTime/2);
+		pAction->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback_fun, 0, this);
+		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
+	}
+	else
 	if (cp.FOV())
 	{
 		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"Generic", pTickSource, nTime, nTime/2, m_pCamera, pT, GetHandle());
@@ -462,118 +513,8 @@ void CCamera::AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime)
 	}
 	
 	pT->Release();
-}
 
-void CCamera::AnimateToLobby(IAction *pTickSource, AVULONG nSetupId, AVFLOAT fAspect)
-{
-	if (m_camloc == CAMLOC_LIFT) 
-		SetStorey(m_nLiftStorey);
-
-	if (m_camloc == CAMLOC_OVERHEAD)
-		AnimateUndoOverhead(pTickSource, fAspect);
-
-	GetCameraPos_Lobby(nSetupId, fAspect, m_cp);
-	m_camloc = CAMLOC_LOBBY;
-
-	AnimateTo(pTickSource, m_cp);
 	m_bMoved = m_bRotated = m_bZoomed = false;
-}
-
-void CCamera::AnimateToOverhead(IAction *pTickSource, AVFLOAT fAspect)
-{
-	if (m_camloc == CAMLOC_LIFT) 
-		SetStorey(m_nLiftStorey);
-
-	GetCameraPos_Overhead(fAspect, m_cp);
-
-	if (m_camloc == CAMLOC_OVERHEAD) 
-	{
-		AnimateTo(pTickSource, m_cp);
-		m_bMoved = m_bRotated = m_bZoomed = false;
-	}
-	else
-	{
-		m_camloc = CAMLOC_OVERHEAD;
-
-		IAction *pAction = NULL;
-
-		// first stage - move under the ceiling and move down
-		AVVECTOR eye1 = { m_cp.eye.x, m_cp.eye.y, m_pBuilding->GetStorey(m_nStorey)->GetLevel() + m_pBuilding->GetStorey(m_nStorey)->GetBox().Height() };
-
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, 600, GetHandle(), *(FWVECTOR*)&eye1, NULL);
-		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
-
-		ITransform *pT = NULL;
-		GetHandle()->CreateCompatibleTransform(&pT);
-
-		pT->FromRotationZ((AVFLOAT)M_PI + m_cp.fPan);
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"RotateTo", pTickSource, 0, 1000, GetHandle(), pT, NOBONE);
-		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
-
-		pT->FromRotationX(m_cp.fTilt);
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"RotateTo", pTickSource, 500, 500, m_pCamera, pT, NOBONE);
-		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
-
-		pT->Release();
-
-		// second stage: move up, change the fClipNear
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 1000, 1000, GetHandle(), *(FWVECTOR*)&m_cp.eye, m_cp.m_pEyeRef);
-		m_pCamera->GetPerspective(&m_fFOV, &m_fClipNear, NULL, NULL); 
-		pAction->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback_fun_oh, 0, this);
-		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
-
-		// third step: adjust zoom
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"Generic", pTickSource, pAction, 500);
-		pAction->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback_fun, 0, this);
-		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
-
-		m_bMoved = m_bRotated = m_bZoomed = false;
-	}
-}
-
-void CCamera::AnimateUndoOverhead(IAction *pTickSource, AVFLOAT fAspect)
-{
-}
-
-void CCamera::AnimateToLift(IAction *pTickSource, AVULONG nLiftId, AVFLOAT fAspect)
-{
-	SetLift(nLiftId);
-
-	if (m_camloc == CAMLOC_OVERHEAD)
-		AnimateUndoOverhead(pTickSource, fAspect);
-
-	GetCameraPos_Lift(nLiftId, fAspect, m_cp);
-	m_camloc = CAMLOC_LIFT;
-
-//	AVVECTOR eye1 = m_cp.eye;
-//	m_pBaseBone->LtoG((FWVECTOR*)&eye1);
-//	m_cp.eye.z = eye1.z;
-
-	AnimateTo(pTickSource, m_cp);
-	m_bMoved = m_bRotated = m_bZoomed = false;
-}
-
-void CCamera::AnimateToExt(IAction *pTickSource, AVULONG nPos, AVFLOAT fAspect)
-{
-	SetStorey(0);
-
-	if (m_camloc == CAMLOC_OVERHEAD)
-		AnimateUndoOverhead(pTickSource, fAspect);
-
-	GetCameraPos_Ext(nPos, fAspect, m_cp);
-
-	AnimateTo(pTickSource, m_cp);
-	m_bMoved = m_bRotated = m_bZoomed = false;
-}
-
-void CCamera::AnimateToStorey(IAction *pTickSource, AVULONG nStorey)
-{
-	AVFLOAT z;
-	GetCameraPos_Storey(nStorey, z);
-	SetStorey(nStorey);
-
-	IAction *pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"Move", pTickSource, 0, 1000, GetHandle(), 0, 0, z );
-	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
 }
 
 void CCamera::Reset()
@@ -634,36 +575,6 @@ void CCamera::Zoom(AVFLOAT f)
 	//m_pCamera->GetPerspective(&fFOV, &fNear, &fFar, &fAspect);
 	//fFOV -= f;
 	//m_pCamera->PutPerspective(fFOV, fNear, fFar, fAspect);
-}
-
-CAMPARAMS CCamera::GetCameraParams()
-{
-	CAMPARAMS cp;
-	memset(&cp, 0, sizeof(cp));
-
-	ITransform *pT = NULL;
-	m_pHandleBone->CreateCompatibleTransform(&pT);
-
-	FWVECTOR vecPan = { 0, 1, 0 };
-	m_pHandleBone->GetLocalTransform(pT);
-	pT->AsVector((FWVECTOR*)&cp.eye);
-	pT->ApplyRotationTo(&vecPan);
-	cp.fPan = atan2(vecPan.x, -vecPan.y);
-
-	FWVECTOR vecTilt = { 0, 1, 0 };
-	m_pCamera->GetLocalTransform(pT);
-	pT->ApplyRotationTo(&vecTilt);
-	cp.fTilt = atan2(vecTilt.z, vecTilt.y);
-
-	pT->Release();
-
-	AVFLOAT fov;
-	m_pCamera->GetPerspective(&fov, &cp.fClipNear, &cp.fClipFar, NULL);
-	cp.fHFOV = cp.fVFOV = fov;
-
-	//cp.m_pEyeRef = m_pBaseBone;
-
-	return cp;
 }
 
 void CCamera::Adjust(AVFLOAT fNewAspectRatio)
@@ -782,7 +693,7 @@ CAMLOC CCamera::GetDescription(CAMDESC *pDesc)
 	AVLONG AZIM[] = { 1, 7, 5, 3 };
 	AVLONG AZIMb[] = { 1, 2, 0, 3 };
 
-	pDesc->floor = m_nStorey - GetBuilding()->GetBasementStoreyCount();
+	pDesc->floor = GetStorey() - GetBuilding()->GetBasementStoreyCount();
 	pDesc->camloc = m_camloc;
 	pDesc->index = -1;
 	pDesc->bExact = !m_bMoved;
@@ -796,10 +707,10 @@ CAMLOC CCamera::GetDescription(CAMDESC *pDesc)
 		break;
 	case CAMLOC_LIFT:
 		pDesc->floor = m_nLiftStorey - GetBuilding()->GetBasementStoreyCount();
-		pDesc->index = m_nLift + 1;
+		pDesc->index = GetLift() + 1;
 		break;
 	case CAMLOC_SHAFT:
-		pDesc->index = m_nShaft + 1;
+		pDesc->index = GetShaft() + 1;
 		break;
 	case CAMLOC_OUTSIDE:
 		if (m_camAzim >= 0 && m_camAzim < 4)
