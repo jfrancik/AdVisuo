@@ -3,7 +3,6 @@
 #include "StdAfx.h"
 #include "Block.h"
 #include "../CommonFiles/Vector.h"
-#include <algorithm>
 
 #pragma warning (disable: 4996)
 
