@@ -249,7 +249,7 @@ void CBldObject::Render(IRenderer *pRenderer)
 CBuilding::CBuilding(void) : CBuildingBase(), m_materials(this), m_pRenderer(NULL), m_pScene(NULL)
 {
 	memset(m_pMaterials, 0, sizeof(m_pMaterials));
-	bFastLoad = false;
+	bFastLoad = true;
 }
 
 CBuilding::~CBuilding(void)

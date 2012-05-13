@@ -13,25 +13,25 @@ CSim::CSim(CBuildingBase *pBuilding) : CSimBase(pBuilding)
 {
 }
 
-HRESULT CSim::LoadSim()
+HRESULT CSim::LoadSim(CDataBase db)
 {
 	if (!GetBuilding())
 		return Log(ERROR_INTERNAL, L"SIM file loading without the building set.");
 
 	// load!
 	CSimLoader loader;
-//	int nRes = loader.Load(GetSIMFileName().c_str());
+
+	//int nRes = loader.Load(db, 1185);
+	// int nRes = loader.Load(GetSIMFileName().c_str());
 	int nRes = loader.Load(L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
 
-
 	// detect errors...
-	AVULONG nnnn = GetBuilding()->GetLiftCount();
 	if FAILED(nRes)
 		return Logf(nRes, GetSIMFileName().c_str());
 	if ((ULONG)loader.nLifts != GetBuilding()->GetLiftCount())
 		return Log(ERROR_FILE_INCONSISTENT_LIFTS);		// inconsistent number of floors
-	if ((ULONG)loader.nFloors != GetBuilding()->GetStoreyCount())
-		return Log(ERROR_FILE_INCONSISTENT_FLOORS);		// inconsistent number of lifts
+	// if ((ULONG)loader.nFloors != GetBuilding()->GetStoreyCount())
+	//	return Log(ERROR_FILE_INCONSISTENT_FLOORS);		// inconsistent number of lifts
 
 	// check single/double decker consistency
 	for (AVULONG i = 0; i < (ULONG)loader.nLifts;i++)
@@ -53,7 +53,7 @@ HRESULT CSim::LoadSim()
 	}
 
 	// load, analyse and consolidate simulation data
-	for (AVULONG i = 0; i < (ULONG)loader.nLifts; i++)
+	for (AVULONG i = 0; i < GetBuilding()->GetLiftCount(); i++)
 	{
 		CLift *pLift = (CLift*)CreateLift(i);
 		HRESULT h = pLift->Load(loader, i, true, true);
@@ -106,25 +106,6 @@ HRESULT CSim::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	if (!sel) throw ERROR_PROJECT;
 	AVULONG nProjectId = sel[L"ProjectId"];
 	sel >> ME;
-
-	//// Query for Projects (project general information)
-	//sel = db.select(L"SELECT ProjectName, Languaje AS Language, MeasurementUnits, BuildingName, ClientCompanyName AS ClientCompany, City, LBRegionDistrict, StateCounty, LiftDesigner, Country, CheckedBy, PostalZipCode FROM Projects WHERE ProjectId=%d", nProjectId);
-	//if (!sel) throw ERROR_PROJECT;
-	//sel >> ME;
-
-	//// Query for Files (SIM file path)
-	//sel = db.select(L"SELECT SimPath AS SIMFileName, VisPath AS IFCFileName FROM FilePaths WHERE SimulationId=%d", nSimulationId);
-	//if (!sel) throw ERROR_PROJECT;
-	//sel >> ME;
-
-	//// Query for AnalysisTypeDataSets (SIM file path)
-	//sel = db.select(L"SELECT Algorithm FROM AnalysisTypeDataSets WHERE SimulationId=%d", nSimulationId);
-	//if (!sel) throw ERROR_PROJECT;
-	//sel >> ME;
-
-	//if      (ME[L"Algorithm"].as_wstring().substr(0, 19) == L"Destination Control")	ME[L"Algorithm"] = (ULONG)DESTINATION;
-	//else if (ME[L"Algorithm"].as_wstring().substr(0, 16) == L"Group Collective")		ME[L"Algorithm"] = (ULONG)COLLECTIVE;
-	//else throw (Log(ERROR_UNRECOGNISED_STRING, L"dispatcher algorithm", (ME[L"Algorithm"]).as_wstring().c_str()), ERROR_GENERIC);
 
 	return S_OK;
 }

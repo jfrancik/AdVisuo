@@ -15,7 +15,7 @@ public:
 	CPassenger *GetPassenger(int i)							{ return (CPassenger*)CSimBase::GetPassenger(i); }
 	CBuilding *GetBuilding()								{ return (CBuilding*)CSimBase::GetBuilding(); }
 
-	HRESULT LoadSim();
+	HRESULT LoadSim(dbtools::CDataBase db);
 	void Play();
 
 	// Database operations

@@ -75,29 +75,29 @@ public:
 		} deck[DECK_NUM];
 	};
 
-	int nBytes;					// number of bytes read
-	int nSign;					// file signature
-	int nVersion;				// file version
+public:
 
-	int nFloors;				// number of floors
-	int nLifts;					// number of lifts
-	int nSims;					// number of simulations (ignored now)
-	int nPassengers;			// number of passengers (hall calls)
+	int nVersion;				// file version
 	
-	double		*pFloors;		// height for each floor
+	int nLifts;					// number of lifts
 	Lift		*pLifts;		// lifts info: decks & home floor
+
+	int nPassengers;			// number of passengers (hall calls)
 	Passenger	*pPassengers;	// passenger info for each passenger
+	
 	int			*pIters;		// sim iters for each lift
 	SimIter		**ppSimIters;	// sim iter info for each sim iter for each lift
 
 	CSimLoader();
 	~CSimLoader();
 
-	DWORD Load(LPCOLESTR pName);	// returns S_OK if successful
+	DWORD Load(LPCOLESTR pName);							// returns S_OK if successful
+	DWORD Load(dbtools::CDataBase db, ULONG nSimulationId);	// returns S_OK if successful
 	void Print();
 
 private:
 	int Load(std::ifstream &stream, void *pBuf, size_t nSize);
+	int Load(std::ifstream &stream, size_t nSize);
 	int Load(std::ifstream &stream, int &v)		{ return Load(stream, &v, sizeof(int)); }
 	int Load(std::ifstream &stream, double &v)	{ return Load(stream, &v, sizeof(int)); }
 };

@@ -9,29 +9,11 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////////////////
 // CSimLoader
 
-
-//#define FILENAME "test4.sim"
-//
-//int _tmain(int argc, _TCHAR* argv[])
-//{
-//	cout << "Reading file: " << FILENAME << endl;
-//	CSimLoader reader;
-//	if (reader.Load(FILENAME) != S_OK)
-//		cout << "ERROR!" << endl;
-//	else
-//		reader.Print();
-//}
-
 CSimLoader::CSimLoader()
 {
-	nBytes = 0;
-	nSign = 0;
 	nVersion = 0;
-	nFloors = 0;
 	nLifts = 0;
-	nSims = 0;
 	nPassengers = 0;
-	pFloors = NULL;
 	pLifts = NULL;
 	pIters = NULL;
 	pPassengers = NULL;
@@ -40,7 +22,6 @@ CSimLoader::CSimLoader()
 
 CSimLoader::~CSimLoader()
 {
-	if (pFloors) delete [] pFloors;
 	if (pLifts) delete [] pLifts;
 	if (pPassengers) delete [] pPassengers;
 	if (pIters) delete [] pIters;
@@ -62,6 +43,32 @@ int CSimLoader::Load(ifstream &stream, void *pBuf, size_t nSize)
 	return bytes;
 }
 
+int CSimLoader::Load(std::ifstream &stream, size_t nSize)
+{
+	BYTE *pBuf = new BYTE[nSize];
+	int bytes = Load(stream, (void*)pBuf, nSize);
+	delete [] pBuf;
+	return bytes;
+}
+
+DWORD CSimLoader::Load(dbtools::CDataBase db, ULONG nSimulationId)
+{
+	if (!db) throw db;
+	dbtools::CDataBase::SELECT sel;
+
+	sel = db.select(L"SELECT * FROM SimulationLogs WHERE SimulationId=%d", nSimulationId);
+	if (!sel) return ERROR_BUILDING;
+	nVersion = (int)((float)sel[L"AdSimuloVersion"] * 10 + 100.5);
+
+
+
+	sel = db.select(L"SELECT COUNT(HallCallId) As NumPassengers FROM HallCalls WHERE SimulationId=%d", nSimulationId);
+	if (!sel) return ERROR_BUILDING;
+	nPassengers = sel[L"NumPassengers"];
+
+	return 0;
+}
+
 DWORD CSimLoader::Load(LPCOLESTR pName)
 {
 	ifstream myFile (pName, ios::in | ios::binary);
@@ -69,6 +76,9 @@ DWORD CSimLoader::Load(LPCOLESTR pName)
 
 	try
 	{
+		int nBytes = 0;					// number of bytes read
+		int nSign = 0;					// file signature
+
 		// read signature and version
 		nBytes += Load(myFile, nSign);
 		nBytes += Load(myFile, nVersion);
@@ -78,11 +88,9 @@ DWORD CSimLoader::Load(LPCOLESTR pName)
 		if (nVersion > 109) throw ERROR_FILE_VERSION;
 
 		// read no of floors
-		nBytes += Load(myFile, nFloors);
-
-		// read floor heights
-		pFloors = new double[nFloors];
-		nBytes += Load(myFile, pFloors, sizeof(double) * nFloors);
+		int _nFloors;
+		nBytes += Load(myFile, _nFloors);
+		nBytes += Load(myFile, sizeof(double) * _nFloors);
 
 		// read no of lifts
 		nBytes += Load(myFile, nLifts);
@@ -111,7 +119,8 @@ DWORD CSimLoader::Load(LPCOLESTR pName)
 			nBytes += Load(myFile, pLifts, sizeof(Lift) * nLifts);
 
 		// read no of simulations --- this value is ignored!
-		nBytes += Load(myFile, nSims);
+		int dummy;
+		nBytes += Load(myFile, dummy);	// no of simulations - disused
 
 		// read no of passengers
 		nBytes += Load(myFile, nPassengers);
@@ -168,19 +177,9 @@ void CSimLoader::Print()
 {
 	// display header
 	cout << "HEADER:" << endl;
-	cout << nBytes << " bytes read." << endl;
-	cout << "Signature: " << nSign << endl;
 	cout << "Version: " << nVersion << endl;
-	cout << nFloors << " floors" << endl;
 	cout << nLifts << " lifts" << endl;
-	cout << nSims << " simulations" << endl;
 	cout << nPassengers << " passengers" << endl;
-	cout << endl;
-
-	// display floor heights
-	cout << "Floor Heights:" << endl;
-	for (int i = 0; i < nFloors; i++)
-		cout << "Floor #" << i << " height = " << pFloors[i] << endl;
 	cout << endl;
 
 	// display lift decks

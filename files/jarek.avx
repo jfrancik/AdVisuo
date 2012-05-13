@@ -1,0 +1,1016 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AdVisuo-Saved-Project>
+  <AdVisuo-Client-Version>1.00</AdVisuo-Client-Version>
+  <DataSet>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="NewDataSet">
+        <xs:choice>
+          <xs:element name="AVProject">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="AVVersionId" type="xs:double" />
+                <xs:element name="BuildingName" type="xs:string" />
+                <xs:element name="City" type="xs:string" />
+                <xs:element name="CodeComplianceId" type="xs:int" />
+                <xs:element name="Comments" type="xs:string" />
+                <xs:element name="Country" type="xs:string" />
+                <xs:element name="CreatedBy" type="xs:string" />
+                <xs:element name="CreatedDate" type="xs:dateTime" />
+                <xs:element name="Floors" type="xs:int" />
+                <xs:element name="ID" type="xs:int" />
+                <xs:element name="JourneysSaved" type="xs:int" />
+                <xs:element name="LastModifiedBy" type="xs:string" />
+                <xs:element name="LastModifiedDate" type="xs:dateTime" />
+                <xs:element name="LastOpenedBy" type="xs:string" />
+                <xs:element name="Lifts" type="xs:int" />
+                <xs:element name="Name" type="xs:string" />
+                <xs:element name="Passengers" type="xs:int" />
+                <xs:element name="PassengersSaved" type="xs:int" />
+                <xs:element name="Phase" type="xs:int" />
+                <xs:element name="ProjectId" type="xs:int" />
+                <xs:element name="ProjectName" type="xs:string" />
+                <xs:element name="SIMVersionId" type="xs:int" />
+                <xs:element name="SavedAll" type="xs:int" />
+                <xs:element name="Shafts" type="xs:int" />
+                <xs:element name="SimulationId" type="xs:int" />
+                <xs:element name="SimulationTime" type="xs:int" />
+                <xs:element name="TimeSaved" type="xs:int" />
+                <xs:element name="TimeStamp" type="xs:dateTime" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:element>
+    </xs:schema>
+    <NewDataSet>
+      <AVProject>
+        <AVVersionId>109</AVVersionId>
+        <BuildingName>Jarek's Tower</BuildingName>
+        <City>London</City>
+        <CodeComplianceId>1</CodeComplianceId>
+        <Comments>Text entered here</Comments>
+        <Country>UK</Country>
+        <CreatedBy>jarekf</CreatedBy>
+        <CreatedDate>2012-03-06T11:35:15</CreatedDate>
+        <Floors>12</Floors>
+        <ID>3</ID>
+        <JourneysSaved>0</JourneysSaved>
+        <LastModifiedBy>chrism</LastModifiedBy>
+        <LastModifiedDate>2012-03-07T17:11:53</LastModifiedDate>
+        <LastOpenedBy>piotr</LastOpenedBy>
+        <Lifts>8</Lifts>
+        <Name>Simulation test 1</Name>
+        <Passengers>0</Passengers>
+        <PassengersSaved>0</PassengersSaved>
+        <Phase>1</Phase>
+        <ProjectId>213</ProjectId>
+        <ProjectName>Jarek's Tower</ProjectName>
+        <SIMVersionId>0</SIMVersionId>
+        <SavedAll>1</SavedAll>
+        <Shafts>8</Shafts>
+        <SimulationId>1185</SimulationId>
+        <SimulationTime>0</SimulationTime>
+        <TimeSaved>0</TimeSaved>
+        <TimeStamp>2012-04-12T16:17:23</TimeStamp>
+      </AVProject>
+    </NewDataSet>
+  </DataSet>
+  <DataSet>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="NewDataSet">
+        <xs:choice>
+          <xs:element name="AVBuilding">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Absentee" type="xs:boolean" />
+                <xs:element name="BoxLobby" type="xs:string" />
+                <xs:element name="CapacityFactor" type="xs:int" />
+                <xs:element name="Constant_Demand" type="xs:int" />
+                <xs:element name="DistanceOfBookingPointFromLobby" type="xs:int" />
+                <xs:element name="Escalator" type="xs:boolean" />
+                <xs:element name="FloorDataSetId" type="xs:int" />
+                <xs:element name="FloorLevel" type="xs:boolean" />
+                <xs:element name="FrontLobbyWidth" type="xs:int" />
+                <xs:element name="GeneratorSeed" type="xs:int" />
+                <xs:element name="GroupIndex" type="xs:int" />
+                <xs:element name="HighestFloorNotServed" type="xs:int" />
+                <xs:element name="HighestFloorServed" type="xs:int" />
+                <xs:element name="ID" type="xs:int" />
+                <xs:element name="Incoming" type="xs:int" />
+                <xs:element name="Interfloor" type="xs:int" />
+                <xs:element name="IsEnabledForSimulation" type="xs:boolean" />
+                <xs:element name="LiftGroupId" type="xs:int" />
+                <xs:element name="LiftLobbyCeilingHeight" type="xs:int" />
+                <xs:element name="LiftShaftArrangementId" type="xs:int" />
+                <xs:element name="LiftingBeamHeight" type="xs:int" />
+                <xs:element name="Line1" type="xs:int" />
+                <xs:element name="Line2" type="xs:int" />
+                <xs:element name="LobbyArrangementId" type="xs:int" />
+                <xs:element name="LowestFloorNotServed" type="xs:int" />
+                <xs:element name="LowestFloorServed" type="xs:int" />
+                <xs:element name="MachineRoomSlabThickness" type="xs:int" />
+                <xs:element name="Name" type="xs:string" />
+                <xs:element name="NumberOfBasementStoreys" type="xs:int" />
+                <xs:element name="NumberOfBookingPoints" type="xs:int" />
+                <xs:element name="NumberOfIterations" type="xs:int" />
+                <xs:element name="NumberOfLifts" type="xs:int" />
+                <xs:element name="NumberOfStoreys" type="xs:int" />
+                <xs:element name="Outgoing" type="xs:int" />
+                <xs:element name="PassengerMass" type="xs:int" />
+                <xs:element name="PopulationDensity" type="xs:boolean" />
+                <xs:element name="ProjectId" type="xs:int" />
+                <xs:element name="RearLobbyWidth" type="xs:int" />
+                <xs:element name="RunningTimex5Mins" type="xs:int" />
+                <xs:element name="ShaftConstructionMaterialId" type="xs:int" />
+                <xs:element name="ShaftWallThicknessRear" type="xs:int" />
+                <xs:element name="ShaftWallThicknessSide" type="xs:int" />
+                <xs:element name="SimulationId" type="xs:int" />
+                <xs:element name="StairFactor" type="xs:boolean" />
+                <xs:element name="Step_MaximumDemand" type="xs:int" />
+                <xs:element name="Step_MinimumDemand" type="xs:int" />
+                <xs:element name="TenancyTypeId" type="xs:int" />
+                <xs:element name="TrafficControlTypeId" type="xs:int" />
+                <xs:element name="TrafficPatternId" type="xs:int" />
+                <xs:element name="TrafficProfileId" type="xs:int" />
+                <xs:element name="UseCustomServedFloorsSetup" type="xs:boolean" />
+                <xs:element name="UseExpressZone" type="xs:boolean" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:element>
+    </xs:schema>
+    <NewDataSet>
+      <AVBuilding>
+        <Absentee>0</Absentee>
+        <BoxLobby>-5445 -3000 0 5195 3000 0 -5445 -3250 -1 5445 3250 1000 </BoxLobby>
+        <CapacityFactor>80</CapacityFactor>
+        <Constant_Demand>15</Constant_Demand>
+        <DistanceOfBookingPointFromLobby>0</DistanceOfBookingPointFromLobby>
+        <Escalator>0</Escalator>
+        <FloorDataSetId>624</FloorDataSetId>
+        <FloorLevel>0</FloorLevel>
+        <FrontLobbyWidth>6000</FrontLobbyWidth>
+        <GeneratorSeed>1</GeneratorSeed>
+        <GroupIndex>1</GroupIndex>
+        <HighestFloorNotServed>2</HighestFloorNotServed>
+        <HighestFloorServed>3</HighestFloorServed>
+        <ID>3</ID>
+        <Incoming>100</Incoming>
+        <Interfloor>0</Interfloor>
+        <IsEnabledForSimulation>1</IsEnabledForSimulation>
+        <LiftGroupId>1755</LiftGroupId>
+        <LiftLobbyCeilingHeight>0</LiftLobbyCeilingHeight>
+        <LiftShaftArrangementId>2</LiftShaftArrangementId>
+        <LiftingBeamHeight>250</LiftingBeamHeight>
+        <Line1>4</Line1>
+        <Line2>4</Line2>
+        <LobbyArrangementId>4</LobbyArrangementId>
+        <LowestFloorNotServed>1</LowestFloorNotServed>
+        <LowestFloorServed>0</LowestFloorServed>
+        <MachineRoomSlabThickness>200</MachineRoomSlabThickness>
+        <Name>Group 1</Name>
+        <NumberOfBasementStoreys>0</NumberOfBasementStoreys>
+        <NumberOfBookingPoints>0</NumberOfBookingPoints>
+        <NumberOfIterations>8</NumberOfIterations>
+        <NumberOfLifts>8</NumberOfLifts>
+        <NumberOfStoreys>12</NumberOfStoreys>
+        <Outgoing>0</Outgoing>
+        <PassengerMass>75</PassengerMass>
+        <PopulationDensity>0</PopulationDensity>
+        <ProjectId>3</ProjectId>
+        <RearLobbyWidth>0</RearLobbyWidth>
+        <RunningTimex5Mins>12</RunningTimex5Mins>
+        <ShaftConstructionMaterialId>1</ShaftConstructionMaterialId>
+        <ShaftWallThicknessRear>100</ShaftWallThicknessRear>
+        <ShaftWallThicknessSide>100</ShaftWallThicknessSide>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+        <Step_MaximumDemand>16</Step_MaximumDemand>
+        <Step_MinimumDemand>5</Step_MinimumDemand>
+        <TenancyTypeId>1</TenancyTypeId>
+        <TrafficControlTypeId>2</TrafficControlTypeId>
+        <TrafficPatternId>1</TrafficPatternId>
+        <TrafficProfileId>1</TrafficProfileId>
+        <UseCustomServedFloorsSetup>0</UseCustomServedFloorsSetup>
+        <UseExpressZone>0</UseExpressZone>
+      </AVBuilding>
+    </NewDataSet>
+  </DataSet>
+  <DataSet>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="NewDataSet">
+        <xs:choice>
+          <xs:element name="AVShaft">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Acceleration" type="xs:double" />
+                <xs:element name="AvailableCarArea" type="xs:double" />
+                <xs:element name="BoxBeam" type="xs:string" />
+                <xs:element name="BoxCar" type="xs:string" />
+                <xs:element name="BoxCarDoor0" type="xs:string" />
+                <xs:element name="BoxCarDoor1" type="xs:string" />
+                <xs:element name="BoxDoor0" type="xs:string" />
+                <xs:element name="BoxDoor1" type="xs:string" />
+                <xs:element name="BoxShaft" type="xs:string" />
+                <xs:element name="BuildingId" type="xs:int" />
+                <xs:element name="Capacity" type="xs:double" />
+                <xs:element name="CarCallDwellTime" type="xs:double" />
+                <xs:element name="CarCeilingHeight" type="xs:double" />
+                <xs:element name="CarDepthWallThickness" type="xs:double" />
+                <xs:element name="CarDoorDepth" type="xs:double" />
+                <xs:element name="CarEntrancesId" type="xs:int" />
+                <xs:element name="CarFrontReturnDepth" type="xs:double" />
+                <xs:element name="CarSideWallThickness" type="xs:double" />
+                <xs:element name="ClearanceCarToShaftWallOnDepth" type="xs:double" />
+                <xs:element name="ClearanceCarToShaftWallOnWidthLHS" type="xs:double" />
+                <xs:element name="ClearanceCarToShaftWallOnWidthRHS" type="xs:double" />
+                <xs:element name="ClosingTime" type="xs:double" />
+                <xs:element name="CounterWeightPositionId" type="xs:double" />
+                <xs:element name="DecksId" type="xs:int" />
+                <xs:element name="DividingBeamHeight" type="xs:double" />
+                <xs:element name="DividingBeamWidth" type="xs:double" />
+                <xs:element name="DoorConfigurationId" type="xs:int" />
+                <xs:element name="DoorHeight" type="xs:double" />
+                <xs:element name="DoorId" type="xs:int" />
+                <xs:element name="DoorTypeId" type="xs:int" />
+                <xs:element name="DoorWidth" type="xs:double" />
+                <xs:element name="HallCallDwellTime" type="xs:double" />
+                <xs:element name="Headroom" type="xs:double" />
+                <xs:element name="HeightAboveCarRoof" type="xs:double" />
+                <xs:element name="ID" type="xs:int" />
+                <xs:element name="IsISOCompliant" type="xs:boolean" />
+                <xs:element name="Jerk" type="xs:double" />
+                <xs:element name="LandingDoorDepth" type="xs:double" />
+                <xs:element name="LeftWallStart" type="xs:double" />
+                <xs:element name="LiftGroupId" type="xs:int" />
+                <xs:element name="LiftId" type="xs:int" />
+                <xs:element name="LiftIndex" type="xs:int" />
+                <xs:element name="LiftNumber" type="xs:string" />
+                <xs:element name="LiftTypeId" type="xs:int" />
+                <xs:element name="LiftsPerShaft" type="xs:int" />
+                <xs:element name="LightingVoidHeight" type="xs:double" />
+                <xs:element name="LoadingTime" type="xs:double" />
+                <xs:element name="MachineRoomHeight" type="xs:double" />
+                <xs:element name="MainFloorDwellTime" type="xs:double" />
+                <xs:element name="MaximumAvailableCarArea" type="xs:double" />
+                <xs:element name="MinimumAvailableCarArea" type="xs:double" />
+                <xs:element name="MotorStartDelay" type="xs:double" />
+                <xs:element name="OpeningTime" type="xs:double" />
+                <xs:element name="PitDepth" type="xs:double" />
+                <xs:element name="PreOpeningTime" type="xs:double" />
+                <xs:element name="Reopenings" type="xs:int" />
+                <xs:element name="RightWallStart" type="xs:double" />
+                <xs:element name="ShaftId" type="xs:int" />
+                <xs:element name="ShaftLine" type="xs:int" />
+                <xs:element name="Speed" type="xs:double" />
+                <xs:element name="UnloadingTime" type="xs:double" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:element>
+    </xs:schema>
+    <NewDataSet>
+      <AVShaft>
+        <Acceleration>1</Acceleration>
+        <AvailableCarArea>3.48</AvailableCarArea>
+        <BoxBeam>100 0 0 100 0 0 100 0 0 100 0 0 </BoxBeam>
+        <BoxCar>-5115 -3376 0 -3015 -4976 2200 -5240 -3251 -125 -2890 -5101 2325 </BoxCar>
+        <BoxCarDoor0>-4665 -3251 0 -3465 -3376 2100 -4665 -3251 0 -3465 -3376 2100 </BoxCarDoor0>
+        <BoxCarDoor1>-4665 -4976 0 -3465 -5101 2100 -4665 -4976 0 -3465 -5101 2100 </BoxCarDoor1>
+        <BoxDoor0>-4665 -3000 0 -3465 -3250 2100 -4665 -3000 0 -3465 -3250 2100 </BoxDoor0>
+        <BoxDoor1>-4665 -5720 0 -3465 -5970 2100 -4665 -5720 0 -3465 -5970 2100 </BoxDoor1>
+        <BoxShaft>-5345 -3250 0 -2785 -5720 0 -5445 -3000 0 -2785 -5820 0 </BoxShaft>
+        <BuildingId>3</BuildingId>
+        <Capacity>1600</Capacity>
+        <CarCallDwellTime>1</CarCallDwellTime>
+        <CarCeilingHeight>2200</CarCeilingHeight>
+        <CarDepthWallThickness>30</CarDepthWallThickness>
+        <CarDoorDepth>80</CarDoorDepth>
+        <CarEntrancesId>1</CarEntrancesId>
+        <CarFrontReturnDepth>100</CarFrontReturnDepth>
+        <CarSideWallThickness>30</CarSideWallThickness>
+        <ClearanceCarToShaftWallOnDepth>500</ClearanceCarToShaftWallOnDepth>
+        <ClearanceCarToShaftWallOnWidthLHS>200</ClearanceCarToShaftWallOnWidthLHS>
+        <ClearanceCarToShaftWallOnWidthRHS>200</ClearanceCarToShaftWallOnWidthRHS>
+        <ClosingTime>2.6</ClosingTime>
+        <CounterWeightPositionId>2</CounterWeightPositionId>
+        <DecksId>1</DecksId>
+        <DividingBeamHeight>150</DividingBeamHeight>
+        <DividingBeamWidth>150</DividingBeamWidth>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <DoorHeight>2100</DoorHeight>
+        <DoorId>5476</DoorId>
+        <DoorTypeId>1</DoorTypeId>
+        <DoorWidth>1200</DoorWidth>
+        <HallCallDwellTime>2</HallCallDwellTime>
+        <Headroom>4350</Headroom>
+        <HeightAboveCarRoof>1950</HeightAboveCarRoof>
+        <ID>5</ID>
+        <IsISOCompliant>1</IsISOCompliant>
+        <Jerk>1.5</Jerk>
+        <LandingDoorDepth>130</LandingDoorDepth>
+        <LeftWallStart>0</LeftWallStart>
+        <LiftGroupId>1755</LiftGroupId>
+        <LiftId>349</LiftId>
+        <LiftIndex>1</LiftIndex>
+        <LiftNumber>A </LiftNumber>
+        <LiftTypeId>1</LiftTypeId>
+        <LiftsPerShaft>1</LiftsPerShaft>
+        <LightingVoidHeight>200</LightingVoidHeight>
+        <LoadingTime>1</LoadingTime>
+        <MachineRoomHeight>2850</MachineRoomHeight>
+        <MainFloorDwellTime>3</MainFloorDwellTime>
+        <MaximumAvailableCarArea>3.56</MaximumAvailableCarArea>
+        <MinimumAvailableCarArea>3.245</MinimumAvailableCarArea>
+        <MotorStartDelay>0.5</MotorStartDelay>
+        <OpeningTime>1.8</OpeningTime>
+        <PitDepth>1800</PitDepth>
+        <PreOpeningTime>0</PreOpeningTime>
+        <Reopenings>1</Reopenings>
+        <RightWallStart>0</RightWallStart>
+        <ShaftId>0</ShaftId>
+        <ShaftLine>0</ShaftLine>
+        <Speed>1.6</Speed>
+        <UnloadingTime>1</UnloadingTime>
+      </AVShaft>
+      <AVShaft>
+        <Acceleration>1</Acceleration>
+        <AvailableCarArea>3.48</AvailableCarArea>
+        <BoxBeam>-2785 -3250 0 -2635 -5720 150 -2785 -3250 0 -2635 -5720 150 </BoxBeam>
+        <BoxCar>-2405 -3376 0 -305 -4976 2200 -2530 -3251 -125 -180 -5101 2325 </BoxCar>
+        <BoxCarDoor0>-1955 -3251 0 -755 -3376 2100 -1955 -3251 0 -755 -3376 2100 </BoxCarDoor0>
+        <BoxCarDoor1>-1955 -4976 0 -755 -5101 2100 -1955 -4976 0 -755 -5101 2100 </BoxCarDoor1>
+        <BoxDoor0>-1955 -3000 0 -755 -3250 2100 -1955 -3000 0 -755 -3250 2100 </BoxDoor0>
+        <BoxDoor1>-1955 -5720 0 -755 -5970 2100 -1955 -5720 0 -755 -5970 2100 </BoxDoor1>
+        <BoxShaft>-2635 -3250 0 -75 -5720 0 -2635 -3000 0 -75 -5820 0 </BoxShaft>
+        <BuildingId>3</BuildingId>
+        <Capacity>1600</Capacity>
+        <CarCallDwellTime>1</CarCallDwellTime>
+        <CarCeilingHeight>2200</CarCeilingHeight>
+        <CarDepthWallThickness>30</CarDepthWallThickness>
+        <CarDoorDepth>80</CarDoorDepth>
+        <CarEntrancesId>1</CarEntrancesId>
+        <CarFrontReturnDepth>100</CarFrontReturnDepth>
+        <CarSideWallThickness>30</CarSideWallThickness>
+        <ClearanceCarToShaftWallOnDepth>500</ClearanceCarToShaftWallOnDepth>
+        <ClearanceCarToShaftWallOnWidthLHS>200</ClearanceCarToShaftWallOnWidthLHS>
+        <ClearanceCarToShaftWallOnWidthRHS>200</ClearanceCarToShaftWallOnWidthRHS>
+        <ClosingTime>2.6</ClosingTime>
+        <CounterWeightPositionId>1</CounterWeightPositionId>
+        <DecksId>1</DecksId>
+        <DividingBeamHeight>150</DividingBeamHeight>
+        <DividingBeamWidth>150</DividingBeamWidth>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <DoorHeight>2100</DoorHeight>
+        <DoorId>5482</DoorId>
+        <DoorTypeId>1</DoorTypeId>
+        <DoorWidth>1200</DoorWidth>
+        <HallCallDwellTime>2</HallCallDwellTime>
+        <Headroom>4350</Headroom>
+        <HeightAboveCarRoof>1950</HeightAboveCarRoof>
+        <ID>6</ID>
+        <IsISOCompliant>1</IsISOCompliant>
+        <Jerk>1.5</Jerk>
+        <LandingDoorDepth>130</LandingDoorDepth>
+        <LeftWallStart>0</LeftWallStart>
+        <LiftGroupId>1755</LiftGroupId>
+        <LiftId>353</LiftId>
+        <LiftIndex>2</LiftIndex>
+        <LiftNumber>B </LiftNumber>
+        <LiftTypeId>1</LiftTypeId>
+        <LiftsPerShaft>1</LiftsPerShaft>
+        <LightingVoidHeight>200</LightingVoidHeight>
+        <LoadingTime>1</LoadingTime>
+        <MachineRoomHeight>2850</MachineRoomHeight>
+        <MainFloorDwellTime>3</MainFloorDwellTime>
+        <MaximumAvailableCarArea>3.56</MaximumAvailableCarArea>
+        <MinimumAvailableCarArea>3.245</MinimumAvailableCarArea>
+        <MotorStartDelay>0.5</MotorStartDelay>
+        <OpeningTime>1.8</OpeningTime>
+        <PitDepth>1800</PitDepth>
+        <PreOpeningTime>0</PreOpeningTime>
+        <Reopenings>1</Reopenings>
+        <RightWallStart>0</RightWallStart>
+        <ShaftId>1</ShaftId>
+        <ShaftLine>0</ShaftLine>
+        <Speed>1.6</Speed>
+        <UnloadingTime>1</UnloadingTime>
+      </AVShaft>
+      <AVShaft>
+        <Acceleration>1</Acceleration>
+        <AvailableCarArea>3.48</AvailableCarArea>
+        <BoxBeam>-75 -3250 0 75 -5720 150 -75 -3250 0 75 -5720 150 </BoxBeam>
+        <BoxCar>305 -3376 0 2405 -4976 2200 180 -3251 -125 2530 -5101 2325 </BoxCar>
+        <BoxCarDoor0>755 -3251 0 1955 -3376 2100 755 -3251 0 1955 -3376 2100 </BoxCarDoor0>
+        <BoxCarDoor1>755 -4976 0 1955 -5101 2100 755 -4976 0 1955 -5101 2100 </BoxCarDoor1>
+        <BoxDoor0>755 -3000 0 1955 -3250 2100 755 -3000 0 1955 -3250 2100 </BoxDoor0>
+        <BoxDoor1>755 -5720 0 1955 -5970 2100 755 -5720 0 1955 -5970 2100 </BoxDoor1>
+        <BoxShaft>75 -3250 0 2635 -5720 0 75 -3000 0 2635 -5820 0 </BoxShaft>
+        <BuildingId>3</BuildingId>
+        <Capacity>1600</Capacity>
+        <CarCallDwellTime>1</CarCallDwellTime>
+        <CarCeilingHeight>2200</CarCeilingHeight>
+        <CarDepthWallThickness>30</CarDepthWallThickness>
+        <CarDoorDepth>80</CarDoorDepth>
+        <CarEntrancesId>1</CarEntrancesId>
+        <CarFrontReturnDepth>100</CarFrontReturnDepth>
+        <CarSideWallThickness>30</CarSideWallThickness>
+        <ClearanceCarToShaftWallOnDepth>500</ClearanceCarToShaftWallOnDepth>
+        <ClearanceCarToShaftWallOnWidthLHS>200</ClearanceCarToShaftWallOnWidthLHS>
+        <ClearanceCarToShaftWallOnWidthRHS>200</ClearanceCarToShaftWallOnWidthRHS>
+        <ClosingTime>2.6</ClosingTime>
+        <CounterWeightPositionId>1</CounterWeightPositionId>
+        <DecksId>1</DecksId>
+        <DividingBeamHeight>150</DividingBeamHeight>
+        <DividingBeamWidth>150</DividingBeamWidth>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <DoorHeight>2100</DoorHeight>
+        <DoorId>5480</DoorId>
+        <DoorTypeId>1</DoorTypeId>
+        <DoorWidth>1200</DoorWidth>
+        <HallCallDwellTime>2</HallCallDwellTime>
+        <Headroom>4350</Headroom>
+        <HeightAboveCarRoof>1950</HeightAboveCarRoof>
+        <ID>7</ID>
+        <IsISOCompliant>1</IsISOCompliant>
+        <Jerk>1.5</Jerk>
+        <LandingDoorDepth>130</LandingDoorDepth>
+        <LeftWallStart>0</LeftWallStart>
+        <LiftGroupId>1755</LiftGroupId>
+        <LiftId>352</LiftId>
+        <LiftIndex>3</LiftIndex>
+        <LiftNumber>C </LiftNumber>
+        <LiftTypeId>1</LiftTypeId>
+        <LiftsPerShaft>1</LiftsPerShaft>
+        <LightingVoidHeight>200</LightingVoidHeight>
+        <LoadingTime>1</LoadingTime>
+        <MachineRoomHeight>2850</MachineRoomHeight>
+        <MainFloorDwellTime>3</MainFloorDwellTime>
+        <MaximumAvailableCarArea>3.56</MaximumAvailableCarArea>
+        <MinimumAvailableCarArea>3.245</MinimumAvailableCarArea>
+        <MotorStartDelay>0.5</MotorStartDelay>
+        <OpeningTime>1.8</OpeningTime>
+        <PitDepth>1800</PitDepth>
+        <PreOpeningTime>0</PreOpeningTime>
+        <Reopenings>1</Reopenings>
+        <RightWallStart>0</RightWallStart>
+        <ShaftId>2</ShaftId>
+        <ShaftLine>0</ShaftLine>
+        <Speed>1.6</Speed>
+        <UnloadingTime>1</UnloadingTime>
+      </AVShaft>
+      <AVShaft>
+        <Acceleration>1</Acceleration>
+        <AvailableCarArea>3.48</AvailableCarArea>
+        <BoxBeam>2635 -3250 0 2785 -5720 150 2635 -3250 0 2785 -5720 150 </BoxBeam>
+        <BoxCar>3015 -3376 0 5115 -4976 2200 2890 -3251 -125 5240 -5101 2325 </BoxCar>
+        <BoxCarDoor0>3465 -3251 0 4665 -3376 2100 3465 -3251 0 4665 -3376 2100 </BoxCarDoor0>
+        <BoxCarDoor1>3465 -4976 0 4665 -5101 2100 3465 -4976 0 4665 -5101 2100 </BoxCarDoor1>
+        <BoxDoor0>3465 -3000 0 4665 -3250 2100 3465 -3000 0 4665 -3250 2100 </BoxDoor0>
+        <BoxDoor1>3465 -5720 0 4665 -5970 2100 3465 -5720 0 4665 -5970 2100 </BoxDoor1>
+        <BoxShaft>2785 -3250 0 5345 -5720 0 2785 -3000 0 5445 -5820 0 </BoxShaft>
+        <BuildingId>3</BuildingId>
+        <Capacity>1600</Capacity>
+        <CarCallDwellTime>1</CarCallDwellTime>
+        <CarCeilingHeight>2200</CarCeilingHeight>
+        <CarDepthWallThickness>30</CarDepthWallThickness>
+        <CarDoorDepth>80</CarDoorDepth>
+        <CarEntrancesId>1</CarEntrancesId>
+        <CarFrontReturnDepth>100</CarFrontReturnDepth>
+        <CarSideWallThickness>30</CarSideWallThickness>
+        <ClearanceCarToShaftWallOnDepth>500</ClearanceCarToShaftWallOnDepth>
+        <ClearanceCarToShaftWallOnWidthLHS>200</ClearanceCarToShaftWallOnWidthLHS>
+        <ClearanceCarToShaftWallOnWidthRHS>200</ClearanceCarToShaftWallOnWidthRHS>
+        <ClosingTime>2.6</ClosingTime>
+        <CounterWeightPositionId>1</CounterWeightPositionId>
+        <DecksId>1</DecksId>
+        <DividingBeamHeight>150</DividingBeamHeight>
+        <DividingBeamWidth>150</DividingBeamWidth>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <DoorHeight>2100</DoorHeight>
+        <DoorId>5484</DoorId>
+        <DoorTypeId>1</DoorTypeId>
+        <DoorWidth>1200</DoorWidth>
+        <HallCallDwellTime>2</HallCallDwellTime>
+        <Headroom>4350</Headroom>
+        <HeightAboveCarRoof>1950</HeightAboveCarRoof>
+        <ID>8</ID>
+        <IsISOCompliant>1</IsISOCompliant>
+        <Jerk>1.5</Jerk>
+        <LandingDoorDepth>130</LandingDoorDepth>
+        <LeftWallStart>0</LeftWallStart>
+        <LiftGroupId>1755</LiftGroupId>
+        <LiftId>351</LiftId>
+        <LiftIndex>4</LiftIndex>
+        <LiftNumber>D </LiftNumber>
+        <LiftTypeId>1</LiftTypeId>
+        <LiftsPerShaft>1</LiftsPerShaft>
+        <LightingVoidHeight>200</LightingVoidHeight>
+        <LoadingTime>1</LoadingTime>
+        <MachineRoomHeight>2850</MachineRoomHeight>
+        <MainFloorDwellTime>3</MainFloorDwellTime>
+        <MaximumAvailableCarArea>3.56</MaximumAvailableCarArea>
+        <MinimumAvailableCarArea>3.245</MinimumAvailableCarArea>
+        <MotorStartDelay>0.5</MotorStartDelay>
+        <OpeningTime>1.8</OpeningTime>
+        <PitDepth>1800</PitDepth>
+        <PreOpeningTime>0</PreOpeningTime>
+        <Reopenings>1</Reopenings>
+        <RightWallStart>0</RightWallStart>
+        <ShaftId>3</ShaftId>
+        <ShaftLine>0</ShaftLine>
+        <Speed>1.6</Speed>
+        <UnloadingTime>1</UnloadingTime>
+      </AVShaft>
+      <AVShaft>
+        <Acceleration>1</Acceleration>
+        <AvailableCarArea>3.48</AvailableCarArea>
+        <BoxBeam>-100 0 0 -100 0 0 -100 0 0 -100 0 0 </BoxBeam>
+        <BoxCar>3015 3376 0 5115 4976 2200 2890 3251 -125 5240 5101 2325 </BoxCar>
+        <BoxCarDoor0>3465 3251 0 4665 3376 2100 3465 3251 0 4665 3376 2100 </BoxCarDoor0>
+        <BoxCarDoor1>3465 4976 0 4665 5101 2100 3465 4976 0 4665 5101 2100 </BoxCarDoor1>
+        <BoxDoor0>3465 3000 0 4665 3250 2100 3465 3000 0 4665 3250 2100 </BoxDoor0>
+        <BoxDoor1>3465 5720 0 4665 5970 2100 3465 5720 0 4665 5970 2100 </BoxDoor1>
+        <BoxShaft>2785 3250 0 5345 5720 0 2785 3000 0 5445 5820 0 </BoxShaft>
+        <BuildingId>3</BuildingId>
+        <Capacity>1600</Capacity>
+        <CarCallDwellTime>1</CarCallDwellTime>
+        <CarCeilingHeight>2200</CarCeilingHeight>
+        <CarDepthWallThickness>30</CarDepthWallThickness>
+        <CarDoorDepth>80</CarDoorDepth>
+        <CarEntrancesId>1</CarEntrancesId>
+        <CarFrontReturnDepth>100</CarFrontReturnDepth>
+        <CarSideWallThickness>30</CarSideWallThickness>
+        <ClearanceCarToShaftWallOnDepth>500</ClearanceCarToShaftWallOnDepth>
+        <ClearanceCarToShaftWallOnWidthLHS>200</ClearanceCarToShaftWallOnWidthLHS>
+        <ClearanceCarToShaftWallOnWidthRHS>200</ClearanceCarToShaftWallOnWidthRHS>
+        <ClosingTime>2.6</ClosingTime>
+        <CounterWeightPositionId>1</CounterWeightPositionId>
+        <DecksId>1</DecksId>
+        <DividingBeamHeight>150</DividingBeamHeight>
+        <DividingBeamWidth>150</DividingBeamWidth>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <DoorHeight>2100</DoorHeight>
+        <DoorId>5483</DoorId>
+        <DoorTypeId>1</DoorTypeId>
+        <DoorWidth>1200</DoorWidth>
+        <HallCallDwellTime>2</HallCallDwellTime>
+        <Headroom>4350</Headroom>
+        <HeightAboveCarRoof>1950</HeightAboveCarRoof>
+        <ID>9</ID>
+        <IsISOCompliant>1</IsISOCompliant>
+        <Jerk>1.5</Jerk>
+        <LandingDoorDepth>130</LandingDoorDepth>
+        <LeftWallStart>0</LeftWallStart>
+        <LiftGroupId>1755</LiftGroupId>
+        <LiftId>354</LiftId>
+        <LiftIndex>5</LiftIndex>
+        <LiftNumber>E </LiftNumber>
+        <LiftTypeId>1</LiftTypeId>
+        <LiftsPerShaft>1</LiftsPerShaft>
+        <LightingVoidHeight>200</LightingVoidHeight>
+        <LoadingTime>1</LoadingTime>
+        <MachineRoomHeight>2850</MachineRoomHeight>
+        <MainFloorDwellTime>3</MainFloorDwellTime>
+        <MaximumAvailableCarArea>3.56</MaximumAvailableCarArea>
+        <MinimumAvailableCarArea>3.245</MinimumAvailableCarArea>
+        <MotorStartDelay>0.5</MotorStartDelay>
+        <OpeningTime>1.8</OpeningTime>
+        <PitDepth>1800</PitDepth>
+        <PreOpeningTime>0</PreOpeningTime>
+        <Reopenings>1</Reopenings>
+        <RightWallStart>0</RightWallStart>
+        <ShaftId>4</ShaftId>
+        <ShaftLine>1</ShaftLine>
+        <Speed>1.6</Speed>
+        <UnloadingTime>1</UnloadingTime>
+      </AVShaft>
+      <AVShaft>
+        <Acceleration>1</Acceleration>
+        <AvailableCarArea>3.48</AvailableCarArea>
+        <BoxBeam>2635 3250 0 2785 5720 150 2635 3250 0 2785 5720 150 </BoxBeam>
+        <BoxCar>305 3376 0 2405 4976 2200 180 3251 -125 2530 5101 2325 </BoxCar>
+        <BoxCarDoor0>755 3251 0 1955 3376 2100 755 3251 0 1955 3376 2100 </BoxCarDoor0>
+        <BoxCarDoor1>755 4976 0 1955 5101 2100 755 4976 0 1955 5101 2100 </BoxCarDoor1>
+        <BoxDoor0>755 3000 0 1955 3250 2100 755 3000 0 1955 3250 2100 </BoxDoor0>
+        <BoxDoor1>755 5720 0 1955 5970 2100 755 5720 0 1955 5970 2100 </BoxDoor1>
+        <BoxShaft>75 3250 0 2635 5720 0 75 3000 0 2635 5820 0 </BoxShaft>
+        <BuildingId>3</BuildingId>
+        <Capacity>1600</Capacity>
+        <CarCallDwellTime>1</CarCallDwellTime>
+        <CarCeilingHeight>2200</CarCeilingHeight>
+        <CarDepthWallThickness>30</CarDepthWallThickness>
+        <CarDoorDepth>80</CarDoorDepth>
+        <CarEntrancesId>1</CarEntrancesId>
+        <CarFrontReturnDepth>100</CarFrontReturnDepth>
+        <CarSideWallThickness>30</CarSideWallThickness>
+        <ClearanceCarToShaftWallOnDepth>500</ClearanceCarToShaftWallOnDepth>
+        <ClearanceCarToShaftWallOnWidthLHS>200</ClearanceCarToShaftWallOnWidthLHS>
+        <ClearanceCarToShaftWallOnWidthRHS>200</ClearanceCarToShaftWallOnWidthRHS>
+        <ClosingTime>2.6</ClosingTime>
+        <CounterWeightPositionId>1</CounterWeightPositionId>
+        <DecksId>1</DecksId>
+        <DividingBeamHeight>150</DividingBeamHeight>
+        <DividingBeamWidth>150</DividingBeamWidth>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <DoorHeight>2100</DoorHeight>
+        <DoorId>5478</DoorId>
+        <DoorTypeId>1</DoorTypeId>
+        <DoorWidth>1200</DoorWidth>
+        <HallCallDwellTime>2</HallCallDwellTime>
+        <Headroom>4350</Headroom>
+        <HeightAboveCarRoof>1950</HeightAboveCarRoof>
+        <ID>10</ID>
+        <IsISOCompliant>1</IsISOCompliant>
+        <Jerk>1.5</Jerk>
+        <LandingDoorDepth>130</LandingDoorDepth>
+        <LeftWallStart>0</LeftWallStart>
+        <LiftGroupId>1755</LiftGroupId>
+        <LiftId>357</LiftId>
+        <LiftIndex>6</LiftIndex>
+        <LiftNumber>F </LiftNumber>
+        <LiftTypeId>1</LiftTypeId>
+        <LiftsPerShaft>1</LiftsPerShaft>
+        <LightingVoidHeight>200</LightingVoidHeight>
+        <LoadingTime>1</LoadingTime>
+        <MachineRoomHeight>2850</MachineRoomHeight>
+        <MainFloorDwellTime>3</MainFloorDwellTime>
+        <MaximumAvailableCarArea>3.56</MaximumAvailableCarArea>
+        <MinimumAvailableCarArea>3.245</MinimumAvailableCarArea>
+        <MotorStartDelay>0.5</MotorStartDelay>
+        <OpeningTime>1.8</OpeningTime>
+        <PitDepth>1800</PitDepth>
+        <PreOpeningTime>0</PreOpeningTime>
+        <Reopenings>1</Reopenings>
+        <RightWallStart>0</RightWallStart>
+        <ShaftId>5</ShaftId>
+        <ShaftLine>1</ShaftLine>
+        <Speed>1.6</Speed>
+        <UnloadingTime>1</UnloadingTime>
+      </AVShaft>
+      <AVShaft>
+        <Acceleration>1</Acceleration>
+        <AvailableCarArea>3.48</AvailableCarArea>
+        <BoxBeam>-75 3250 0 75 5720 150 -75 3250 0 75 5720 150 </BoxBeam>
+        <BoxCar>-2405 3376 0 -305 4976 2200 -2530 3251 -125 -180 5101 2325 </BoxCar>
+        <BoxCarDoor0>-1955 3251 0 -755 3376 2100 -1955 3251 0 -755 3376 2100 </BoxCarDoor0>
+        <BoxCarDoor1>-1955 4976 0 -755 5101 2100 -1955 4976 0 -755 5101 2100 </BoxCarDoor1>
+        <BoxDoor0>-1955 3000 0 -755 3250 2100 -1955 3000 0 -755 3250 2100 </BoxDoor0>
+        <BoxDoor1>-1955 5720 0 -755 5970 2100 -1955 5720 0 -755 5970 2100 </BoxDoor1>
+        <BoxShaft>-2635 3250 0 -75 5720 0 -2635 3000 0 -75 5820 0 </BoxShaft>
+        <BuildingId>3</BuildingId>
+        <Capacity>1600</Capacity>
+        <CarCallDwellTime>1</CarCallDwellTime>
+        <CarCeilingHeight>2200</CarCeilingHeight>
+        <CarDepthWallThickness>30</CarDepthWallThickness>
+        <CarDoorDepth>80</CarDoorDepth>
+        <CarEntrancesId>1</CarEntrancesId>
+        <CarFrontReturnDepth>100</CarFrontReturnDepth>
+        <CarSideWallThickness>30</CarSideWallThickness>
+        <ClearanceCarToShaftWallOnDepth>500</ClearanceCarToShaftWallOnDepth>
+        <ClearanceCarToShaftWallOnWidthLHS>200</ClearanceCarToShaftWallOnWidthLHS>
+        <ClearanceCarToShaftWallOnWidthRHS>200</ClearanceCarToShaftWallOnWidthRHS>
+        <ClosingTime>2.6</ClosingTime>
+        <CounterWeightPositionId>1</CounterWeightPositionId>
+        <DecksId>1</DecksId>
+        <DividingBeamHeight>150</DividingBeamHeight>
+        <DividingBeamWidth>150</DividingBeamWidth>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <DoorHeight>2100</DoorHeight>
+        <DoorId>5481</DoorId>
+        <DoorTypeId>1</DoorTypeId>
+        <DoorWidth>1200</DoorWidth>
+        <HallCallDwellTime>2</HallCallDwellTime>
+        <Headroom>4350</Headroom>
+        <HeightAboveCarRoof>1950</HeightAboveCarRoof>
+        <ID>11</ID>
+        <IsISOCompliant>1</IsISOCompliant>
+        <Jerk>1.5</Jerk>
+        <LandingDoorDepth>130</LandingDoorDepth>
+        <LeftWallStart>0</LeftWallStart>
+        <LiftGroupId>1755</LiftGroupId>
+        <LiftId>356</LiftId>
+        <LiftIndex>7</LiftIndex>
+        <LiftNumber>G </LiftNumber>
+        <LiftTypeId>1</LiftTypeId>
+        <LiftsPerShaft>1</LiftsPerShaft>
+        <LightingVoidHeight>200</LightingVoidHeight>
+        <LoadingTime>1</LoadingTime>
+        <MachineRoomHeight>2850</MachineRoomHeight>
+        <MainFloorDwellTime>3</MainFloorDwellTime>
+        <MaximumAvailableCarArea>3.56</MaximumAvailableCarArea>
+        <MinimumAvailableCarArea>3.245</MinimumAvailableCarArea>
+        <MotorStartDelay>0.5</MotorStartDelay>
+        <OpeningTime>1.8</OpeningTime>
+        <PitDepth>1800</PitDepth>
+        <PreOpeningTime>0</PreOpeningTime>
+        <Reopenings>1</Reopenings>
+        <RightWallStart>0</RightWallStart>
+        <ShaftId>6</ShaftId>
+        <ShaftLine>1</ShaftLine>
+        <Speed>1.6</Speed>
+        <UnloadingTime>1</UnloadingTime>
+      </AVShaft>
+      <AVShaft>
+        <Acceleration>1</Acceleration>
+        <AvailableCarArea>3.48</AvailableCarArea>
+        <BoxBeam>-2785 3250 0 -2635 5720 150 -2785 3250 0 -2635 5720 150 </BoxBeam>
+        <BoxCar>-5115 3376 0 -3015 4976 2200 -5240 3251 -125 -2890 5101 2325 </BoxCar>
+        <BoxCarDoor0>-4665 3251 0 -3465 3376 2100 -4665 3251 0 -3465 3376 2100 </BoxCarDoor0>
+        <BoxCarDoor1>-4665 4976 0 -3465 5101 2100 -4665 4976 0 -3465 5101 2100 </BoxCarDoor1>
+        <BoxDoor0>-4665 3000 0 -3465 3250 2100 -4665 3000 0 -3465 3250 2100 </BoxDoor0>
+        <BoxDoor1>-4665 5720 0 -3465 5970 2100 -4665 5720 0 -3465 5970 2100 </BoxDoor1>
+        <BoxShaft>-5345 3250 0 -2785 5720 0 -5445 3000 0 -2785 5820 0 </BoxShaft>
+        <BuildingId>3</BuildingId>
+        <Capacity>1600</Capacity>
+        <CarCallDwellTime>1</CarCallDwellTime>
+        <CarCeilingHeight>2200</CarCeilingHeight>
+        <CarDepthWallThickness>30</CarDepthWallThickness>
+        <CarDoorDepth>80</CarDoorDepth>
+        <CarEntrancesId>1</CarEntrancesId>
+        <CarFrontReturnDepth>100</CarFrontReturnDepth>
+        <CarSideWallThickness>30</CarSideWallThickness>
+        <ClearanceCarToShaftWallOnDepth>500</ClearanceCarToShaftWallOnDepth>
+        <ClearanceCarToShaftWallOnWidthLHS>200</ClearanceCarToShaftWallOnWidthLHS>
+        <ClearanceCarToShaftWallOnWidthRHS>200</ClearanceCarToShaftWallOnWidthRHS>
+        <ClosingTime>2.6</ClosingTime>
+        <CounterWeightPositionId>1</CounterWeightPositionId>
+        <DecksId>1</DecksId>
+        <DividingBeamHeight>150</DividingBeamHeight>
+        <DividingBeamWidth>150</DividingBeamWidth>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <DoorHeight>2100</DoorHeight>
+        <DoorId>5479</DoorId>
+        <DoorTypeId>1</DoorTypeId>
+        <DoorWidth>1200</DoorWidth>
+        <HallCallDwellTime>2</HallCallDwellTime>
+        <Headroom>4350</Headroom>
+        <HeightAboveCarRoof>1950</HeightAboveCarRoof>
+        <ID>12</ID>
+        <IsISOCompliant>1</IsISOCompliant>
+        <Jerk>1.5</Jerk>
+        <LandingDoorDepth>130</LandingDoorDepth>
+        <LeftWallStart>0</LeftWallStart>
+        <LiftGroupId>1755</LiftGroupId>
+        <LiftId>355</LiftId>
+        <LiftIndex>8</LiftIndex>
+        <LiftNumber>H </LiftNumber>
+        <LiftTypeId>1</LiftTypeId>
+        <LiftsPerShaft>1</LiftsPerShaft>
+        <LightingVoidHeight>200</LightingVoidHeight>
+        <LoadingTime>1</LoadingTime>
+        <MachineRoomHeight>2850</MachineRoomHeight>
+        <MainFloorDwellTime>3</MainFloorDwellTime>
+        <MaximumAvailableCarArea>3.56</MaximumAvailableCarArea>
+        <MinimumAvailableCarArea>3.245</MinimumAvailableCarArea>
+        <MotorStartDelay>0.5</MotorStartDelay>
+        <OpeningTime>1.8</OpeningTime>
+        <PitDepth>1800</PitDepth>
+        <PreOpeningTime>0</PreOpeningTime>
+        <Reopenings>1</Reopenings>
+        <RightWallStart>0</RightWallStart>
+        <ShaftId>7</ShaftId>
+        <ShaftLine>1</ShaftLine>
+        <Speed>1.6</Speed>
+        <UnloadingTime>1</UnloadingTime>
+      </AVShaft>
+    </NewDataSet>
+  </DataSet>
+  <DataSet>
+    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="NewDataSet">
+        <xs:choice>
+          <xs:element name="AVFloor">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Absentee" type="xs:double" />
+                <xs:element name="Area" type="xs:double" />
+                <xs:element name="Bias" type="xs:double" />
+                <xs:element name="Box" type="xs:string" />
+                <xs:element name="BuildingId" type="xs:int" />
+                <xs:element name="DoorConfigurationId" type="xs:int" />
+                <xs:element name="Escalator" type="xs:double" />
+                <xs:element name="FloorId" type="xs:int" />
+                <xs:element name="FloorLevel" type="xs:double" />
+                <xs:element name="ID" type="xs:int" />
+                <xs:element name="Name" type="xs:string" />
+                <xs:element name="Population" type="xs:double" />
+                <xs:element name="PopulationDensity" type="xs:double" />
+                <xs:element name="SimulationId" type="xs:int" />
+                <xs:element name="StairFactor" type="xs:double" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:element>
+    </xs:schema>
+    <NewDataSet>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>100</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>0</FloorId>
+        <FloorLevel>0</FloorLevel>
+        <ID>503</ID>
+        <Name>Level 0</Name>
+        <Population>0</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>1</FloorId>
+        <FloorLevel>3801</FloorLevel>
+        <ID>504</ID>
+        <Name>Level 1</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>2</FloorId>
+        <FloorLevel>7602</FloorLevel>
+        <ID>505</ID>
+        <Name>Level 2</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>3</FloorId>
+        <FloorLevel>11403</FloorLevel>
+        <ID>506</ID>
+        <Name>Level 3</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>4</FloorId>
+        <FloorLevel>15204</FloorLevel>
+        <ID>507</ID>
+        <Name>Level 4</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>5</FloorId>
+        <FloorLevel>19005</FloorLevel>
+        <ID>508</ID>
+        <Name>Level 5</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>6</FloorId>
+        <FloorLevel>22806</FloorLevel>
+        <ID>509</ID>
+        <Name>Level 6</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>7</FloorId>
+        <FloorLevel>26607</FloorLevel>
+        <ID>510</ID>
+        <Name>Level 7</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>8</FloorId>
+        <FloorLevel>30408</FloorLevel>
+        <ID>511</ID>
+        <Name>Level 8</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>9</FloorId>
+        <FloorLevel>34209</FloorLevel>
+        <ID>512</ID>
+        <Name>Level 9</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>10</FloorId>
+        <FloorLevel>38010</FloorLevel>
+        <ID>513</ID>
+        <Name>Level 10</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+      <AVFloor>
+        <Absentee>0</Absentee>
+        <Area>1000</Area>
+        <Bias>0</Bias>
+        <Box>-5445 -3000 0 5195 3000 2800 -5445 -3250 -1 5445 3250 3800 </Box>
+        <BuildingId>3</BuildingId>
+        <DoorConfigurationId>1</DoorConfigurationId>
+        <Escalator>0</Escalator>
+        <FloorId>11</FloorId>
+        <FloorLevel>41811</FloorLevel>
+        <ID>514</ID>
+        <Name>Level 11</Name>
+        <Population>50</Population>
+        <PopulationDensity>20</PopulationDensity>
+        <SimulationId>1185</SimulationId>
+        <StairFactor>0</StairFactor>
+      </AVFloor>
+    </NewDataSet>
+  </DataSet>
+</AdVisuo-Saved-Project>

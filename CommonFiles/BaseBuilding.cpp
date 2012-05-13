@@ -367,6 +367,9 @@ void CBuildingBase::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fSh
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
 
+	// ### To resolve the problem quickly
+	ME[L"LiftsPerShaft"] = (AVULONG)1;
+
 	m_nLiftCount = max(1, (AVULONG)ME[L"LiftsPerShaft"]);
 
 	AVFLOAT ShaftWidth = ME[L"ShaftWidth"];

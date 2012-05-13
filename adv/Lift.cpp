@@ -13,6 +13,7 @@ CLift::CLift(CSim *pSim, AVULONG nLift, AVULONG nDecks) : CLiftBase(pSim, nLift,
 DWORD CLift::Load(CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcLoad)
 {
 	SetId(nId);
+
 	SetDecks(loader.pLifts[GetId()].nDecks);
 
 	CSimJourneyResolver resolver(m_journeys);
