@@ -197,7 +197,7 @@ BOOL CAdVisuoApp::InitInstance()
 	m_nSessionId = rand() * (RAND_MAX + 1) + rand();
 
 	// report to site
-	CDlgReportBug::Report(1);
+//	CDlgReportBug::Report(1);
 	
 	return TRUE;
 }

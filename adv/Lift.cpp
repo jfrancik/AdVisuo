@@ -10,14 +10,14 @@ CLift::CLift(CSim *pSim, AVULONG nLift, AVULONG nDecks) : CLiftBase(pSim, nLift,
 {
 }
 
-DWORD CLift::Load(CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcLoad)
+DWORD CLift::Load(CBuilding::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcLoad)
 {
 	SetId(nId);
 
-	SetDecks(loader.pLifts[GetId()].nDecks);
+	SetDecks(pLIFT->GetShaft()->GetDeckCount());
 
 	CSimJourneyResolver resolver(m_journeys);
-	resolver.Run(loader, nId);
+	resolver.Run(pLIFT, loader, nId);
 
 	// Apply Time-Consistency Tests
 	// and sequence the passengers departing/arriving...

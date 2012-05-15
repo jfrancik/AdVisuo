@@ -3,6 +3,7 @@
 #include "StdAfx.h"
 #include "SimLoader.h"
 #include "../CommonFiles/BaseData.h"
+#include "Building.h"
 
 using namespace std;
 
@@ -14,22 +15,29 @@ CSimLoader::CSimLoader()
 	nVersion = 0;
 	nLifts = 0;
 	nPassengers = 0;
-	pLifts = NULL;
-	pIters = NULL;
 	pPassengers = NULL;
-	ppSimIters = NULL;
+	pnLiftLogs = NULL;
+	ppLiftLogs = NULL;
+	pnDeckLogs = NULL;
+	ppDeckLogs = NULL;
 }
 
 CSimLoader::~CSimLoader()
 {
-	if (pLifts) delete [] pLifts;
 	if (pPassengers) delete [] pPassengers;
-	if (pIters) delete [] pIters;
-	if (ppSimIters)
+	if (pnLiftLogs) delete [] pnLiftLogs;
+	if (ppLiftLogs)
 	{
 		for (int i = 0; i < nLifts; i++)
-			if (ppSimIters[i]) delete [] ppSimIters[i];
-		delete [] ppSimIters;
+			if (ppLiftLogs[i]) delete [] ppLiftLogs[i];
+		delete [] ppLiftLogs;
+	}
+	if (pnDeckLogs) delete pnDeckLogs;
+	if (ppDeckLogs)
+	{
+		for (int i = 0; i < nLifts; i++)
+			if (ppDeckLogs[i]) delete [] ppDeckLogs[i];
+		delete [] ppDeckLogs;
 	}
 }
 
@@ -51,28 +59,119 @@ int CSimLoader::Load(std::ifstream &stream, size_t nSize)
 	return bytes;
 }
 
-DWORD CSimLoader::Load(dbtools::CDataBase db, ULONG nSimulationId)
+DWORD CSimLoader::Load(CBuilding *pBuilding, dbtools::CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
 	dbtools::CDataBase::SELECT sel;
+
+	bDB = true;
+
+	// analyse the building's lifts
+	nLifts = pBuilding->GetLiftCount();
 
 	sel = db.select(L"SELECT * FROM SimulationLogs WHERE SimulationId=%d", nSimulationId);
 	if (!sel) return ERROR_BUILDING;
 	nVersion = (int)((float)sel[L"AdSimuloVersion"] * 10 + 100.5);
 
+	// count passengers - on the lift by lift basis
+	nPassengers = 0;
+	for (int iLift = 0; iLift < nLifts; iLift++)
+	{
+		sel = db.select(L"SELECT COUNT(HallCallId) As NumPassengers FROM HallCalls WHERE LiftId = %d AND SimulationId=%d", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		if (!sel) return ERROR_BUILDING;
+		nPassengers += (int)sel[L"NumPassengers"];
+	}
+	pPassengers = new Passenger[nPassengers];
 
+	// load passengers (lift by lift)
+	int iPassenger = 0;
+	for (int iLift = 0; iLift < nLifts; iLift++)
+	{
+		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND SimulationId=%d", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		for ( ; sel; sel++, iPassenger++)
+		{
+			pPassengers[iPassenger].ArrivalFloor = (int)sel[L"ArrivalFloor"];
+			pPassengers[iPassenger].DestinationFloor = (int)sel[L"DestinationFloor"];
+			pPassengers[iPassenger].ArrivalTime = (float)sel[L"ArrivalTime"];
+			pPassengers[iPassenger].CarID = iLift;
+			// (int)sel[L"Deck"];
+			pPassengers[iPassenger].WaitingTime = (float)sel[L"WaitingTime"];
+			pPassengers[iPassenger].TransitTime = (float)sel[L"TransitTime"];
+			pPassengers[iPassenger].JourneyTime = (float)sel[L"JourneyTime"];
+			pPassengers[iPassenger].ToDestTime = (float)sel[L"TimeToDestination"];
+			pPassengers[iPassenger].CarArrivalTime = (float)sel[L"CarArrivalAtArrivalFloor"];
+			pPassengers[iPassenger].CarDepTime = (float)sel[L"DepartureTimeFromArrivalFloor"];
+			pPassengers[iPassenger].CarDestTime = (float)sel[L"CarArrivalAtDestinationFloor"];
+			pPassengers[iPassenger].StartLoadingTime = (float)sel[L"StartLoading"];
+			pPassengers[iPassenger].StartUnloadingTime = (float)sel[L"StartUnloading"];
+		}
+	}
 
-	sel = db.select(L"SELECT COUNT(HallCallId) As NumPassengers FROM HallCalls WHERE SimulationId=%d", nSimulationId);
-	if (!sel) return ERROR_BUILDING;
-	nPassengers = sel[L"NumPassengers"];
+	pnLiftLogs = new int[nLifts];
+	memset(pnLiftLogs, 0, sizeof(int)*nLifts);
+	ppLiftLogs = new LiftLog*[nLifts];
+	memset(ppLiftLogs, 0, sizeof(LiftLog*)*nLifts);
+	
+	pnDeckLogs = new int[nLifts];
+	memset(pnDeckLogs, 0, sizeof(int)*nLifts);
+	ppDeckLogs = new DeckLog*[nLifts];
+	memset(ppDeckLogs, 0, sizeof(DeckLog*)*nLifts);
+
+	for (int iLift = 0; iLift < nLifts; iLift++)
+	{
+		// Lift Logs
+
+		// number of logs
+		sel = db.select(L"SELECT COUNT(LiftLogId) As NumLiftLogs FROM LiftLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		if (!sel) return ERROR_BUILDING;
+		pnLiftLogs[iLift] = (int)sel[L"NumLiftLogs"];
+
+		// allocate
+		ppLiftLogs[iLift] = new LiftLog[pnLiftLogs[iLift]];
+		memset(ppLiftLogs[iLift], 0, pnLiftLogs[iLift] * sizeof(LiftLog));
+		
+		sel = db.select(L"SELECT * FROM LiftLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d ORDER BY [Time]", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		for (int iIter = 0; sel; sel++, iIter++)
+		{
+			ppLiftLogs[iLift][iIter].Time = (float)sel[L"Time"];
+			ppLiftLogs[iLift][iIter].curShaft = iLift;	//pBuilding->GetLift(iLift)->GetShaftId();
+			ppLiftLogs[iLift][iIter].curFloor = (int)sel[L"CurrentFloor"];
+			ppLiftLogs[iLift][iIter].destFloor = (int)sel[L"DestinationFloor"];
+			ppLiftLogs[iLift][iIter].carState = (int)sel[L"LiftStateId"];
+		}
+
+		// Deck Logs
+		
+		// number of deck logs
+		sel = db.select(L"SELECT COUNT(DeckLogId) As NumDeckLogs FROM DeckLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		if (!sel) return ERROR_BUILDING;
+		pnDeckLogs[iLift] = (int)sel[L"NumDeckLogs"];
+
+		if (pnDeckLogs[iLift] == 0) continue;
+
+		// allocate
+		ppDeckLogs[iLift] = new DeckLog[pnDeckLogs[iLift]];
+		memset(ppDeckLogs[iLift], 0, pnDeckLogs[iLift] * sizeof(DeckLog));
+		
+		sel = db.select(L"SELECT * FROM DeckLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d ORDER BY [Time]", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		for (int iIter = 0; sel; sel++, iIter++)
+		{
+			ppDeckLogs[iLift][iIter].Time = (float)sel[L"Time"];
+			ppDeckLogs[iLift][iIter].deck = (int)sel[L"Deck"] - 1;
+			ppDeckLogs[iLift][iIter].doorState = (int)sel[L"DoorStateId"];
+		}
+	}
 
 	return 0;
 }
 
-DWORD CSimLoader::Load(LPCOLESTR pName)
+DWORD CSimLoader::Load(CBuilding *pBuilding, LPCOLESTR pName)
 {
 	ifstream myFile (pName, ios::in | ios::binary);
 	if (!myFile) return ERROR_FILE_NOTFOUND;
+
+	bDB = false;
+	nLifts = pBuilding->GetLiftCount();
 
 	try
 	{
@@ -84,42 +183,19 @@ DWORD CSimLoader::Load(LPCOLESTR pName)
 		nBytes += Load(myFile, nVersion);
 
 		if (nSign != 0x5a4b5341) throw ERROR_FILE_FORMAT;
-		if (nVersion < 106) throw ERROR_FILE_VERSION;
+		if (nVersion < 108) throw ERROR_FILE_VERSION;
 		if (nVersion > 109) throw ERROR_FILE_VERSION;
 
-		// read no of floors
-		int _nFloors;
-		nBytes += Load(myFile, _nFloors);
-		nBytes += Load(myFile, sizeof(double) * _nFloors);
-
-		// read no of lifts
-		nBytes += Load(myFile, nLifts);
-
-		// read lift decks
-		// assume version 1.05 or higher
-		pLifts = new Lift[nLifts];
-		if (nVersion < 108)
-		{
-			struct Lift107 	{	int nDecks, nHomeFloor; };
-			Lift107 *pLifts107 = new Lift107[nLifts];
-			nBytes += Load(myFile, pLifts107, sizeof(Lift107) * nLifts);
-			for (int i = 0; i < nLifts; i++)
-			{
-				pLifts[i].nDecks = pLifts107[i].nDecks;
-				pLifts[i].nHomeFloor = pLifts107[i].nHomeFloor;
-				pLifts[i].TimeToOpen = 1.8;
-				pLifts[i].TimeToClose = 2.6;
-				pLifts[i].Speed = 2.5;
-				pLifts[i].Acceleration = 1.0;
-				pLifts[i].Jerk = 1.6;
-			}
-			delete [] pLifts107;
-		}
-		else
-			nBytes += Load(myFile, pLifts, sizeof(Lift) * nLifts);
-
-		// read no of simulations --- this value is ignored!
+		// floors: read and ignore
 		int dummy;
+		nBytes += Load(myFile, dummy);
+		nBytes += Load(myFile, sizeof(double) * dummy);
+
+		// lifts: read and ignore
+		nBytes += Load(myFile, dummy);
+		nBytes += Load(myFile, (2 * sizeof(int) + 5 * sizeof(double)) * dummy);
+
+		// no of simulations: read and ignore
 		nBytes += Load(myFile, dummy);	// no of simulations - disused
 
 		// read no of passengers
@@ -131,34 +207,34 @@ DWORD CSimLoader::Load(LPCOLESTR pName)
 		nBytes += Load(myFile, pPassengers, sizeof(Passenger) * nPassengers);
 				
 		// read lift simulation data
-		pIters = new int[nLifts];
-		memset(pIters, 0, sizeof(int)*nLifts);
-		ppSimIters = new SimIter*[nLifts];
-		memset(ppSimIters, 0, sizeof(SimIter*)*nLifts);
+		pnLiftLogs = new int[nLifts];
+		memset(pnLiftLogs, 0, sizeof(int)*nLifts);
+		ppLiftLogs = new LiftLog*[nLifts];
+		memset(ppLiftLogs, 0, sizeof(LiftLog*)*nLifts);
 
 		for (int i = 0; i < nLifts; i++)	// i = lift index
 		{
 			// read no of sim iters
-			nBytes += Load(myFile, pIters[i]);
-			if (pIters[i] == 0) continue;
+			nBytes += Load(myFile, pnLiftLogs[i]);
+			if (pnLiftLogs[i] == 0) continue;
 
 			// read data
-			int nDeckCount = pLifts[i].nDecks;
+			int nDeckCount = pBuilding->GetLift(i)->GetShaft()->GetDeckCount();
 			if (nDeckCount < 1 || nDeckCount > 2) throw ERROR_FILE_DECKS;
-			size_t nSize = sizeof(SimIter_Base) + nDeckCount * sizeof(SimIter::Deck);
-			BYTE *pData = new BYTE[pIters[i] * nSize];
-			nBytes += Load(myFile, pData, pIters[i] * nSize);
+			size_t nSize = sizeof(LiftLog_Base) + nDeckCount * sizeof(LiftLog::Deck);
+			BYTE *pData = new BYTE[pnLiftLogs[i] * nSize];
+			nBytes += Load(myFile, pData, pnLiftLogs[i] * nSize);
 
 			// create the usable array
-			ppSimIters[i] = new SimIter[pIters[i]];
-			memset(ppSimIters[i], 0, pIters[i] * sizeof(SimIter));
+			ppLiftLogs[i] = new LiftLog[pnLiftLogs[i]];
+			memset(ppLiftLogs[i], 0, pnLiftLogs[i] * sizeof(LiftLog));
 
 			// mem copy data & clean up
 			BYTE *p = pData;
-			for (int j = 0; j < pIters[i]; j++)
+			for (int j = 0; j < pnLiftLogs[i]; j++)
 			{
-				memcpy(&ppSimIters[i][j], p, nSize);
-				ppSimIters[i][j].curShaft = i;
+				memcpy(&ppLiftLogs[i][j], p, nSize);
+				ppLiftLogs[i][j].curShaft = i;
 				p += nSize;
 			}
 			delete [] pData;
@@ -182,12 +258,6 @@ void CSimLoader::Print()
 	cout << nPassengers << " passengers" << endl;
 	cout << endl;
 
-	// display lift decks
-	cout << "Lift Data:" << endl;
-	for (int i = 0; i < nLifts; i++)
-		cout << "Lift #" << i << " decks = " << pLifts[i].nDecks << " home floor = " << pLifts[i].nHomeFloor << endl;
-	cout << endl;
-
 	// display passengers
 	cout << "Passenger Info:" << endl;
 	for (int i = 0; i < nPassengers; i++)
@@ -209,20 +279,20 @@ void CSimLoader::Print()
 	cout << "Simulation Data:" << endl;
 	for (int i = 0; i < nLifts; i++)
 	{
-		cout << "LIFT #" << i << " (" << pIters[i] << " iterations)" << endl;
-		for (int j = 0; j < pIters[i]; j++)
+		cout << "LIFT #" << i << " (" << pnLiftLogs[i] << " iterations)" << endl;
+		for (int j = 0; j < pnLiftLogs[i]; j++)
 		{
 			cout << "  " << j << "."
-			<< " Time = " << ppSimIters[i][j].Time
-			<< " Floor: " << ppSimIters[i][j].curFloor
-			<< " Dest: " << ppSimIters[i][j].destFloor
-			<< " State: " << (int)ppSimIters[i][j].carState
+			<< " Time = " << ppLiftLogs[i][j].Time
+			<< " Floor: " << ppLiftLogs[i][j].curFloor
+			<< " Dest: " << ppLiftLogs[i][j].destFloor
+			<< " State: " << (int)ppLiftLogs[i][j].carState
 			<< endl << "     - Deck 0:"
-			<< " door state: " << (int)ppSimIters[i][j].deck[0].doorState
-			<< " pasgr count: " << (int)ppSimIters[i][j].deck[0].passengersCount
+			<< " door state: " << (int)ppLiftLogs[i][j].deck[0].doorState
+			<< " pasgr count: " << (int)ppLiftLogs[i][j].deck[0].passengersCount
 			<< endl << "     - Deck 1:"
-			<< " door state: " << (int)ppSimIters[i][j].deck[1].doorState
-			<< " pasgr count: " << (int)ppSimIters[i][j].deck[1].passengersCount << endl;
+			<< " door state: " << (int)ppLiftLogs[i][j].deck[1].doorState
+			<< " pasgr count: " << (int)ppLiftLogs[i][j].deck[1].passengersCount << endl;
 
 			if (j >= 10)
 			{
@@ -240,7 +310,7 @@ CSimJourneyResolver::CSimJourneyResolver(std::vector<JOURNEY> &J) : journeys(J),
 {
 }
 
-void CSimJourneyResolver::Run(CSimLoader &loader, AVULONG nLiftId)
+void CSimJourneyResolver::Run(CBuilding::LIFT *pLIFT, CSimLoader &loader, AVULONG nLiftId)
 {
 	stCar = CAR_STOP;
 
@@ -250,15 +320,25 @@ void CSimJourneyResolver::Run(CSimLoader &loader, AVULONG nLiftId)
 		lt[i] = 0;
 	}
 
-	AVULONG nTimeToOpen = (AVULONG)(loader.pLifts[nLiftId].TimeToOpen * 1000);
-	AVULONG nTimeToClose = (AVULONG)(loader.pLifts[nLiftId].TimeToClose * 1000);
-
 	tmpShaft = nLiftId / 9;
 
 	journeys.push_back(JOURNEY());
 	pJourney = &journeys.back();
-	for (int i = 0; i < loader.pIters[nLiftId]; i++)
-		Record(loader.ppSimIters[nLiftId][i], loader.pLifts[nLiftId].nDecks > 1, nTimeToOpen, nTimeToClose);
+	int iDL = 0;
+	for (int iLL = 0; iLL < loader.pnLiftLogs[nLiftId]; iLL++)
+	{
+		CSimLoader::LiftLog ll = loader.ppLiftLogs[nLiftId][iLL];
+		while (loader.pnDeckLogs && iDL < loader.pnDeckLogs[nLiftId] && loader.ppDeckLogs[nLiftId][iDL].Time <= loader.ppLiftLogs[nLiftId][iLL].Time)
+		{
+			CSimLoader::DeckLog dl = loader.ppDeckLogs[nLiftId][iDL];
+			ll.Time = dl.Time;
+			ll.deck[dl.deck].doorState = dl.doorState;
+			Record(ll, loader.bDB, pLIFT->GetShaft()->GetDeckCount() > 1, pLIFT->GetShaft()->GetOpeningTime(), pLIFT->GetShaft()->GetClosingTime());
+			iDL++;
+		}
+		ll.Time = loader.ppLiftLogs[nLiftId][iLL].Time;
+		Record(ll, loader.bDB, pLIFT->GetShaft()->GetDeckCount() > 1, pLIFT->GetShaft()->GetOpeningTime(), pLIFT->GetShaft()->GetClosingTime());
+	}
 	journeys.pop_back();
 }
 
@@ -276,25 +356,34 @@ void CSimJourneyResolver::RecordClose(AVULONG iDeck, AVULONG time, AVULONG durat
 	door[iDeck].reset();
 }
 
-void CSimJourneyResolver::Record(CSimLoader::SimIter &simiter, bool bDoubleDeck, AVULONG timeToOpen, AVULONG timeToClose)
+void CSimJourneyResolver::Record(CSimLoader::LiftLog &liftlog, bool bDB, bool bDoubleDeck, AVULONG timeToOpen, AVULONG timeToClose)
 {
-	AVULONG t = (AVULONG)(simiter.Time * 1000);
-	AVULONG floorFrom = simiter.curFloor;
-	AVULONG floorTo   = simiter.destFloor;
-	AVULONG shaft = simiter.curShaft;
+	AVULONG t = (AVULONG)(liftlog.Time * 1000);
+	AVULONG floorFrom = liftlog.curFloor;
+	AVULONG floorTo   = liftlog.destFloor;
+	AVULONG shaft = liftlog.curShaft;
 
-	shaft = tmpShaft;
+	// shaft = tmpShaft;	// this was added in Circular Lifts edition...
 
 	// identify car event/state as move, stop or between shafts
 	enum CAR  evCar;
-	if (simiter.carState == 1) evCar = CAR_MOVE; 
-	else if (simiter.carState == 4) evCar = CAR_SHAFT_MOVE;
-	else evCar = CAR_STOP;
+	if (bDB)
+	{
+		if (liftlog.carState == 0) evCar = CAR_MOVE; 
+		else if (liftlog.carState == 4) evCar = CAR_SHAFT_MOVE;
+		else evCar = CAR_STOP;
+	}
+	else
+	{
+		if (liftlog.carState == 1) evCar = CAR_MOVE; 
+		else if (liftlog.carState == 4) evCar = CAR_SHAFT_MOVE;
+		else evCar = CAR_STOP;
+	}
 
 	// identify door states
 	enum DOOR evDoor[DECK_NUM];
 	for (AVULONG i = 0; i < DECK_NUM; i++) 
-		evDoor[i] = (enum DOOR)simiter.deck[i].doorState;
+		evDoor[i] = (enum DOOR)liftlog.deck[i].doorState;
 		
 	ASSERT(evDoor[1] == DOOR_CLOSED || bDoubleDeck);	// second door always closed unless double deck
 
@@ -339,7 +428,7 @@ void CSimJourneyResolver::Record(CSimLoader::SimIter &simiter, bool bDoubleDeck,
 		}
 	stCar = evCar;
 
-	if (simiter.carState == 4) tmpShaft = 1 - tmpShaft;
+	if (liftlog.carState == 4) tmpShaft = 1 - tmpShaft;
 
 	for (AVULONG i = 0; i < DECK_NUM; i++)
 		if (evDoor[i] != stDoor[i])

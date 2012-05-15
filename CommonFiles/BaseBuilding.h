@@ -68,6 +68,9 @@ public:
 		TYPE_OF_LIFT m_type;					// type of lift (conventional/MRL)
 		TYPE_OF_DECK m_deck;					// type of deck (single/double/twin)
 
+		AVULONG m_nOpeningTime;					// door opening time
+		AVULONG m_nClosingTime;					// door closing time
+
 		AVULONG m_nLiftCount;					// usually 1, may be more for multiple lifts options
 		AVULONG m_nLiftBegin;					// index of the first lift, usually m_nId but may be different for multiple lifts options
 
@@ -91,9 +94,14 @@ public:
 		AVULONG GetShaftLine()					{ return m_nShaftLine; }
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
+		AVLONG GetNativeId()					{ return ME[L"LiftId"]; }
+
 		TYPE_OF_LIFT GetType()					{ return m_type; }
 		TYPE_OF_DECK GetDeck()					{ return m_deck; }
 		AVULONG GetDeckCount()					{ return m_deck == DECK_DOUBLE ? 2 : 1; }
+
+		AVULONG GetOpeningTime()				{ return m_nOpeningTime; }
+		AVULONG GetClosingTime()				{ return m_nClosingTime; }
 
 		AVULONG GetLiftBegin()					{ return m_nLiftBegin; }
 		AVULONG GetLiftCount()					{ return m_nLiftCount; }
@@ -188,6 +196,8 @@ public:
 
 	AVULONG GetId()							{ return m_nId; }
 	void SetId(AVULONG nId)					{ m_nId = nId; }
+
+	AVLONG GetNativeId()					{ return ME[L"LiftGroupId"]; }
 
 	BOX &GetBox()							{ return m_box; }
 	bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }

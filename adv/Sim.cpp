@@ -21,23 +21,23 @@ HRESULT CSim::LoadSim(CDataBase db)
 	// load!
 	CSimLoader loader;
 
-	//int nRes = loader.Load(db, 1185);
+	int nRes = loader.Load(GetBuilding(), db, GetSimulationId());
 	// int nRes = loader.Load(GetSIMFileName().c_str());
-	int nRes = loader.Load(L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
+	//int nRes = loader.Load(GetBuilding(), L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
 
 	// detect errors...
 	if FAILED(nRes)
 		return Logf(nRes, GetSIMFileName().c_str());
-	if ((ULONG)loader.nLifts != GetBuilding()->GetLiftCount())
-		return Log(ERROR_FILE_INCONSISTENT_LIFTS);		// inconsistent number of floors
+	
+	// if ((ULONG)loader.nLifts != GetBuilding()->GetLiftCount())
+	//	return Log(ERROR_FILE_INCONSISTENT_LIFTS);		// inconsistent number of floors
 	// if ((ULONG)loader.nFloors != GetBuilding()->GetStoreyCount())
 	//	return Log(ERROR_FILE_INCONSISTENT_FLOORS);		// inconsistent number of lifts
-
 	// check single/double decker consistency
-	for (AVULONG i = 0; i < (ULONG)loader.nLifts;i++)
-		if ((loader.pLifts[i].nDecks == 1 && GetBuilding()->GetLift(i)->GetShaft()->GetDeck() == CBuildingBase::DECK_DOUBLE)
-		|| (loader.pLifts[i].nDecks > 1 && GetBuilding()->GetLift(i)->GetShaft()->GetDeck() == CBuildingBase::DECK_SINGLE))
-			return Log(ERROR_FILE_INCONSISTENT_DECKS);
+	// for (AVULONG i = 0; i < (ULONG)loader.nLifts;i++)
+	//	if ((loader.pLifts[i].nDecks == 1 && GetBuilding()->GetLift(i)->GetShaft()->GetDeck() == CBuildingBase::DECK_DOUBLE)
+	//	|| (loader.pLifts[i].nDecks > 1 && GetBuilding()->GetLift(i)->GetShaft()->GetDeck() == CBuildingBase::DECK_SINGLE))
+	//		return Log(ERROR_FILE_INCONSISTENT_DECKS);
 
 	SetSIMVersionId(loader.nVersion);
 
@@ -56,7 +56,7 @@ HRESULT CSim::LoadSim(CDataBase db)
 	for (AVULONG i = 0; i < GetBuilding()->GetLiftCount(); i++)
 	{
 		CLift *pLift = (CLift*)CreateLift(i);
-		HRESULT h = pLift->Load(loader, i, true, true);
+		HRESULT h = pLift->Load(GetBuilding()->GetLift(i), loader, i, true, true);
 		if FAILED(h) return h;
 		if (h != S_OK) bWarning = true;
 		AddLift(pLift);
@@ -130,8 +130,8 @@ HRESULT CSim::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 HRESULT CSim::Store(CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
-	if (!GetBuilding())
-		throw (Log(ERROR_INTERNAL, L"Project stored without the building set."), ERROR_GENERIC);
+//	if (!GetBuilding())
+//		throw (Log(ERROR_INTERNAL, L"Project stored without the building set."), ERROR_GENERIC);
 
 	SetSimulationId(nSimulationId);
 	SetAVVersionId(GetAVNativeVersionId());
@@ -163,10 +163,10 @@ HRESULT CSim::Store(CDataBase db, ULONG nSimulationId)
 	SetProjectId(sel[(short)0]);
 
 	// Store the Building
-	if (GetBuilding())
-		GetBuilding()->Store(db, GetProjectId());
-
-	Update(db, 0);
+//	if (GetBuilding())
+//		GetBuilding()->Store(db, GetProjectId());
+//
+//	Update(db, 0);
 
 	return S_OK;
 }

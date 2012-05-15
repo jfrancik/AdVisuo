@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include "../CommonFiles/BaseClasses.h"
+#include "Building.h"
 
 #pragma pack(1)
 
@@ -34,19 +35,13 @@ public:
 		double StartUnloadingTime;		// added in 1.01
 	};
 	
-	struct Lift
-	{
-		int nDecks;
-		int nHomeFloor;
-
-		double TimeToOpen;				// new to version 1.08
-		double TimeToClose;				// new to version 1.08
-		double Speed;					// new to version 1.08
-		double Acceleration;			// new to version 1.08
-		double Jerk;					// new to version 1.08
-	};
-
 	// Car States:
+	// DB:
+	//  0  Move
+	//  1  MotorStarting
+	//  2  Idle
+	//  3  Transfer
+	// File:
 	//  0  Idle,                waiting for new task
 	//  1  MoveToTask,          on the way to task (lift is moving)
 	//  2  MotorStarting       
@@ -57,7 +52,7 @@ public:
 	//  2  Opening
 	//  3  Open
 	
-	struct SimIter_Base
+	struct LiftLog_Base
 	{
 		double Time;					// (in seconds)
 		int curShaft;					// shaft id value (new to version 1.06)!
@@ -66,7 +61,7 @@ public:
 		BYTE carState;					// Car states
 	};
 
-	struct SimIter : public SimIter_Base
+	struct LiftLog : public LiftLog_Base
 	{
 		struct Deck 
 		{
@@ -75,24 +70,34 @@ public:
 		} deck[DECK_NUM];
 	};
 
+	struct DeckLog	// specific for the DB
+	{
+		double Time;
+		int deck;
+		BYTE doorState;
+	};
+
 public:
 
 	int nVersion;				// file version
+	bool bDB;					// true if read from a DB; false for a file
 	
-	int nLifts;					// number of lifts
-	Lift		*pLifts;		// lifts info: decks & home floor
-
 	int nPassengers;			// number of passengers (hall calls)
 	Passenger	*pPassengers;	// passenger info for each passenger
 	
-	int			*pIters;		// sim iters for each lift
-	SimIter		**ppSimIters;	// sim iter info for each sim iter for each lift
+	int			nLifts;			// number of lifts
+	
+	int			*pnLiftLogs;	// sim iters for each lift
+	LiftLog		**ppLiftLogs;	// sim iter info for each sim iter for each lift
+
+	int			*pnDeckLogs;	// deck logs for each lift and deck
+	DeckLog		**ppDeckLogs;	// deck log info for each deck log for each lift and deck
 
 	CSimLoader();
 	~CSimLoader();
 
-	DWORD Load(LPCOLESTR pName);							// returns S_OK if successful
-	DWORD Load(dbtools::CDataBase db, ULONG nSimulationId);	// returns S_OK if successful
+	DWORD Load(CBuilding *pBuilding, dbtools::CDataBase db, ULONG nSimulationId);	// returns S_OK if successful
+	DWORD Load(CBuilding *pBuilding, LPCOLESTR pName);		// returns S_OK if successful
 	void Print();
 
 private:
@@ -103,7 +108,7 @@ private:
 };
 
 /////////////////////////////////////////////////////////////
-// Converts simulation data loaded by a SimLoader (SimIter)
+// Converts simulation data loaded by a SimLoader (LiftLog)
 // to an array of JOURNEYs.
 
 class CSimJourneyResolver
@@ -122,10 +127,10 @@ class CSimJourneyResolver
 
 public:
 	CSimJourneyResolver(std::vector<JOURNEY>&);
-	void Run(CSimLoader &loader, AVULONG nLiftId);
+	void Run(CBuilding::LIFT *pLIFT, CSimLoader &loader, AVULONG nLiftId);
 
 private:
-	void Record(CSimLoader::SimIter &simiter, bool bDoubleDeck, AVULONG timeToOpen, AVULONG timeToClose);
+	void Record(CSimLoader::LiftLog &liftlog, bool bDB, bool bDoubleDeck, AVULONG timeToOpen, AVULONG timeToClose);
 	void RecordOpen(AVULONG iDeck, AVULONG time, AVULONG duration, AVULONG timeToOpen);
 	void RecordClose(AVULONG iDeck, AVULONG time, AVULONG duration, AVULONG timeToClose);
 };

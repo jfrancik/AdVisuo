@@ -367,6 +367,9 @@ void CBuildingBase::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fSh
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
 
+	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
+	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);
+
 	// ### To resolve the problem quickly
 	ME[L"LiftsPerShaft"] = (AVULONG)1;
 
@@ -503,6 +506,10 @@ void CBuildingBase::SHAFT::Create()
 	m_nId = ME[L"ShaftId"];
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
+
+	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
+	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);
+
 	m_nLiftCount = max(1, (AVULONG)ME[L"LiftsPerShaft"]);
 	m_nShaftLine = ME[L"ShaftLine"];
 	m_boxShaft.ParseFromString(ME[L"BoxShaft"]);

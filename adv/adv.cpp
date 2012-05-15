@@ -181,20 +181,10 @@ ADV_API HRESULT AVTest(AVULONG nSimulationId)
 
 		h = sim.LoadFromVisualisation(pConnStr, nProjectID);
 
-		FILETIME ft;
-		HANDLE hFile = CreateFileW(sim.GetSIMFileName().c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); 
-		if (hFile == INVALID_HANDLE_VALUE) return S_FALSE;
-		GetFileTime(hFile, NULL, NULL, &ft);
-		CloseHandle(hFile);
-
-		COleDateTime timeSim(sim.GetTimeStamp());
-		COleDateTime timeFile(ft);
-
 		lt.Log(L"AVTest");
-		if (timeSim >= timeFile)
-			return S_OK;
-		else
-			return S_FALSE+1;
+
+		// should retuen S_OK if data up to date
+		return S_FALSE+1;
 	}
 	STD_CATCH(L"AVTest(%d)", nSimulationId);
 }
@@ -266,6 +256,10 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 
 		h = CSim::CleanUp(pVisConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
+
+		ULONG nNumber;
+		h = CBuilding::LoadNumberFromConsole(pConsoleConn, nSimulationId, nNumber);
+		if WARNED(h) dwStatus = STATUS_WARNING;
 		
 		CBuilding building;
 		h = building.LoadFromConsole(pConsoleConn, nSimulationId); 
@@ -274,8 +268,14 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		CSim sim(&building);
 		h = sim.LoadFromConsole(pConsoleConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
-		
+
 		h = sim.Store(pVisConn, nSimulationId); 
+		if WARNED(h) dwStatus = STATUS_WARNING;
+
+		h = building.Store(pVisConn, sim.GetProjectId());
+		if WARNED(h) dwStatus = STATUS_WARNING;
+		
+		h = sim.Update(pVisConn); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		nProjectID = sim.GetProjectId();

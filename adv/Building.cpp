@@ -63,6 +63,28 @@ HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
 //////////////////////////////////////////////////////////////////////////////////
 // Database Load
 
+HRESULT CBuilding::LoadNumberFromConsole(CDataBase db, ULONG nSimulationId, ULONG &nNumber)
+{
+	if (!db) throw db;
+	CDataBase::SELECT sel;
+
+	sel = db.select(L"SELECT COUNT(LiftGroupId) As number FROM LiftGroups WHERE SimulationId=%d", nSimulationId);
+	nNumber = sel[L"number"];
+
+	return S_OK;
+}
+
+HRESULT CBuilding::LoadNumberFromVisualisation(CDataBase db, ULONG nProjectID, ULONG &nNumber)
+{
+	if (!db) throw db;
+	CDataBase::SELECT sel;
+
+	sel = db.select(L"SELECT COUNT(ID) As number FROM AVBuildings WHERE ProjectID=%d", nProjectID);
+	nNumber = sel[L"number"];
+
+	return S_OK;
+}
+
 HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
