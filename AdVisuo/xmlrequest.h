@@ -54,12 +54,12 @@ public:
 	HRESULT call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2);
 	HRESULT call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2, std::wstring strParam3, AVULONG val3);
 
-	HRESULT GetAVProject(AVULONG nId)			{ return call(L"GetAVProject", L"id", nId); }
 	HRESULT AVIndex()							{ return call(L"AVIndex", L""); }
 	HRESULT AVProject(AVULONG nSimulationId)	{ return call(L"AVProject", L"nSimulationId", nSimulationId); }
-	HRESULT AVBuilding(AVULONG nProjectId)		{ return call(L"AVBuilding", L"nProjectId", nProjectId); }
-	HRESULT AVSim(AVULONG nProjectId, AVULONG timeFrom, AVULONG timeTo)
-												{ return call(L"AVSim", L"nProjectId", nProjectId, L"timeFrom", timeFrom, L"timeTo", timeTo); }
+	HRESULT AVSim(AVULONG nProjectId)			{ return call(L"AVSim", L"nProjectId", nProjectId); }
+	HRESULT AVBuilding(AVULONG nSimId)			{ return call(L"AVBuilding", L"nSimId", nSimId); }
+	HRESULT AVSimData(AVULONG nSimId, AVULONG timeFrom, AVULONG timeTo)
+												{ return call(L"AVSimData", L"nSimId", nSimId, L"timeFrom", timeFrom, L"timeTo", timeTo); }
 	// wait
 	HRESULT wait(DWORD dwTimeout = INFINITE);
 

@@ -173,6 +173,7 @@ public:
 private:
 
 	AVULONG m_nId;						// Building ID
+	AVULONG m_nSimId;					// Sim ID
 
 	AVULONG m_nStoreyCount;				// Counters (floors/shafts/lifts)
 	AVULONG m_nShaftCount;
@@ -196,6 +197,9 @@ public:
 
 	AVULONG GetId()							{ return m_nId; }
 	void SetId(AVULONG nId)					{ m_nId = nId; }
+
+	AVULONG GetSimId()						{ return m_nSimId; }
+	void SetSimId(AVULONG nId)				{ m_nSimId = nId; }
 
 	AVLONG GetNativeId()					{ return ME[L"LiftGroupId"]; }
 

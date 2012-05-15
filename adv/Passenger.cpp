@@ -202,12 +202,12 @@ DWORD CPassenger::Load(AVULONG nId, CSimLoader::Passenger &P)
 	return S_OK;
 }
 
-HRESULT CPassenger::Store(CDataBase db, ULONG nProjectID)
+HRESULT CPassenger::Store(CDataBase db)
 {
 	if (!db) throw db;
 	CDataBase::INSERT ins = db.insert(L"AVPassengers");
-	ins[L"ProjectID"] = nProjectID;
 	ins[L"PassengerId"] = GetId();
+	ins[L"SimID"] = GetSimId();
 	ins[L"ShaftId"] = GetShaftId();
 	ins[L"LiftId"] = GetLiftId();
 	ins[L"DeckId"] = GetDeck();

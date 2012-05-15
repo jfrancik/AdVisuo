@@ -84,6 +84,9 @@
     <ClCompile Include="..\CommonFiles\DBTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Project.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="adv.h">
@@ -156,6 +159,9 @@
       <Filter>Header Files\IFC</Filter>
     </ClInclude>
     <ClInclude Include="..\CommonFiles\DBTools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Project.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -18,5 +18,5 @@ public:
 
 	// IO: load from SIM File, Store to DB
 	DWORD Load(CBuilding::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload = false, bool bCalcLoad = false);
-	HRESULT Store(dbtools::CDataBase db, ULONG nProjectId);
+	HRESULT Store(dbtools::CDataBase db);
 };

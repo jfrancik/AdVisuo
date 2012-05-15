@@ -9,13 +9,40 @@
 class CLiftBase;
 class CPassengerBase;
 
+class CProjectBase : public dbtools::CCollection
+{
+	AVULONG m_nSimulationId;		// original (console) simulation id
+
+	AVULONG m_nId;					// project id
+	AVULONG m_nAVVersionId;			// AV Version id
+	AVULONG m_nLiftGroupsCount;		// number of lift groups
+
+public:
+	CProjectBase();
+
+	AVULONG GetSimulationId()					{ return m_nSimulationId; }
+	AVULONG GetId()								{ return m_nId; }
+	AVULONG GetAVVersionId()					{ return m_nAVVersionId; }
+	static AVULONG GetAVNativeVersionId()		{ return 10900; }
+	AVULONG GetLiftGroupsCount()				{ return m_nLiftGroupsCount; }
+	
+	void SetSimulationId(AVULONG n)				{ m_nSimulationId = n; }
+	void SetId(AVULONG n)						{ m_nId = n; }
+	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
+	void SetLiftGroupsCount(AVULONG n)			{ m_nLiftGroupsCount = n; }
+
+	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
+	std::wstring GetProjectInfo(PRJ_INFO what);
+
+	void ResolveMe();
+};
+
 class CSimBase : public dbtools::CCollection
 {
 	// project information
-	AVULONG m_nProjectId;
-	AVULONG m_nSimulationId;
+	AVULONG m_nId;					// sim id
+	AVULONG m_nProjectId;			// project id
 	AVULONG m_nSIMVersionId;
-	AVULONG m_nAVVersionId;
 	AVLONG m_nSimulationTime;
 	AVULONG m_nTimeSaved;
 	
@@ -38,19 +65,14 @@ public:
 	DATE GetTimeStamp()							{ return ME[L"TimeStamp"]; }
 	enum ALGORITHM { DESTINATION, COLLECTIVE } ;
 	ALGORITHM GetAlgorithm()					{ return (ALGORITHM)(ULONG)ME[L"Algorithm"]; }
-	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
-	std::wstring GetProjectInfo(PRJ_INFO what);
 
+	AVULONG GetId()								{ return m_nId; }
 	AVULONG GetProjectId()						{ return m_nProjectId; }
-	AVULONG GetSimulationId()					{ return m_nSimulationId; }
 	AVULONG GetSIMVersionId()					{ return m_nSIMVersionId; }
-	AVULONG GetAVVersionId()					{ return m_nAVVersionId; }
-	static AVULONG GetAVNativeVersionId()		{ return 10900; }
 
+	void SetId(AVULONG n)						{ m_nId = n; }
 	void SetProjectId(AVULONG n)				{ m_nProjectId = n; }
-	void SetSimulationId(AVULONG n)				{ m_nSimulationId = n; }
 	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionId = n; }
-	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
 
 	AVLONG GetSimulationTime()					{ return m_nSimulationTime; }
 	void ReportSimulationTime(AVLONG n)			{ if (n > m_nSimulationTime) m_nSimulationTime = n; }
@@ -85,6 +107,7 @@ class CLiftBase : public dbtools::CCollection
 	CSimBase *m_pSim;			// main sim object
 
 	AVULONG m_nId;				// lift id
+	AVULONG m_nSimId;			// Sim ID
 	AVULONG m_nDecks;			// number of decks (2 for double decker, 1 for single decker)
 
 protected:
@@ -99,6 +122,9 @@ public:
 
 	AVULONG GetId()					{ return m_nId; }
 	void SetId(AVULONG n)			{ m_nId = n; }
+
+	AVULONG GetSimId()				{ return m_nSimId; }
+	void SetSimId(AVULONG nId)		{ m_nSimId = nId; }
 
 	bool IsDoubleDecker()			{ return m_nDecks >= 2; }
 	AVULONG GetDecks()				{ return m_nDecks; }
@@ -115,6 +141,8 @@ class CPassengerBase : public dbtools::CCollection
 
 	// Simulation & Derived Data
 	AVULONG m_nId;
+	AVULONG m_nSimId;			// Sim ID
+
 	AVULONG m_nShaft;			// set later
 	AVULONG m_nLift;			// read from file
 	AVULONG m_nDeck;			// set later
@@ -141,6 +169,8 @@ public:
 	CSimBase *GetSim()				{ return m_pSim; }
 
 	AVULONG GetId()					{ return m_nId; }
+	AVULONG GetSimId()				{ return m_nSimId; }
+
 	AVULONG GetShaftId()			{ return m_nShaft; }
 	AVULONG GetLiftId()				{ return m_nLift; }
 	AVULONG GetDeck()				{ return m_nDeck; }
@@ -154,6 +184,8 @@ public:
 	AVULONG GetWaitSpan()			{ return m_spanWait; }
 
 	void SetId(AVULONG n)			{ m_nId = n; }
+	void SetSimId(AVULONG nId)		{ m_nSimId = nId; }
+
 	void SetShaftId(AVULONG n)		{ m_nShaft = n; }
 	void SetLiftId(AVULONG n)		{ m_nLift = n; }
 	void SetDeck(AVULONG n)			{ m_nDeck = n; }

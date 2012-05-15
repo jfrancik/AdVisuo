@@ -13,7 +13,7 @@ CSim::CSim(CBuildingBase *pBuilding) : CSimBase(pBuilding)
 {
 }
 
-HRESULT CSim::LoadSim(CDataBase db)
+HRESULT CSim::LoadSim(CDataBase db, AVULONG nSimulationId)
 {
 	if (!GetBuilding())
 		return Log(ERROR_INTERNAL, L"SIM file loading without the building set.");
@@ -21,7 +21,7 @@ HRESULT CSim::LoadSim(CDataBase db)
 	// load!
 	CSimLoader loader;
 
-	int nRes = loader.Load(GetBuilding(), db, GetSimulationId());
+	int nRes = loader.Load(GetBuilding(), db, nSimulationId);
 	// int nRes = loader.Load(GetSIMFileName().c_str());
 	//int nRes = loader.Load(GetBuilding(), L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
 
@@ -74,38 +74,15 @@ void CSim::Play()
 	}
 }
 
-HRESULT CSim::FindProjectID(CDataBase db, ULONG nSimulationId, ULONG &nProjectID)
-{
-	if (!db) throw db;
-	nProjectID = 0;
-	CDataBase::SELECT sel;
-		
-	// Query for Project Data (test for any existing)
-	try
-	{
-		sel = db.select(L"SELECT MAX(ID) AS id FROM AVProjects WHERE SimulationId=%d", nSimulationId);
-	}
-	catch (...)
-	{
-		return S_FALSE;
-	}
-	if (!sel) return S_FALSE;
-
-	if (sel[L"id"].isNull()) return S_FALSE;
-	nProjectID = sel[L"id"];
-	return S_OK;
-}
-
 HRESULT CSim::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
 
-	// Query for Simulations (for project id)
-	sel = db.select(L"SELECT * FROM Simulations s, Projects p WHERE p.ProjectId = s.ProjectId AND SimulationId=%d", nSimulationId);
-	if (!sel) throw ERROR_PROJECT;
-	AVULONG nProjectId = sel[L"ProjectId"];
-	sel >> ME;
+	// Query for Simulations
+//	sel = db.select(L"SELECT * FROM Simulations s, Projects p WHERE p.ProjectId = s.ProjectId AND SimulationId=%d", nSimulationId);
+//	if (!sel) throw ERROR_PROJECT;
+//	sel >> ME;
 
 	return S_OK;
 }
@@ -114,11 +91,9 @@ HRESULT CSim::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 {
 	if (!db) throw db;
 
-	SetProjectId(nProjectID);
-		
 	// Query for Project Data (for project id)
 	CDataBase::SELECT sel;
-	sel = db.select(L"SELECT * FROM AVProjects WHERE ID=%d", GetProjectId());
+	sel = db.select(L"SELECT * FROM AVSims WHERE ProjectId=%d", nProjectID);
 	if (!sel) throw ERROR_DATA_NOT_FOUND;
 	sel >> ME;
 
@@ -127,21 +102,17 @@ HRESULT CSim::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 	return S_OK;
 }
 
-HRESULT CSim::Store(CDataBase db, ULONG nSimulationId)
+HRESULT CSim::Store(CDataBase db)
 {
 	if (!db) throw db;
 //	if (!GetBuilding())
 //		throw (Log(ERROR_INTERNAL, L"Project stored without the building set."), ERROR_GENERIC);
 
-	SetSimulationId(nSimulationId);
-	SetAVVersionId(GetAVNativeVersionId());
-	
-	CDataBase::INSERT ins = db.insert(L"AVProjects");
+	CDataBase::INSERT ins = db.insert(L"AVSims");
 
 	ins << ME;
-	ins[L"SimulationId"] = GetSimulationId();
+	ins[L"ProjectId"] = GetProjectId();
 	ins[L"SIMVersionId"] = GetSIMVersionId();
-	ins[L"AVVersionId"] = (float)(((AVFLOAT)GetAVVersionId())/100.0);
 	ins[L"Floors"] = GetBuilding()->GetStoreyCount();
 	ins[L"Shafts"] = GetBuilding()->GetShaftCount();
 	ins[L"Lifts"] = GetBuilding()->GetLiftCount();
@@ -160,7 +131,7 @@ HRESULT CSim::Store(CDataBase db, ULONG nSimulationId)
 	// retrieve the Project ID
 	CDataBase::SELECT sel;
 	sel = db.select(L"SELECT SCOPE_IDENTITY()");
-	SetProjectId(sel[(short)0]);
+	SetId(sel[(short)0]);
 
 	// Store the Building
 //	if (GetBuilding())
@@ -182,14 +153,20 @@ HRESULT CSim::Update(CDataBase db, AVLONG nTime)
 	// Store the Journeys
 	AVULONG nLifts = GetLiftCount();
 	for (AVULONG i = 0; i < nLifts; i++)
-		GetLift(i)->Store(db, GetProjectId());
+	{
+		GetLift(i)->SetSimId(GetId());
+		GetLift(i)->Store(db);
+	}
 
 	// Store the Passengers
 	AVULONG nPassengers = GetPassengerCount();
 	for (AVULONG i = 0; i < nPassengers; i++)
-		GetPassenger(i)->Store(db, GetProjectId());
+	{
+		GetPassenger(i)->SetSimId(GetId());
+		GetPassenger(i)->Store(db);
+	}
 
-	CDataBase::UPDATE upd = db.update(L"AVProjects", L"WHERE ID=%d", GetProjectId());
+	CDataBase::UPDATE upd = db.update(L"AVSims", L"WHERE ID=%d", GetProjectId());
 	upd[L"SIMVersionId"] = GetSIMVersionId();
 	upd[L"Floors"] = GetBuilding()->GetStoreyCount();
 	upd[L"Shafts"] = GetBuilding()->GetShaftCount();
@@ -205,38 +182,3 @@ HRESULT CSim::Update(CDataBase db, AVLONG nTime)
 	return S_OK;
 }
 
-HRESULT CSim::CleanUp(CDataBase db, ULONG nSimulationId)
-{
-	if (!db) throw db;
-	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVPassengers WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVJourneys WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVFloors WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVShafts WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVProjects P WHERE B.ProjectID = P.ID AND P.SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVBuildings WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVProjects WHERE SimulationId=%d", nSimulationId);
-	return S_OK;
-}
-
-HRESULT CSim::CleanUpAll(CDataBase db)
-{
-	if (!db) throw db;
-	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL DELETE FROM AVPassengers");
-	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL DELETE FROM AVJourneys");
-	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL DELETE FROM AVFloors");
-	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL DELETE FROM AVShafts");
-	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVProjects");
-	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVBuildings");
-	return S_OK;
-}
-
-HRESULT CSim::DropTables(CDataBase db)
-{
-	if (!db) throw db;
-	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL DROP TABLE AVPassengers");
-	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL DROP TABLE AVJourneys");
-	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL DROP TABLE AVFloors");
-	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL DROP TABLE AVShafts");
-	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DROP TABLE AVProjects");
-	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DROP TABLE AVBuildings");
-	return S_OK;
-}

@@ -13,25 +13,8 @@
 
 using namespace std;
 
-std::wstring _sim_error::ErrorMessage()
-{
-	switch (_error)
-	{
-		case E_SIM_NOT_FOUND:	return L"project not found";
-		case E_SIM_NO_BUILDING:	return L"corrupt or missing building structure";
-		case E_SIM_PASSENGERS:	return L"no hall calls found";
-		case E_SIM_LIFTS:		return L"inconsistent building structure: too many or too few lifts";
-		case E_SIM_FLOORS:		return L"inconsistent building structure: too many or too few floors";
-		case E_SIM_LIFT_DECKS:	return L"inconsistent building structure: wrong number of lift decks";
-		case E_SIM_FILE_STRUCT:	return L"data appear in wrong sequence within the simulation file";
-		case E_SIM_INTERNAL:	return L"internal error";
-		default:				return L"unidentified error";
-	}
-}
-
 CSim::CSim(CBuildingBase *pBuilding)
 	: CSimBase(pBuilding), 
-	  m_phase(PHASE_NONE),
 	  m_pScene(NULL), m_pBiped(NULL), m_pMaterial(NULL), m_pBipedBuf(NULL), m_nBipedBufCount(0), m_nColouringMode(0), m_nTime(0), m_nTimeLowerBound(0)
 {
 }

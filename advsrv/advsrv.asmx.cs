@@ -48,8 +48,18 @@ namespace advsrv
             return myDataSet;
         }
 
+        [WebMethod(Description = "Returns SIM package information")]
+        public DataSet AVSim(int nProjectId)
+        {
+            OleDbConnection conn = new OleDbConnection(GetConnStr());
+            DataSet myDataSet = new DataSet();
+            OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVSims WHERE ProjectId=" + nProjectId + " ORDER BY ID", conn);
+            myDataAdapter.Fill(myDataSet, "AVSim");
+            return myDataSet;
+        }
+
         [WebMethod(Description = "Returns building structure")]
-        public DataSet[] AVBuilding(int nProjectId)
+        public DataSet[] AVBuilding(int nSimId)
         {
             OleDbConnection conn = new OleDbConnection(GetConnStr());
             DataSet[] myDataSets = new DataSet[3];
@@ -57,24 +67,24 @@ namespace advsrv
 
             // the building
             myDataSets[0] = new DataSet();
-            myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVBuildings WHERE ProjectID=" + nProjectId + " ORDER BY ID", conn);
+            myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVBuildings WHERE SimID=" + nSimId + " ORDER BY ID", conn);
             myDataAdapter.Fill(myDataSets[0], "AVBuilding");
 
             // the floors
             myDataSets[1] = new DataSet();
-            myDataAdapter = new OleDbDataAdapter("SELECT f.* FROM AVFloors f, AVBuildings b WHERE f.BuildingID=b.ID AND b.ProjectID=" + nProjectId + " ORDER BY FloorID", conn);
+            myDataAdapter = new OleDbDataAdapter("SELECT f.* FROM AVFloors f, AVBuildings b WHERE f.BuildingID=b.ID AND b.SimID=" + nSimId + " ORDER BY FloorID", conn);
             myDataAdapter.Fill(myDataSets[1], "AVFloor");
 
             // the shafts
             myDataSets[2] = new DataSet();
-            myDataAdapter = new OleDbDataAdapter("SELECT s.* FROM AVShafts s, AVBuildings b WHERE s.BuildingID=b.ID AND b.ProjectID=" + nProjectId + " ORDER BY ShaftID", conn);
+            myDataAdapter = new OleDbDataAdapter("SELECT s.* FROM AVShafts s, AVBuildings b WHERE s.BuildingID=b.ID AND b.SimID=" + nSimId + " ORDER BY ShaftID", conn);
             myDataAdapter.Fill(myDataSets[2], "AVShaft");
 
             return myDataSets;
         }
 
         [WebMethod(Description = "Returns simulation data")]
-        public DataSet[] AVSim(int nProjectId, int timeFrom, int timeTo)
+        public DataSet[] AVSimData(int nSimId, int timeFrom, int timeTo)
         {
             OleDbConnection conn = new OleDbConnection(GetConnStr());
             DataSet[] myDataSets = new DataSet[2];
@@ -84,24 +94,24 @@ namespace advsrv
             {
                 // the journeys
                 myDataSets[0] = new DataSet();
-                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVJourneys WHERE ProjectID=" + nProjectId + " AND TimeGo < " + timeTo + " ORDER BY ID", conn);
+                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVJourneys WHERE SimID=" + nSimId + " AND TimeGo < " + timeTo + " ORDER BY ID", conn);
                 myDataAdapter.Fill(myDataSets[0], "AVJourney");
 
                 // the passengers
                 myDataSets[1] = new DataSet();
-                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVPassengers WHERE ProjectID=" + nProjectId + " AND TimeBorn < " + timeTo + " ORDER BY ID", conn);
+                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVPassengers WHERE SimID=" + nSimId + " AND TimeBorn < " + timeTo + " ORDER BY ID", conn);
                 myDataAdapter.Fill(myDataSets[1], "AVPassenger");
             }
             else
             {
                 // the journeys
                 myDataSets[0] = new DataSet();
-                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVJourneys WHERE ProjectID=" + nProjectId + " AND TimeGo >= " + timeFrom + "  AND TimeGo < " + timeTo + " ORDER BY ID", conn);
+                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVJourneys WHERE SimID=" + nSimId + " AND TimeGo >= " + timeFrom + "  AND TimeGo < " + timeTo + " ORDER BY ID", conn);
                 myDataAdapter.Fill(myDataSets[0], "AVJourney");
 
                 // the passengers
                 myDataSets[1] = new DataSet();
-                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVPassengers WHERE ProjectID=" + nProjectId + " AND TimeBorn >= " + timeFrom + " AND TimeBorn < " + timeTo + " ORDER BY ID", conn);
+                myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVPassengers WHERE SimID=" + nSimId + " AND TimeBorn >= " + timeFrom + " AND TimeBorn < " + timeTo + " ORDER BY ID", conn);
                 myDataAdapter.Fill(myDataSets[1], "AVPassenger");
             }
 

@@ -19,5 +19,5 @@ public:
 
 	// IO: load from SIM File, Store to DB
 	DWORD Load(AVULONG nId, CSimLoader::Passenger &P);
-	HRESULT Store(dbtools::CDataBase db, ULONG nProjectId);
+	HRESULT Store(dbtools::CDataBase db);
 };

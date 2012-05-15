@@ -6,15 +6,52 @@
 #include <sstream>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CProjectBase
+
+CProjectBase::CProjectBase()
+{
+	m_nId = 0;
+	m_nSimulationId = 0;
+	m_nAVVersionId = 0;
+}
+
+void CProjectBase::ResolveMe()
+{
+	m_nId = ME[L"ID"];
+	m_nSimulationId = ME[L"SimulationId"];
+	m_nAVVersionId = ME[L"AVVersionId"];
+	m_nLiftGroupsCount = ME[L"LiftGroupsCount"];
+}
+
+std::wstring CProjectBase::GetProjectInfo(PRJ_INFO what)
+{
+	switch (what)
+	{
+		case PRJ_PROJECT_NAME: return ME[L"ProjectName"];
+		case PRJ_BUILDING_NAME: return ME[L"BuildingName"];
+		case PRJ_LANGUAGE: return ME[L"Language"];
+		case PRJ_UNITS: return ME[L"MeasurementUnits"];
+		case PRJ_COMPANY: return ME[L"ClientCompany"];
+		case PRJ_CITY: return ME[L"City"];
+		case PRJ_LB_RGN: return ME[L"LBRegionDistrict"];
+		case PRJ_COUNTY: return ME[L"County"];
+		case PRJ_DESIGNER: return ME[L"LiftDesigner"];
+		case PRJ_COUNTRY: return ME[L"Country"];
+		case PRJ_CHECKED_BY: return ME[L"CheckedBy"];
+		case PRJ_POST_CODE: return ME[L"PostalZipCode"];
+		default: return L"(unknown)";
+	}
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSimBase
 
 CSimBase::CSimBase(CBuildingBase *pBuilding)
 {
 	m_pBuilding = pBuilding;
 	m_nProjectId = 0;
-	m_nSimulationId = 0;
 	m_nSIMVersionId = 0;
-	m_nAVVersionId = 0;
 	m_nSimulationTime = 0;
 	m_nTimeSaved = 0;
 }
@@ -49,32 +86,11 @@ void CSimBase::DeletePassengers()
 
 void CSimBase::ResolveMe()
 {
-	SetProjectId(ME[L"ID"]);
-	SetSimulationId(ME[L"SimulationId"]);
+	m_nId = ME[L"ID"];
+	SetProjectId(ME[L"ProjectId"]);
 	SetSIMVersionId(ME[L"SIMVersionId"]);
-	SetAVVersionId(ME[L"AVVersionId"]);
 	m_nSimulationTime = ME[L"SimulationTime"];
 	m_nTimeSaved = ME[L"TimeSaved"];
-}
-
-std::wstring CSimBase::GetProjectInfo(PRJ_INFO what)
-{
-	switch (what)
-	{
-		case PRJ_PROJECT_NAME: return ME[L"ProjectName"];
-		case PRJ_BUILDING_NAME: return ME[L"BuildingName"];
-		case PRJ_LANGUAGE: return ME[L"Language"];
-		case PRJ_UNITS: return ME[L"MeasurementUnits"];
-		case PRJ_COMPANY: return ME[L"ClientCompany"];
-		case PRJ_CITY: return ME[L"City"];
-		case PRJ_LB_RGN: return ME[L"LBRegionDistrict"];
-		case PRJ_COUNTY: return ME[L"County"];
-		case PRJ_DESIGNER: return ME[L"LiftDesigner"];
-		case PRJ_COUNTRY: return ME[L"Country"];
-		case PRJ_CHECKED_BY: return ME[L"CheckedBy"];
-		case PRJ_POST_CODE: return ME[L"PostalZipCode"];
-		default: return L"(unknown)";
-	}
 }
 
 

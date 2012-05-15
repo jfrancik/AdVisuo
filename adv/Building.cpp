@@ -8,27 +8,17 @@ using namespace dbtools;
 //////////////////////////////////////////////////////////////////////////////////
 // Database Store
 
-HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
+HRESULT CBuilding::Store(CDataBase db)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
 	CDataBase::INSERT ins;
 
-	// check if already stored...
-	try
-	{
-		sel = db.select(L"SELECT * FROM AVBuildings WHERE ProjectID=%d", nProjectID);
-		if (sel) return S_FALSE;		// already done!
-	}
-	catch (...)
-	{
-	}
-
 	// store lobby layout data
 	ins = db.insert(L"AVBuildings");
 	ins << *this;
 	ins.erase(L"ID");
-	ins[L"ProjectId"] = nProjectID;
+	ins[L"SimId"] = GetSimId();
 	ins.execute();
 
 	std::wstring str = ins.query();
@@ -62,28 +52,6 @@ HRESULT CBuilding::Store(CDataBase db, ULONG nProjectID)
 
 //////////////////////////////////////////////////////////////////////////////////
 // Database Load
-
-HRESULT CBuilding::LoadNumberFromConsole(CDataBase db, ULONG nSimulationId, ULONG &nNumber)
-{
-	if (!db) throw db;
-	CDataBase::SELECT sel;
-
-	sel = db.select(L"SELECT COUNT(LiftGroupId) As number FROM LiftGroups WHERE SimulationId=%d", nSimulationId);
-	nNumber = sel[L"number"];
-
-	return S_OK;
-}
-
-HRESULT CBuilding::LoadNumberFromVisualisation(CDataBase db, ULONG nProjectID, ULONG &nNumber)
-{
-	if (!db) throw db;
-	CDataBase::SELECT sel;
-
-	sel = db.select(L"SELECT COUNT(ID) As number FROM AVBuildings WHERE ProjectID=%d", nProjectID);
-	nNumber = sel[L"number"];
-
-	return S_OK;
-}
 
 HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 {
@@ -135,13 +103,13 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	return S_OK;
 }
 
-HRESULT CBuilding::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
+HRESULT CBuilding::LoadFromVisualisation(CDataBase db, ULONG nSimID)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
 
 	// Query for Lobby Data
-	sel = db.select(L"SELECT * FROM AVBuildings WHERE ProjectID=%d", nProjectID);
+	sel = db.select(L"SELECT * FROM AVBuildings WHERE SimID=%d", nSimID);
 	if (!sel) throw ERROR_DATA_NOT_FOUND;
 	sel >> *this;
 

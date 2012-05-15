@@ -3,6 +3,7 @@
 //
 
 #include "Building.h"
+#include "Project.h"
 #include "Sim.h"
 #include "Lift.h"
 #include "xmlrequest.h"
@@ -16,8 +17,9 @@ class CAdVisuoDoc : public CDocument
 {
 // Attributes
 
-	CBuilding m_building;	// The Building
+	CProject m_prj;			// The Project
 	CSim m_sim;				// The Simulation Engine
+	CBuilding m_building;	// The Building
 	HRESULT m_h;			// The result of m_sim.Load
 
 	CXMLRequest m_http;		// XML HTTP Request object
@@ -35,6 +37,7 @@ public:
 	CString GetDiagnosticMessage();
 
 	// Attributes and Basic Operations
+	CProject *GetProject()					{ return &m_prj; }
 	CBuilding *GetBuilding()				{ return &m_building; }
 	CSim *GetSim()							{ return &m_sim; }
 
@@ -46,7 +49,7 @@ public:
 	AVULONG GetSimulationTime()				{ return m_sim.GetSimulationTime(); }
 	AVLONG GetTimeLowerBound()				{ return m_sim.GetTimeLowerBound(); }
 
-	void ResetTitle()						{ SetTitle(m_sim.GetProjectInfo(CSim::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
+	void ResetTitle()						{ SetTitle(m_prj.GetProjectInfo(CProject::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
 
 	// Open/New/Download Operations
 	virtual BOOL OnNewDocument();

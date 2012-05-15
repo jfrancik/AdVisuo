@@ -16,24 +16,7 @@ interface IKineChild;
 interface IBody;
 interface IRenderer;
 
-class _sim_error
-{
-public:
-	enum ERROR_CODES { 
-		E_SIM_NOT_FOUND = 0x80000100, 
-		E_SIM_NO_BUILDING,
-		E_SIM_PASSENGERS, 
-		E_SIM_LIFTS, 
-		E_SIM_FLOORS, 
-		E_SIM_LIFT_DECKS,
-		E_SIM_FILE_STRUCT,
-		E_SIM_INTERNAL };
-	_sim_error(enum ERROR_CODES err_code)	{ _error = err_code; }
-	enum ERROR_CODES Error()				{ return _error; }
-	std::wstring ErrorMessage();
-private:
-	enum ERROR_CODES _error;
-};
+class CProject;
 
 class CSim : public CSimBase, protected CRepos<IBody>
 {
@@ -46,9 +29,6 @@ class CSim : public CSimBase, protected CRepos<IBody>
 	IKineChild *m_pBiped;
 	BYTE *m_pBipedBuf;			// Data buffer for Store/RetrieveState functions
 	AVULONG m_nBipedBufCount;
-
-	// Loading Phase
-	enum PHASE { PHASE_NONE, PHASE_PRJ, PHASE_BLD, PHASE_STRUCT, PHASE_SIM } m_phase;
 
 public:
 	CSim(CBuildingBase *pBuilding);
@@ -71,23 +51,6 @@ public:
 	AVLONG GetTimeLowerBound()		{ return m_nTimeLowerBound; }
 	void SetTimeLowerBound(AVLONG n){ m_nTimeLowerBound = n; }
 
-	// XML Load/Store/Parse/Feed --- throw _com_error or _sim_errror
-public:
-
-	void LoadFromBuf(LPCOLESTR pBuf)										{ Load(pBuf); }
-	void LoadFromFile(LPCOLESTR pFileName)									{ Load((std::wstring)pFileName); }
-	void Load(xmltools::CXmlReader reader);
-
-	void StoreToFile(LPCOLESTR pFileName)									{ Store((std::wstring)pFileName); }
-	void StoreToBuf(LPOLESTR pBuffer, size_t nSize)							{ ASSERT(FALSE); } // not implemented at the moment
-	void Store(xmltools::CXmlWriter writer);
-
-	static void LoadIndexFromBuf(LPCOLESTR pBuf, vector<CSim*> &sims)		{ LoadIndex(pBuf, sims); }
-	static void LoadIndexFromFile(LPCOLESTR pFileName, vector<CSim*> &sims)	{ LoadIndex((std::wstring)pFileName, sims); }
-	static void LoadIndex(xmltools::CXmlReader reader, vector<CSim*>&);
-
-	void dupaSetupVars();
-
 	// repository
 	IBody *GetBody();
 	void ReleaseBody(IBody*);
@@ -105,4 +68,6 @@ protected:
 
 	virtual CPassengerBase *CreatePassenger(AVULONG nId)	{ return new CPassenger(this, nId); }
 	virtual CLiftBase *CreateLift(AVULONG nId)				{ return new CLift(this, nId); }
+
+	friend class CProject;
 };

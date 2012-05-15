@@ -33,11 +33,9 @@ public:
 
 public:
 	// IO
-	static HRESULT LoadNumberFromConsole(dbtools::CDataBase db, ULONG nSimulationId, ULONG &nNumber);
-	static HRESULT LoadNumberFromVisualisation(dbtools::CDataBase db, ULONG nProjectID, ULONG &nNumber);
-	HRESULT Store(dbtools::CDataBase db, ULONG nProjectID);
+	HRESULT Store(dbtools::CDataBase db);
 	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);
-	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectID);
+	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nSimID);
 
 	// IFC
 	HRESULT SaveAsIFC(LPCOLESTR pFileName, bool bBrep = true, bool bPresentation = false);

@@ -117,7 +117,7 @@ DWORD CLift::Load(CBuilding::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool 
 	return dRes == S_OK ? S_OK : WARNING_GENERIC;
 }
 
-HRESULT CLift::Store(CDataBase db, ULONG nProjectID)
+HRESULT CLift::Store(CDataBase db)
 {
 	if (!db) throw db;
 
@@ -127,8 +127,8 @@ HRESULT CLift::Store(CDataBase db, ULONG nProjectID)
 		JOURNEY *pJ = GetJourney(iJourney);
 			
 		CDataBase::INSERT ins = db.insert(L"AVJourneys");
-		ins[L"ProjectID"] = nProjectID;
 		ins[L"LiftID"] = GetId();
+		ins[L"SimID"] = GetSimId();
 		ins[L"ShaftFrom"] = pJ->m_shaftFrom;
 		ins[L"ShaftTo"] = pJ->m_shaftTo;
 		ins[L"FloorFrom"] = pJ->m_floorFrom;

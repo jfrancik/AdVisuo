@@ -123,7 +123,7 @@ public:
 
 // CDlgDownload dialog
 
-class CSim;
+class CProject;
 
 class CDlgDownload : public CDialog
 {
@@ -153,7 +153,7 @@ public:
 	int m_nSort;			// sorting info
 	bool m_bAscending[3];
 
-	std::vector<CSim*> m_sims;	// sims
+	std::vector<CProject*> m_prjs;	// sims
 
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedOk();

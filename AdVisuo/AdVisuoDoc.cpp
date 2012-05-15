@@ -25,7 +25,7 @@ END_MESSAGE_MAP()
 
 // CAdVisuoDoc construction/destruction
 
-CAdVisuoDoc::CAdVisuoDoc() : m_sim(&m_building)
+CAdVisuoDoc::CAdVisuoDoc() : m_sim(&m_building), m_prj(&m_sim)
 {
 	m_h = S_FALSE;
 	m_timeLoaded = 0;
@@ -38,7 +38,7 @@ CAdVisuoDoc::~CAdVisuoDoc()
 CString CAdVisuoDoc::GetDiagnosticMessage()
 {
 	CString str;
-	str.Format(L"Project id: [%d] %s\r\nPath: %s", GetSim()->GetSimulationId(), GetTitle(), m_strUrl.IsEmpty() ? m_strPathName : m_strUrl);
+	str.Format(L"Project id: [%d] %s\r\nPath: %s", GetProject()->GetId(), GetTitle(), m_strUrl.IsEmpty() ? m_strPathName : m_strUrl);
 
 	POSITION pos = GetFirstViewPosition();
 	CAdVisuoView *pView = (CAdVisuoView*)GetNextView(pos);
@@ -83,9 +83,9 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		try
 		{
 			m_sim.SetBuilding(&m_building);
-			m_sim.LoadFromFile(lpszPathName);	// throws _sim_error and _com_error
+			m_prj.LoadFromFile(lpszPathName);	// throws _prj_error and _com_error
 
-			SetTitle(m_sim.GetProjectInfo(CSim::PRJ_PROJECT_NAME).c_str());
+			SetTitle(m_prj.GetProjectInfo(CProject::PRJ_PROJECT_NAME).c_str());
 			m_timeLoaded = m_sim.GetSimulationTime();
 
 			m_h = S_OK;
@@ -93,9 +93,9 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 			SetModifiedFlag(FALSE);
 			return true;
 		}
-		catch (_sim_error se)
+		catch (_prj_error pe)
 		{
-			err << "Error while analysing loaded data: " << se.ErrorMessage() << ".";
+			err << "Error while analysing loaded data: " << pe.ErrorMessage() << ".";
 		}
 		catch (_com_error ce)
 		{
@@ -128,15 +128,15 @@ BOOL CAdVisuoDoc::OnSaveDocument(LPCTSTR lpszPathName)
 	std::wstringstream err;
 	try
 	{
-		m_sim.StoreToFile(lpszPathName);
+		m_prj.StoreToFile(lpszPathName);
 
 		Debug(L"File successfully stored.");
 		SetModifiedFlag(FALSE);
 		return true;
 	}
-	catch (_sim_error se)
+	catch (_prj_error pe)
 	{
-		err << "Error while preparing data to store: " << se.ErrorMessage() << ".";
+		err << "Error while preparing data to store: " << pe.ErrorMessage() << ".";
 	}
 	catch (_com_error ce)
 	{
@@ -199,22 +199,28 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		m_http.AVProject(nId);
 		m_http.wait(); 
 		if (!m_http.ok()) m_http.throw_exceptions();
-		m_sim.LoadFromBuf(m_http.response().c_str());
+		m_prj.LoadFromBuf(m_http.response().c_str());
 
 		//m_strResponse = m_http.response().c_str();
 		//DoSave(L"temp.html"); 
 
-		SetTitle(m_sim.GetProjectInfo(CSim::PRJ_PROJECT_NAME).c_str());
+		SetTitle(m_prj.GetProjectInfo(CProject::PRJ_PROJECT_NAME).c_str());
 		m_strPathName = GetTitle();
 
-		m_http.AVBuilding(m_sim.GetProjectId());
+		m_http.AVSim(m_prj.GetId());
 		m_http.wait(); 
 		if (!m_http.ok()) m_http.throw_exceptions();
-		m_sim.LoadFromBuf(m_http.response().c_str());
+		m_prj.LoadFromBuf(m_http.response().c_str());
+
+
+		m_http.AVBuilding(m_sim.GetId());
+		m_http.wait(); 
+		if (!m_http.ok()) m_http.throw_exceptions();
+		m_prj.LoadFromBuf(m_http.response().c_str());
 
 		// first SIM data chunk
 		m_timeLoaded = 0;
-		m_http.AVSim(m_sim.GetProjectId(), m_timeLoaded, m_timeLoaded + 60000);
+		m_http.AVSimData(m_sim.GetId(), m_timeLoaded, m_timeLoaded + 60000);
 		m_http.wait(); 
 
 		OnSIMDataLoaded(NULL);
@@ -224,9 +230,9 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		SetModifiedFlag(TRUE);
 		return true;
 	}
-	catch (_sim_error se)
+	catch (_prj_error pe)
 	{
-		str << "Error while analysing downloaded data: " << se.ErrorMessage() << ".";
+		str << "Error while analysing downloaded data: " << pe.ErrorMessage() << ".";
 	}
 	catch (_com_error ce)
 	{
@@ -261,7 +267,7 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded(IAction *pActionTick)
 	{
 		// Process the most recently loaded data
 		if (!m_http.ok()) m_http.throw_exceptions();
-		m_sim.LoadFromBuf(m_http.response().c_str());
+		m_prj.LoadFromBuf(m_http.response().c_str());
 
 		if (pActionTick)
 			m_sim.Play(pActionTick, m_timeLoaded);
@@ -273,16 +279,16 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded(IAction *pActionTick)
 		{
 			str << L"Simulation data download continued in background (" << m_timeLoaded << L").";
 //			Debug(str.str().c_str());
-			m_http.AVSim(m_sim.GetProjectId(), m_timeLoaded, m_timeLoaded + 60000);
+			m_http.AVSimData(m_sim.GetId(), m_timeLoaded, m_timeLoaded + 60000);
 		}
 		else
 			m_http.reset();
 
 		return true;
 	}
-	catch (_sim_error se)
+	catch (_prj_error pe)
 	{
-		str << "Error while analysing downloaded data: " << se.ErrorMessage() << ".";
+		str << "Error while analysing downloaded data: " << pe.ErrorMessage() << ".";
 	}
 	catch (_com_error ce)
 	{
