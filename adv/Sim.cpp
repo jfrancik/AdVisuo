@@ -74,7 +74,7 @@ void CSim::Play()
 	}
 }
 
-HRESULT CSim::LoadFromConsole(CDataBase db, ULONG nSimulationId)
+HRESULT CSim::LoadFromConsole(CDataBase db, ULONG nSimulationId, ULONG iGroup)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
@@ -87,13 +87,13 @@ HRESULT CSim::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	return S_OK;
 }
 
-HRESULT CSim::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
+HRESULT CSim::LoadFromVisualisation(CDataBase db, ULONG nProjectID, ULONG iGroup)
 {
 	if (!db) throw db;
 
 	// Query for Project Data (for project id)
 	CDataBase::SELECT sel;
-	sel = db.select(L"SELECT * FROM AVSims WHERE ProjectId=%d", nProjectID);
+	sel = db.select(L"SELECT * FROM AVSims WHERE ProjectId=%d AND LiftGroupIndex=%d", nProjectID, iGroup);
 	if (!sel) throw ERROR_DATA_NOT_FOUND;
 	sel >> ME;
 
@@ -113,6 +113,7 @@ HRESULT CSim::Store(CDataBase db)
 	ins << ME;
 	ins[L"ProjectId"] = GetProjectId();
 	ins[L"SIMVersionId"] = GetSIMVersionId();
+	ins[L"LiftGroupIndex"] = GetIndex();
 	ins[L"Floors"] = GetBuilding()->GetStoreyCount();
 	ins[L"Shafts"] = GetBuilding()->GetShaftCount();
 	ins[L"Lifts"] = GetBuilding()->GetLiftCount();
@@ -166,7 +167,7 @@ HRESULT CSim::Update(CDataBase db, AVLONG nTime)
 		GetPassenger(i)->Store(db);
 	}
 
-	CDataBase::UPDATE upd = db.update(L"AVSims", L"WHERE ID=%d", GetProjectId());
+	CDataBase::UPDATE upd = db.update(L"AVSims", L"WHERE ID=%d", GetId());
 	upd[L"SIMVersionId"] = GetSIMVersionId();
 	upd[L"Floors"] = GetBuilding()->GetStoreyCount();
 	upd[L"Shafts"] = GetBuilding()->GetShaftCount();

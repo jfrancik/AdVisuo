@@ -52,6 +52,7 @@ CSimBase::CSimBase(CBuildingBase *pBuilding)
 	m_pBuilding = pBuilding;
 	m_nProjectId = 0;
 	m_nSIMVersionId = 0;
+	m_nIndex = 0;
 	m_nSimulationTime = 0;
 	m_nTimeSaved = 0;
 }
@@ -87,6 +88,7 @@ void CSimBase::DeletePassengers()
 void CSimBase::ResolveMe()
 {
 	m_nId = ME[L"ID"];
+	SetIndex(ME[L"LiftGroupIndex"]);
 	SetProjectId(ME[L"ProjectId"]);
 	SetSIMVersionId(ME[L"SIMVersionId"]);
 	m_nSimulationTime = ME[L"SimulationTime"];

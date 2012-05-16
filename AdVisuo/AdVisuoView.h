@@ -42,6 +42,8 @@ public:
 	CAdVisuoRenderer(CBuilding *pBuilding, IRenderer *pRenderer, CCamera *pCamera = NULL)
 		: m_pBuilding(pBuilding), m_pRenderer(pRenderer), m_pCamera(pCamera)	{ }
 
+	void SetBuilding(CBuilding *pBuilding)	{ m_pBuilding = pBuilding; }
+
 	bool SetupCamera(CCamera *pCamera);
 
 	void RenderLifts(FWULONG nRow);
@@ -145,7 +147,7 @@ public:
 	bool CreateFreeWill(HWND m_hWnd);
 	bool CreateBuilding(CBuilding *pBuilding);
 
-	void CreateCamera(int i)					{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = new CCamera(GetDocument()->GetBuilding(), i); m_pCamera[i]->Create(); }
+	void CreateCamera(int i)					{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = new CCamera(GetDocument()->_GetBuilding(), i); m_pCamera[i]->Create(); }
 	void DeleteCamera(int i)					{ if (i >= N_CAMERAS) return; if (m_pCamera[i]) delete m_pCamera[i]; m_pCamera[i] = NULL; }
 	CCamera *GetCamera(int i)					{ return i < N_CAMERAS ? m_pCamera[i] : NULL; }
 	void SetCamera(int i, CCamera *pCamera)		{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = pCamera; }

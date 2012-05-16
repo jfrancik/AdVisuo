@@ -130,7 +130,7 @@ void CPassenger::Play()
 		AVULONG stepDuration = 150;
 		AVFLOAT stepLen = 15.0f;
 
-		SetGoTime(GetLoadTime()
+		SetGoTime(GetLoadTime() + 1600
 			- timeToGo(XLobby1, YLobby1, XLiftDoor0, YLiftDoor0, stepLen, stepDuration)
 			- timeToGo(XLiftDoor0, YLiftDoor0, XLiftDoor, YLiftDoor, stepLen, stepDuration));
 		SetArrivalTime(min(GetArrivalTime(), GetGoTime()));

@@ -7,7 +7,7 @@
 // CBuildingBase
 
 CBuildingBase::CBuildingBase(void) : m_ppStoreys(NULL), m_ppShafts(NULL), m_ppLifts(NULL), m_nStoreyCount(0), m_nShaftCount(0), m_nLiftCount(0), m_nBasementStoreyCount(0),
-									 m_nId(0), m_LiftShaftArrang(SHAFT_INLINE), m_LobbyArrangement(LOBBY_OPENPLAN)
+									 m_nId(0), m_nIndex(0), m_LiftShaftArrang(SHAFT_INLINE), m_LobbyArrangement(LOBBY_OPENPLAN)
 {
 	m_pnShaftCount[0] = m_pnShaftCount[1] = 0;
 }
@@ -78,6 +78,7 @@ void CBuildingBase::Init(AVLONG nId)
 {
 	if (nId >= 0) ME[L"ID"] = nId;
 	SetId(ME[L"ID"]);
+	SetIndex(ME[L"LiftGroupIndex"]);
 	CreateStoreys((ULONG)ME[L"NumberOfStoreys"], (ULONG)ME[L"NumberOfBasementStoreys"]);
 	CreateShafts(ME[L"NumberOfLifts"]);
 }

@@ -42,7 +42,8 @@ class CSimBase : public dbtools::CCollection
 	// project information
 	AVULONG m_nId;					// sim id
 	AVULONG m_nProjectId;			// project id
-	AVULONG m_nSIMVersionId;
+	AVULONG m_nSIMVersionId;		// SIM version id
+	AVULONG m_nIndex;				// index in multi-group structures
 	AVLONG m_nSimulationTime;
 	AVULONG m_nTimeSaved;
 	
@@ -69,10 +70,12 @@ public:
 	AVULONG GetId()								{ return m_nId; }
 	AVULONG GetProjectId()						{ return m_nProjectId; }
 	AVULONG GetSIMVersionId()					{ return m_nSIMVersionId; }
+	AVULONG GetIndex()							{ return m_nIndex; }
 
 	void SetId(AVULONG n)						{ m_nId = n; }
 	void SetProjectId(AVULONG n)				{ m_nProjectId = n; }
 	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionId = n; }
+	void SetIndex(AVULONG n)				{ m_nIndex = n; }
 
 	AVLONG GetSimulationTime()					{ return m_nSimulationTime; }
 	void ReportSimulationTime(AVLONG n)			{ if (n > m_nSimulationTime) m_nSimulationTime = n; }

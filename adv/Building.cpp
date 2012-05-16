@@ -19,6 +19,7 @@ HRESULT CBuilding::Store(CDataBase db)
 	ins << *this;
 	ins.erase(L"ID");
 	ins[L"SimId"] = GetSimId();
+	ins[L"LiftGroupIndex"] = GetIndex();
 	ins.execute();
 
 	std::wstring str = ins.query();
@@ -53,7 +54,7 @@ HRESULT CBuilding::Store(CDataBase db)
 //////////////////////////////////////////////////////////////////////////////////
 // Database Load
 
-HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId)
+HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId, ULONG iGroup)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
@@ -64,6 +65,11 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 
 	sel = db.select(L"SELECT * FROM LiftGroups WHERE SimulationId=%d", nSimulationId);
 	if (!sel) throw ERROR_BUILDING;
+
+	// iterate to the desired lift group
+	for (ULONG i = 1; i <= iGroup; i++)
+		sel++;
+
 	sel >> *this;
 
 	AVULONG nLiftGroupId = ME[L"LiftGroupId"];

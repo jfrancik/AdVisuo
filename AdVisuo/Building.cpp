@@ -39,7 +39,10 @@ static OLECHAR *__name(OLECHAR *name, LONG i, LONG j)
 
 void CBldObject::Create(AVSTRING name)
 {
-	m_pBuilding->GetScene()->NewObject(name, &m_pObj);
+	static OLECHAR buf[257];
+	_snwprintf(buf, 256, L"_bld_%d_%ls", m_pBuilding->GetIndex(), name);
+
+	m_pBuilding->GetScene()->NewObject(buf, &m_pObj);
 	m_pObj->CreateChild(name, &m_pBone);
 }
 
@@ -467,7 +470,7 @@ void CBuilding::STOREY::Construct(AVLONG iStorey)
 	AVFLOAT bulge = 2;			// bulge of the opening (above the wall)
 
 	// create skeletal structure (object & bone)
-	m_obj.Create(__name(L"Storey_%d", iStorey), 0, 0, GetLevel());
+	m_obj.Create(__name(L"Storey_%d", iStorey), Vector(0, 0, GetLevel()));
 
 	// collect door information
 	std::vector<FLOAT> doordata;
@@ -539,10 +542,10 @@ void CBuilding::SHAFT::Construct(AVLONG iStorey, AVULONG iShaft)
 			m_pStoreyBones[i].m_objRight = CBldObject(GetBuilding());
 		}
 	}
-	GetObject(iStorey).Create(__name(L"Storey_%d_Shaft_%d", iStorey, iShaft), 0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel());
-	GetObjectLobbySide(iStorey).Create(__name(L"Storey_%d_Shaft_%d_LobbySide", iStorey, iShaft), 0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel());
-	GetObjectLeft(iStorey).Create(__name(L"Storey_%d_Shaft_%d_LeftSide", iStorey, iShaft), 0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel());
-	GetObjectRight(iStorey).Create(__name(L"Storey_%d_Shaft_%d_RightSide", iStorey, iShaft), 0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel());
+	GetObject(iStorey).Create(__name(L"Storey_%d_Shaft_%d", iStorey, iShaft), Vector(0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel()));
+	GetObjectLobbySide(iStorey).Create(__name(L"Storey_%d_Shaft_%d_LobbySide", iStorey, iShaft), Vector(0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel()));
+	GetObjectLeft(iStorey).Create(__name(L"Storey_%d_Shaft_%d_LeftSide", iStorey, iShaft), Vector(0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel()));
+	GetObjectRight(iStorey).Create(__name(L"Storey_%d_Shaft_%d_RightSide", iStorey, iShaft), Vector(0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel()));
 	
 	GetBox().SetHeight(GetBuilding()->GetStorey(iStorey)->GetBox().HeightExt());
 	ULONG nIndex = MAKELONG(iStorey, iShaft);

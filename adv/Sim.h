@@ -19,8 +19,8 @@ public:
 	void Play();
 
 	// Database operations
-	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);
-	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectId);
+	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId, ULONG iGroup);
+	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectId, ULONG iGroup);
 	HRESULT Store(dbtools::CDataBase db);
 	HRESULT Update(dbtools::CDataBase db, AVLONG nTime = -1);
 

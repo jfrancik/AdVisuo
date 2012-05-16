@@ -15,20 +15,18 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////////////////
 // Load from XML
 
-void CProject::Load(xmltools::CXmlReader reader)
+void CProject::Load(xmltools::CXmlReader reader, AVULONG nLiftGroup)
 {
-	CSim *pSim = GetSim();
-	CBuilding *pBuilding = GetBuilding();
-	if (!pBuilding) throw _prj_error(_prj_error::E_PRJ_INTERNAL);
-
+	CSim *pSim = GetSim(nLiftGroup);
+	CBuilding *pBuilding = GetBuilding(nLiftGroup);
 	AVULONG iShaft = 0, iStorey = 0;
 
 	while (reader.read())
 	{
 		if (reader.getName() == L"AVProject")
 		{
-			if (m_phase != PHASE_NONE) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phase = PHASE_PRJ;
+			if (m_phases[nLiftGroup] != PHASE_NONE) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			m_phases[nLiftGroup] = PHASE_PRJ;
 
 			reader >> ME;
 			ResolveMe();
@@ -36,8 +34,15 @@ void CProject::Load(xmltools::CXmlReader reader)
 		else
 		if (reader.getName() == L"AVSim")
 		{
-			if (m_phase != PHASE_PRJ) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phase = PHASE_SIM;
+			if (m_phases[nLiftGroup] != PHASE_PRJ && m_phases[nLiftGroup] != PHASE_SIM) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			if (m_phases[nLiftGroup] == PHASE_SIM)
+			{
+				nLiftGroup = Append();
+				pSim = GetSim(nLiftGroup);
+				pBuilding = GetBuilding(nLiftGroup);
+			}
+			
+			m_phases[nLiftGroup] = PHASE_SIM;
 
 			reader >> *pSim;
 			pSim->ResolveMe();
@@ -45,8 +50,8 @@ void CProject::Load(xmltools::CXmlReader reader)
 		else
 		if (reader.getName() == L"AVBuilding")
 		{
-			if (m_phase != PHASE_SIM) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phase = PHASE_BLD;
+			if (m_phases[nLiftGroup] != PHASE_SIM) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			m_phases[nLiftGroup] = PHASE_BLD;
 
 			reader >> *pBuilding;
 			pBuilding->Init();
@@ -54,18 +59,18 @@ void CProject::Load(xmltools::CXmlReader reader)
 		else
 		if (reader.getName() == L"AVShaft")
 		{
-			if (m_phase != PHASE_BLD && m_phase != PHASE_STRUCT) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phase = PHASE_STRUCT;
-			if (iShaft >= GetBuilding()->GetShaftCount()) throw _prj_error(_prj_error::E_PRJ_LIFTS);
+			if (m_phases[nLiftGroup] != PHASE_BLD && m_phases[nLiftGroup] != PHASE_STRUCT) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			m_phases[nLiftGroup] = PHASE_STRUCT;
+			if (iShaft >= pBuilding->GetShaftCount()) throw _prj_error(_prj_error::E_PRJ_LIFTS);
 			
 			reader >> *pBuilding->GetShaft(iShaft++);
 		}
 		else
 		if (reader.getName() == L"AVFloor")
 		{
-			if (m_phase != PHASE_BLD && m_phase != PHASE_STRUCT) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phase = PHASE_STRUCT;
-			if (iStorey >= GetBuilding()->GetStoreyCount()) throw _prj_error(_prj_error::E_PRJ_FLOORS);
+			if (m_phases[nLiftGroup] != PHASE_BLD && m_phases[nLiftGroup] != PHASE_STRUCT) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			m_phases[nLiftGroup] = PHASE_STRUCT;
+			if (iStorey >= pBuilding->GetStoreyCount()) throw _prj_error(_prj_error::E_PRJ_FLOORS);
 			
 			reader >> *pBuilding->GetStorey(iStorey++);
 		}
@@ -79,8 +84,8 @@ void CProject::Load(xmltools::CXmlReader reader)
 					pSim->AddLift(pSim->CreateLift(i));
 			}
 
-			if (m_phase != PHASE_STRUCT && m_phase != PHASE_SIMDATA) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phase = PHASE_SIMDATA;
+			if (m_phases[nLiftGroup] != PHASE_STRUCT && m_phases[nLiftGroup] != PHASE_SIMDATA) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			m_phases[nLiftGroup] = PHASE_SIMDATA;
 
 			JOURNEY journey;
 			AVULONG nLiftID = reader[L"LiftID"];
@@ -100,8 +105,8 @@ void CProject::Load(xmltools::CXmlReader reader)
 		else
 		if (reader.getName() == L"AVPassenger")
 		{
-			if (m_phase != PHASE_STRUCT && m_phase != PHASE_SIMDATA) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phase = PHASE_SIMDATA;
+			if (m_phases[nLiftGroup] != PHASE_STRUCT && m_phases[nLiftGroup] != PHASE_SIMDATA) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			m_phases[nLiftGroup] = PHASE_SIMDATA;
 
 			CPassenger *pPassenger = (CPassenger*)pSim->CreatePassenger(0);
 			reader >> *pPassenger;
@@ -111,7 +116,7 @@ void CProject::Load(xmltools::CXmlReader reader)
 	}
 
 	// Init lifts when known
-	if (m_phase >= PHASE_STRUCT && pBuilding->GetLiftCount() == 0)
+	if (m_phases[nLiftGroup] >= PHASE_STRUCT && pBuilding->GetLiftCount() == 0)
 	{
 		pBuilding->InitLifts();
 		for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)
@@ -121,25 +126,20 @@ void CProject::Load(xmltools::CXmlReader reader)
 	// Some tests
 	if (GetId() == 0)
 		throw _prj_error(_prj_error::E_PRJ_NOT_FOUND);
-	if (m_phase == PHASE_STRUCT && iShaft != GetBuilding()->GetShaftCount())
+	if (m_phases[nLiftGroup] == PHASE_STRUCT && iShaft != pBuilding->GetShaftCount())
 		throw _prj_error(_prj_error::E_PRJ_LIFTS);
-	if (m_phase == PHASE_STRUCT && iStorey != GetBuilding()->GetStoreyCount())
+	if (m_phases[nLiftGroup] == PHASE_STRUCT && iStorey != pBuilding->GetStoreyCount())
 		throw _prj_error(_prj_error::E_PRJ_FLOORS);
 
-	if (m_phase == PHASE_STRUCT) 
-		m_phase = PHASE_SIMDATA;
+	if (m_phases[nLiftGroup] == PHASE_STRUCT) 
+		m_phases[nLiftGroup] = PHASE_SIMDATA;
 
-	if (m_phase >= PHASE_STRUCT) 
+	if (m_phases[nLiftGroup] == PHASE_SIMDATA && !pBuilding->IsValid()) 
 	{
-		GetBuilding()->Create();
-		GetBuilding()->Scale(0.04f);
+		pBuilding->Create();
+		pBuilding->Scale(0.04f);
 	}
-//	if (m_phase == PHASE_SIMDATA)
-//	{
-//		for_each_passenger([](CPassengerBase *p) { p->ResolveMe(); });
-//	}
-
-	if (m_phase >= PHASE_STRUCT && !GetBuilding()->IsValid())
+	if (m_phases[nLiftGroup] >= PHASE_STRUCT && !pBuilding->IsValid())
 		throw _prj_error(_prj_error::E_PRJ_NO_BUILDING);
 }
 
@@ -148,7 +148,7 @@ void CProject::LoadIndex(xmltools::CXmlReader reader, vector<CProject*> &prjs)
 	while (reader.read())
 		if (reader.getName() == L"AVProject")
 		{
-			CProject *pPrj = new CProject(NULL);
+			CProject *pPrj = new CProject();
 			reader >> *pPrj;
 			pPrj->ResolveMe();
 			prjs.push_back(pPrj);
@@ -160,24 +160,20 @@ void CProject::LoadIndex(xmltools::CXmlReader reader, vector<CProject*> &prjs)
 
 void CProject::Store(xmltools::CXmlWriter writer)
 {
-	CSim *pSim = GetSim();
-	CBuilding *pBuilding = GetBuilding();
-	if (!pBuilding) throw _prj_error(_prj_error::E_PRJ_INTERNAL);
-
 	writer.write(L"AVProject", *this);
-	writer.write(L"AVBuilding", *pBuilding);
+	writer.write(L"AVBuilding", *GetBuilding());
 	
-	for (ULONG i = 0; i < pBuilding->GetShaftCount(); i++)
-		writer.write(L"AVShaft", *pBuilding->GetShaft(i));
+	for (ULONG i = 0; i < GetBuilding()->GetShaftCount(); i++)
+		writer.write(L"AVShaft", *GetBuilding()->GetShaft(i));
 
-	for (ULONG i = 0; i < pBuilding->GetStoreyCount(); i++)
-		writer.write(L"AVFloor", *pBuilding->GetStorey(i));
+	for (ULONG i = 0; i < GetBuilding()->GetStoreyCount(); i++)
+		writer.write(L"AVFloor", *GetBuilding()->GetStorey(i));
 
-	for (ULONG i = 0; i < pSim->GetLiftCount(); i++)
-		for (ULONG j = 0; j < pSim->GetLift(i)->GetJourneyCount(); j++)
+	for (ULONG i = 0; i < GetSim()->GetLiftCount(); i++)
+		for (ULONG j = 0; j < GetSim()->GetLift(i)->GetJourneyCount(); j++)
 		{
-			JOURNEY *pJ = pSim->GetLift(i)->GetJourney(j);
-			writer[L"LiftID"] = pSim->GetLift(i)->GetId();
+			JOURNEY *pJ = GetSim()->GetLift(i)->GetJourney(j);
+			writer[L"LiftID"] = GetSim()->GetLift(i)->GetId();
 			writer[L"ShaftFrom"] = pJ->m_shaftFrom;
 			writer[L"ShaftTo"] = pJ->m_shaftTo;
 			writer[L"FloorFrom"] = pJ->m_floorFrom;
@@ -188,6 +184,6 @@ void CProject::Store(xmltools::CXmlWriter writer)
 			writer.write(L"AVJourney");
 		}
 
-	for (ULONG i = 0; i < pSim->GetPassengerCount(); i++)
-		writer.write(L"AVPassenger", *pSim->GetPassenger(i));
+	for (ULONG i = 0; i < GetSim()->GetPassengerCount(); i++)
+		writer.write(L"AVPassenger", *GetSim()->GetPassenger(i));
 }

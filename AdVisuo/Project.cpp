@@ -22,7 +22,27 @@ std::wstring _prj_error::ErrorMessage()
 	}
 }
 
-CProject::CProject(CSim *pSim) : CProjectBase(), m_pSim(pSim), m_phase(PHASE_NONE)
+CProject::CProject() : CProjectBase()
 {
+	m_nDefault = 0;
+	Append();
 }
 
+CProject::~CProject()
+{
+	for (int i = 0; i < GetSize(); i++)
+	{
+		delete m_buildings[i];
+		delete m_sims[i];
+	}
+}
+
+int CProject::Append()
+{
+	CBuilding *pBuilding = new CBuilding();
+	CSim *pSim = new CSim(pBuilding);
+	m_buildings.push_back(pBuilding);
+	m_sims.push_back(pSim);
+	m_phases.push_back(PHASE_NONE);
+	return GetSize() - 1;
+}

@@ -18,15 +18,16 @@ class CAdVisuoDoc : public CDocument
 // Attributes
 
 	CProject m_prj;			// The Project
-	CSim m_sim;				// The Simulation Engine
-	CBuilding m_building;	// The Building
+//	CSim m_sim;				// The Simulation Engine
+//	CBuilding m_building;	// The Building
 	HRESULT m_h;			// The result of m_sim.Load
 
 	CXMLRequest m_http;		// XML HTTP Request object
 	CString m_strStatus;	// status of internet connection
 	CString m_strResponse;	// response from the internet connection
 
-	AVULONG m_timeLoaded;
+	AVULONG m_timeLoaded;	// streamed loading: time loaded
+	AVULONG m_groupLoaded;	// streamed loading: group loaded
 
 protected: // create from serialization only
 	CAdVisuoDoc();
@@ -38,16 +39,18 @@ public:
 
 	// Attributes and Basic Operations
 	CProject *GetProject()					{ return &m_prj; }
-	CBuilding *GetBuilding()				{ return &m_building; }
-	CSim *GetSim()							{ return &m_sim; }
+	CBuilding *_GetBuilding()				{ return GetProject()->GetBuilding(); }
+	CSim *GetSim()							{ return GetProject()->GetSim(); }
+	CBuilding *_GetBuilding(int i)			{ return GetProject()->GetBuilding(i); }
+	CSim *GetSim(int i)						{ return GetProject()->GetSim(i); }
 
 	bool IsSimReady()						{ return m_h == S_OK; }
 	bool IsSIMDataReady()					{ return m_http.ready(); }
-	bool IsDownloadComplete()				{ return m_timeLoaded >= m_sim.GetTimeSaved(); }
+	bool IsDownloadComplete()				{ return m_timeLoaded >= GetSim()->GetTimeSaved(); }
 
 	AVULONG GetLoadedTime()					{ return m_timeLoaded; }
-	AVULONG GetSimulationTime()				{ return m_sim.GetSimulationTime(); }
-	AVLONG GetTimeLowerBound()				{ return m_sim.GetTimeLowerBound(); }
+	AVULONG GetSimulationTime()				{ return GetSim()->GetSimulationTime(); }
+	AVLONG GetTimeLowerBound()				{ return GetSim()->GetTimeLowerBound(); }
 
 	void ResetTitle()						{ SetTitle(m_prj.GetProjectInfo(CProject::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
 

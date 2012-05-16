@@ -28,21 +28,34 @@ private:
 
 class CProject : public CProjectBase
 {
-	CSim *m_pSim;
-
 	// Loading Phase
-	enum PHASE { PHASE_NONE, PHASE_PRJ, PHASE_SIM, PHASE_BLD, PHASE_STRUCT, PHASE_SIMDATA } m_phase;
+	enum PHASE { PHASE_NONE, PHASE_PRJ, PHASE_SIM, PHASE_BLD, PHASE_STRUCT, PHASE_SIMDATA };
+
+	std::vector<CSim*> m_sims;
+	std::vector<CBuilding*> m_buildings;
+	std::vector<PHASE> m_phases;
+
+	int m_nDefault;
 
 public:
-	CProject(CSim *pSim);
+	CProject();
+	virtual ~CProject();
 
-	CSim *GetSim()					{ return m_pSim; }
-	CBuilding *GetBuilding()		{ return GetSim()->GetBuilding(); }
+	CSim *GetSim()					{ return m_sims[m_nDefault]; }
+	CBuilding *GetBuilding()		{ return m_buildings[m_nDefault]; }
+	CSim *GetSim(int i)				{ return m_sims[i]; }
+	CBuilding *GetBuilding(int i)	{ return m_buildings[i]; }
+
+	int GetDefault()				{ return m_nDefault; }
+	void SetDefault(int n)			{ m_nDefault = n; }
+	int GetSize()					{ return m_sims.size(); }
+	
+	int Append();
 
 	// XML Load/Store/Parse/Feed --- throw _com_error or _sim_errror
-	void LoadFromBuf(LPCOLESTR pBuf)										{ Load(pBuf); }
-	void LoadFromFile(LPCOLESTR pFileName)									{ Load((std::wstring)pFileName); }
-	void Load(xmltools::CXmlReader reader);
+	void LoadFromBuf(LPCOLESTR pBuf, AVULONG nLiftGroup)					{ Load(pBuf, nLiftGroup); }
+	void LoadFromFile(LPCOLESTR pFileName, AVULONG nLiftGroup)				{ Load((std::wstring)pFileName, nLiftGroup); }
+	void Load(xmltools::CXmlReader reader, AVULONG nLiftGroup);
 
 	void StoreToFile(LPCOLESTR pFileName)									{ Store((std::wstring)pFileName); }
 	void StoreToBuf(LPOLESTR pBuffer, size_t nSize)							{ ASSERT(FALSE); } // not implemented at the moment
