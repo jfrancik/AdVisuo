@@ -24,6 +24,8 @@ class CSim : public CSimBase, protected CRepos<IBody>
 	AVULONG m_nTime;			// the Current Time
 	AVLONG m_nTimeLowerBound;	// Time Lower Bound (not greater than zero)
 
+	AVVECTOR m_vecOffset;
+
 	IScene *m_pScene;
 	IMaterial *m_pMaterial;
 	IKineChild *m_pBiped;
@@ -40,7 +42,8 @@ public:
 
 	// access & initialisation
 	IScene *GetScene()				{ return m_pScene; }
-	void SetScene(IScene *pScene);
+	void SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped);
+	void SetScene()					{ SetScene(NULL, NULL, NULL); }
 
 	AVULONG GetColouringMode()		{ return m_nColouringMode; }
 	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
@@ -50,6 +53,9 @@ public:
 
 	AVLONG GetTimeLowerBound()		{ return m_nTimeLowerBound; }
 	void SetTimeLowerBound(AVLONG n){ m_nTimeLowerBound = n; }
+
+	AVVECTOR GetOffsetVector()		{ return m_vecOffset; }
+	void SetOffsetVector(AVVECTOR v){ m_vecOffset = v; }
 
 	// repository
 	IBody *GetBody();

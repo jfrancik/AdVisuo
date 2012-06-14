@@ -171,16 +171,17 @@ void CPassenger::BeBorn()
 	for (AVULONG i = 0; i < GetWaypointCount(); i++)
 	{
 		WAYPOINT *wp = GetWaypoint(i);
+		AVVECTOR vector = wp->vector + Vector(GetSim()->GetOffsetVector().x, -GetSim()->GetOffsetVector().y, GetSim()->GetOffsetVector().z);
 		switch (wp->nAction)
 		{
 		case MOVE:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Move", m_pActionTick, pAction, 1, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, BODY_ROOT, wp->vector.y+160.0f, wp->vector.x, 0);
+			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Move", m_pActionTick, pAction, 1, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, BODY_ROOT, vector.y+160.0f, vector.x, 0);
 			break;
 		case WAIT:
 			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Wait", m_pActionTick, pAction, 0, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, wp->nTime - GetSim()->GetTimeLowerBound());
 			break;
 		case WALK:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Walk", m_pActionTick, pAction, stepDuration, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, wp->vector.x, -wp->vector.y, stepLen, DEG2RAD(45));
+			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Walk", m_pActionTick, pAction, stepDuration, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, vector.x, -vector.y, stepLen, DEG2RAD(45));
 			break;
 		case TURN:
 			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Turn", m_pActionTick, pAction, turnDuration, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, DEG2RAD(180), 3);
@@ -216,11 +217,11 @@ void CPassenger::Embark(enum ENUM_ACTION nAction, bool bSwitchCoord)
 	switch (nAction)
 	{
 	case ENTER_ARR_FLOOR:
-		pNode = GetSim()->GetBuilding()->GetStoreyBone(GetArrivalFloor()); break;
+		pNode = GetSim()->GetBuilding()->GetStoreyBone(GetArrivalFloor())->GetNode(); break;
 	case ENTER_LIFT:
-		pNode = GetSim()->GetBuilding()->GetLiftDeck(GetLiftId(), GetDeck()); break;
+		pNode = GetSim()->GetBuilding()->GetLiftDeck(GetLiftId(), GetDeck())->GetNode(); break;
 	case ENTER_DEST_FLOOR:
-		pNode = GetSim()->GetBuilding()->GetStoreyBone(GetDestFloor()); break;
+		pNode = GetSim()->GetBuilding()->GetStoreyBone(GetDestFloor())->GetNode(); break;
 	}
 	Embark(pNode, bSwitchCoord);
 }

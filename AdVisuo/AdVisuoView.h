@@ -145,9 +145,9 @@ public:
 
 	// FreeWill Initialisation
 	bool CreateFreeWill(HWND m_hWnd);
-	bool CreateBuilding(CBuilding *pBuilding);
+	bool CreateBuilding(CBuilding *pBuilding, AVVECTOR vec);
 
-	void CreateCamera(int i)					{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = new CCamera(GetDocument()->_GetBuilding(), i); m_pCamera[i]->Create(); }
+	void CreateCamera(int i)					{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = new CCamera(GetDocument()->_GetBuilding(0), i); m_pCamera[i]->Create(); }
 	void DeleteCamera(int i)					{ if (i >= N_CAMERAS) return; if (m_pCamera[i]) delete m_pCamera[i]; m_pCamera[i] = NULL; }
 	CCamera *GetCamera(int i)					{ return i < N_CAMERAS ? m_pCamera[i] : NULL; }
 	void SetCamera(int i, CCamera *pCamera)		{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = pCamera; }

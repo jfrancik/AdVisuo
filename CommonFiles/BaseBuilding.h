@@ -6,6 +6,9 @@
 #include "DBTools.h"
 #include <string>
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CBuildingBase
+
 class CBuildingBase : public dbtools::CCollection
 {
 // enum & struct definitions
@@ -18,6 +21,12 @@ public:
 	enum CAR_ENTRANCES		{ CAR_FRONT = 1, CAR_REAR = 999, CAR_BOTH = 2, CAR_UNKNOWN = -1 };
 	enum CNTRWEIGHT_POS		{ CNTRWEIGHT_REAR = 1, CNTRWEIGHT_LSIDE, CNTRWEIGHT_RSIDE, CNTRWEIGHT_UNKNOWN = -1 };
 	enum LIFT_STRUCTURE		{ STRUCT_STEEL = 1, STRUCT_CONCRETE = 2, STRUCT_UNKNOWN = -1 };
+
+	enum MATERIAL { MAT_FRONT, MAT_REAR, MAT_SIDE, MAT_CEILING, MAT_FLOOR,
+		MAT_BEAM, MAT_SHAFT, MAT_OPENING, MAT_DOOR, MAT_LIFT, MAT_LIFT_FLOOR, MAT_LIFT_CEILING, MAT_LIFT_DOOR,
+		MAT_LIFT_NUMBER_PLATE, MAT_FLOOR_NUMBER_PLATE = MAT_LIFT_NUMBER_PLATE + 32, MAT_RESERVED_LAST = MAT_LIFT_NUMBER_PLATE + 64,
+		// note that MAT_LIFT_NUMBER_PLATE, MAT_FLOOR_NUMBER_PLATE and MAT_LIFT_NUMBER_PLATE are sparsely allocated (32 positions, or 256 texture slots)
+	};
 
 	// Storey Data
 	class STOREY : public dbtools::CCollection
@@ -50,6 +59,9 @@ public:
 		bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
 		bool Within(AVVECTOR &pos)				{ return pos.z >= GetLevel() && pos.z < GetLevel() + GetHeight(); }
 
+		bool IsStoreyServed()					{ for (AVULONG i = 0; i < GetBuilding()->GetShaftCount(); i++) if (GetBuilding()->GetShaft(i)->IsStoreyServed(GetId())) return true; return false; }
+		bool IsStoreyServed(AVULONG nShaft)		{ return GetBuilding()->GetShaft(nShaft)->IsStoreyServed(GetId()); }
+
 		// Operations:
 		void ConsoleCreate(AVULONG nId, AVFLOAT fLevel);
 		void Create();
@@ -70,6 +82,8 @@ public:
 
 		AVULONG m_nOpeningTime;					// door opening time
 		AVULONG m_nClosingTime;					// door closing time
+
+		std::wstring m_strStoreysServed;		// storeys served; "0" for not served, "1" for served
 
 		AVULONG m_nLiftCount;					// usually 1, may be more for multiple lifts options
 		AVULONG m_nLiftBegin;					// index of the first lift, usually m_nId but may be different for multiple lifts options
@@ -102,6 +116,10 @@ public:
 
 		AVULONG GetOpeningTime()				{ return m_nOpeningTime; }
 		AVULONG GetClosingTime()				{ return m_nClosingTime; }
+
+		bool IsStoreyServed(AVULONG nStorey)	{ return m_strStoreysServed[nStorey] == '1' ? true : false; }
+		AVULONG GetHighestStoreyServed()		{ return m_strStoreysServed.find_last_of('1'); }
+		AVULONG GetLowestStoreyServed()			{ return m_strStoreysServed.find('1'); }
 
 		AVULONG GetLiftBegin()					{ return m_nLiftBegin; }
 		AVULONG GetLiftCount()					{ return m_nLiftCount; }
@@ -219,6 +237,7 @@ public:
 	STOREY *GetStorey(AVULONG i)			{ return i < GetStoreyCount() ? m_ppStoreys[i] : NULL; }
 	STOREY *GetGroundStorey(AVULONG i = 0)	{ return GetStorey(i + GetBasementStoreyCount()); }
 
+
 	// Shafts
 	void CreateShafts(AVULONG nShaftCount);
 	void DeleteShafts();
@@ -240,6 +259,13 @@ public:
 	LIFT *GetLift(AVULONG i)				{ return i < GetLiftCount() ? m_ppLifts[i] : NULL; }
 
 	AVULONG GetLiftCount()					{ return m_nLiftCount; }
+
+	// Storeys Served
+	bool IsStoreyServed(AVULONG nStorey)	{ return GetStorey(nStorey)->IsStoreyServed(); }
+	bool IsStoreyServed(AVULONG nStorey, AVULONG nShaft)	{ return GetShaft(nShaft)->IsStoreyServed(nStorey); }
+	AVULONG GetHighestStoreyServed()		{ AVLONG N = 0; for (AVULONG i = 0; i < GetShaftCount(); i++) { AVLONG n = GetShaft(i)->GetHighestStoreyServed(); if (n > N) N = n; } return N; }
+	AVULONG GetLowestStoreyServed()			{ AVLONG N = 32767; for (AVULONG i = 0; i < GetShaftCount(); i++) { AVLONG n = GetShaft(i)->GetLowestStoreyServed(); if (n < N) N = n; } return N; }
+
 
 	// Various
 	SHAFT_ARRANGEMENT GetLiftShaftArrang()	{ return m_LiftShaftArrang; }
@@ -267,13 +293,5 @@ protected:
 	virtual STOREY *CreateStorey(AVULONG nId) = 0;
 	virtual SHAFT *CreateShaft(AVULONG nId) = 0;
 	virtual LIFT *CreateLift(AVULONG nId) = 0;
-};
-
-class CBuildingBaseEx : public CBuildingBase
-{
-protected:
-	virtual STOREY *CreateStorey(AVULONG nId)	{ return new STOREY(this, nId); }
-	virtual SHAFT *CreateShaft(AVULONG nId)		{ return new SHAFT(this, nId); }
-	virtual LIFT *CreateLift(AVULONG nId)		{ return new LIFT(this, nId); }
 };
 

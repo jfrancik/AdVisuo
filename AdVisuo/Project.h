@@ -52,6 +52,9 @@ public:
 	
 	int Append();
 
+
+	void SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped)	{ for each (CSim *pSim in m_sims) pSim->SetScene(pScene, pMaterial, pBiped); }
+
 	// XML Load/Store/Parse/Feed --- throw _com_error or _sim_errror
 	void LoadFromBuf(LPCOLESTR pBuf, AVULONG nLiftGroup)					{ Load(pBuf, nLiftGroup); }
 	void LoadFromFile(LPCOLESTR pFileName, AVULONG nLiftGroup)				{ Load((std::wstring)pFileName, nLiftGroup); }

@@ -371,6 +371,8 @@ void CBuildingBase::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fSh
 	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
 	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);
 
+	m_strStoreysServed = ME[L"StoreysServed"];
+
 	// ### To resolve the problem quickly
 	ME[L"LiftsPerShaft"] = (AVULONG)1;
 
@@ -492,8 +494,6 @@ void CBuildingBase::SHAFT::Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 void CBuildingBase::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 {
 	m_boxShaft.Move(x, y, z);
-	m_fWallLtStart += y;
-	m_fWallRtStart += y;
 	m_boxBeam.Move(x, y, z);
 	m_boxDoor[0].Move(x, y, z);
 	m_boxDoor[1].Move(x, y, z);
@@ -522,5 +522,7 @@ void CBuildingBase::SHAFT::Create()
 	m_boxCarDoor[1].ParseFromString(ME[L"BoxCarDoor1"]);
 	m_fWallLtStart = ME[L"LeftWallStart"];
 	m_fWallRtStart = ME[L"RightWallStart"];
+
+	m_strStoreysServed = ME[L"StoreysServed"];
 }
 

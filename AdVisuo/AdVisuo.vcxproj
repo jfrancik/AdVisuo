@@ -138,6 +138,7 @@
     <ClCompile Include="Building.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
+    <ClCompile Include="ConstrBuilding.cpp" />
     <ClCompile Include="Dialogs.cpp" />
     <ClCompile Include="HUD.cpp" />
     <ClCompile Include="Lift.cpp" />
@@ -170,6 +171,7 @@
     <ClInclude Include="Building.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ChildFrm.h" />
+    <ClInclude Include="ConstrBuilding.h" />
     <ClInclude Include="Dialogs.h" />
     <ClInclude Include="HUD.h" />
     <ClInclude Include="Lift.h" />

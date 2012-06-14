@@ -4,6 +4,7 @@
 
 #include "../CommonFiles/BaseBuilding.h"
 #include "../CommonFiles/XMLTools.h"
+#include "ConstrBuilding.h"
 #include "Material.h"
 #include <functional>
 
@@ -17,43 +18,47 @@ interface IRenderer;
 interface IScene;
 interface IMesh;
 
-#define MAX_DOORS	6
 class CBlock;
 class CBuilding;
 
-typedef IKineNode *BONE;
-
-class CBldObject
+class CBone : public CBoneBase
 {
-	CBuilding *m_pBuilding;
-	ISceneObject *m_pObj;
-	BONE m_pBone;
+	IKineNode *m_pNode;
 public:
-	CBldObject(CBuilding *pBuilding) : m_pBuilding(pBuilding), m_pObj(NULL), m_pBone(NULL)	{ }
-	CBldObject() : m_pBuilding(NULL), m_pObj(NULL), m_pBone(NULL)	{ }
-	CBldObject(CBuilding *pBuilding, ISceneObject *pObj, BONE pBone) : m_pBuilding(pBuilding), m_pObj(pObj), m_pBone(pBone) { }
+	CBone(IKineNode *pNode);
+	virtual ~CBone();
+	virtual void *GetHandle()			{ return m_pNode; }
 
-	CBuilding *GetBuilding()				{ return m_pBuilding; }
-	ISceneObject *GetFWObject()				{ return m_pObj; }
-	BONE GetBone()							{ return m_pBone; }
+	// implementation specific
+	IKineNode *GetNode()				{ return m_pNode; }
+	void PushState();
+	void PopState();
+	void Invalidate();
+};
 
-	void Create(AVSTRING name);
-	void Create(AVSTRING name, AVVECTOR v);
-	void Create(AVSTRING name, AVFLOAT x, AVFLOAT y, AVFLOAT z);
+class CElement : public CElemBase
+{
+protected:
+	// Implementation
+	ISceneObject *m_pObj;
 
-	BONE AddBone(AVSTRING name);
-	BONE AddBone(AVSTRING name, AVVECTOR v);
-	BONE AddBone(AVSTRING name, AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	virtual void onCreate(AVSTRING name, AVVECTOR &vec);
+	virtual void onMove(AVVECTOR &vec);
+	virtual CBoneBase *onAddBone(AVSTRING name, AVVECTOR &vec);
+	virtual void onAddWall(CBoneBase *pBone, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, 
+					AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
+					AVULONG nDoorNum, FLOAT *pDoorData, CBoneBase **ppNewBone);
 
-	void AddWall(AVULONG nWallId, AVLONG nIndex, AVSTRING strName, 
-					AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot = Vector(0),
-					AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL, BONE *ppBone = NULL);
-	void AddWall(BONE pBone, AVULONG nWallId, AVLONG nIndex, AVSTRING strName, 
-					AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot = Vector(0),
-					AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL, BONE *ppBone = NULL);
-	void AddWall(AVULONG nWallId, AVLONG nIndex, AVSTRING strName, 
-					BOX box, AVVECTOR vecRot = Vector(0),
-					AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL, BONE *ppBone = NULL);
+public:
+	CElement(CBuildingBase *pBuilding) : CElemBase((CBuildingBase*)pBuilding), m_pObj(NULL)	{ }
+	virtual ~CElement();
+	
+	CBuilding *GetBuilding()				{ return (CBuilding*)CElemBase::GetBuilding(); }
+	CBone *GetBone()						{ return (CBone*)CElemBase::GetBone(); }
+
+	// implementation specific
+	IKineNode *GetNode()					{ return GetBone()->GetNode(); }
+	IKineNode *GetNode(CBoneBase *p)		{ return ((CBone*)p)->GetNode(); }
 
 	IMesh *AddMesh(AVSTRING strName);
 
@@ -62,25 +67,16 @@ public:
 	void PushState();
 	void PopState();
 	void Render(IRenderer *pRenderer);
-
-	void Deconstruct();
 };
 
-class CBuilding : public CBuildingBase
+class CBuilding : public CBuildingConstr
 {
 public:
 	CBuilding(void);
 	~CBuilding(void);
 
-	enum MATERIAL { MAT_FRONT, MAT_REAR, MAT_SIDE, MAT_CEILING, MAT_FLOOR,
-		MAT_BEAM, MAT_SHAFT, MAT_OPENING, MAT_DOOR, MAT_LIFT, MAT_LIFT_FLOOR, MAT_LIFT_CEILING, MAT_LIFT_DOOR,
-		MAT_LIFT_NUMBER_PLATE, MAT_FLOOR_NUMBER_PLATE = MAT_LIFT_NUMBER_PLATE + 32, MAT_RESERVED_LAST = MAT_LIFT_NUMBER_PLATE + 64,
-		// note that MAT_LIFT_NUMBER_PLATE, MAT_FLOOR_NUMBER_PLATE and MAT_LIFT_NUMBER_PLATE are sparsely allocated (32 positions, or 256 texture slots)
-	};
-	static const AVULONG MAT_TEXTURES_PER_ITEM = 8;	// number of positions reserved for
-
 	CMaterialManager m_materials;
-
+	static const AVULONG MAT_TEXTURES_PER_ITEM = 8;	// number of positions reserved for
 
 	friend class CCamera;
 
@@ -95,107 +91,26 @@ private:
 
 	bool bFastLoad;	// press Shift+Esc to stop building most of the building structures
 
-// XML Load / Store --- see xml.cpp for implementation
+	virtual CElemBase *CreateElement()		{ return new CElement(this); }
+
 public:
-	// XML-enabled sub-structures
+	CElement *GetStoreyElement(AVULONG nStorey)											{ return (CElement*)CBuildingConstr::GetStoreyElement(nStorey);}
+	CBone *GetStoreyBone(AVULONG nStorey)												{ return (CBone*)GetStoreyElement(nStorey)->GetBone(); }
 	
-	struct LIFT : public CBuildingBase::LIFT
-	{
-		// lift structure
-		CBldObject m_obj;
-		BONE m_pDecks[DECK_NUM];
-		BONE m_pDoors[MAX_DOORS];
+	CElement *GetLiftElement(AVULONG nLift)												{ return (CElement*)CBuildingConstr::GetLiftElement(nLift); }
+	CBone *GetLiftBone(AVULONG nLift)													{ return (CBone*)CBuildingConstr::GetLiftBone(nLift); }
+	CBone *GetLiftDeck(AVULONG nLift, AVULONG nDeck)									{ return (CBone*)CBuildingConstr::GetLiftDeck(nLift, nDeck); }
+	CBone *GetLiftDoor(AVULONG nLift, AVULONG nDoor)									{ return (CBone*)CBuildingConstr::GetLiftDoor(nLift, nDoor); }
 
-	public:
-		LIFT(CBuilding *pBuilding, AVULONG nId) : CBuildingBase::LIFT(pBuilding, nId), m_obj(pBuilding)
-		{
-			memset(m_pDecks, 0, sizeof(m_pDecks));
-			memset(m_pDoors, 0, sizeof(m_pDoors));
-		}
-		~LIFT()												{ }
-
-		CBuilding *GetBuilding()							{ return (CBuilding *)CBuildingBase::LIFT::GetBuilding(); }
-
-		CBldObject &GetObject()								{ return m_obj; }
-		BONE GetDeck(AVULONG nDeck)							{ return m_pDecks[nDeck]; }
-		BONE GetDoor(AVULONG nDoor)							{ return m_pDoors[nDoor]; }
-
-		void Construct(AVULONG iShaft);
-		void Deconstruct();
-	};
-
-	struct SHAFT : public CBuildingBase::SHAFT
-	{
-		// storey structures
-		struct FWSTRUCT
-		{
-			FWSTRUCT() 	{ memset(pDoors, 0, sizeof(pDoors)); }
-			CBldObject m_obj;
-			CBldObject m_objLobbySide;
-			CBldObject m_objLeft;
-			CBldObject m_objRight;
-			BONE pDoors[MAX_DOORS];
-		} *m_pStoreyBones;
-
-	public:
-		SHAFT(CBuilding *pBuilding, AVULONG nId) : CBuildingBase::SHAFT(pBuilding, nId), m_pStoreyBones(NULL)		{ }
-		~SHAFT()											{ }
-
-		CBuilding *GetBuilding()							{ return (CBuilding *)CBuildingBase::SHAFT::GetBuilding(); }
-
-		CBldObject &GetObject(AVULONG nStorey)				{ return m_pStoreyBones[nStorey].m_obj; }
-		CBldObject &GetObjectLobbySide(AVULONG nStorey)		{ return m_pStoreyBones[nStorey].m_objLobbySide; }
-		CBldObject &GetObjectLeft(AVULONG nStorey)			{ return m_pStoreyBones[nStorey].m_objLeft; }
-		CBldObject &GetObjectRight(AVULONG nStorey)			{ return m_pStoreyBones[nStorey].m_objRight; }
-		CBldObject &GetObjectLeftOrRight(AVULONG nStorey, AVULONG n)	{ return n == 0 ? GetObjectLeft(nStorey) : GetObjectRight(nStorey); }
-		BONE GetDoor(AVULONG nStorey, AVULONG nDoor)		{ return m_pStoreyBones ? m_pStoreyBones[nStorey].pDoors[nDoor] : NULL; }
-
-		void Construct(AVLONG iStorey, AVULONG iShaft);
-		void Deconstruct();
-	};
-
-	struct STOREY : public CBuildingBase::STOREY
-	{
-		CBldObject m_obj;
-
-	public:
-		STOREY(CBuilding *pBuilding, AVULONG nId) : 	CBuildingBase::STOREY(pBuilding, nId), m_obj(pBuilding)		{ }
-		~STOREY()								{ }
-
-		CBuilding *GetBuilding()				{ return (CBuilding *)CBuildingBase::STOREY::GetBuilding(); }
-
-		CBldObject &GetObject()					{ return m_obj; }
-
-		void Construct(AVLONG iStorey);
-		void Deconstruct();
-	};
+	CElement *GetShaftElement(AVULONG nStorey, AVULONG nShaft)							{ return (CElement*)CBuildingConstr::GetShaftElement(nStorey, nShaft); }
+	CElement *GetShaftElementLobbySide(AVULONG nStorey, AVULONG nShaft)					{ return (CElement*)CBuildingConstr::GetShaftElementLobbySide(nStorey, nShaft); }
+	CElement *GetShaftElementLeft(AVULONG nStorey, AVULONG nShaft)						{ return (CElement*)CBuildingConstr::GetShaftElementLeft(nStorey, nShaft); }
+	CElement *GetShaftElementRight(AVULONG nStorey, AVULONG nShaft)						{ return (CElement*)CBuildingConstr::GetShaftElementRight(nStorey, nShaft); }
+	CElement *GetShaftElementLeftOrRight(AVULONG nStorey, AVULONG nShaft, AVULONG n)	{ return (CElement*)CBuildingConstr::GetShaftElementLeftOrRight(nStorey, nShaft, n); }
+	CBone *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)					{ return (CBone*)CBuildingConstr::GetShaftDoor(nStorey, nShaft, nDoor); }
 
 // Main Implementation
 public:
-	virtual STOREY *CreateStorey(AVULONG nId){ return new STOREY(this, nId); }
-	virtual SHAFT *CreateShaft(AVULONG nId)	{ return new SHAFT(this, nId); }
-	virtual LIFT *CreateLift(AVULONG nId)	{ return new LIFT(this, nId); }
-	STOREY *GetStorey(AVULONG i)			{ return (STOREY*)CBuildingBase::GetStorey(i); }
-	STOREY *GetGroundStorey(AVULONG i = 0)	{ return (STOREY*)CBuildingBase::GetGroundStorey(i); }
-	SHAFT *GetShaft(AVULONG i)				{ return (SHAFT*)CBuildingBase::GetShaft(i); }
-	LIFT *GetLift(AVULONG i)				{ return (LIFT*)CBuildingBase::GetLift(i); }
-
-public:
-	CBldObject &GetStoreyObject(AVULONG nStorey)				{ return GetStorey(nStorey)->GetObject(); }
-	BONE GetStoreyBone(AVULONG nStorey)							{ return GetStoreyObject(nStorey).GetBone(); }
-	
-	CBldObject &GetLiftObject(AVULONG nLift)					{ return GetLift(nLift)->GetObject(); }
-	BONE GetLiftBone(AVULONG nLift)								{ return GetLiftObject(nLift).GetBone(); }
-	BONE GetLiftDeck(AVULONG nLift, AVULONG nDeck)				{ return GetLift(nLift)->GetDeck(nDeck); }
-	BONE GetLiftDoor(AVULONG nLift, AVULONG nDoor)				{ return GetLift(nLift)->GetDoor(nDoor); }
-
-	CBldObject &GetShaftObject(AVULONG nStorey, AVULONG nShaft)	{ return GetShaft(nShaft)->GetObject(nStorey); }
-	CBldObject &GetShaftObjectLobbySide(AVULONG nStorey, AVULONG nShaft){ return GetShaft(nShaft)->GetObjectLobbySide(nStorey); }
-	CBldObject &GetShaftObjectLeft(AVULONG nStorey, AVULONG nShaft){ return GetShaft(nShaft)->GetObjectLeft(nStorey); }
-	CBldObject &GetShaftObjectRight(AVULONG nStorey, AVULONG nShaft){ return GetShaft(nShaft)->GetObjectRight(nStorey); }
-	CBldObject &GetShaftObjectLeftOrRight(AVULONG nStorey, AVULONG nShaft, AVULONG n){ return GetShaft(nShaft)->GetObjectLeftOrRight(nStorey, n); }
-	BONE GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)		{ return GetShaft(nShaft)->GetDoor(nStorey, nDoor); }
-
 	AVVECTOR GetLiftPos(int nLift);							// returns position of the lift
 
 	IRenderer *GetRenderer()								{ return m_pRenderer; }
@@ -214,8 +129,7 @@ public:
 	void SetMaterialLiftPlate(AVULONG nItemId, AVULONG i, AVULONG nLift);
 	void SetMaterialFloorPlate(AVULONG nItemId, AVULONG i, AVULONG nFloor);
 
-	void Construct();
-	void Deconstruct();
+	void Construct(AVVECTOR vec);
 
 	void StoreConfig();
 	void RestoreConfig();

@@ -75,7 +75,7 @@ public:
 	void SetId(AVULONG n)						{ m_nId = n; }
 	void SetProjectId(AVULONG n)				{ m_nProjectId = n; }
 	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionId = n; }
-	void SetIndex(AVULONG n)				{ m_nIndex = n; }
+	void SetIndex(AVULONG n)					{ m_nIndex = n; }
 
 	AVLONG GetSimulationTime()					{ return m_nSimulationTime; }
 	void ReportSimulationTime(AVLONG n)			{ if (n > m_nSimulationTime) m_nSimulationTime = n; }

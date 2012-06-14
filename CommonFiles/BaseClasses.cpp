@@ -147,8 +147,8 @@ void CPassengerBase::ResolveMe()
 	SetShaftId(ME[L"ShaftId"]);
 	SetLiftId(ME[L"LiftId"]);
 	SetDeck(ME[L"DeckId"]);
-	SetArrivalFloor(ME[L"FloorArrival"]);
-	SetDestFloor(ME[L"FloorDest"]);
+	SetArrivalFloor((AVULONG)ME[L"FloorArrival"]);
+	SetDestFloor((AVULONG)ME[L"FloorDest"]);
 	SetBornTime(ME[L"TimeBorn"]);
 	SetArrivalTime(ME[L"TimeArrival"]);
 	SetGoTime(ME[L"TimeGo"]);

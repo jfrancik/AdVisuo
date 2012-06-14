@@ -189,8 +189,8 @@ DWORD CPassenger::Load(AVULONG nId, CSimLoader::Passenger &P)
 {
 	SetId(nId);
 	SetArrivalTime((AVULONG)(P.ArrivalTime * 1000));
-	SetArrivalFloor(P.ArrivalFloor);
-	SetDestFloor(P.DestinationFloor);
+	SetArrivalFloor(P.ArrivalFloor + GetSim()->GetBuilding()->GetBasementStoreyCount());
+	SetDestFloor(P.DestinationFloor + GetSim()->GetBuilding()->GetBasementStoreyCount());
 	SetLiftId(P.CarID);
 	SetShaftId(P.CarID);	// provisionary setting
 	SetDeck(0);				// provisionary setting

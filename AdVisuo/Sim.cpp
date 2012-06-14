@@ -15,17 +15,17 @@ using namespace std;
 
 CSim::CSim(CBuildingBase *pBuilding)
 	: CSimBase(pBuilding), 
-	  m_pScene(NULL), m_pBiped(NULL), m_pMaterial(NULL), m_pBipedBuf(NULL), m_nBipedBufCount(0), m_nColouringMode(0), m_nTime(0), m_nTimeLowerBound(0)
+	  m_pScene(NULL), m_pBiped(NULL), m_pMaterial(NULL), m_pBipedBuf(NULL), m_nBipedBufCount(0), m_nColouringMode(0), m_nTime(0), m_nTimeLowerBound(0), m_vecOffset(Vector(0))
 {
 }
 
 CSim::~CSim(void)
 {
-	SetScene(NULL);
+	SetScene();
 	remove_all();
 }
 
-void CSim::SetScene(IScene *pScene)
+void CSim::SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped)
 {
 	if (m_pScene) m_pScene->Release();
 	if (m_pMaterial) m_pMaterial->Release();
@@ -33,19 +33,15 @@ void CSim::SetScene(IScene *pScene)
 	if (m_pBipedBuf) delete [] m_pBipedBuf;
 	m_nBipedBufCount = 0;
 
-	m_pScene = pScene;
+	m_pScene = pScene; if (m_pScene) m_pScene->AddRef();
+	m_pMaterial = pMaterial; if (m_pMaterial) m_pMaterial->AddRef();
+	m_pBiped = pBiped; if (m_pBiped) m_pBiped->AddRef();
 
-	if (m_pScene) 
+	if (m_pBiped) 
 	{
-		m_pScene->AddRef();
-		m_pScene->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&m_pMaterial);
-		m_pScene->GetChild(L"Bip01", &m_pBiped);
-		if (m_pBiped)
-		{
-			m_pBiped->StoreState(0, NULL, &m_nBipedBufCount);
-			m_pBipedBuf = new BYTE[m_nBipedBufCount];
-			m_pBiped->StoreState(m_nBipedBufCount, m_pBipedBuf, NULL);
-		}
+		m_pBiped->StoreState(0, NULL, &m_nBipedBufCount);
+		m_pBipedBuf = new BYTE[m_nBipedBufCount];
+		m_pBiped->StoreState(m_nBipedBufCount, m_pBipedBuf, NULL);
 	}
 }
 

@@ -26,7 +26,7 @@ CLift::~CLift()
 
 void CLift::MoveTo(AVVECTOR &v)
 {
-	IKineNode *pBone = GetSim()->GetBuilding()->GetLiftBone(GetId());
+	IKineNode *pBone = GetSim()->GetBuilding()->GetLiftBone(GetId())->GetNode();
 	ITransform *p = NULL;
 	pBone->GetLocalTransformRef(&p);
 	p->FromTranslationVector((FWVECTOR*)&v);
@@ -43,7 +43,7 @@ void CLift::MoveToInitialPosition()
 
 void CLift::AnimateToInitialPosition(AVULONG nShaftFrom, AVULONG nStoreyFrom, AVULONG timeStart)
 {
-	IKineNode *pBone = GetSim()->GetBuilding()->GetLiftBone(GetId());
+	IKineNode *pBone = GetSim()->GetBuilding()->GetLiftBone(GetId())->GetNode();
 	AVVECTOR vFrom = GetSim()->GetBuilding()->GetCarPos(nShaftFrom, nStoreyFrom);
 	IAction *pAction = NULL;
 	pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"MoveTo", m_pActionTick, timeStart-1, 0, pBone, vFrom.x, vFrom.y, vFrom.z);
@@ -54,10 +54,10 @@ void CLift::AnimateDoor(AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG tim
 	AVFLOAT nDist = GetSim()->GetBuilding()->GetShaft(nShaft)->GetBoxDoor().Width() / 2.0f - 0.1f;
 	if (!bOpen) nDist = -nDist;
 
-	IKineNode *pDoorLI = GetSim()->GetBuilding()->GetLiftDoor(GetId(), 0);
-	IKineNode *pDoorRI = GetSim()->GetBuilding()->GetLiftDoor(GetId(), 1);
-	IKineNode *pDoorLX = GetSim()->GetBuilding()->GetShaftDoor(nStorey, nShaft, 0);
-	IKineNode *pDoorRX = GetSim()->GetBuilding()->GetShaftDoor(nStorey, nShaft, 1);
+	IKineNode *pDoorLI = GetSim()->GetBuilding()->GetLiftDoor(GetId(), 0)->GetNode();
+	IKineNode *pDoorRI = GetSim()->GetBuilding()->GetLiftDoor(GetId(), 1)->GetNode();
+	IKineNode *pDoorLX = GetSim()->GetBuilding()->GetShaftDoor(nStorey, nShaft, 0)->GetNode();
+	IKineNode *pDoorRX = GetSim()->GetBuilding()->GetShaftDoor(nStorey, nShaft, 1)->GetNode();
 
 	if (pDoorLI) FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Move", m_pActionTick, timeStart, timeDuration, pDoorLI, -nDist, 0, 0);
 	if (pDoorRI) FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Move", m_pActionTick, timeStart, timeDuration, pDoorRI, nDist, 0, 0);
@@ -67,7 +67,7 @@ void CLift::AnimateDoor(AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG tim
 
 void CLift::AnimateJourney(AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeStart, AVULONG timeDuration)
 {
-	IKineNode *pBone = GetSim()->GetBuilding()->GetLiftBone(GetId());
+	IKineNode *pBone = GetSim()->GetBuilding()->GetLiftBone(GetId())->GetNode();
 	AVVECTOR vTo   = GetSim()->GetBuilding()->GetCarPos(nShaftTo, nStoreyTo);
 	IAction *pAction = NULL;
 	pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"MoveTo", m_pActionTick, timeStart, timeDuration, pBone, vTo.x, vTo.y, vTo.z);

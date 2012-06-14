@@ -17,92 +17,84 @@
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
 
-#define F_PI ((AVFLOAT)M_PI)
-#define F_PI_2 ((AVFLOAT)M_PI_2)
- 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CBldObject
+// CBone
 
-static OLECHAR *__name(OLECHAR *name, LONG i)
-{
-	static OLECHAR buf[257];
-	_snwprintf(buf, 256, name, i);
-	return buf;
+CBone::CBone(IKineNode *pNode) : CBoneBase(pNode), m_pNode(pNode)
+{ 
+	m_pNode->AddRef(); 
 }
 
-static OLECHAR *__name(OLECHAR *name, LONG i, LONG j)
-{
-	static OLECHAR buf[257];
-	_snwprintf(buf, 256, name, i, j);
-	return buf;
+CBone::~CBone()
+{ 
+	if (m_pNode) m_pNode->Release(); 
 }
 
-void CBldObject::Create(AVSTRING name)
-{
-	static OLECHAR buf[257];
-	_snwprintf(buf, 256, L"_bld_%d_%ls", m_pBuilding->GetIndex(), name);
+void CBone::PushState()					{ if (m_pNode) m_pNode->PushState(); }
+void CBone::PopState()					{ if (m_pNode) m_pNode->PopState(); }
+void CBone::Invalidate()				{ if (m_pNode) m_pNode->Invalidate(); }
 
-	m_pBuilding->GetScene()->NewObject(buf, &m_pObj);
-	m_pObj->CreateChild(name, &m_pBone);
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CElement
 
-void CBldObject::Create(AVSTRING name, AVVECTOR v)
-{
-	Create(name);
-
-	ITransform *pT = NULL;
-	m_pBone->CreateCompatibleTransform(&pT);
-	pT->FromTranslationVector((FWVECTOR*)(&v));
-	m_pBone->PutLocalTransform(pT);
-	pT->Release();
-}
-
-void CBldObject::Create(AVSTRING name, AVFLOAT x, AVFLOAT y, AVFLOAT z)
-{
-	AVVECTOR vec = {x, y, z};
-	Create(name, vec);
-}
-
-BONE CBldObject::AddBone(AVSTRING name)
-{
-	BONE bone;
-	m_pBone->CreateChild(name, &bone);
-	return bone;
-}
-
-BONE CBldObject::AddBone(AVSTRING name, AVVECTOR v)
-{
-	BONE pBone = AddBone(name);
-
-	ITransform *pT = NULL;
-	pBone->CreateCompatibleTransform(&pT);
-	pT->FromTranslationVector((FWVECTOR*)(&v));
-	pBone->PutLocalTransform(pT);
-	pT->Release();
-	return pBone;
-}
-
-BONE CBldObject::AddBone(AVSTRING name, AVFLOAT x, AVFLOAT y, AVFLOAT z)
-{
-	AVVECTOR vec = {x, y, z};
-	return AddBone(name, vec);
-}
-
-void CBldObject::Deconstruct()
+CElement::~CElement()
 {
 	if (m_pObj) m_pObj->Release();
 	m_pObj = NULL;
-	if (m_pBone) m_pBone->Release();
+	if (m_pBone) delete m_pBone;
 	m_pBone = NULL;
 }
 
-void CBldObject::AddWall(BONE pBone, AVULONG nWallId, AVLONG nIndex, AVSTRING strName, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
-					AVULONG nDoorNum, FLOAT *pDoorData, BONE *ppBone)
+void CElement::onCreate(AVSTRING name, AVVECTOR &vec)
+{
+	static OLECHAR buf[257];
+	_snwprintf(buf, 256, L"_bld_%d_%ls", GetBuilding()->GetIndex(), name);
+
+	IKineNode *pNode = NULL;
+	GetBuilding()->GetScene()->NewObject(buf, &m_pObj);
+	m_pObj->CreateChild(name, &pNode);
+	m_pBone = new CBone(pNode);
+	pNode->Release();
+
+	ITransform *pT = NULL;
+	GetNode()->CreateCompatibleTransform(&pT);
+	pT->FromTranslationVector((FWVECTOR*)(&vec));
+	GetNode()->PutLocalTransform(pT);
+	pT->Release();
+}
+
+void CElement::onMove(AVVECTOR &vec)
+{
+	ITransform *pT = NULL;
+	m_pObj->CreateCompatibleTransform(&pT);
+	pT->FromTranslationVector((FWVECTOR*)(&vec));
+	m_pObj->TransformLocal(pT);
+	pT->Release();
+}
+
+CBoneBase *CElement::onAddBone(AVSTRING name, AVVECTOR &vec)
+{
+	IKineNode *pNode = NULL;
+	GetNode()->CreateChild(name, &pNode);
+	CBone *pBone = new CBone(pNode);
+	pNode->Release();
+
+	ITransform *pT = NULL;
+	pBone->GetNode()->CreateCompatibleTransform(&pT);
+	pT->FromTranslationVector((FWVECTOR*)(&vec));
+	pBone->GetNode()->PutLocalTransform(pT);
+	pT->Release();
+
+	return pBone;
+}
+
+void CElement::onAddWall(CBoneBase *pBone, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
+					AVULONG nDoorNum, FLOAT *pDoorData, CBoneBase **ppNewBone)
 {
 	//TRACE(L"Building wall: pos = (%f, %f, %f), l = %f, h = %f, d = %f\n", vecPos.x/0.04f, vecPos.y/0.04f, vecPos.z/0.04f, l/0.04f, h/0.04f, d/0.04f);
 
 	CBlock block;
-	block.Open(GetFWObject(), pBone, __name(strName, LOWORD(nIndex), HIWORD(nIndex)), l, h, d, vecPos, vecRot.x, vecRot.y, vecRot.z);
+	block.Open(m_pObj, GetNode(pBone), strName, l, h, d, vecPos, vecRot.x, vecRot.y, vecRot.z);
 	block.BuildFrontSection();
 	
 	for (AVULONG i = 0; i < nDoorNum * 3; i += 3)
@@ -115,30 +107,25 @@ void CBldObject::AddWall(BONE pBone, AVULONG nWallId, AVLONG nIndex, AVSTRING st
 	block.BuildRearSection();
 
 	block.SetMaterial(GetBuilding()->GetMaterial(nWallId, LOWORD(nIndex), (nWallId == CBuilding::MAT_FLOOR_NUMBER_PLATE || nWallId == CBuilding::MAT_LIFT_NUMBER_PLATE) ? 256 : 8));
-	if (ppBone) *ppBone = block.GetBone();
+	if (ppNewBone)
+	{
+		IKineNode *pNewNode = block.GetBone();
+		*ppNewBone = new CBone(pNewNode);
+		pNewNode->Release();
+	}
 	block.Close();
 }
 
-void CBldObject::AddWall(AVULONG nWallId, AVLONG nIndex, AVSTRING strName, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData, BONE *ppBone)
-{
-	AddWall(GetBone(), nWallId, nIndex, strName, vecPos, l, h, d, vecRot, nDoorNum, pDoorData, ppBone);
-}
-
-void CBldObject::AddWall(AVULONG nWallId, AVLONG nIndex, AVSTRING strName, BOX box, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData, BONE *ppBone)
-{
-	AddWall(nWallId, nIndex, strName, box.LeftFrontLower(), box.Width(), box.Height(), box.Depth(), vecRot, nDoorNum, pDoorData, ppBone);
-}
-
-IMesh *CBldObject::AddMesh(AVSTRING strName)
+IMesh *CElement::AddMesh(AVSTRING strName)
 {
 	IMesh *pMesh = NULL;
-	GetFWObject()->NewMesh(strName, &pMesh);
+	m_pObj->NewMesh(strName, &pMesh);
 	pMesh->Open(NULL, NULL);
 	pMesh->SupportNormal(0);
 	return pMesh;
 }
 
-void CBldObject::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFLOAT fTexScale)
+void CElement::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFLOAT fTexScale)
 {
 	IMesh *pVMesh = NULL;
 	IMesh *pFMesh = NULL;
@@ -226,39 +213,38 @@ void CBldObject::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AV
 	}
 }
 
-void CBldObject::PushState()
+void CElement::PushState()
 {
-	if (!GetFWObject()) return;
-	GetFWObject()->PushState();
+	if (!m_pObj) return;
+	m_pObj->PushState();
 }
 
-void CBldObject::PopState()
+void CElement::PopState()
 {
-	if (!GetFWObject()) return;
-	GetFWObject()->PopState(); 
-	GetFWObject()->Invalidate(); 
-	GetFWObject()->PushState();
+	if (!m_pObj) return;
+	m_pObj->PopState(); 
+	m_pObj->Invalidate(); 
+	m_pObj->PushState();
 }
 
-void CBldObject::Render(IRenderer *pRenderer)
+void CElement::Render(IRenderer *pRenderer)
 {
-	if (!GetFWObject()) return;
-	GetFWObject()->Render(pRenderer);
+	if (!m_pObj) return;
+	m_pObj->Render(pRenderer);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CBuilding
 
-CBuilding::CBuilding(void) : CBuildingBase(), m_materials(this), m_pRenderer(NULL), m_pScene(NULL)
+CBuilding::CBuilding(void) : CBuildingConstr(), m_materials(this), m_pRenderer(NULL), m_pScene(NULL)
 {
 	memset(m_pMaterials, 0, sizeof(m_pMaterials));
-	bFastLoad = true;
+	bFastLoad = false;
 }
 
 CBuilding::~CBuilding(void)
 {
 	DeconstructMaterials();
-	Deconstruct();
 	if (m_pRenderer) m_pRenderer->Release();
 	if (m_pScene) m_pScene->Release();
 }
@@ -266,8 +252,8 @@ CBuilding::~CBuilding(void)
 AVVECTOR CBuilding::GetLiftPos(int nLift)
 {
 	AVVECTOR vec = { 0, 0, 0 };
-	if (GetLiftObject(nLift).GetBone())
-		GetLiftObject(nLift).GetBone()->LtoG((FWVECTOR*)&vec);
+	if (GetLiftElement(nLift)->GetBone())
+		GetLiftElement(nLift)->GetBone()->GetNode()->LtoG((FWVECTOR*)&vec);
 	return vec;
 }
 
@@ -458,191 +444,7 @@ void CBuilding::DeconstructMaterials()
 	}
 }
 
-void CBuilding::STOREY::Construct(AVLONG iStorey)
-{
-	if (::GetKeyState(VK_CONTROL) < 0 && ::GetKeyState(VK_SHIFT) < 0 && !GetBuilding()->bFastLoad) { GetBuilding()->bFastLoad = true; MessageBeep(MB_OK); }
-
-	iStorey -= GetBuilding()->GetBasementStoreyCount();
-
-	// imposed parameters
-	AVFLOAT gap = 1.0f;			// gap between lift doors
-	AVFLOAT opn = 2.5f;			// width of the opening around the door
-	AVFLOAT bulge = 2;			// bulge of the opening (above the wall)
-
-	// create skeletal structure (object & bone)
-	m_obj.Create(__name(L"Storey_%d", iStorey), Vector(0, 0, GetLevel()));
-
-	// collect door information
-	std::vector<FLOAT> doordata;
-	for (AVULONG i = 0; i < GetBuilding()->GetShaftCount(); i++)
-	{
-		SHAFT *pShaft = GetBuilding()->GetShaft(i);
-		if (i < GetBuilding()->GetShaftCount(0))
-			doordata.push_back(pShaft->GetBoxDoor().Left() - GetBox().LeftExt() - opn);
-		else
-			doordata.push_back(GetBox().RightExt() - pShaft->GetBoxDoor().Right() - opn);
-		doordata.push_back(pShaft->GetBoxDoor().Width() + opn + opn);
-		doordata.push_back(pShaft->GetBoxDoor().Height() + opn);
-	}
-
-	AVVECTOR v;
-
-	// build walls
-	GetObject().AddWall(MAT_FLOOR,   iStorey, L"Storey_%d_Floor",   GetBox().LeftExtRearExtLower(), GetBox().WidthExt(), GetBox().LowerThickness(), GetBox().DepthExt());
-	GetObject().AddWall(MAT_CEILING, iStorey, L"Storey_%d_Ceiling", GetBox().LeftExtRearExtUpper(), GetBox().WidthExt(), GetBox().UpperThickness(), GetBox().DepthExt());
-
-	if (GetBuilding()->bFastLoad) return;
-	
-	v = GetBox().LeftFrontUpper() + Vector(1, GetBox().Depth()/2+40, 0);
-	GetObject().AddWall(MAT_FLOOR_NUMBER_PLATE, iStorey, L"Storey_%d_Left_Nameplate", v, 2, 80, 40, Vector(0, F_PI_2));
-	v = GetBox().RightRearUpper() + Vector(-1, -GetBox().Depth()/2-40, 0);
-	GetObject().AddWall(MAT_FLOOR_NUMBER_PLATE, iStorey, L"Storey_%d_Right_Nameplate", v, -2, 80, 40, Vector(-F_PI, -F_PI_2));
-
-//	GetObject().AddWall(MAT_FRONT, iStorey+1, L"Storey_%d_Cube",   Vector(-160, 20, 25), 40, 40, 40);
-//	GetObject().AddWall(MAT_FRONT, iStorey+2, L"Storey_%d_ExtraWall",	GetBox().CentreRearLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().RearThickness(), Vector(-F_PI/2),
-//			GetBuilding()->GetShaftCount(1), GetBuilding()->GetShaftCount(1) ? &doordata[3 * GetBuilding()->GetShaftCount(0)] : NULL);
-
-	if (GetBox().FrontThickness() > 0)
-		GetObject().AddWall(MAT_REAR, iStorey, L"Storey_%d_RearWall",		GetBox().LeftExtFrontLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().FrontThickness(), Vector(0),
-			GetBuilding()->GetShaftCount(0), &doordata[0]);
-	if (GetBox().RearThickness() > 0)
-		GetObject().AddWall(MAT_FRONT, iStorey, L"Storey_%d_FrontWall",	GetBox().RightExtRearLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().RearThickness(), Vector(F_PI),
-				GetBuilding()->GetShaftCount(1), GetBuilding()->GetShaftCount(1) ? &doordata[3 * GetBuilding()->GetShaftCount(0)] : NULL);
-	if (GetBox().LeftThickness() > 0)
-		GetObject().AddWall(MAT_SIDE, iStorey, L"Storey_%d_LeftWall", GetBox().LeftExtFrontLower(), GetBox().Depth(), GetBox().Height(), GetBox().LeftThickness(), Vector(F_PI_2));
-	if (GetBox().RightThickness() > 0)
-		GetObject().AddWall(MAT_SIDE, iStorey, L"Storey_%d_RightWall", GetBox().RightExtRearLower(), GetBox().Depth(), GetBox().Height(), GetBox().RightThickness(), Vector(-F_PI_2));
-}
-
-void CBuilding::STOREY::Deconstruct()
-{
-	m_obj.Deconstruct();
-}
-
-void CBuilding::SHAFT::Construct(AVLONG iStorey, AVULONG iShaft)
-{
-	if (::GetKeyState(VK_CONTROL) < 0 && ::GetKeyState(VK_SHIFT) < 0 && !GetBuilding()->bFastLoad) { GetBuilding()->bFastLoad = true; MessageBeep(MB_OK); }
-
-	// imposed parameters
-	AVFLOAT gap = 1.0f;			// gap between lift doors
-	AVFLOAT opn = 2.5f;			// width of the opening around the door
-	AVFLOAT bulge = 2;			// bulge of the opening (above the wall)
-	AVFLOAT fDoorThickness = GetBoxDoor().Depth() * 0.2f;
-	AVFLOAT fOpeningThickness = GetBoxDoor().Depth() * 0.4f;
-
-	// create skeletal structure (object & bone)
-	if (m_pStoreyBones == NULL)
-	{
-		m_pStoreyBones = new FWSTRUCT[GetBuilding()->GetStoreyCount()];
-		for (AVULONG i = 0; i < GetBuilding()->GetStoreyCount(); i++)
-		{
-			m_pStoreyBones[i].m_obj = CBldObject(GetBuilding());
-			m_pStoreyBones[i].m_objLobbySide = CBldObject(GetBuilding());
-			m_pStoreyBones[i].m_objLeft = CBldObject(GetBuilding());
-			m_pStoreyBones[i].m_objRight = CBldObject(GetBuilding());
-		}
-	}
-	GetObject(iStorey).Create(__name(L"Storey_%d_Shaft_%d", iStorey, iShaft), Vector(0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel()));
-	GetObjectLobbySide(iStorey).Create(__name(L"Storey_%d_Shaft_%d_LobbySide", iStorey, iShaft), Vector(0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel()));
-	GetObjectLeft(iStorey).Create(__name(L"Storey_%d_Shaft_%d_LeftSide", iStorey, iShaft), Vector(0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel()));
-	GetObjectRight(iStorey).Create(__name(L"Storey_%d_Shaft_%d_RightSide", iStorey, iShaft), Vector(0, 0, GetBuilding()->GetStorey(iStorey)->GetLevel()));
-	
-	GetBox().SetHeight(GetBuilding()->GetStorey(iStorey)->GetBox().HeightExt());
-	ULONG nIndex = MAKELONG(iStorey, iShaft);
-
-	if (GetBuilding()->bFastLoad) return;
-
-	if (GetBoxBeam().Width() > 0)
-	{
-		GetObject(iStorey).AddWall(MAT_BEAM, nIndex, L"Storey_%d_Shaft_%d_Beam", GetBoxBeam().LeftFrontLower(), GetBoxBeam().Width(), -GetBoxBeam().Height(), -GetBoxBeam().Depth());
-		GetObject(iStorey).AddWall(MAT_SHAFT, nIndex, L"Storey_%d_Shaft_%d_BmRr", GetBoxBeam().LeftRearLower(), GetBoxBeam().Width(), GetBox().Height(), -GetBox().RearThickness());
-	}
-
-	if (GetBox().LeftThickness() > 0)
-		GetObjectLeft(iStorey).AddWall(MAT_SHAFT, nIndex, L"Storey_%d_Shaft_%d_Lt", GetLeftWallBox(), Vector(F_PI_2));
-	if (GetBox().RightThickness() > 0)
-		GetObjectRight(iStorey).AddWall(MAT_SHAFT, nIndex, L"Storey_%d_Shaft_%d_Rt", GetRightWallBox(), Vector(F_PI_2));
-	if (GetBox().RearThickness() != 0)
-		GetObject(iStorey).AddWall(MAT_SHAFT, nIndex, L"Storey_%d_Shaft_%d_Rr", GetBox().LeftExtRearLower(), GetBox().WidthExt(), GetBox().Height(), -GetBox().RearThickness());
-
-	// The Opening
-	AVFLOAT door[] = { opn, GetBoxDoor().Width(), GetBoxDoor().Height() };
-	GetObjectLobbySide(iStorey).AddWall(MAT_OPENING, nIndex, L"Storey_%d_Shaft_%d_Opening", 
-		GetBoxDoor().LeftRearLower() + Vector(-opn, 0, 0), 
-		GetBoxDoor().Width() + opn + opn, GetBoxDoor().Height() + opn, fOpeningThickness,
-		Vector(0), 1, door);
-
-	// Plates
-	if (GetShaftLine() == 0)
-		GetObjectLobbySide(iStorey).AddWall(MAT_LIFT_NUMBER_PLATE, MAKELONG(iShaft, iStorey), L"Shaft_%d_Storey_%d_Nameplate", 
-			GetBoxDoor().CentreFrontUpper() + Vector(-5, 0, 15), 10, 10, 0.5, Vector(F_PI, 0, F_PI));
-	else
-		GetObjectLobbySide(iStorey).AddWall(MAT_LIFT_NUMBER_PLATE, MAKELONG(iShaft, iStorey), L"Shaft_%d_Storey_%d_Nameplate", 
-			GetBoxDoor().CentreFrontUpper() + Vector(5, 0, 15), 10, 10, 0.5, Vector(0, 0, F_PI));
-
-	// Door
-	GetObjectLobbySide(iStorey).AddWall(MAT_DOOR, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Door_Left" , GetBoxDoor().LeftRearLower(), GetBoxDoor().Width()/2, GetBoxDoor().Height(), fDoorThickness, Vector(0), 0, NULL, &m_pStoreyBones[iStorey].pDoors[0]);
-	GetObjectLobbySide(iStorey).AddWall(MAT_DOOR, MAKELONG(iStorey, iShaft), L"Storey_%d_Shaft_%d_Door_Right", GetBoxDoor().RightRearUpper(), GetBoxDoor().Width()/2, GetBoxDoor().Height(), fDoorThickness, Vector(F_PI, F_PI), 0, NULL, &m_pStoreyBones[iStorey].pDoors[1]);
-}
-
-void CBuilding::SHAFT::Deconstruct()
-{
-	if (m_pStoreyBones == NULL) return;
-	for (AVULONG i = 0; i < GetBuilding()->GetStoreyCount(); i++)
-	{
-		m_pStoreyBones[i].m_obj.Deconstruct();
-		m_pStoreyBones[i].m_objLobbySide.Deconstruct();
-		m_pStoreyBones[i].m_objLeft.Deconstruct();
-		m_pStoreyBones[i].m_objRight.Deconstruct();
-		for (AVULONG j = 0; j < MAX_DOORS; j++)
-			if (m_pStoreyBones[i].pDoors[j]) m_pStoreyBones[i].pDoors[j]->Release();
-	}
-	delete [] m_pStoreyBones;
-	m_pStoreyBones = NULL;
-}
-
-void CBuilding::LIFT::Construct(AVULONG iShaft)
-{
-	if (::GetKeyState(VK_CONTROL) < 0 && ::GetKeyState(VK_SHIFT) < 0 && !GetBuilding()->bFastLoad) { GetBuilding()->bFastLoad = true; MessageBeep(MB_OK); }
-
-	// Create skeletal elements (entire lift)
-	m_obj.Create(__name(L"Lift_%d", iShaft), GetShaft()->GetLiftPos(0 /*+ iShaft % 4*/));
-
-	for (AVULONG iDeck = 0; iDeck < GetShaft()->GetDeckCount(); iDeck++)
-	{
-		// Create skeletal elements (the deck)
-		m_pDecks[iDeck] = m_obj.AddBone(__name(L"Deck_%d", iDeck), 0, 0, GetBuilding()->GetGroundStorey(iDeck)->GetLevel() - GetBuilding()->GetGroundStorey()->GetLevel()); 
-
-		AVULONG nIndex = MAKELONG(iShaft, iDeck);
-		BOX box = GetShaft()->GetBoxCar() - GetShaft()->GetLiftPos(0);
-		BOX boxDoor0 = GetShaft()->GetBoxCarDoor(0) - GetShaft()->GetLiftPos(0);
-		AVFLOAT door[] = { boxDoor0.Left() - box.LeftExt(), boxDoor0.Width(), boxDoor0.Height() };
-		AVFLOAT fDoorThickness0 = boxDoor0.Depth() * 0.4f;
-
-		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT_FLOOR, iShaft, L"Lift_%d_Deck_%d_Floor", box.LeftExtRearExtLowerExt(), box.WidthExt(), box.LowerThickness(), box.DepthExt());
-		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT_CEILING, iShaft, L"Lift_%d_Deck_%d_Ceiling", box.LeftExtRearExtUpper(), box.WidthExt(), box.LowerThickness(), box.DepthExt());
-		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT_DOOR, iShaft, L"Lift_%d_Deck_%d_Door1", boxDoor0.LeftFrontLower(), boxDoor0.Width()/2, boxDoor0.Height(), -fDoorThickness0, Vector(0), 0, NULL, &m_pDoors[0]);
-		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT_DOOR, iShaft, L"Lift_%d_Deck_%d_Door2", boxDoor0.RightFrontUpper(), boxDoor0.Width()/2, boxDoor0.Height(), -fDoorThickness0, Vector(F_PI, F_PI), 0, NULL, &m_pDoors[1]);
-		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_FrontWall", box.LeftExtFrontLower(), box.WidthExt(), box.Height(), box.FrontThickness(), Vector(0), 1, door);
-		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_RearWall", box.RightExtRearLower(), box.WidthExt(), box.Height(), box.RearThickness(), Vector(F_PI));
-		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_LeftWall", box.LeftRearLower(), box.Depth(), box.Height(), box.LeftThickness(), Vector(-F_PI_2));
-		m_obj.AddWall(m_pDecks[iDeck], MAT_LIFT, iShaft, L"Lift_%d_Deck_%d_RightWall", box.RightFrontLower(), box.Depth(), box.Height(), box.RightThickness(), Vector(F_PI_2));
-	}
-}
-
-void CBuilding::LIFT::Deconstruct()
-{
-	m_obj.Deconstruct();
-
-	for (AVULONG i = 0; i < DECK_NUM; i++)
-		if (m_pDecks[i]) m_pDecks[i]->Release();
-	memset(m_pDecks, 0, sizeof(m_pDecks));
-	for (AVULONG i = 0; i < MAX_DOORS; i++)
-		if (m_pDoors[i]) m_pDoors[i]->Release();
-	memset(m_pDoors, 0, sizeof(m_pDoors));
-}
-
-void CBuilding::Construct()
+void CBuilding::Construct(AVVECTOR vec)
 {
 	ASSERT(GetRenderer() && GetScene());
 	if (!GetRenderer() || !GetScene()) return;
@@ -673,32 +475,14 @@ void CBuilding::Construct()
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
 		SetMaterialLiftPlate(CBuilding::MAT_LIFT_NUMBER_PLATE, i, i);
 
-	for (AVULONG iLift = 0; iLift < GetLiftCount(); iLift++)
-		GetLift(iLift)->Construct(iLift);
-
-	for (AVULONG iStorey = 0; iStorey < GetStoreyCount(); iStorey++)
-	{
-		GetStorey(iStorey)->Construct(iStorey);
-		for (AVULONG iShaft = 0; iShaft < GetShaftCount(); iShaft++)
-			GetShaft(iShaft)->Construct(iStorey, iShaft);
-	}
-}
-
-void CBuilding::Deconstruct()
-{
-	for (AVULONG i = 0; i < GetStoreyCount(); i++)
-		GetStorey(i)->Deconstruct();
-	for (AVULONG i = 0; i < GetShaftCount(); i++)
-		GetShaft(i)->Deconstruct();
-	for (AVULONG i = 0; i < GetLiftCount(); i++)
-		GetLift(i)->Deconstruct();
+	CBuildingConstr::Construct(vec);
 }
 
 void CBuilding::StoreConfig()
 {
 	for (FWULONG i = 0; i < GetLiftCount(); i++)
 	{
-		GetLiftObject(i).PushState();
+		GetLiftElement(i)->PushState();
 		for (FWULONG k = 0; k < MAX_DOORS; k++)
 			if (GetLiftDoor(i, k))	GetLiftDoor(i, k)->PushState();
 	}
@@ -713,7 +497,7 @@ void CBuilding::RestoreConfig()
 {
 	for (FWULONG i = 0; i < GetLiftCount(); i++)
 	{
-		GetLiftObject(i).PopState();
+		GetLiftElement(i)->PopState();
 		for (FWULONG k = 0; k < MAX_DOORS; k++)
 			if (GetLiftDoor(i, k))	{ GetLiftDoor(i, k)->PopState(); GetLiftDoor(i, k)->Invalidate(); GetLiftDoor(i, k)->PushState(); }
 	}

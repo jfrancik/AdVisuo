@@ -43,7 +43,7 @@ struct CAMPARAMS
 	AVFLOAT fClipFar;		// clip far value
 
 	// Camera Eye-Reference object - Weak Reference (no need for Release)
-	IKineNode *EyeRef(CBuilding *pBuilding)		{ return camloc == CAMLOC_LIFT ? pBuilding->GetLiftBone(nId) : pBuilding->GetStoreyBone(nId); }
+	IKineNode *EyeRef(CBuilding *pBuilding)		{ return camloc == CAMLOC_LIFT ? pBuilding->GetLiftBone(nId)->GetNode() : pBuilding->GetStoreyBone(nId)->GetNode(); }
 	AVFLOAT FOV()								{ return max(fHFOV, fVFOV) + fZoom; }
 };
 

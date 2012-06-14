@@ -39,7 +39,7 @@ public:
 
 	// Attributes and Basic Operations
 	CProject *GetProject()					{ return &m_prj; }
-	CBuilding *_GetBuilding()				{ return GetProject()->GetBuilding(); }
+	CBuilding *GetBuilding()				{ return GetProject()->GetBuilding(); }
 	CSim *GetSim()							{ return GetProject()->GetSim(); }
 	CBuilding *_GetBuilding(int i)			{ return GetProject()->GetBuilding(i); }
 	CSim *GetSim(int i)						{ return GetProject()->GetSim(i); }

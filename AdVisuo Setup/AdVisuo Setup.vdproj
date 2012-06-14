@@ -75,12 +75,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_503EF02DCCB341F4BD914C6C588D5B2B"
-        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_559E77703EED4355990698E31314DBF9"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -117,12 +111,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_729D341EEFF744C790C79FB7807BDB71"
-        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_817A8C686174413D9A81E17677B62E9F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -154,6 +142,12 @@
         "Entry"
         {
         "MsmKey" = "8:_8DC8B3FD6D44434BBA6C34C01A1CFC37"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_910F682A1F4B4955B884A415E26BBD3D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -231,6 +225,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_F365F2622C7546A49BC9D9CDF74C1536"
+        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_F40F2FB595EB4BCC80D0BB70E74C7478"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -239,6 +239,12 @@
         {
         "MsmKey" = "8:_F531D83890344F90912FFCBAA3BF4DB8"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F9F2F76F08E34271A03BF2BC5C374019"
+        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -764,6 +770,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_910F682A1F4B4955B884A415E26BBD3D"
+            {
+            "SourcePath" = "8:..\\models\\marble.jpg"
+            "TargetName" = "8:marble.jpg"
+            "Tag" = "8:"
+            "Folder" = "8:_EAB161D04EB647CD83B1EE262DC13A47"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_94E5EA54D357443B9426217CEF0E107A"
             {
             "SourcePath" = "8:..\\models\\lobby.3D"
@@ -1199,7 +1225,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:AdVisuo"
         "ProductCode" = "8:{B176910A-E097-41CA-9615-6BA7DFAE979F}"
-        "PackageCode" = "8:{F11C2717-3875-4EED-82B4-96C9672073D3}"
+        "PackageCode" = "8:{09E5C660-4F3F-40D5-BD31-4611DD964F89}"
         "UpgradeCode" = "8:{C0274823-104C-4BC9-8FD3-3E2E42F3BC44}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1951,7 +1977,7 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_503EF02DCCB341F4BD914C6C588D5B2B"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_F365F2622C7546A49BC9D9CDF74C1536"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
@@ -1965,7 +1991,7 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_729D341EEFF744C790C79FB7807BDB71"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_F9F2F76F08E34271A03BF2BC5C374019"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
@@ -1984,7 +2010,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_10B54625FC6B4DDC873D65E342D8248E"
             {
-            "SourcePath" = "8:..\\Release\\AdVisuo.exe"
+            "SourcePath" = "8:..\\Debug\\AdVisuo.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_B8128D4453284849ACE4122C291505AF"

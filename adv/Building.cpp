@@ -57,7 +57,7 @@ HRESULT CBuilding::Store(CDataBase db)
 HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId, ULONG iGroup)
 {
 	if (!db) throw db;
-	CDataBase::SELECT sel;
+	CDataBase::SELECT sel, sel1;
 
 	sel = db.select(L"SELECT * FROM FloorDataSets WHERE SimulationId=%d", nSimulationId);
 	if (!sel) throw ERROR_BUILDING;
@@ -92,7 +92,20 @@ HRESULT CBuilding::LoadFromConsole(CDataBase db, ULONG nSimulationId, ULONG iGro
 	// Query for Shaft Data
 	sel = db.select(L"SELECT * FROM Lifts l, Doors d WHERE LiftGroupId=%d  AND d.LiftId = l.LiftId AND d.DoorConfigurationId=1 ORDER BY LiftNumber", nLiftGroupId);
 	for (AVULONG i = 0; i < GetShaftCount() && sel; i++, sel++)
+	{
 		sel >> *GetShaft(i);
+
+		// Queries for Stories Served
+		std::wstring ss = L"";
+		sel1 = db.select(L"SELECT sf.IsServed AS IsServed, f.GroundIndex FROM ServedFloors sf, Floors f WHERE sf.FloorId = f.FloorId and sf.LiftId = %d ORDER BY f.GroundIndex ", (AVULONG)sel[L"LiftId"]); 
+		while (sel1)
+		{
+			ss += sel1[L"IsServed"];
+			sel1++;
+		}
+
+		(*GetShaft(i))[L"StoreysServed"] = ss;
+	}
 
 	// Query for Storey Data
 	sel = db.select(L"SELECT * FROM Floors WHERE SimulationId=%d ORDER BY GroundIndex", nSimulationId);
