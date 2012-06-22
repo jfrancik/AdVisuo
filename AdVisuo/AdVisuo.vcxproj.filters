@@ -33,16 +33,10 @@
     <ClCompile Include="Block.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Building.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ChildFrm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Dialogs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Lift.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MainFrm.cpp">
@@ -51,16 +45,7 @@
     <ClCompile Include="OutputWnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Passenger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Sim.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="xml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\CommonFiles\BaseData.cpp">
@@ -93,10 +78,25 @@
     <ClCompile Include="Script.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Project.cpp">
+    <ClCompile Include="VisPassenger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConstrBuilding.cpp">
+    <ClCompile Include="VisLift.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VisBuilding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VisProject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VisSim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\ConstrBuilding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\ConstrProject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -122,16 +122,10 @@
     <ClInclude Include="..\CommonFiles\Box.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Building.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ChildFrm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Dialogs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Lift.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MainFrm.h">
@@ -140,13 +134,7 @@
     <ClInclude Include="OutputWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Passenger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Sim.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
@@ -185,10 +173,25 @@
     <ClInclude Include="Script.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Project.h">
+    <ClInclude Include="VisSim.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ConstrBuilding.h">
+    <ClInclude Include="VisProject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VisLift.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VisPassenger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VisBuilding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\ConstrBuilding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\ConstrProject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

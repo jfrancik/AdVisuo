@@ -2,10 +2,10 @@
 // interface of the CAdVisuoDoc class
 //
 
-#include "Building.h"
-#include "Project.h"
-#include "Sim.h"
-#include "Lift.h"
+#include "VisBuilding.h"
+#include "VisProject.h"
+#include "VisSim.h"
+#include "VisLift.h"
 #include "xmlrequest.h"
 
 interface IAction;
@@ -17,9 +17,9 @@ class CAdVisuoDoc : public CDocument
 {
 // Attributes
 
-	CProject m_prj;			// The Project
-//	CSim m_sim;				// The Simulation Engine
-//	CBuilding m_building;	// The Building
+	CProjectVis m_prj;		// The Project
+//	CSimVis m_sim;			// The Simulation Engine
+//	CBuildingVis m_building;// The Building
 	HRESULT m_h;			// The result of m_sim.Load
 
 	CXMLRequest m_http;		// XML HTTP Request object
@@ -38,21 +38,17 @@ public:
 	CString GetDiagnosticMessage();
 
 	// Attributes and Basic Operations
-	CProject *GetProject()					{ return &m_prj; }
-	CBuilding *GetBuilding()				{ return GetProject()->GetBuilding(); }
-	CSim *GetSim()							{ return GetProject()->GetSim(); }
-	CBuilding *_GetBuilding(int i)			{ return GetProject()->GetBuilding(i); }
-	CSim *GetSim(int i)						{ return GetProject()->GetSim(i); }
+	CProjectVis *GetProject()				{ return &m_prj; }
 
 	bool IsSimReady()						{ return m_h == S_OK; }
 	bool IsSIMDataReady()					{ return m_http.ready(); }
-	bool IsDownloadComplete()				{ return m_timeLoaded >= GetSim()->GetTimeSaved(); }
+	bool IsDownloadComplete()				{ return m_timeLoaded >= GetProject()->GetSim()->GetTimeSaved(); }
 
 	AVULONG GetLoadedTime()					{ return m_timeLoaded; }
-	AVULONG GetSimulationTime()				{ return GetSim()->GetSimulationTime(); }
-	AVLONG GetTimeLowerBound()				{ return GetSim()->GetTimeLowerBound(); }
+	AVULONG GetSimulationTime()				{ return GetProject()->GetSim()->GetSimulationTime(); }
+	AVLONG GetTimeLowerBound()				{ return GetProject()->GetSim()->GetTimeLowerBound(); }
 
-	void ResetTitle()						{ SetTitle(m_prj.GetProjectInfo(CProject::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
+	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
 
 	// Open/New/Download Operations
 	virtual BOOL OnNewDocument();

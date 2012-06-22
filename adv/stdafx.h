@@ -52,8 +52,8 @@ struct AVVECTOR
 	AVFLOAT z;
 };
 
-// Max Number of Lift Decks
-#define DECK_NUM	2
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 //#include <stdio.h>
 //#include <stdarg.h>

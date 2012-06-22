@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "Camera.h"
-#include "Building.h"
+#include "VisBuilding.h"
 
 #include <freewill.h>
 #include <fwaction.h>
@@ -16,7 +16,7 @@
  
 #define NOBONE ((IKineNode*)NULL)
 
-CCamera::CCamera(CBuilding *pBuilding, AVULONG nId)
+CCamera::CCamera(CBuildingVis *pBuilding, AVULONG nId)
 {
 	m_pBaseBone = NULL;
 	m_pHandleBone = NULL;
@@ -39,7 +39,7 @@ CCamera::~CCamera()
 	Destroy();
 }
 
-void CCamera::SetBuilding(CBuilding *pBuilding)
+void CCamera::SetBuilding(CBuildingVis *pBuilding)
 {
 	m_pBuilding = pBuilding;
 	if (!m_pBuilding) return;
@@ -47,8 +47,8 @@ void CCamera::SetBuilding(CBuilding *pBuilding)
 	m_box = m_pBuilding->GetBox();
 
 	AVFLOAT nLWall = 0, nRWall = 0;
-	if (m_pBuilding->GetLobbyArrangement() == CBuilding::LOBBY_DEADEND_LEFT)  nLWall = m_pBuilding->GetBox().LeftThickness();
-	if (m_pBuilding->GetLobbyArrangement() == CBuilding::LOBBY_DEADEND_RIGHT) nRWall = m_pBuilding->GetBox().RightThickness();
+	if (m_pBuilding->GetLobbyArrangement() == CBuildingVis::LOBBY_DEADEND_LEFT)  nLWall = m_pBuilding->GetBox().LeftThickness();
+	if (m_pBuilding->GetLobbyArrangement() == CBuildingVis::LOBBY_DEADEND_RIGHT) nRWall = m_pBuilding->GetBox().RightThickness();
 
 	m_box = BOX(
 		m_pBuilding->GetBox().Left() + 2 + nLWall,

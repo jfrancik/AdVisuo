@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "Material.h"
-#include "Building.h"
+#include "VisBuilding.h"
 
 #include <freewill.h>
 #include <fwaction.h>
@@ -40,7 +40,7 @@ LPCOLESTR MATERIAL::GetLabel()
 	return labels[m_index]; 
 }
  
-void MATERIAL::SetupBackground(CBuilding *pBuilding)
+void MATERIAL::SetupBackground(CBuildingVis *pBuilding)
 {
 	if (!m_bSolid) return;
 	FWCOLOR color;
@@ -52,7 +52,7 @@ void MATERIAL::SetupBackground(CBuilding *pBuilding)
 	pBuilding->GetRenderer()->PutBackColor(color);
 }
 
-void MATERIAL::Setup(CBuilding *pBuilding, AVULONG nItem, AVULONG i)
+void MATERIAL::Setup(CBuildingVis *pBuilding, AVULONG nItem, AVULONG i)
 {
 	if (m_bSolid)
 	{
@@ -76,7 +76,7 @@ void MATERIAL::Setup(CBuilding *pBuilding, AVULONG nItem, AVULONG i)
 		pBuilding->SetMaterial(nItem, i, (AVSTRING)m_fname.c_str(), m_fUTile, m_fVTile, m_alpha);
 }
 
-void MATERIAL::Setup(CBuilding *pBuilding)
+void MATERIAL::Setup(CBuildingVis *pBuilding)
 {
 	switch (m_index)
 	{
@@ -84,79 +84,79 @@ void MATERIAL::Setup(CBuilding *pBuilding)
 		SetupBackground(pBuilding);
 		break;
 	case MAT_LOBBY_0:		// Lobby walls 0
-		Setup(pBuilding, CBuilding::MAT_FRONT, 0);
-		Setup(pBuilding, CBuilding::MAT_REAR, 0);
-		Setup(pBuilding, CBuilding::MAT_SIDE, 0);
+		Setup(pBuilding, CBuildingVis::WALL_FRONT, 0);
+		Setup(pBuilding, CBuildingVis::WALL_REAR, 0);
+		Setup(pBuilding, CBuildingVis::WALL_SIDE, 0);
 		break;
 	case MAT_LOBBY_1:		// Lobby walls 1
-		Setup(pBuilding, CBuilding::MAT_FRONT, 1);
-		Setup(pBuilding, CBuilding::MAT_REAR, 1);
-		Setup(pBuilding, CBuilding::MAT_SIDE, 1);
+		Setup(pBuilding, CBuildingVis::WALL_FRONT, 1);
+		Setup(pBuilding, CBuildingVis::WALL_REAR, 1);
+		Setup(pBuilding, CBuildingVis::WALL_SIDE, 1);
 		break;
 	case MAT_LOBBY_2:		// Lobby walls 2
-		Setup(pBuilding, CBuilding::MAT_FRONT, 2);
-		Setup(pBuilding, CBuilding::MAT_REAR, 2);
-		Setup(pBuilding, CBuilding::MAT_SIDE, 2);
+		Setup(pBuilding, CBuildingVis::WALL_FRONT, 2);
+		Setup(pBuilding, CBuildingVis::WALL_REAR, 2);
+		Setup(pBuilding, CBuildingVis::WALL_SIDE, 2);
 		break;
 	case MAT_LOBBY_3:		// Lobby walls 3
-		Setup(pBuilding, CBuilding::MAT_FRONT, 3);
-		Setup(pBuilding, CBuilding::MAT_REAR, 3);
-		Setup(pBuilding, CBuilding::MAT_SIDE, 3);
+		Setup(pBuilding, CBuildingVis::WALL_FRONT, 3);
+		Setup(pBuilding, CBuildingVis::WALL_REAR, 3);
+		Setup(pBuilding, CBuildingVis::WALL_SIDE, 3);
 		break;
 	case MAT_LOBBY_4:		// Lobby walls 4
-		Setup(pBuilding, CBuilding::MAT_FRONT, 4);
-		Setup(pBuilding, CBuilding::MAT_REAR, 4);
-		Setup(pBuilding, CBuilding::MAT_SIDE, 4);
+		Setup(pBuilding, CBuildingVis::WALL_FRONT, 4);
+		Setup(pBuilding, CBuildingVis::WALL_REAR, 4);
+		Setup(pBuilding, CBuildingVis::WALL_SIDE, 4);
 		break;
 	case MAT_LOBBY_5:		// Lobby walls 5
-		Setup(pBuilding, CBuilding::MAT_FRONT, 5);
-		Setup(pBuilding, CBuilding::MAT_REAR, 5);
-		Setup(pBuilding, CBuilding::MAT_SIDE, 5);
+		Setup(pBuilding, CBuildingVis::WALL_FRONT, 5);
+		Setup(pBuilding, CBuildingVis::WALL_REAR, 5);
+		Setup(pBuilding, CBuildingVis::WALL_SIDE, 5);
 		break;
 	case MAT_LOBBY_6:		// Lobby walls 6
-		Setup(pBuilding, CBuilding::MAT_FRONT, 6);
-		Setup(pBuilding, CBuilding::MAT_REAR, 6);
-		Setup(pBuilding, CBuilding::MAT_SIDE, 6);
+		Setup(pBuilding, CBuildingVis::WALL_FRONT, 6);
+		Setup(pBuilding, CBuildingVis::WALL_REAR, 6);
+		Setup(pBuilding, CBuildingVis::WALL_SIDE, 6);
 		break;
 	case MAT_LOBBY_7:		// Lobby walls 7
-		Setup(pBuilding, CBuilding::MAT_FRONT, 7);
-		Setup(pBuilding, CBuilding::MAT_REAR, 7);
-		Setup(pBuilding, CBuilding::MAT_SIDE, 7);
+		Setup(pBuilding, CBuildingVis::WALL_FRONT, 7);
+		Setup(pBuilding, CBuildingVis::WALL_REAR, 7);
+		Setup(pBuilding, CBuildingVis::WALL_SIDE, 7);
 		break;
 	case MAT_FLOOR:			// Lobby floors
-		Setup(pBuilding, CBuilding::MAT_FLOOR);
+		Setup(pBuilding, CBuildingVis::WALL_FLOOR);
 		break;
 	case MAT_CEILING:		// Lobby ceilings
-		Setup(pBuilding, CBuilding::MAT_CEILING);
+		Setup(pBuilding, CBuildingVis::WALL_CEILING);
 		break;
 	case MAT_DOOR:			// Shaft doors
-		Setup(pBuilding, CBuilding::MAT_DOOR);
+		Setup(pBuilding, CBuildingVis::WALL_DOOR);
 		break;
 	case MAT_LIFT_DOOR:		// Lift doors
-		Setup(pBuilding, CBuilding::MAT_LIFT_DOOR);
+		Setup(pBuilding, CBuildingVis::WALL_LIFT_DOOR);
 		break;
 	case MAT_OPENING:		// Openings
-		Setup(pBuilding, CBuilding::MAT_OPENING);
+		Setup(pBuilding, CBuildingVis::WALL_OPENING);
 		break;
 	case MAT_LIFT:			// Lift walls
-		Setup(pBuilding, CBuilding::MAT_LIFT);
+		Setup(pBuilding, CBuildingVis::WALL_LIFT);
 		break;
 	case MAT_LIFT_FLOOR:	// Lift floors
-		Setup(pBuilding, CBuilding::MAT_LIFT_FLOOR);
+		Setup(pBuilding, CBuildingVis::WALL_LIFT_FLOOR);
 		break;
 	case MAT_LIFT_CEILING:	// Lift ceiling
-		Setup(pBuilding, CBuilding::MAT_LIFT_CEILING);
+		Setup(pBuilding, CBuildingVis::WALL_LIFT_CEILING);
 		break;
 	case MAT_SHAFT:			// Shaft Walls
-		Setup(pBuilding, CBuilding::MAT_SHAFT);
+		Setup(pBuilding, CBuildingVis::WALL_SHAFT);
 		break;
 	case MAT_BEAM:			// Shaft Walls
-		Setup(pBuilding, CBuilding::MAT_BEAM);
+		Setup(pBuilding, CBuildingVis::WALL_BEAM);
 		break;
 	}
 }
 
-CMaterialManager::CMaterialManager(CBuilding *pBuilding) : m_pBuilding(pBuilding)
+CMaterialManager::CMaterialManager(CBuildingVis *pBuilding) : m_pBuilding(pBuilding)
 {
 	for (int i = 0; i < MAT_NUM; i++)
 		m_materials[i].m_index = i;

@@ -93,11 +93,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\CommonFiles\BaseData.cpp" />
+    <ClCompile Include="..\CommonFiles\ConstrBuilding.cpp" />
+    <ClCompile Include="..\CommonFiles\ConstrProject.cpp" />
     <ClCompile Include="..\CommonFiles\DBTools.cpp" />
     <ClCompile Include="adv.cpp" />
     <ClCompile Include="..\CommonFiles\BaseBuilding.cpp" />
     <ClCompile Include="..\CommonFiles\BaseClasses.cpp" />
-    <ClCompile Include="Building.cpp" />
+    <ClCompile Include="SrvBuilding.cpp" />
     <ClCompile Include="dllmain.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
@@ -106,7 +108,7 @@
       </PrecompiledHeader>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
     </ClCompile>
-    <ClCompile Include="ifc.cpp" />
+    <ClCompile Include="IfcBuilding.cpp" />
     <ClCompile Include="ifcscanner.cpp" />
     <ClCompile Include="ifc\baseIfc.cpp" />
     <ClCompile Include="ifc\baseIfcObject.cpp" />
@@ -114,25 +116,28 @@
     <ClCompile Include="ifc\BRepIfc.cpp" />
     <ClCompile Include="ifc\extrudedPolygonIfc.cpp" />
     <ClCompile Include="ifc\propertiesIfc.cpp" />
-    <ClCompile Include="Lift.cpp" />
+    <ClCompile Include="SrvLift.cpp" />
     <ClCompile Include="log.cpp" />
-    <ClCompile Include="Passenger.cpp" />
-    <ClCompile Include="Project.cpp" />
-    <ClCompile Include="Sim.cpp" />
-    <ClCompile Include="SimLoader.cpp" />
+    <ClCompile Include="SrvPassenger.cpp" />
+    <ClCompile Include="SrvProject.cpp" />
+    <ClCompile Include="SrvSim.cpp" />
+    <ClCompile Include="SrvSimLoader.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\CommonFiles\ConstrBuilding.h" />
+    <ClInclude Include="..\CommonFiles\ConstrProject.h" />
     <ClInclude Include="..\CommonFiles\DBTools.h" />
     <ClInclude Include="adv.h" />
     <ClInclude Include="..\CommonFiles\BaseBuilding.h" />
     <ClInclude Include="..\CommonFiles\BaseClasses.h" />
     <ClInclude Include="..\CommonFiles\BaseData.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
-    <ClInclude Include="Building.h" />
+    <ClInclude Include="IfcBuilding.h" />
+    <ClInclude Include="SrvBuilding.h" />
     <ClInclude Include="ifcscanner.h" />
     <ClInclude Include="ifc\baseIfc.h" />
     <ClInclude Include="ifc\baseIfcObject.h" />
@@ -141,13 +146,13 @@
     <ClInclude Include="ifc\extrudedPolygonIfc.h" />
     <ClInclude Include="ifc\IFCEngine.h" />
     <ClInclude Include="ifc\propertiesIfc.h" />
-    <ClInclude Include="Lift.h" />
+    <ClInclude Include="SrvLift.h" />
     <ClInclude Include="log.h" />
-    <ClInclude Include="Passenger.h" />
-    <ClInclude Include="Project.h" />
+    <ClInclude Include="SrvPassenger.h" />
+    <ClInclude Include="SrvProject.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Sim.h" />
-    <ClInclude Include="SimLoader.h" />
+    <ClInclude Include="SrvSim.h" />
+    <ClInclude Include="SrvSimLoader.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="..\CommonFiles\Vector.h" />

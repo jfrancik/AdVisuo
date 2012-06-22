@@ -3,19 +3,25 @@
 #include "StdAfx.h"
 #include "BaseClasses.h"
 
-#include <sstream>
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CProjectBase
+// CProject
 
-CProjectBase::CProjectBase()
+CProject::CProject()
 {
 	m_nId = 0;
 	m_nSimulationId = 0;
 	m_nAVVersionId = 0;
+	m_nLiftGroupsCount = 0;
+	m_nDefault = -1;
 }
 
-void CProjectBase::ResolveMe()
+CProject::~CProject()
+{
+	for each (CSim *pSim in m_sims)
+		delete pSim;
+}
+
+void CProject::ResolveMe()
 {
 	m_nId = ME[L"ID"];
 	m_nSimulationId = ME[L"SimulationId"];
@@ -23,7 +29,14 @@ void CProjectBase::ResolveMe()
 	m_nLiftGroupsCount = ME[L"LiftGroupsCount"];
 }
 
-std::wstring CProjectBase::GetProjectInfo(PRJ_INFO what)
+void CProject::ResolveLiftGroups()
+{
+	for (AVULONG i = 0; i < GetLiftGroupsCount(); i++)
+		m_sims.push_back(CreateSim(CreateBuilding()));
+	m_nDefault = 0;
+}
+
+std::wstring CProject::GetProjectInfo(PRJ_INFO what)
 {
 	switch (what)
 	{
@@ -45,9 +58,9 @@ std::wstring CProjectBase::GetProjectInfo(PRJ_INFO what)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CSimBase
+// CSim
 
-CSimBase::CSimBase(CBuildingBase *pBuilding)
+CSim::CSim(CBuilding *pBuilding)
 {
 	m_pBuilding = pBuilding;
 	m_nProjectId = 0;
@@ -55,22 +68,24 @@ CSimBase::CSimBase(CBuildingBase *pBuilding)
 	m_nIndex = 0;
 	m_nSimulationTime = 0;
 	m_nTimeSaved = 0;
+	m_vecOffset = Vector(0);
 }
 
-CSimBase::~CSimBase()
+CSim::~CSim()
 {
+//	if (m_pBuilding) delete m_pBuilding;
 	DeleteLifts();
 	DeletePassengers();
 }
 
-void CSimBase::DeleteLifts()
+void CSim::DeleteLifts()
 {
 	for (AVULONG i = 0; i < GetLiftCount(); i++)
 		if (GetLift(i)) delete GetLift(i);
 	m_lifts.clear();
 }
 
-AVULONG CSimBase::GetJourneyTotalCount()
+AVULONG CSim::GetJourneyTotalCount()
 {
 	AVULONG n = 0;
 	for (AVULONG i = 0; i < GetLiftCount(); i++)
@@ -78,14 +93,14 @@ AVULONG CSimBase::GetJourneyTotalCount()
 	return n;
 }
 
-void CSimBase::DeletePassengers()
+void CSim::DeletePassengers()
 {
 	for (AVULONG i = 0; i < GetPassengerCount(); i++)
 		if (GetPassenger(i)) delete GetPassenger(i);
 	m_passengers.clear();
 }
 
-void CSimBase::ResolveMe()
+void CSim::ResolveMe()
 {
 	m_nId = ME[L"ID"];
 	SetIndex(ME[L"LiftGroupIndex"]);
@@ -97,20 +112,20 @@ void CSimBase::ResolveMe()
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CLiftBase
+// CLift
 
-CLiftBase::CLiftBase(CSimBase *pSim, AVULONG nLiftId, AVULONG nDecks) : m_pSim(pSim), m_nId(nLiftId), m_nDecks(nDecks)
+CLift::CLift(CSim *pSim, AVULONG nLiftId, AVULONG nDecks) : m_pSim(pSim), m_nId(nLiftId), m_nDecks(nDecks)
 {
 }
 
-CLiftBase::~CLiftBase()
+CLift::~CLift()
 {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CPassengerBase
+// CPassenger
 
-CPassengerBase::CPassengerBase(CSimBase *pSim, AVULONG nPassengerId) : m_pSim(pSim), m_nId(nPassengerId)
+CPassenger::CPassenger(CSim *pSim, AVULONG nPassengerId) : m_pSim(pSim), m_nId(nPassengerId)
 {
 	m_nShaft = 0;
 	m_nLift = 0;
@@ -127,13 +142,13 @@ CPassengerBase::CPassengerBase(CSimBase *pSim, AVULONG nPassengerId) : m_pSim(pS
 	m_nWaypoints = 0;
 }
 
-CPassengerBase::~CPassengerBase()
+CPassenger::~CPassenger()
 {
 	if (m_nWaypoints) 
 		delete [] m_pWaypoints;
 }
 
-void CPassengerBase::CreateWaypoints(AVULONG nCount)
+void CPassenger::CreateWaypoints(AVULONG nCount)
 {
 	if (m_pWaypoints) delete [] m_pWaypoints;
 	m_nWaypoints = nCount;
@@ -141,7 +156,7 @@ void CPassengerBase::CreateWaypoints(AVULONG nCount)
 	if (m_nWaypoints) m_pWaypoints = new WAYPOINT[m_nWaypoints];
 }
 
-void CPassengerBase::ResolveMe()
+void CPassenger::ResolveMe()
 {
 	SetId(ME[L"PassengerId"]);
 	SetShaftId(ME[L"ShaftId"]);
@@ -159,7 +174,7 @@ void CPassengerBase::ResolveMe()
 	ParseWayPoints(ME[L"WP"]);
 }
 
-std::wstring CPassengerBase::StringifyWayPoints()
+std::wstring CPassenger::StringifyWayPoints()
 {
 	std::wstringstream s;
 	s << GetWaypointCount() << " ";
@@ -168,7 +183,7 @@ std::wstring CPassengerBase::StringifyWayPoints()
 	return s.str();
 }
 
-void CPassengerBase::ParseWayPoints(std::wstring wp)
+void CPassenger::ParseWayPoints(std::wstring wp)
 {
 	std::wstringstream s(wp);
 	AVULONG nCount;

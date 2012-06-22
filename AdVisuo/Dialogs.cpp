@@ -4,7 +4,7 @@
 #include "AdVisuo.h"
 #include "Dialogs.h"
 
-#include "Project.h"
+#include "VisProject.h"
 #include "XMLRequest.h"
 #include "screen.h"
 #include <iostream>
@@ -573,7 +573,7 @@ CDlgDownload::CDlgDownload(CWnd* pParent /*=NULL*/)
 
 CDlgDownload::~CDlgDownload()
 {
-	for each (CProject *pPrj in m_prjs)
+	for each (CProjectVis *pPrj in m_prjs)
 		delete pPrj;
 	m_prjs.clear();
 }
@@ -597,6 +597,7 @@ BEGIN_MESSAGE_MAP(CDlgDownload, CDialog)
 	ON_NOTIFY(NM_DBLCLK, IDC_LIST1, &CDlgDownload::OnDblclkList)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST1, &CDlgDownload::OnItemchangedList)
 	ON_NOTIFY(LVN_GETINFOTIP, IDC_LIST1, &CDlgDownload::OnGetinfotipList)
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 
@@ -607,12 +608,12 @@ END_MESSAGE_MAP()
 	static int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 	{
 		int nRes;
-		CProject *pPrj1 = (CProject*)lParam1, *pPrj2 = (CProject*)lParam2;
+		CProjectVis *pPrj1 = (CProjectVis*)lParam1, *pPrj2 = (CProjectVis*)lParam2;
 		switch (lParamSort % 100)
 		{
 			case 0: nRes = pPrj1->GetSimulationId() < pPrj2->GetSimulationId() ? -1 : (pPrj1->GetSimulationId() > pPrj2->GetSimulationId() ? 1 : 0); break;
-			case 1: nRes = wcscmp(pPrj1->GetProjectInfo(CProject::PRJ_PROJECT_NAME).c_str(), pPrj2->GetProjectInfo(CProject::PRJ_PROJECT_NAME).c_str()); break;
-			case 2: nRes = wcscmp(pPrj1->GetProjectInfo(CProject::PRJ_BUILDING_NAME).c_str(), pPrj2->GetProjectInfo(CProject::PRJ_BUILDING_NAME).c_str()); break;
+			case 1: nRes = wcscmp(pPrj1->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str(), pPrj2->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); break;
+			case 2: nRes = wcscmp(pPrj1->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME).c_str(), pPrj2->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME).c_str()); break;
 		}
 		return lParamSort < 100 ? nRes : -nRes;
 	}
@@ -668,7 +669,7 @@ void CDlgDownload::OnBnClickedRefresh()
 	CWaitCursor wait;
 	m_list.DeleteAllItems();
 
-	for each (CProject *pPrj in m_prjs)
+	for each (CProjectVis *pPrj in m_prjs)
 		delete pPrj;
 	m_prjs.clear();
 
@@ -694,22 +695,26 @@ void CDlgDownload::OnBnClickedRefresh()
 			http.throw_exceptions();
 
 		std::wstring response = http.response();
-		CProject::LoadIndexFromBuf(http.response().c_str(), m_prjs);
+		CProjectVis::LoadIndexFromBuf(http.response().c_str(), m_prjs);
 		
 		m_list.DeleteAllItems();
 		for (unsigned i = 0; i < m_prjs.size(); i++)
 		{
-			CProject *pPrj = m_prjs[i];
+			CProjectVis *pPrj = m_prjs[i];
 			LV_ITEM lvItem;
 			lvItem.mask = LVIF_TEXT;
-			wchar_t buf[80]; _snwprintf_s(buf, 80, L"%d", pPrj->GetSimulationId());
+			wchar_t buf[1025];
+			lvItem.cchTextMax = 1024;
+			_snwprintf_s(buf, 80, L"%d", pPrj->GetSimulationId());
 			lvItem.iItem = m_list.InsertItem(0, buf);
 			m_list.SetItemData(lvItem.iItem, (DWORD_PTR)pPrj);
 			lvItem.iSubItem = 1;
-			lvItem.pszText = _wcsdup((LPWSTR)pPrj->GetProjectInfo(CProject::PRJ_PROJECT_NAME).c_str());
+			_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
+			lvItem.pszText = buf;
 			m_list.SetItem(&lvItem);
 			lvItem.iSubItem = 2;
-			lvItem.pszText = _wcsdup((LPWSTR)pPrj->GetProjectInfo(CProject::PRJ_BUILDING_NAME).c_str());
+			_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME).c_str());
+			lvItem.pszText = buf;
 			m_list.SetItem(&lvItem);
 		}
 		m_list.SortItems(CompareFunc, m_bAscending[m_nSort] ? m_nSort : 100 + m_nSort);
@@ -774,20 +779,20 @@ void CDlgDownload::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 	
 	UpdateData();
-	CProject *pPrj = (CProject*)m_list.GetItemData(pNMLV->iItem);
+	CProjectVis *pPrj = (CProjectVis*)m_list.GetItemData(pNMLV->iItem);
 	m_details.Format(
 		L"Project: %s\n\r"
 		L"Building: %s (%d lift groups)\n\r"
 		L"Client: %s%s%s%s%s"
 		, 
-		_hlpStr(pPrj->GetProjectInfo(CProject::PRJ_PROJECT_NAME), L"<untitled project>"),
-		_hlpStr(pPrj->GetProjectInfo(CProject::PRJ_BUILDING_NAME), L"main building"), pPrj->GetLiftGroupsCount(),
-		_hlpStr(pPrj->GetProjectInfo(CProject::PRJ_COMPANY), L"<unknown>"), _hlpStr(pPrj->GetProjectInfo(CProject::PRJ_CITY)), _hlpStr(pPrj->GetProjectInfo(CProject::PRJ_POST_CODE)), _hlpStr(pPrj->GetProjectInfo(CProject::PRJ_COUNTY)), _hlpStr(pPrj->GetProjectInfo(CProject::PRJ_COUNTRY))
+		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME), L"<untitled project>"),
+		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME), L"main building"), pPrj->GetLiftGroupsCount(),
+		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COMPANY), L"<unknown>"), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_CITY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_POST_CODE)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTRY))
 		);
 
 	CString str;
-	if (!pPrj->GetProjectInfo(CProject::PRJ_DESIGNER).empty())	 { str.Format(L"\n\rDesigned by: %s", pPrj->GetProjectInfo(CProject::PRJ_DESIGNER).c_str()); m_details += str; }
-	if (!pPrj->GetProjectInfo(CProject::PRJ_CHECKED_BY).empty()) { str.Format(L"\n\rChecked by: %s", pPrj->GetProjectInfo(CProject::PRJ_CHECKED_BY).c_str()); m_details += str; }
+	if (!pPrj->GetProjectInfo(CProjectVis::PRJ_DESIGNER).empty())	 { str.Format(L"\n\rDesigned by: %s", pPrj->GetProjectInfo(CProjectVis::PRJ_DESIGNER).c_str()); m_details += str; }
+	if (!pPrj->GetProjectInfo(CProjectVis::PRJ_CHECKED_BY).empty()) { str.Format(L"\n\rChecked by: %s", pPrj->GetProjectInfo(CProjectVis::PRJ_CHECKED_BY).c_str()); m_details += str; }
 
 	UpdateData(0);
 
@@ -815,7 +820,7 @@ void CDlgDownload::OnBnClickedOk()
 	if (!pos) return;
 	int nPos = m_list.GetNextSelectedItem(pos);
 	if (nPos < 0) return;
-	CProject *pPrj = (CProject*)m_list.GetItemData(nPos);
+	CProjectVis *pPrj = (CProjectVis*)m_list.GetItemData(nPos);
 	if (!pPrj) return;
 
 	m_servers = m_server;
@@ -841,6 +846,11 @@ void CDlgDownload::OnGetinfotipList(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMLVGETINFOTIP pGetInfoTip = reinterpret_cast<LPNMLVGETINFOTIP>(pNMHDR);
 	pGetInfoTip->pszText = L"Ala ma kota";
 	*pResult = 0;
+}
+
+void CDlgDownload::OnDestroy()
+{
+	CDialog::OnDestroy();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1588,3 +1598,5 @@ void CDlgScriptProperties::OnOK()
 
 	CDialogEx::OnOK();
 }
+
+

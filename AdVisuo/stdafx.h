@@ -83,25 +83,8 @@ struct AVVECTOR
 	AVFLOAT z;
 };
 
-// Max Number of Lift Decks and Doors
-#define DECK_NUM	2
-#define MAX_DOORS	6
-
 // Max Number of Lifts
 #define LIFT_MAXNUM	100
-
-#define F_PI ((AVFLOAT)M_PI)
-#define F_PI_2 ((AVFLOAT)M_PI_2)
-
-#pragma warning (disable:4996)
-static inline OLECHAR *_name(OLECHAR *name, LONG i)
-{
-	static OLECHAR buf[257];
-	_snwprintf(buf, 256, name, LOWORD(i), HIWORD(i));
-	return buf;
-}
-
-
 
 #ifdef _UNICODE
 #if defined _M_IX86

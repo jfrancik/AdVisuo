@@ -123,7 +123,7 @@ public:
 
 // CDlgDownload dialog
 
-class CProject;
+class CProjectVis;
 
 class CDlgDownload : public CDialog
 {
@@ -153,7 +153,7 @@ public:
 	int m_nSort;			// sorting info
 	bool m_bAscending[3];
 
-	std::vector<CProject*> m_prjs;	// sims
+	std::vector<CProjectVis*> m_prjs;	// sims
 
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedOk();
@@ -167,6 +167,7 @@ public:
 	afx_msg void OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnGetinfotipList(NMHDR *pNMHDR, LRESULT *pResult);
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+	afx_msg void OnDestroy();
 };
 #pragma once
 

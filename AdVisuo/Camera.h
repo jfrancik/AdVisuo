@@ -4,9 +4,10 @@
 
 
 #include "../CommonFiles/Box.h"
-#include "Building.h"
+#include "VisProject.h"
+#include "VisBuilding.h"
 
-class CBuilding;
+class CBuildingVis;
 interface IKineNode;
 interface ISceneCamera;
 interface IAction;
@@ -43,14 +44,14 @@ struct CAMPARAMS
 	AVFLOAT fClipFar;		// clip far value
 
 	// Camera Eye-Reference object - Weak Reference (no need for Release)
-	IKineNode *EyeRef(CBuilding *pBuilding)		{ return camloc == CAMLOC_LIFT ? pBuilding->GetLiftBone(nId)->GetNode() : pBuilding->GetStoreyBone(nId)->GetNode(); }
+	IKineNode *EyeRef(CBuildingVis *pBuilding)	{ return camloc == CAMLOC_LIFT ? pBuilding->GetLiftBone(nId)->GetNode() : pBuilding->GetStoreyBone(nId)->GetNode(); }
 	AVFLOAT FOV()								{ return max(fHFOV, fVFOV) + fZoom; }
 };
 
 class CCamera
 {
 	// Building information
-	CBuilding *m_pBuilding;			// the building
+	CBuildingVis *m_pBuilding;		// the building
 	AVULONG m_nId;					// id
 	BOX m_box;						// the lobby box (no height)
 	AVFLOAT m_nTripodHeight;		// reference height (max tripod height, equal to lift door height)
@@ -81,11 +82,11 @@ class CCamera
 	wchar_t m_buf[256];
 
 public:
-	CCamera(CBuilding *pBuilding, AVULONG nId);
+	CCamera(CBuildingVis *pBuilding, AVULONG nId);
 	~CCamera();
 
-	CBuilding *GetBuilding()								{ return m_pBuilding; }
-	void SetBuilding(CBuilding *pBuilding);					// sets building and the lobby box
+	CBuildingVis *GetBuilding()								{ return m_pBuilding; }
+	void SetBuilding(CBuildingVis *pBuilding);				// sets building and the lobby box
 	AVULONG GetId()											{ return m_nId; }
 	void SetId(AVULONG nId)									{ m_nId = nId; }
 

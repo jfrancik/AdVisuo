@@ -3,41 +3,13 @@
 #pragma once
 
 #include "BaseData.h"
-#include "BaseBuilding.h"
 #include <functional>
 
-class CLiftBase;
-class CPassengerBase;
+class CSim;
+class CLift;
+class CPassenger;
 
-class CProjectBase : public dbtools::CCollection
-{
-	AVULONG m_nSimulationId;		// original (console) simulation id
-
-	AVULONG m_nId;					// project id
-	AVULONG m_nAVVersionId;			// AV Version id
-	AVULONG m_nLiftGroupsCount;		// number of lift groups
-
-public:
-	CProjectBase();
-
-	AVULONG GetSimulationId()					{ return m_nSimulationId; }
-	AVULONG GetId()								{ return m_nId; }
-	AVULONG GetAVVersionId()					{ return m_nAVVersionId; }
-	static AVULONG GetAVNativeVersionId()		{ return 10900; }
-	AVULONG GetLiftGroupsCount()				{ return m_nLiftGroupsCount; }
-	
-	void SetSimulationId(AVULONG n)				{ m_nSimulationId = n; }
-	void SetId(AVULONG n)						{ m_nId = n; }
-	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
-	void SetLiftGroupsCount(AVULONG n)			{ m_nLiftGroupsCount = n; }
-
-	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
-	std::wstring GetProjectInfo(PRJ_INFO what);
-
-	void ResolveMe();
-};
-
-class CSimBase : public dbtools::CCollection
+class CSim : public dbtools::CCollection
 {
 	// project information
 	AVULONG m_nId;					// sim id
@@ -47,17 +19,18 @@ class CSimBase : public dbtools::CCollection
 	AVLONG m_nSimulationTime;
 	AVULONG m_nTimeSaved;
 	
-	CBuildingBase *m_pBuilding;
+	CBuilding *m_pBuilding;
+	AVVECTOR m_vecOffset;
 
-	std::vector<CLiftBase*> m_lifts;
-	std::vector<CPassengerBase*> m_passengers;
+	std::vector<CLift*> m_lifts;
+	std::vector<CPassenger*> m_passengers;
 
 public:
-	CSimBase(CBuildingBase *pBuilding);
-	virtual ~CSimBase();
+	CSim(CBuilding *pBuilding);
+	virtual ~CSim();
 
-	CBuildingBase *GetBuilding()				{ return m_pBuilding;}
-	void SetBuilding(CBuildingBase *pBuilding)	{ m_pBuilding = pBuilding; }
+	CBuilding *GetBuilding()				{ return m_pBuilding;}
+	void SetBuilding(CBuilding *pBuilding)	{ m_pBuilding = pBuilding; }
 
 	std::wstring GetSIMFileName()				{ return ME[L"SIMFileName"]; }
 	std::wstring GetIFCFileName()				{ return ME[L"IFCFileName"]; }
@@ -83,31 +56,79 @@ public:
 	AVULONG GetTimeSaved()						{ return m_nTimeSaved; }
 	void ReportTimeSaved()						{ m_nTimeSaved = m_nSimulationTime; }
 
+	AVVECTOR GetOffsetVector()					{ return m_vecOffset; }
+	void SetOffsetVector(AVVECTOR v)			{ m_vecOffset = v; }
+
 	// access & initialisation
 	AVULONG GetLiftCount()						{ return m_lifts.size(); }
-	CLiftBase *GetLift(AVULONG i)				{ return i < GetLiftCount() ? m_lifts[i] : NULL; }
-	void AddLift(CLiftBase *p)					{ m_lifts.push_back(p); }
+	CLift *GetLift(AVULONG i)					{ return i < GetLiftCount() ? m_lifts[i] : NULL; }
+	void AddLift(CLift *p)						{ m_lifts.push_back(p); }
 	void DeleteLifts();
 	AVULONG GetJourneyTotalCount();
 
 	AVULONG GetPassengerCount()					{ return m_passengers.size(); }
-	CPassengerBase *GetPassenger(AVULONG i)		{ return i < GetPassengerCount() ? m_passengers[i] : NULL; }
-	void AddPassenger(CPassengerBase *p)		{ m_passengers.push_back(p); }
+	CPassenger *GetPassenger(AVULONG i)			{ return i < GetPassengerCount() ? m_passengers[i] : NULL; }
+	void AddPassenger(CPassenger *p)			{ m_passengers.push_back(p); }
 	void DeletePassengers();
 
-	void for_each_passenger(std::function<void (CPassengerBase*)> f)		{ for each (CPassengerBase *p in m_passengers) f(p); }
-	void for_each_lift(std::function<void (CLiftBase*)> f)					{ for each (CLiftBase *p in m_lifts) f(p); }
+	void for_each_passenger(std::function<void (CPassenger*)> f)		{ for each (CPassenger *p in m_passengers) f(p); }
+	void for_each_lift(std::function<void (CLift*)> f)					{ for each (CLift *p in m_lifts) f(p); }
 
 	void ResolveMe();
 
 protected:
-	virtual CPassengerBase *CreatePassenger(AVULONG nId) = 0;
-	virtual CLiftBase *CreateLift(AVULONG nId) = 0;
+	virtual CPassenger *CreatePassenger(AVULONG nId) = 0;
+	virtual CLift *CreateLift(AVULONG nId) = 0;
 };
 
-class CLiftBase : public dbtools::CCollection
+class CProject : public dbtools::CCollection
 {
-	CSimBase *m_pSim;			// main sim object
+	AVULONG m_nSimulationId;		// original (console) simulation id
+
+	AVULONG m_nId;					// project id
+	AVULONG m_nAVVersionId;			// AV Version id
+	AVULONG m_nLiftGroupsCount;		// number of lift groups
+
+protected:
+	std::vector<CSim*> m_sims;
+	int m_nDefault;
+
+public:
+	CProject();
+	virtual ~CProject();
+
+	AVULONG GetSimulationId()					{ return m_nSimulationId; }
+	AVULONG GetId()								{ return m_nId; }
+	AVULONG GetAVVersionId()					{ return m_nAVVersionId; }
+	static AVULONG GetAVNativeVersionId()		{ return 10900; }
+	AVULONG GetLiftGroupsCount()				{ return m_nLiftGroupsCount; }
+	
+	void SetSimulationId(AVULONG n)				{ m_nSimulationId = n; }
+	void SetId(AVULONG n)						{ m_nId = n; }
+	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
+	void SetLiftGroupsCount(AVULONG n)			{ m_nLiftGroupsCount = n; }
+
+	CSim *GetSim(int i)							{ return m_sims[i]; }
+	CSim *GetSim()								{ return GetSim(GetDefault()); }
+	CBuilding *GetBuilding(int i)				{ return GetSim(i)->GetBuilding(); }
+	CBuilding *GetBuilding()					{ return GetSim()->GetBuilding(); }
+	int GetDefault()							{ return m_nDefault; }
+	void SetDefault(int n)						{ m_nDefault = n; }
+
+	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
+	std::wstring GetProjectInfo(PRJ_INFO what);
+
+	void ResolveMe();
+	void ResolveLiftGroups();
+
+protected:
+	virtual CBuilding *CreateBuilding() = 0;
+	virtual CSim *CreateSim(CBuilding *pBuilding) = 0;
+};
+
+class CLift : public dbtools::CCollection
+{
+	CSim *m_pSim;			// main sim object
 
 	AVULONG m_nId;				// lift id
 	AVULONG m_nSimId;			// Sim ID
@@ -118,10 +139,10 @@ protected:
 	std::vector<JOURNEY> m_journeys;
 
 public:
-	CLiftBase(CSimBase *pSim, AVULONG nLiftId, AVULONG nDecks = 1);
-	virtual ~CLiftBase();
+	CLift(CSim *pSim, AVULONG nLiftId, AVULONG nDecks = 1);
+	virtual ~CLift();
 
-	CSimBase *GetSim()				{ return m_pSim; }
+	CSim *GetSim()				{ return m_pSim; }
 
 	AVULONG GetId()					{ return m_nId; }
 	void SetId(AVULONG n)			{ m_nId = n; }
@@ -138,9 +159,9 @@ public:
 	void AddJourney(JOURNEY &j)		{ m_journeys.push_back(j); }
 };
 
-class CPassengerBase : public dbtools::CCollection
+class CPassenger : public dbtools::CCollection
 {
-	CSimBase *m_pSim;
+	CSim *m_pSim;
 
 	// Simulation & Derived Data
 	AVULONG m_nId;
@@ -166,10 +187,10 @@ protected:
 	WAYPOINT *m_pWaypoints;
 
 public:
-	CPassengerBase(CSimBase *pSim, AVULONG nPassengerId);
-	virtual ~CPassengerBase();
+	CPassenger(CSim *pSim, AVULONG nPassengerId);
+	virtual ~CPassenger();
 
-	CSimBase *GetSim()				{ return m_pSim; }
+	CSim *GetSim()					{ return m_pSim; }
 
 	AVULONG GetId()					{ return m_nId; }
 	AVULONG GetSimId()				{ return m_nSimId; }
@@ -210,12 +231,5 @@ public:
 
 	std::wstring StringifyWayPoints();
 	void ParseWayPoints(std::wstring);
-};
-
-class CSimBaseEx : public CSimBase
-{
-protected:
-	virtual CPassengerBase *CreatePassenger(AVULONG nId)	{ return new CPassengerBase(this, nId); }
-	virtual CLiftBase *CreateLift(AVULONG nId)				{ return new CLiftBase(this, nId); }
 };
 

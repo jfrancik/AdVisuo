@@ -4,6 +4,7 @@
 
 #include <string>
 #include <sstream>
+#include "BaseBuilding.h"
 
 /////////////////////////////////////////////////////////////
 // Unddefined Value

@@ -217,21 +217,12 @@ void CAdVisuoView::OnInitialUpdate()
 	// initialise the simulation
 	if (GetDocument()->IsSimReady())
 	{
-		// for multiple lift groups
-		float y = GetDocument()->GetBuilding()->GetShaftLinesCount() == 2 ? GetDocument()->GetBuilding()->GetShaft(GetDocument()->GetBuilding()->GetShaftCount()-1)->GetBox().RearExt() : GetDocument()->GetBuilding()->GetBox().RearExt();
-		for (int i = 0; i < GetDocument()->GetProject()->GetSize(); i++)
-		{
-			y -= GetDocument()->_GetBuilding(i)->GetShaftLinesCount() == 2 ? GetDocument()->_GetBuilding(i)->GetShaft(GetDocument()->_GetBuilding(i)->GetShaftCount()-1)->GetBox().RearExt() : GetDocument()->_GetBuilding(i)->GetBox().RearExt();
-			float x = -(GetDocument()->GetBuilding()->GetBox().WidthExt() - GetDocument()->_GetBuilding(i)->GetBox().WidthExt()) / 2;
-			CreateBuilding(GetDocument()->_GetBuilding(i), Vector(x, y, 0));
-			GetDocument()->GetSim(i)->SetOffsetVector(Vector(x, y, 0));
-			y += GetDocument()->_GetBuilding(i)->GetShaft(0)->GetBox().RearExt();
-		}
-
-		CBuilding *pBuilding = GetDocument()->GetBuilding();
+		GetDocument()->GetProject()->SetRenderer(m_pRenderer);
+		GetDocument()->GetProject()->Construct();
+		GetDocument()->GetProject()->StoreConfig();
 
 		CreateAllCameras();	
-		AVULONG nStorey = pBuilding->GetBasementStoreyCount();
+		AVULONG nStorey = GetDocument()->GetProject()->GetBuilding()->GetBasementStoreyCount();
 		GetCamera(0)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(0)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
 		GetCamera(1)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(1)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTFRONT   - ID_CAMERA - 1);
 		GetCamera(2)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(2)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTREAR     - ID_CAMERA - 1);
@@ -242,6 +233,8 @@ void CAdVisuoView::OnInitialUpdate()
 		GetCamera(7)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(7)->MoveTo(CAMLOC_OUTSIDE, 1);
 		GetCamera(8)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(8)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
 		GetCamera(9)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(9)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
+
+		Debug(L"Building created, ready for rendering.");
 
 		BeginFrame();
 		RenderScene();
@@ -285,12 +278,12 @@ void CAdVisuoView::OnResetDevice()
 void CAdVisuoView::PrepareSim()
 {
 	m_pActionTick->UnSubscribeAll();
-	for (int iSim = 0; iSim < GetDocument()->GetProject()->GetSize(); iSim++)
+	for (AVULONG iSim = 0; iSim < GetDocument()->GetProject()->GetLiftGroupsCount(); iSim++)
 	{
-		GetDocument()->GetSim(iSim)->PrePlay();
-		GetDocument()->GetSim(iSim)->Play(m_pActionTick);
-		if (GetDocument()->GetSim(iSim)->GetTimeLowerBound() < 0)
-			for (AVLONG i = 0; i <= -GetDocument()->GetSim(iSim)->GetTimeLowerBound(); i += 40)
+		GetDocument()->GetProject()->GetSim(iSim)->PrePlay();
+		GetDocument()->GetProject()->GetSim(iSim)->Play(m_pActionTick);
+		if (GetDocument()->GetProject()->GetSim(iSim)->GetTimeLowerBound() < 0)
+			for (AVLONG i = 0; i <= -GetDocument()->GetProject()->GetSim(iSim)->GetTimeLowerBound(); i += 40)
 				Proceed(i);
 	}
 }
@@ -494,22 +487,6 @@ bool CAdVisuoView::CreateFreeWill(HWND hWnd)
 	// #FreeWill: set-up the error handler
 	m_pFWDevice->SetUserErrorHandler(HandleErrors);
 	
-	return true;
-}
-
-bool CAdVisuoView::CreateBuilding(CBuilding *pBuilding, AVVECTOR vec)
-{
-	// set-up materials
-	pBuilding->SetRenderer(m_pRenderer);
-	pBuilding->SetScene(m_pScene);
-
-	pBuilding->Deconstruct();
-	pBuilding->Construct(vec);
-	pBuilding->StoreConfig();
-
-	Debug(L"Building created, ready for rendering.");
-	ASSERT(pBuilding->GetStoreyCount());
-
 	return true;
 }
 
@@ -777,7 +754,7 @@ void CAdVisuoView::EndFrame()
 
 void CAdVisuoView::RenderScene(bool bHUDSelection)
 {
-	CAdVisuoRenderer renderer(GetDocument()->GetBuilding(), m_pRenderer);
+	CAdVisuoRenderer renderer(GetDocument()->GetProject()->GetBuilding(), m_pRenderer);
 
 	FWCOLOR active = { 1, 0.86f, 0.47f }, inactive = { 1, 1, 1 };
 	m_screen.Prepare(inactive, active, bHUDSelection);
@@ -796,17 +773,16 @@ void CAdVisuoView::RenderScene(bool bHUDSelection)
 		m_pLight2->Render(m_pRenderer);
 
 		// my own display list goes here... instead of m_pScene->Render(pRenderer);
-		for (int i = 0; i < GetDocument()->GetProject()->GetSize(); i++)
-			GetDocument()->GetSim(i)->RenderPassengers(m_pRenderer, 0);
-//GetDocument()->GetSim(1)->RenderPassengers(m_pRenderer, 0);
+		for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
+			GetDocument()->GetProject()->GetSim(i)->RenderPassengers(m_pRenderer, 0);
 
 		// for multiple lift groups
-		for (int i = 1; i < GetDocument()->GetProject()->GetSize(); i++)
+		for (AVULONG i = 1; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
 		{
-			renderer.SetBuilding(GetDocument()->_GetBuilding(i));
+			renderer.SetBuilding(GetDocument()->GetProject()->GetBuilding(i));
 			renderer.RenderSideOuter(1);
 		}
-		renderer.SetBuilding(GetDocument()->GetBuilding());
+		renderer.SetBuilding(GetDocument()->GetProject()->GetBuilding());
 
 		switch (pCamera->GetLoc())
 		{
@@ -836,8 +812,8 @@ void CAdVisuoView::RenderScene(bool bHUDSelection)
 			break;
 		}
 
-		for (int i = 0; i < GetDocument()->GetProject()->GetSize(); i++)
-			GetDocument()->GetSim(i)->RenderPassengers(m_pRenderer, 1);
+		for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
+			GetDocument()->GetProject()->GetSim(i)->RenderPassengers(m_pRenderer, 1);
 	}
 }
 
@@ -992,10 +968,10 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 	}
 	m_pFWDevice->EnableErrorException(FALSE);
 	m_pRenderer->Stop();
-	for (int i = 0; i < GetDocument()->GetProject()->GetSize(); i++)
+	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetDocument()->GetSim(i)->Stop();
-		GetDocument()->_GetBuilding(i)->RestoreConfig();
+		GetDocument()->GetProject()->GetSim(i)->Stop();
+		GetDocument()->GetProject()->GetBuilding(i)->RestoreConfig();
 	}
 	PrepareSim();
 
@@ -1035,10 +1011,10 @@ bool CAdVisuoView::RenderToBitmap(LPCTSTR pFilename, enum FW_RENDER_BITMAP fmt)
 
 bool CAdVisuoView::Proceed(FWULONG nMSec)
 {
-	for (int i = 0; i < GetDocument()->GetProject()->GetSize(); i++)
+	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetDocument()->GetSim(i)->SetColouringMode(((CAdVisuoApp*)AfxGetApp())->GetColouringMode());
-		GetDocument()->GetSim(i)->SetTime(nMSec);
+		GetDocument()->GetProject()->GetSim(i)->SetColouringMode(((CAdVisuoApp*)AfxGetApp())->GetColouringMode());
+		GetDocument()->GetProject()->GetSim(i)->SetTime(nMSec);
 	}
 
 	m_pActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, 0);
@@ -1074,19 +1050,19 @@ return;
 	CWaitCursor wait;
 
 	m_pRenderer->Stop();
-	for (int i = 0; i < GetDocument()->GetProject()->GetSize(); i++)
+	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetDocument()->GetSim(i)->Stop();
-		GetDocument()->_GetBuilding(i)->RestoreConfig();
+		GetDocument()->GetProject()->GetSim(i)->Stop();
+		GetDocument()->GetProject()->GetBuilding(i)->RestoreConfig();
 	}
 
 	m_pActionTick->UnSubscribeAll();
 
 	AVLONG t;
-	for (int i = 0; i < GetDocument()->GetProject()->GetSize(); i++)
+	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetDocument()->GetSim(i)->PrePlay();
-		t = GetDocument()->GetSim(i)->FastForward(m_pActionTick, nMSec);
+		GetDocument()->GetProject()->GetSim(i)->PrePlay();
+		t = GetDocument()->GetProject()->GetSim(i)->FastForward(m_pActionTick, nMSec);
 	}
 
 	// t is wrongly set for multiple lift blocks
@@ -1468,8 +1444,8 @@ void CAdVisuoView::OnUpdateCamera(CCmdUI *pCmdUI)
 	case ID_CAMERA_LEFTFRONT:		pCmdUI->SetCheck(desc.camloc == CAMLOC_LOBBY && desc.index == 6); break;
 	case ID_CAMERA_LEFTSIDE:		pCmdUI->SetCheck(desc.camloc == CAMLOC_LOBBY && desc.index == 7); break;
 	case ID_CAMERA_LIFTRIGHT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() > 0);  break;
-	case ID_CAMERA_LIFTLEFT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() < (AVLONG)GetDocument()->GetBuilding()->GetLiftCount() - 1); break;
-	case ID_STOREY_ONEUP:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() < (AVLONG)GetDocument()->GetBuilding()->GetStoreyCount() - 1); break;
+	case ID_CAMERA_LIFTLEFT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() < (AVLONG)GetDocument()->GetProject()->GetBuilding()->GetLiftCount() - 1); break;
+	case ID_STOREY_ONEUP:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() < (AVLONG)GetDocument()->GetProject()->GetBuilding()->GetStoreyCount() - 1); break;
 	case ID_STOREY_ONEDOWN:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() > 0);break;
 
 	case ID_CAMERA_EXT_FRONT:		pCmdUI->SetCheck(desc.camloc == CAMLOC_OUTSIDE && desc.index == 0); break;
@@ -1510,7 +1486,7 @@ void CAdVisuoView::OnUpdateStoreyMenu(CCmdUI *pCmdUI)
 
 		// create the floors menu
 		pButton->RemoveAllSubItems();
-		CBuilding *pBuilding = GetDocument()->GetBuilding();
+		CBuildingVis *pBuilding = GetDocument()->GetProject()->GetBuilding();
 		for (AVULONG i = 0; i < pBuilding->GetStoreyCount(); i++)
 		{
 			m_pbutFloor = new CMFCRibbonButton(ID_STOREY_MENU + 1000 + i, pBuilding->GetStorey(i)->GetName().c_str());
@@ -1540,7 +1516,7 @@ void CAdVisuoView::OnUpdateCameraLiftMenu(CCmdUI *pCmdUI)
 
 		// create the lifts menu
 		pButton->RemoveAllSubItems();
-		CBuilding *pBuilding = GetDocument()->GetBuilding();
+		CBuildingVis *pBuilding = GetDocument()->GetProject()->GetBuilding();
 		for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)
 		{
 			if (i == pBuilding->GetShaftCount(0))
@@ -1575,10 +1551,10 @@ void CAdVisuoView::OnActionPause()
 void CAdVisuoView::OnActionStop()
 {
 	m_pRenderer->Stop();
-	for (int i = 0; i < GetDocument()->GetProject()->GetSize(); i++)
+	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetDocument()->GetSim(i)->Stop();
-		GetDocument()->_GetBuilding(i)->RestoreConfig();
+		GetDocument()->GetProject()->GetSim(i)->Stop();
+		GetDocument()->GetProject()->GetBuilding(i)->RestoreConfig();
 	}
 	PrepareSim();
 }
@@ -1882,7 +1858,7 @@ void CAdVisuoView::OnViewMaterials()
 {
 	if (CDlgMaterials::c_dlg == NULL)
 	{
-		CDlgMaterials *pDlg = new CDlgMaterials(&GetDocument()->GetBuilding()->m_materials);
+		CDlgMaterials *pDlg = new CDlgMaterials(&GetDocument()->GetProject()->GetBuilding()->m_materials);
 		pDlg->Create(CDlgMaterials::IDD);
 		pDlg->CenterWindow();
 		pDlg->ShowWindow(SW_SHOW);

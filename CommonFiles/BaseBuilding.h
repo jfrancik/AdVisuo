@@ -4,12 +4,19 @@
 
 #include "Box.h"
 #include "DBTools.h"
-#include <string>
+
+/////////////////////////////////////////////////////////////
+// Max Number of Lift Decks and Doors
+
+#define DECK_NUM	2
+#define MAX_DOORS	6
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CBuildingBase
+// CBuilding
 
-class CBuildingBase : public dbtools::CCollection
+class CProject;
+
+class CBuilding : public dbtools::CCollection
 {
 // enum & struct definitions
 public:
@@ -22,29 +29,24 @@ public:
 	enum CNTRWEIGHT_POS		{ CNTRWEIGHT_REAR = 1, CNTRWEIGHT_LSIDE, CNTRWEIGHT_RSIDE, CNTRWEIGHT_UNKNOWN = -1 };
 	enum LIFT_STRUCTURE		{ STRUCT_STEEL = 1, STRUCT_CONCRETE = 2, STRUCT_UNKNOWN = -1 };
 
-	enum MATERIAL { MAT_FRONT, MAT_REAR, MAT_SIDE, MAT_CEILING, MAT_FLOOR,
-		MAT_BEAM, MAT_SHAFT, MAT_OPENING, MAT_DOOR, MAT_LIFT, MAT_LIFT_FLOOR, MAT_LIFT_CEILING, MAT_LIFT_DOOR,
-		MAT_LIFT_NUMBER_PLATE, MAT_FLOOR_NUMBER_PLATE = MAT_LIFT_NUMBER_PLATE + 32, MAT_RESERVED_LAST = MAT_LIFT_NUMBER_PLATE + 64,
-		// note that MAT_LIFT_NUMBER_PLATE, MAT_FLOOR_NUMBER_PLATE and MAT_LIFT_NUMBER_PLATE are sparsely allocated (32 positions, or 256 texture slots)
-	};
-
 	// Storey Data
 	class STOREY : public dbtools::CCollection
 	{
 		AVULONG m_nId;							// Storey Id
-		CBuildingBase *m_pBuilding;				// main building
+		CBuilding *m_pBuilding;					// main building
 		std::wstring m_strName;					// storey name
 
 		AVFLOAT m_fLevel;						// lobby floor level
 		BOX m_box;								// lobby floor plan (the same as building, but includes storey height - from floor to ceiling
 		
 	public:
-		STOREY(CBuildingBase *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), m_fLevel(0)	{ }
+		STOREY(CBuilding *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), m_fLevel(0)	{ }
 		virtual ~STOREY()						{ }
 
 		// Attributes
 		AVULONG GetId()							{ return m_nId; }
-		CBuildingBase *GetBuilding()			{ return m_pBuilding; }
+		CBuilding *GetBuilding()				{ return m_pBuilding; }
+		CProject *GetProject()					{ return GetBuilding()->GetProject(); }
 		std::wstring GetName()					{ return m_strName; }
 
 		AVFLOAT GetLevel()						{ return m_fLevel; }
@@ -74,7 +76,7 @@ public:
 	class SHAFT : public dbtools::CCollection
 	{
 		AVULONG m_nId;							// Shaft Id
-		CBuildingBase *m_pBuilding;				// main building
+		CBuilding *m_pBuilding;					// main building
 		AVULONG m_nShaftLine;					// 0 for SHAFT_INLINE and 0 or 1 for SHAFT_OPPOSITE
 
 		TYPE_OF_LIFT m_type;					// type of lift (conventional/MRL)
@@ -98,13 +100,14 @@ public:
 
 	public:
 
-		SHAFT(CBuildingBase *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), 
+		SHAFT(CBuilding *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), 
 			m_nShaftLine(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_nLiftCount(1), m_fWallLtStart(0), m_fWallRtStart(0)	{ }
 		virtual ~SHAFT()						{ }
 
 		// Attributes:
 		AVULONG GetId()							{ return m_nId; }
-		CBuildingBase *GetBuilding()			{ return m_pBuilding; }
+		CBuilding *GetBuilding()				{ return m_pBuilding; }
+		CProject *GetProject()					{ return GetBuilding()->GetProject(); }
 		AVULONG GetShaftLine()					{ return m_nShaftLine; }
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
@@ -165,17 +168,18 @@ public:
 	{
 		AVULONG m_nId;							// Lift Id
 		AVULONG m_nShaftId;						// Shaft Id - will be different if many lifts per shaft
-		CBuildingBase *m_pBuilding;				// main building
+		CBuilding *m_pBuilding;					// main building
 
 	public:
-		LIFT(CBuildingBase *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), m_nShaftId(0)	{ }
+		LIFT(CBuilding *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), m_nShaftId(0)	{ }
 		virtual ~LIFT()							{ }
 
 		AVULONG GetId()							{ return m_nId; }
 		AVULONG GetShaftId()					{ return m_nShaftId; }
 		void SetShaftId(AVULONG nShaftId)		{ m_nShaftId = nShaftId; }
 		SHAFT *GetShaft()						{ return m_pBuilding->GetShaft(GetShaftId() >= 0 ? GetShaftId() : 0); }
-		CBuildingBase *GetBuilding()			{ return m_pBuilding; }
+		CBuilding *GetBuilding()				{ return m_pBuilding; }
+		CProject *GetProject()					{ return GetBuilding()->GetProject(); }
 
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
@@ -189,6 +193,8 @@ public:
 	};
 
 private:
+
+	CProject *m_pProject;				// The Project Object
 
 	AVULONG m_nId;						// Building ID
 	AVULONG m_nSimId;					// Sim ID
@@ -212,8 +218,11 @@ private:
 	LIFT **m_ppLifts;
 
 public:
-	CBuildingBase(void);
-	~CBuildingBase(void);
+	CBuilding(CProject *pProject);
+	virtual ~CBuilding();
+
+	CProject *GetProject()					{ return m_pProject; }
+	void SetProject(CProject *pProject)		{ m_pProject = pProject; }
 
 	AVULONG GetId()							{ return m_nId; }
 	void SetId(AVULONG nId)					{ m_nId = nId; }
@@ -277,13 +286,13 @@ public:
 	bool IsValid()							{ return m_nShaftCount && GetStoreyCount() && m_ppShafts && m_ppStoreys && GetShaftCount(0); }
 
 	// Calculations!
-	void Init(AVLONG nId = -1);				// initialises is and basic structure of storeys & shafts - uses DB info only, may be called before actual creation
+	void ResolveMe(AVLONG nId = -1);		// initialises id and basic structure of storeys & shafts - uses DB info only, may be called before actual creation
 											// ATTENTION: Lifts structure should be created separately, after all lifts are loaded from the DB - see InitLifts below
+
+	void ResolveLifts();					// initialises basic structure of lifts - uses SHAFT DB info, call after Shafts are loaded but may be called before actual creation
 	
 	void ConsoleCreate();
 	void Create();
-
-	void InitLifts();						// initialises basic structure of lifts - uses SHAFT DB info, call after Shafts are loaded but may be called before actual creation
 
 	void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
 	void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);

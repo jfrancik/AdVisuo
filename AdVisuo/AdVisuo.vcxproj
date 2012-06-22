@@ -127,6 +127,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\CommonFiles\BaseData.cpp" />
+    <ClCompile Include="..\CommonFiles\ConstrBuilding.cpp" />
+    <ClCompile Include="..\CommonFiles\ConstrProject.cpp" />
     <ClCompile Include="..\CommonFiles\DBTools.cpp" />
     <ClCompile Include="..\CommonFiles\XMLTools.cpp" />
     <ClCompile Include="AdVisuo.cpp" />
@@ -135,30 +137,30 @@
     <ClCompile Include="..\CommonFiles\BaseBuilding.cpp" />
     <ClCompile Include="..\CommonFiles\BaseClasses.cpp" />
     <ClCompile Include="Block.cpp" />
-    <ClCompile Include="Building.cpp" />
+    <ClCompile Include="VisBuilding.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
-    <ClCompile Include="ConstrBuilding.cpp" />
     <ClCompile Include="Dialogs.cpp" />
     <ClCompile Include="HUD.cpp" />
-    <ClCompile Include="Lift.cpp" />
+    <ClCompile Include="VisLift.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="OutputWnd.cpp" />
-    <ClCompile Include="Passenger.cpp" />
-    <ClCompile Include="Project.cpp" />
+    <ClCompile Include="VisPassenger.cpp" />
+    <ClCompile Include="VisProject.cpp" />
     <ClCompile Include="Script.cpp" />
-    <ClCompile Include="Sim.cpp" />
+    <ClCompile Include="VisSim.cpp" />
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Screen.cpp" />
-    <ClCompile Include="xml.cpp" />
     <ClCompile Include="xmlrequest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\CommonFiles\ConstrBuilding.h" />
+    <ClInclude Include="..\CommonFiles\ConstrProject.h" />
     <ClInclude Include="..\CommonFiles\DBTools.h" />
     <ClInclude Include="..\CommonFiles\XMLTools.h" />
     <ClInclude Include="AdVisuo.h" />
@@ -168,21 +170,20 @@
     <ClInclude Include="..\CommonFiles\BaseClasses.h" />
     <ClInclude Include="..\CommonFiles\BaseData.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
-    <ClInclude Include="Building.h" />
+    <ClInclude Include="VisBuilding.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ChildFrm.h" />
-    <ClInclude Include="ConstrBuilding.h" />
     <ClInclude Include="Dialogs.h" />
     <ClInclude Include="HUD.h" />
-    <ClInclude Include="Lift.h" />
+    <ClInclude Include="VisLift.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="OutputWnd.h" />
-    <ClInclude Include="Passenger.h" />
-    <ClInclude Include="Project.h" />
+    <ClInclude Include="VisPassenger.h" />
+    <ClInclude Include="VisProject.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Script.h" />
-    <ClInclude Include="Sim.h" />
+    <ClInclude Include="VisSim.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />

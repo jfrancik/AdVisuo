@@ -3,12 +3,13 @@
 //
 
 #include "stdafx.h"
-#include "adv.h"
-#include "Building.h"
-#include "Sim.h"
-#include "Project.h"
-#include "ATLComTime.h"
 #include "../CommonFiles/DBTools.h"
+#include "adv.h"
+#include "SrvBuilding.h"
+#include "IfcBuilding.h"
+#include "SrvSim.h"
+#include "SrvProject.h"
+#include "ATLComTime.h"
 
 #define WARNED(hr) (((DWORD)(hr)) >= 0x40000000L)
 
@@ -45,7 +46,7 @@
 
 ADV_API AVULONG AVGetVersion()
 {
-	return CProjectBase::GetAVNativeVersionId();
+	return CProject::GetAVNativeVersionId();
 }
 
 ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation)
@@ -176,7 +177,7 @@ ADV_API HRESULT AVTest(AVULONG nSimulationId)
 
 		AVULONG nProjectID;
 		
-		CProject prj;
+		CProjectSrv prj;
 		h = prj.FindProjectID(pConnStr, nSimulationId, nProjectID);
 		if (h == S_FALSE) return S_FALSE;
 
@@ -199,7 +200,7 @@ ADV_API HRESULT AVDelete(AVULONG nSimulationId)
 	{
 		DWORD dwStatus = STATUS_OK;
 
-		HRESULT h = CProject::CleanUp(pConnStr, nSimulationId);
+		HRESULT h = CProjectSrv::CleanUp(pConnStr, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		lt.Log(L"AVDelete");
@@ -217,7 +218,7 @@ ADV_API HRESULT AVDeleteAll()
 	{
 		DWORD dwStatus = STATUS_OK;
 
-		HRESULT h = CProject::CleanUpAll(pConnStr);
+		HRESULT h = CProjectSrv::CleanUpAll(pConnStr);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		lt.Log(L"AVDeleteAll");
@@ -235,7 +236,7 @@ ADV_API HRESULT AVDropTables()
 	{
 		DWORD dwStatus = STATUS_OK;
 
-		HRESULT h = CProject::DropTables(pConnStr);
+		HRESULT h = CProjectSrv::DropTables(pConnStr);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		lt.Log(L"AVDropTables");
@@ -255,10 +256,10 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		HRESULT h = S_OK;
 		DWORD dwStatus = STATUS_OK;
 
-		h = CProject::CleanUp(pVisConn, nSimulationId); 
+		h = CProjectSrv::CleanUp(pVisConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		CProject prj;
+		CProjectSrv prj;
 		prj.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
@@ -267,11 +268,11 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 
 		for (ULONG iGroup = 0; iGroup < prj.GetLiftGroupsCount(); iGroup++)
 		{
-			CBuilding building;
+			CBuildingSrv building(NULL);
 			h = building.LoadFromConsole(pConsoleConn, nSimulationId, iGroup); 
 			if WARNED(h) dwStatus = STATUS_WARNING;
 
-			CSim sim(&building);
+			CSimSrv sim(&building);
 			h = sim.LoadFromConsole(pConsoleConn, nSimulationId, iGroup); 
 			if WARNED(h) dwStatus = STATUS_WARNING;
 
@@ -314,14 +315,14 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 		AVFLOAT fScale;
 		GetScale(&fScale);
 
-		CProject prj;
+		CProjectSrv prj;
 		h = prj.LoadFromVisualisation(pVisConn, nProjectID);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		for (ULONG iGroup = 0; iGroup < prj.GetLiftGroupsCount(); iGroup++)
 		{
-			CBuilding building;
-			CSim sim(&building);
+			CBuildingSrv building(NULL);
+			CSimSrv sim(&building);
 
 			h = sim.LoadFromVisualisation(pVisConn, prj.GetId(), iGroup);
 			if WARNED(h) dwStatus = STATUS_WARNING;
@@ -358,15 +359,15 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId)
 		HRESULT h;
 		DWORD dwStatus = STATUS_OK;
 
-		CBuilding building;
+		CBuildingIfc building(NULL);
 		h = building.LoadFromConsole(pConsoleConn, nSimulationId, 0);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		CSim sim(&building);
+		CSimSrv sim(&building);
 		h = sim.LoadFromConsole(pConsoleConn, nSimulationId, 0);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		h = sim.GetBuilding()->SaveAsIFC(sim.GetIFCFileName().c_str());
+		h = building.SaveAsIFC(L"c:\\users\\jarek\\desktop\\test.ifc" /*sim.GetIFCFileName().c_str()*/);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 		
 		lt.Log(L"AVIFC");
