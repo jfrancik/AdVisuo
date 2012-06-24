@@ -266,32 +266,32 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		h = prj.Store(pVisConn); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
+		prj.ResolveLiftGroups();
+
 		for (ULONG iGroup = 0; iGroup < prj.GetLiftGroupsCount(); iGroup++)
 		{
-			CBuildingSrv building(NULL);
-			h = building.LoadFromConsole(pConsoleConn, nSimulationId, iGroup); 
+			h = prj.GetBuilding(iGroup)->LoadFromConsole(pConsoleConn, nSimulationId, iGroup); 
 			if WARNED(h) dwStatus = STATUS_WARNING;
 
-			CSimSrv sim(&building);
-			h = sim.LoadFromConsole(pConsoleConn, nSimulationId, iGroup); 
+			h = prj.GetSim(iGroup)->LoadFromConsole(pConsoleConn, nSimulationId, iGroup); 
 			if WARNED(h) dwStatus = STATUS_WARNING;
 
-			sim.SetProjectId(prj.GetId());
-			sim.SetIndex(iGroup);
+			prj.GetSim(iGroup)->SetProjectId(prj.GetId());
+			prj.GetSim(iGroup)->SetIndex(iGroup);
 
-			h = sim.Store(pVisConn); 
+			h = prj.GetSim(iGroup)->Store(pVisConn); 
 			if WARNED(h) dwStatus = STATUS_WARNING;
 
-			building.SetSimId(sim.GetId());
-			building.SetIndex(iGroup);
+			prj.GetBuilding(iGroup)->SetSimId(prj.GetSim(iGroup)->GetId());
+			prj.GetBuilding(iGroup)->SetIndex(iGroup);
 
-			h = building.Store(pVisConn);
+			h = prj.GetBuilding(iGroup)->Store(pVisConn);
 			if WARNED(h) dwStatus = STATUS_WARNING;
 		
-			h = sim.Update(pVisConn); 
+			h = prj.GetSim(iGroup)->Update(pVisConn); 
 			if WARNED(h) dwStatus = STATUS_WARNING;
 
-			nProjectID = sim.GetProjectId();
+			nProjectID = prj.GetSim(iGroup)->GetProjectId();
 		}
 
 		lt.Log(L"AVInit");
@@ -319,26 +319,25 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 		h = prj.LoadFromVisualisation(pVisConn, nProjectID);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
+		prj.ResolveLiftGroups();
+
 		for (ULONG iGroup = 0; iGroup < prj.GetLiftGroupsCount(); iGroup++)
 		{
-			CBuildingSrv building(NULL);
-			CSimSrv sim(&building);
-
-			h = sim.LoadFromVisualisation(pVisConn, prj.GetId(), iGroup);
+			h = prj.GetSim(iGroup)->LoadFromVisualisation(pVisConn, prj.GetId(), iGroup);
 			if WARNED(h) dwStatus = STATUS_WARNING;
 
-			h = building.LoadFromVisualisation(pVisConn, sim.GetId());
-			building.Scale(fScale);
+			h = prj.GetBuilding(iGroup)->LoadFromVisualisation(pVisConn, prj.GetSim(iGroup)->GetId());
+			prj.GetBuilding(iGroup)->Scale(fScale);
 			if WARNED(h) dwStatus = STATUS_WARNING;
 
 
 			lt.Reset(); 
-			h = sim.LoadSim(pRepConn, prj.GetSimulationId()); lt.Log(L"LoadSim");
+			h = prj.GetSim(iGroup)->LoadSim(pRepConn, prj.GetSimulationId()); lt.Log(L"LoadSim");
 			if WARNED(h) dwStatus = STATUS_WARNING;
 
-			sim.Play(); lt.Log(L"Play");
+			prj.GetSim(iGroup)->Play(); lt.Log(L"Play");
 
-			h = sim.Update(pVisConn); lt.Log(L"Update");
+			h = prj.GetSim(iGroup)->Update(pVisConn); lt.Log(L"Update");
 			if WARNED(h) dwStatus = STATUS_WARNING;
 		}
 
@@ -353,25 +352,34 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId)
 	CLogTime lt;
 	AVSTRING pConsoleConn;
 	GetConnStrings(&pConsoleConn, NULL, NULL);
+
+	std::wstring strIFCFileName = L"c:\\users\\jarek\\desktop\\test.ifc";
 	
 	try
 	{
 		HRESULT h;
 		DWORD dwStatus = STATUS_OK;
 
-		CBuildingIfc building(NULL);
-		h = building.LoadFromConsole(pConsoleConn, nSimulationId, 0);
+		CProjectSrv prj;
+		prj.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		CSimSrv sim(&building);
-		h = sim.LoadFromConsole(pConsoleConn, nSimulationId, 0);
-		if WARNED(h) dwStatus = STATUS_WARNING;
+		prj.ResolveLiftGroups();
 
-		h = building.SaveAsIFC(L"c:\\users\\jarek\\desktop\\test.ifc" /*sim.GetIFCFileName().c_str()*/);
-		if WARNED(h) dwStatus = STATUS_WARNING;
+		for (ULONG iGroup = 0; iGroup < prj.GetLiftGroupsCount(); iGroup++)
+		{
+			h = prj.GetBuilding(iGroup)->LoadFromConsole(pConsoleConn, nSimulationId, 0);
+			if WARNED(h) dwStatus = STATUS_WARNING;
+
+			h = prj.GetSim(iGroup)->LoadFromConsole(pConsoleConn, nSimulationId, 0);
+			if WARNED(h) dwStatus = STATUS_WARNING;
+
+//			h = prj.GetBuilding(iGroup)->SaveAsIFC(strIFCFileName);
+			if WARNED(h) dwStatus = STATUS_WARNING;
+		}
 		
 		lt.Log(L"AVIFC");
-		Logf(STATUS_GENERIC, L"IFC file saved to: %s", sim.GetIFCFileName().c_str());
+		Logf(STATUS_GENERIC, L"IFC file saved to: %s", strIFCFileName);
 		return Logf(dwStatus, L"AVIFC(%d)", nSimulationId);
 	}
 	STD_CATCH(L"AVIFC(%d)", nSimulationId);

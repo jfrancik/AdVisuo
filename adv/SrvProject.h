@@ -13,6 +13,11 @@ public:
 
 	virtual CElem *CreateElement(CBuilding *pBuilding)			{ return NULL; }
 
+	CSimSrv *GetSim()						{ return (CSimSrv*)CProjectConstr::GetSim(); }
+	CBuildingSrv *GetBuilding()				{ return (CBuildingSrv*)CProjectConstr::GetBuilding(); }
+	CSimSrv *GetSim(int i)					{ return (CSimSrv*)CProjectConstr::GetSim(i); }
+	CBuildingSrv *GetBuilding(int i)		{ return (CBuildingSrv*)CProjectConstr::GetBuilding(i); }
+
 	// Database operations
 	HRESULT FindProjectID(dbtools::CDataBase db, ULONG nSimulationId, ULONG &nProjectID);
 	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);

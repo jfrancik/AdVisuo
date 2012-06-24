@@ -73,7 +73,7 @@ CSim::CSim(CBuilding *pBuilding)
 
 CSim::~CSim()
 {
-//	if (m_pBuilding) delete m_pBuilding;
+	if (m_pBuilding) delete m_pBuilding;
 	DeleteLifts();
 	DeletePassengers();
 }
