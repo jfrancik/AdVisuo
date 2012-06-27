@@ -195,6 +195,7 @@ public:
 private:
 
 	CProject *m_pProject;				// The Project Object
+	std::wstring m_strName;				// Lift Group name
 
 	AVULONG m_nId;						// Building ID
 	AVULONG m_nSimId;					// Sim ID
@@ -218,11 +219,13 @@ private:
 	LIFT **m_ppLifts;
 
 public:
-	CBuilding(CProject *pProject);
+	CBuilding(CProject *pProject, AVULONG nIndex);
 	virtual ~CBuilding();
 
 	CProject *GetProject()					{ return m_pProject; }
 	void SetProject(CProject *pProject)		{ m_pProject = pProject; }
+
+	std::wstring GetName()					{ return m_strName; }
 
 	AVULONG GetId()							{ return m_nId; }
 	void SetId(AVULONG nId)					{ m_nId = nId; }
@@ -286,17 +289,17 @@ public:
 	bool IsValid()							{ return m_nShaftCount && GetStoreyCount() && m_ppShafts && m_ppStoreys && GetShaftCount(0); }
 
 	// Calculations!
-	void ResolveMe(AVLONG nId = -1);		// initialises id and basic structure of storeys & shafts - uses DB info only, may be called before actual creation
+	virtual void ResolveMe(AVLONG nId = -1);// initialises id and basic structure of storeys & shafts - uses DB info only, may be called before actual creation
 											// ATTENTION: Lifts structure should be created separately, after all lifts are loaded from the DB - see InitLifts below
 
-	void ResolveLifts();					// initialises basic structure of lifts - uses SHAFT DB info, call after Shafts are loaded but may be called before actual creation
+	virtual void ResolveMore();				// initialises basic structure of lifts - uses SHAFT DB info, call after Shafts are loaded but may be called before actual creation
 	
-	void ConsoleCreate();
-	void Create();
+	virtual void ConsoleCreate();
+	virtual void Create();
 
 	void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
-	void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
-	void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	virtual void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	virtual void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 
 protected:
 	virtual STOREY *CreateStorey(AVULONG nId) = 0;

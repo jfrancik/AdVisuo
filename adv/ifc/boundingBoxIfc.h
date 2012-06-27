@@ -20,9 +20,9 @@
 #endif // _MSC_VER > 1000
 
 
-class CIFCObject;
+class CIFCElement;
 
-void    createIfcBoundingBoxShape(CIFCObject *pObject, double width, double thickness, double height, char * representationIdentifier);
+void    createIfcBoundingBoxShape(CIFCElement *pObject, double width, double thickness, double height, char * representationIdentifier);
 
 
 //

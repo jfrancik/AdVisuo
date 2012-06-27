@@ -8,11 +8,11 @@
 class CBuildingSrv : public CBuildingConstr
 {
 public:
-	CBuildingSrv(CProject *pProject) : CBuildingConstr(pProject)	{ }
+	CBuildingSrv(CProject *pProject, AVULONG nIndex) : CBuildingConstr(pProject, nIndex)	{ }
 
 public:
 	// IO
 	HRESULT Store(dbtools::CDataBase db);
-	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId, ULONG iGroup);
+	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nSimID);
 };

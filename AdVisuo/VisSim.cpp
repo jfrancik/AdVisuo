@@ -13,8 +13,8 @@
 
 using namespace std;
 
-CSimVis::CSimVis(CBuilding *pBuilding)
-	: CSim(pBuilding), 
+CSimVis::CSimVis(CBuilding *pBuilding, AVULONG iIndex)
+	: CSim(pBuilding, iIndex), 
 	  m_pScene(NULL), m_pBiped(NULL), m_pMaterial(NULL), m_pBipedBuf(NULL), m_nBipedBufCount(0), m_nColouringMode(0), m_nTime(0), m_nTimeLowerBound(0)
 {
 }

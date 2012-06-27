@@ -52,7 +52,17 @@ HRESULT CProjectSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	SetAVVersionId(GetAVNativeVersionId());
 	SetLiftGroupsCount(ME[L"LiftGroupsCount"]);
 
-	return S_OK;
+	ResolveLiftGroups();
+
+	HRESULT h = S_OK;
+	for each (CSimSrv *pSim in m_sims)
+	{
+		HRESULT hh;
+		hh = pSim->GetBuilding()->LoadFromConsole(db, nSimulationId);	h = max(h, hh);
+		HRESULT h2 = pSim->LoadFromConsole(db, nSimulationId);			h = max(h, hh);
+	}
+
+	return h;
 }
 
 HRESULT CProjectSrv::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
@@ -66,6 +76,15 @@ HRESULT CProjectSrv::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 	sel >> ME;
 
 	ResolveMe();
+	ResolveLiftGroups();
+
+	HRESULT h = S_OK;
+	for each (CSimSrv *pSim in m_sims)
+	{
+		HRESULT hh;
+		hh = pSim->LoadFromVisualisation(db, GetId());
+		h = pSim->GetBuilding()->LoadFromVisualisation(db, pSim->GetId());
+	}
 
 	return S_OK;
 }
@@ -90,6 +109,40 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	sel = db.select(L"SELECT SCOPE_IDENTITY()");
 	SetId(sel[(short)0]);
 
+
+	// Save LiftGroups & Sims
+	HRESULT h = S_OK;
+	for each (CSimSrv *pSim in m_sims)
+	{
+		HRESULT hh;
+		pSim->SetProjectId(GetId());
+		hh = pSim->Store(db);			h = max(h, hh);
+		CBuildingSrv *pBuilding = pSim->GetBuilding();
+		pBuilding->SetSimId(pSim->GetId());
+		hh = pBuilding->Store(db);		h = max(h, hh);
+	}
+	return S_OK;
+}
+
+HRESULT CProjectSrv::Update(dbtools::CDataBase db, AVLONG nTime)
+{
+	HRESULT h = S_OK;
+	for each (CSimSrv *pSim in m_sims)
+	{
+		HRESULT hh;
+		hh = pSim->Update(db, nTime);	h = max(h, hh);
+	}
+	return S_OK;
+}
+
+HRESULT CProjectSrv::LoadSim(dbtools::CDataBase db, AVULONG nSimulationId)
+{
+	HRESULT h = S_OK;
+	for each (CSimSrv *pSim in m_sims)
+	{
+		HRESULT hh;
+		hh = pSim->LoadSim(db, nSimulationId);
+	}
 	return S_OK;
 }
 
@@ -130,3 +183,4 @@ HRESULT CProjectSrv::DropTables(CDataBase db)
 	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DROP TABLE AVProjects");
 	return S_OK;
 }
+

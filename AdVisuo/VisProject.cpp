@@ -37,16 +37,29 @@ CElemVis::~CElemVis()
 	m_pBone = NULL;
 }
 
-void CElemVis::onCreate(CElem * /*pParent*/, AVULONG nElemId, AVSTRING name, AVVECTOR &vec)
+std::wstring CElemVis::onCreateName(AVULONG nElemId, std::wstring name,  AVLONG i)
+{
+	if (nElemId == ELEM_PROJECT || nElemId == ELEM_SITE)
+		return L"";
+
+	static OLECHAR _name[257];
+	_snwprintf_s(_name, 256, (AVSTRING)name.c_str(), LOWORD(i), HIWORD(i));
+
+	if (GetParent() && GetParent()->GetName().size())
+		return GetParent()->GetName() + L" - " + _name;
+	else
+		return _name;
+}
+
+void CElemVis::onCreate(AVULONG nElemId, AVVECTOR &vec)
 {
 	if (!GetBuilding()) return;
-
-	static OLECHAR buf[257];
-	_snwprintf(buf, 256, L"_bld_%d_%ls", GetBuilding()->GetIndex(), name);
+	if (nElemId == ELEM_PROJECT || nElemId == ELEM_SITE)
+		return;
 
 	IKineNode *pNode = NULL;
-	GetBuilding()->GetScene()->NewObject(buf, &m_pObj);
-	m_pObj->CreateChild(name, &pNode);
+	GetBuilding()->GetScene()->NewObject((AVSTRING)GetName().c_str(), &m_pObj);
+	m_pObj->CreateChild((AVSTRING)GetName().c_str(), &pNode);
 	m_pBone = new CBoneVis(pNode);
 	pNode->Release();
 
@@ -88,7 +101,7 @@ void CElemVis::onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG
 	//TRACE(L"Building wall: pos = (%f, %f, %f), l = %f, h = %f, d = %f\n", vecPos.x/0.04f, vecPos.y/0.04f, vecPos.z/0.04f, l/0.04f, h/0.04f, d/0.04f);
 
 	CBlock block;
-	block.Open(m_pObj, GetNode(pBone), strName, l, h, d, vecPos, vecRot.x, vecRot.y, vecRot.z);
+	block.Open(m_pObj, GetNode(pBone), strName, l, h, d, vecPos, vecRot.z, vecRot.x, vecRot.y);
 	block.BuildFrontSection();
 	
 	for (AVULONG i = 0; i < nDoorNum * 3; i += 3)
@@ -186,7 +199,7 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 				pVMesh = NULL;
 				IKineChild *pChild = NULL;
 				pFMesh->QueryInterface(&pChild);
-				pChild->PutLabel((FWSTRING)name.c_str());
+				pChild->PutLabel((AVSTRING)name.c_str());
 				pChild->Release();
 			}
 
@@ -230,15 +243,15 @@ void CElemVis::Render(IRenderer *pRenderer)
 //////////////////////////////////////////////////////////////////////////////////
 // CProjectVis Implementation
 
-CBuilding *CProjectVis::CreateBuilding()
+CBuilding *CProjectVis::CreateBuilding(AVULONG iIndex)
 { 
-	return new CBuildingVis(this); 
+	return new CBuildingVis(this, iIndex); 
 }
 
-CSim *CProjectVis::CreateSim(CBuilding *pBuilding)
+CSim *CProjectVis::CreateSim(CBuilding *pBuilding, AVULONG iIndex)
 { 
 	m_phases.push_back(PHASE_NONE); 
-	return new CSimVis(pBuilding); 
+	return new CSimVis(pBuilding, iIndex); 
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -354,7 +367,7 @@ void CProjectVis::Load(xmltools::CXmlReader reader, AVLONG nLiftGroup)
 			if (nLiftGroup < 0) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
 			if (pBuilding->GetLiftCount() == 0)
 			{
-				pBuilding->ResolveLifts();
+				pBuilding->ResolveMore();
 				for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)
 					pSim->AddLift(pSim->CreateLift(i));
 			}
@@ -394,7 +407,7 @@ void CProjectVis::Load(xmltools::CXmlReader reader, AVLONG nLiftGroup)
 	// Init lifts when known
 	if (m_phases[nLiftGroup] >= PHASE_STRUCT && pBuilding->GetLiftCount() == 0)
 	{
-		pBuilding->ResolveLifts();
+		pBuilding->ResolveMore();
 		for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)
 			pSim->AddLift(pSim->CreateLift(i));
 	}

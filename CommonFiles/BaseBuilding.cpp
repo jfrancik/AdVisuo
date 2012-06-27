@@ -6,8 +6,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 // CBuilding
 
-CBuilding::CBuilding(CProject *pProject) : m_pProject(pProject), m_ppStoreys(NULL), m_ppShafts(NULL), m_ppLifts(NULL), m_nStoreyCount(0), m_nShaftCount(0), m_nLiftCount(0), m_nBasementStoreyCount(0),
-									 m_nId(0), m_nIndex(0), m_LiftShaftArrang(SHAFT_INLINE), m_LobbyArrangement(LOBBY_OPENPLAN)
+CBuilding::CBuilding(CProject *pProject, AVULONG nIndex) : m_pProject(pProject), m_nIndex(nIndex), m_ppStoreys(NULL), m_ppShafts(NULL), m_ppLifts(NULL), m_nStoreyCount(0), m_nShaftCount(0), m_nLiftCount(0), m_nBasementStoreyCount(0),
+									 m_nId(0), m_LiftShaftArrang(SHAFT_INLINE), m_LobbyArrangement(LOBBY_OPENPLAN)
 {
 	m_pnShaftCount[0] = m_pnShaftCount[1] = 0;
 }
@@ -83,7 +83,7 @@ void CBuilding::ResolveMe(AVLONG nId)
 	CreateShafts(ME[L"NumberOfLifts"]);
 }
 
-void CBuilding::ResolveLifts()
+void CBuilding::ResolveMore()
 {
 	AVULONG nLifts = 0; 
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
@@ -102,7 +102,8 @@ void CBuilding::ConsoleCreate()
 	// resolve vars
 	m_LobbyArrangement = (LOBBY_ARRANGEMENT)(ULONG)ME[L"LobbyArrangementId"];
 	m_LiftShaftArrang = (SHAFT_ARRANGEMENT)(ULONG)ME[L"LiftShaftArrangementId"];
-	
+	m_strName = ME[L"Name"];
+
 	if (m_LobbyArrangement == LOBBY_OPENPLAN && m_LiftShaftArrang == SHAFT_OPPOSITE)
 		m_LobbyArrangement = LOBBY_THROUGH;
 	ME[L"LobbyArrangementId"] = (AVLONG)m_LobbyArrangement;
@@ -265,6 +266,7 @@ void CBuilding::Create()
 {
 	m_LobbyArrangement = (LOBBY_ARRANGEMENT)(ULONG)ME[L"LobbyArrangementId"];
 	m_LiftShaftArrang = (SHAFT_ARRANGEMENT)(ULONG)ME[L"LiftShaftArrangementId"];
+	m_strName = ME[L"Name"];
 	m_pnShaftCount[0] = ME[L"Line1"];
 	m_pnShaftCount[1] = ME[L"Line2"];
 	m_box.ParseFromString(ME[L"BoxLobby"]);

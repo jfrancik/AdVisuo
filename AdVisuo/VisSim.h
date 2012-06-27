@@ -31,7 +31,7 @@ class CSimVis : public CSim, protected CRepos<IBody>
 	AVULONG m_nBipedBufCount;
 
 public:
-	CSimVis(CBuilding *pBuilding);
+	CSimVis(CBuilding *pBuilding, AVULONG iIndex);
 	virtual ~CSimVis();
 
 	CLiftVis *GetLift(int i)			{ return (CLiftVis*)CSim::GetLift(i); }

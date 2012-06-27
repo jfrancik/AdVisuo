@@ -26,10 +26,10 @@ private:
 	// FreeWill+ elements
 	IScene *m_pScene;
 	IRenderer *m_pRenderer;
-	IMaterial *m_pMaterials[WALL_LIFT_NUMBER_PLATE * 8 + 2 * 256];
+	IMaterial *m_pMaterials[CElem::WALL_LIFT_NUMBER_PLATE * 8 + 2 * 256];
 
 public:
-	CBuildingVis(CProject *pProject);
+	CBuildingVis(CProject *pProject, AVULONG iIndex);
 	~CBuildingVis();
 
 	CElemVis *GetElement()																{ return (CElemVis*)CBuildingConstr::GetElement(); }

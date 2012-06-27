@@ -2,7 +2,7 @@
 
 #pragma once
 #include <functional>
-#include "ifc/baseIfcObject.h"
+#include "ifc/baseIfcElement.h"
 
 class CIFCModelScanner
 {
@@ -111,7 +111,7 @@ public:
 	}
 };
 
-class CIFCRevitElem : public CIFCObject
+class CIFCRevitElem : public CIFCElement
 {
 public:
 	typedef int  HINSTANCE;

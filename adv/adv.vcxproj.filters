@@ -45,9 +45,6 @@
     <ClCompile Include="ifc\baseIfc.cpp">
       <Filter>Source Files\IFC</Filter>
     </ClCompile>
-    <ClCompile Include="ifc\baseIfcObject.cpp">
-      <Filter>Source Files\IFC</Filter>
-    </ClCompile>
     <ClCompile Include="ifc\boundingBoxIfc.cpp">
       <Filter>Source Files\IFC</Filter>
     </ClCompile>
@@ -93,6 +90,12 @@
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IfcProject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ifc\baseIfcElement.cpp">
+      <Filter>Source Files\IFC</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="adv.h">
@@ -126,9 +129,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ifc\baseIfc.h">
-      <Filter>Header Files\IFC</Filter>
-    </ClInclude>
-    <ClInclude Include="ifc\baseIfcObject.h">
       <Filter>Header Files\IFC</Filter>
     </ClInclude>
     <ClInclude Include="ifc\boundingBoxIfc.h">
@@ -178,6 +178,12 @@
     </ClInclude>
     <ClInclude Include="..\CommonFiles\ConstrProject.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IfcProject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ifc\baseIfcElement.h">
+      <Filter>Header Files\IFC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

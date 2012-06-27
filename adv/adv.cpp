@@ -9,6 +9,7 @@
 #include "IfcBuilding.h"
 #include "SrvSim.h"
 #include "SrvProject.h"
+#include "IfcProject.h"
 #include "ATLComTime.h"
 
 #define WARNED(hr) (((DWORD)(hr)) >= 0x40000000L)
@@ -260,39 +261,16 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		CProjectSrv prj;
-		prj.LoadFromConsole(pConsoleConn, nSimulationId);
+		h = prj.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		h = prj.Store(pVisConn); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		prj.ResolveLiftGroups();
+		h = prj.Update(pVisConn); 
+		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		for (ULONG iGroup = 0; iGroup < prj.GetLiftGroupsCount(); iGroup++)
-		{
-			h = prj.GetBuilding(iGroup)->LoadFromConsole(pConsoleConn, nSimulationId, iGroup); 
-			if WARNED(h) dwStatus = STATUS_WARNING;
-
-			h = prj.GetSim(iGroup)->LoadFromConsole(pConsoleConn, nSimulationId, iGroup); 
-			if WARNED(h) dwStatus = STATUS_WARNING;
-
-			prj.GetSim(iGroup)->SetProjectId(prj.GetId());
-			prj.GetSim(iGroup)->SetIndex(iGroup);
-
-			h = prj.GetSim(iGroup)->Store(pVisConn); 
-			if WARNED(h) dwStatus = STATUS_WARNING;
-
-			prj.GetBuilding(iGroup)->SetSimId(prj.GetSim(iGroup)->GetId());
-			prj.GetBuilding(iGroup)->SetIndex(iGroup);
-
-			h = prj.GetBuilding(iGroup)->Store(pVisConn);
-			if WARNED(h) dwStatus = STATUS_WARNING;
-		
-			h = prj.GetSim(iGroup)->Update(pVisConn); 
-			if WARNED(h) dwStatus = STATUS_WARNING;
-
-			nProjectID = prj.GetSim(iGroup)->GetProjectId();
-		}
+		nProjectID = prj.GetSim()->GetProjectId();
 
 		lt.Log(L"AVInit");
 		return Logf(dwStatus, L"AVInit(%d)", nSimulationId);
@@ -319,27 +297,16 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 		h = prj.LoadFromVisualisation(pVisConn, nProjectID);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		prj.ResolveLiftGroups();
+		prj.Scale(fScale);
 
-		for (ULONG iGroup = 0; iGroup < prj.GetLiftGroupsCount(); iGroup++)
-		{
-			h = prj.GetSim(iGroup)->LoadFromVisualisation(pVisConn, prj.GetId(), iGroup);
-			if WARNED(h) dwStatus = STATUS_WARNING;
+		lt.Reset(); 
+		h = prj.LoadSim(pRepConn, prj.GetSimulationId()); lt.Log(L"LoadSim");
+		if WARNED(h) dwStatus = STATUS_WARNING;
 
-			h = prj.GetBuilding(iGroup)->LoadFromVisualisation(pVisConn, prj.GetSim(iGroup)->GetId());
-			prj.GetBuilding(iGroup)->Scale(fScale);
-			if WARNED(h) dwStatus = STATUS_WARNING;
+		prj.Play(); lt.Log(L"Play");
 
-
-			lt.Reset(); 
-			h = prj.GetSim(iGroup)->LoadSim(pRepConn, prj.GetSimulationId()); lt.Log(L"LoadSim");
-			if WARNED(h) dwStatus = STATUS_WARNING;
-
-			prj.GetSim(iGroup)->Play(); lt.Log(L"Play");
-
-			h = prj.GetSim(iGroup)->Update(pVisConn); lt.Log(L"Update");
-			if WARNED(h) dwStatus = STATUS_WARNING;
-		}
+		h = prj.Update(pVisConn); lt.Log(L"Update");
+		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		ltall.Log(L"AVProcess");
 		return Logf(dwStatus, L"AVProcess(%d)", nProjectID);
@@ -360,24 +327,15 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId)
 		HRESULT h;
 		DWORD dwStatus = STATUS_OK;
 
-		CProjectSrv prj;
-		prj.LoadFromConsole(pConsoleConn, nSimulationId);
+		CProjectIfc prj;
+		h = prj.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		prj.ResolveLiftGroups();
+		prj.Construct();
 
-		for (ULONG iGroup = 0; iGroup < prj.GetLiftGroupsCount(); iGroup++)
-		{
-			h = prj.GetBuilding(iGroup)->LoadFromConsole(pConsoleConn, nSimulationId, 0);
-			if WARNED(h) dwStatus = STATUS_WARNING;
+		h = prj.SaveAsIFC(strIFCFileName.c_str());
+		if WARNED(h) dwStatus = STATUS_WARNING;
 
-			h = prj.GetSim(iGroup)->LoadFromConsole(pConsoleConn, nSimulationId, 0);
-			if WARNED(h) dwStatus = STATUS_WARNING;
-
-//			h = prj.GetBuilding(iGroup)->SaveAsIFC(strIFCFileName);
-			if WARNED(h) dwStatus = STATUS_WARNING;
-		}
-		
 		lt.Log(L"AVIFC");
 		Logf(STATUS_GENERIC, L"IFC file saved to: %s", strIFCFileName);
 		return Logf(dwStatus, L"AVIFC(%d)", nSimulationId);

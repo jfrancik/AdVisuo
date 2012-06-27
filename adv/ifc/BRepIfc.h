@@ -119,7 +119,7 @@ struct CShell : public shellStruct
 
 
 // IMPLEMENTATION:
-// partial class CIFCObject:
-// int	CIFCObject::buildBrepShapeRepresentationInstance()
-// See baseIfcObject.h for details
+// partial class CIFCElement:
+// int	CIFCElement::buildBrepShapeRepresentationInstance()
+// See baseIfcElement.h for details
 

@@ -99,6 +99,7 @@
     <ClCompile Include="adv.cpp" />
     <ClCompile Include="..\CommonFiles\BaseBuilding.cpp" />
     <ClCompile Include="..\CommonFiles\BaseClasses.cpp" />
+    <ClCompile Include="IfcProject.cpp" />
     <ClCompile Include="SrvBuilding.cpp" />
     <ClCompile Include="dllmain.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -111,7 +112,7 @@
     <ClCompile Include="IfcBuilding.cpp" />
     <ClCompile Include="ifcscanner.cpp" />
     <ClCompile Include="ifc\baseIfc.cpp" />
-    <ClCompile Include="ifc\baseIfcObject.cpp" />
+    <ClCompile Include="ifc\baseIfcElement.cpp" />
     <ClCompile Include="ifc\boundingBoxIfc.cpp" />
     <ClCompile Include="ifc\BRepIfc.cpp" />
     <ClCompile Include="ifc\extrudedPolygonIfc.cpp" />
@@ -137,10 +138,11 @@
     <ClInclude Include="..\CommonFiles\BaseData.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
     <ClInclude Include="IfcBuilding.h" />
+    <ClInclude Include="IfcProject.h" />
     <ClInclude Include="SrvBuilding.h" />
     <ClInclude Include="ifcscanner.h" />
     <ClInclude Include="ifc\baseIfc.h" />
-    <ClInclude Include="ifc\baseIfcObject.h" />
+    <ClInclude Include="ifc\baseIfcElement.h" />
     <ClInclude Include="ifc\boundingBoxIfc.h" />
     <ClInclude Include="ifc\BRepIfc.h" />
     <ClInclude Include="ifc\extrudedPolygonIfc.h" />

@@ -11,13 +11,6 @@ class CBuildingConstr : public CBuilding
 {
 public:
 
-	enum { WALL_FRONT, WALL_REAR, WALL_SIDE, WALL_CEILING, WALL_FLOOR,
-		WALL_BEAM, WALL_SHAFT, WALL_OPENING, WALL_DOOR, WALL_LIFT, WALL_LIFT_FLOOR, WALL_LIFT_CEILING, WALL_LIFT_DOOR,
-		WALL_LIFT_NUMBER_PLATE, WALL_FLOOR_NUMBER_PLATE
-	};
-	enum { ELEM_BUILDING, ELEM_STOREY, ELEM_SUB_STOREY, ELEM_LIFT };
-	enum { BONE_DECK };
-
 	struct STOREY : public CBuilding::STOREY
 	{
 		CElem *m_pElem;
@@ -93,24 +86,38 @@ public:
 		virtual void Deconstruct();
 	};
 
+	struct MACHINEROOM : public STOREY
+	{
+	public:
+		MACHINEROOM(CBuildingConstr *pBuilding) : STOREY(pBuilding, 0)	{ }
+		~MACHINEROOM()													{ }
+
+		virtual void Construct(AVULONG iStorey)							{ STOREY::Construct(iStorey); }
+		virtual void Deconstruct()										{ STOREY::Deconstruct(); }
+	};
+
 // Main Implementation
 private:
 	bool bFastLoad;	// press Shift+Esc to stop building most of the building structures
 	CElem *m_pElem;
 
+	MACHINEROOM *m_pMachineRoom;
+
 public:
-	CBuildingConstr(CProject *pProject): CBuilding(pProject)	{ m_pElem = NULL; bFastLoad = false; }
-	virtual ~CBuildingConstr()									{ Deconstruct(); }
+	CBuildingConstr(CProject *pProject, AVULONG nIndex);
+	virtual ~CBuildingConstr();
 
 	CProjectConstr *GetProject()			{ return (CProjectConstr*)CBuilding::GetProject(); }
 
 	virtual STOREY *CreateStorey(AVULONG nId){ return new STOREY(this, nId); }
 	virtual SHAFT *CreateShaft(AVULONG nId)	{ return new SHAFT(this, nId); }
 	virtual LIFT *CreateLift(AVULONG nId)	{ return new LIFT(this, nId); }
+	virtual MACHINEROOM *CreateMachineRoom(){ return new MACHINEROOM(this); }
 	STOREY *GetStorey(AVULONG i)			{ return (STOREY*)CBuilding::GetStorey(i); }
 	STOREY *GetGroundStorey(AVULONG i = 0)	{ return (STOREY*)CBuilding::GetGroundStorey(i); }
 	SHAFT *GetShaft(AVULONG i)				{ return (SHAFT*)CBuilding::GetShaft(i); }
 	LIFT *GetLift(AVULONG i)				{ return (LIFT*)CBuilding::GetLift(i); }
+	MACHINEROOM *GetMachineRoom()			{ return m_pMachineRoom; }
 
 
 	CElem *GetElement()																{ return m_pElem; }
@@ -129,6 +136,14 @@ public:
 	CElem *GetShaftElementRight(AVULONG nStorey, AVULONG nShaft)					{ return GetShaft(nShaft)->GetElementRight(nStorey); }
 	CElem *GetShaftElementLeftOrRight(AVULONG nStorey, AVULONG nShaft, AVULONG n)	{ return GetShaft(nShaft)->GetElementLeftOrRight(nStorey, n); }
 	CBone *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)				{ return GetShaft(nShaft)->GetDoor(nStorey, nDoor); }
+
+	// machine room and lift pit
+	virtual void ResolveMore();
+	virtual void ConsoleCreate();
+	virtual void Create();
+	virtual void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	virtual void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
 
 	virtual void Construct(AVVECTOR vec);
 	virtual void Deconstruct();

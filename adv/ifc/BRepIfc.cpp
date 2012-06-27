@@ -17,7 +17,7 @@
 
 #include "stdafx.h"
 #include "BRepIfc.h"
-#include "baseIfcObject.h"
+#include "baseIfcElement.h"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ int buildOpeningBoundInstance(VECTOR3DSTRUCT  *pVector);
 void buildOpeningRepresentationInstance(polygon3DStruct *pOpening, int *aggrBounds);
 int buildFaceOuterBoundInstance(VECTOR3DSTRUCT *pVector);
 
-int	CIFCObject::buildBrepShapeRepresentationInstance()
+int	CIFCElement::buildBrepShapeRepresentationInstance()
 {
 	if (!bBrep) return 0;
 

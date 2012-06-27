@@ -9,12 +9,14 @@
 
 using namespace dbtools;
 
-CSimSrv::CSimSrv(CBuilding *pBuilding) : CSim(pBuilding)
+CSimSrv::CSimSrv(CBuilding *pBuilding, AVULONG nIndex) : CSim(pBuilding, nIndex)
 {
 }
 
 HRESULT CSimSrv::LoadSim(CDataBase db, AVULONG nSimulationId)
 {
+	AVULONG nnSimulationId = ME[L"SimulationId"];
+
 	if (!GetBuilding())
 		return Log(ERROR_INTERNAL, L"SIM file loading without the building set.");
 
@@ -74,7 +76,7 @@ void CSimSrv::Play()
 	}
 }
 
-HRESULT CSimSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId, ULONG iGroup)
+HRESULT CSimSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
@@ -87,13 +89,13 @@ HRESULT CSimSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId, ULONG iGroup
 	return S_OK;
 }
 
-HRESULT CSimSrv::LoadFromVisualisation(CDataBase db, ULONG nProjectID, ULONG iGroup)
+HRESULT CSimSrv::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 {
 	if (!db) throw db;
 
 	// Query for Project Data (for project id)
 	CDataBase::SELECT sel;
-	sel = db.select(L"SELECT * FROM AVSims WHERE ProjectId=%d AND LiftGroupIndex=%d", nProjectID, iGroup);
+	sel = db.select(L"SELECT * FROM AVSims WHERE ProjectId=%d AND LiftGroupIndex=%d", nProjectID, GetIndex());
 	if (!sel) throw ERROR_DATA_NOT_FOUND;
 	sel >> ME;
 

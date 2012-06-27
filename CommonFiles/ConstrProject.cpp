@@ -10,7 +10,12 @@
 void CProjectConstr::Construct()
 {
 	m_pElem = CreateElement(NULL);
-	m_pElem->Create(GetElement(), 0, L"Project", 0, Vector(0));
+	m_pElemSite = CreateElement(NULL);
+
+	if (!m_pElem) return;
+
+	m_pElem->Create(NULL, CElem::ELEM_PROJECT, (LPOLESTR)GetProjectInfo(PRJ_PROJECT_NAME).c_str(), Vector(0));
+	m_pElemSite->Create(GetElement(), CElem::ELEM_SITE, (LPOLESTR)GetProjectInfo(PRJ_BUILDING_NAME).c_str(), Vector(0));
 
 	float y = GetBuilding()->GetShaftLinesCount() == 2 ? GetBuilding()->GetShaft(GetBuilding()->GetShaftCount()-1)->GetBox().RearExt() : GetBuilding()->GetBox().RearExt();
 	for each (CSim *pSim in m_sims)
@@ -30,4 +35,5 @@ void CProjectConstr::Construct()
 void CProjectConstr::Deconstruct()
 {
 	delete m_pElem;
+	delete m_pElemSite;
 }

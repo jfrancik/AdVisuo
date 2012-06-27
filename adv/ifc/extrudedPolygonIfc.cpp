@@ -16,7 +16,7 @@
 
 
 #include "stdafx.h"
-#include "baseIfcObject.h"
+#include "baseIfcElement.h"
 #include "extrudedPolygonIfc.h"
 
 CPoint2D::CPoint2D(double _x, double _y) 
@@ -47,12 +47,12 @@ CPolygon2D::~CPolygon2D()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void    createIfcExtrudedPolygonShape(CIFCObject *pObject, polygon2DStruct * pPolygon, double depth)
+void    createIfcExtrudedPolygonShape(CIFCElement *pObject, polygon2DStruct * pPolygon, double depth)
 {
 	pObject->appendRepresentation(buildShapeRepresentationInstance(pPolygon, depth));
 }
 
-void    createIfcPolylineShape(CIFCObject *pObject, double p0x, double p0y, double p1x, double p1y)
+void    createIfcPolylineShape(CIFCElement *pObject, double p0x, double p0y, double p1x, double p1y)
 {
     pObject->appendRepresentation(buildShapeRepresentationInstance(p0x, p0y, p1x, p1y));
 }

@@ -32,7 +32,7 @@ void CProject::ResolveMe()
 void CProject::ResolveLiftGroups()
 {
 	for (AVULONG i = 0; i < GetLiftGroupsCount(); i++)
-		m_sims.push_back(CreateSim(CreateBuilding()));
+		m_sims.push_back(CreateSim(CreateBuilding(i), i));
 	m_nDefault = 0;
 }
 
@@ -60,12 +60,10 @@ std::wstring CProject::GetProjectInfo(PRJ_INFO what)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSim
 
-CSim::CSim(CBuilding *pBuilding)
+CSim::CSim(CBuilding *pBuilding, AVULONG nIndex) : m_pBuilding(pBuilding), m_nIndex(nIndex)
 {
-	m_pBuilding = pBuilding;
 	m_nProjectId = 0;
 	m_nSIMVersionId = 0;
-	m_nIndex = 0;
 	m_nSimulationTime = 0;
 	m_nTimeSaved = 0;
 	m_vecOffset = Vector(0);

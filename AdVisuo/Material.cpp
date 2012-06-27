@@ -84,74 +84,74 @@ void MATERIAL::Setup(CBuildingVis *pBuilding)
 		SetupBackground(pBuilding);
 		break;
 	case MAT_LOBBY_0:		// Lobby walls 0
-		Setup(pBuilding, CBuildingVis::WALL_FRONT, 0);
-		Setup(pBuilding, CBuildingVis::WALL_REAR, 0);
-		Setup(pBuilding, CBuildingVis::WALL_SIDE, 0);
+		Setup(pBuilding, CElem::WALL_FRONT, 0);
+		Setup(pBuilding, CElem::WALL_REAR, 0);
+		Setup(pBuilding, CElem::WALL_SIDE, 0);
 		break;
 	case MAT_LOBBY_1:		// Lobby walls 1
-		Setup(pBuilding, CBuildingVis::WALL_FRONT, 1);
-		Setup(pBuilding, CBuildingVis::WALL_REAR, 1);
-		Setup(pBuilding, CBuildingVis::WALL_SIDE, 1);
+		Setup(pBuilding, CElem::WALL_FRONT, 1);
+		Setup(pBuilding, CElem::WALL_REAR, 1);
+		Setup(pBuilding, CElem::WALL_SIDE, 1);
 		break;
 	case MAT_LOBBY_2:		// Lobby walls 2
-		Setup(pBuilding, CBuildingVis::WALL_FRONT, 2);
-		Setup(pBuilding, CBuildingVis::WALL_REAR, 2);
-		Setup(pBuilding, CBuildingVis::WALL_SIDE, 2);
+		Setup(pBuilding, CElem::WALL_FRONT, 2);
+		Setup(pBuilding, CElem::WALL_REAR, 2);
+		Setup(pBuilding, CElem::WALL_SIDE, 2);
 		break;
 	case MAT_LOBBY_3:		// Lobby walls 3
-		Setup(pBuilding, CBuildingVis::WALL_FRONT, 3);
-		Setup(pBuilding, CBuildingVis::WALL_REAR, 3);
-		Setup(pBuilding, CBuildingVis::WALL_SIDE, 3);
+		Setup(pBuilding, CElem::WALL_FRONT, 3);
+		Setup(pBuilding, CElem::WALL_REAR, 3);
+		Setup(pBuilding, CElem::WALL_SIDE, 3);
 		break;
 	case MAT_LOBBY_4:		// Lobby walls 4
-		Setup(pBuilding, CBuildingVis::WALL_FRONT, 4);
-		Setup(pBuilding, CBuildingVis::WALL_REAR, 4);
-		Setup(pBuilding, CBuildingVis::WALL_SIDE, 4);
+		Setup(pBuilding, CElem::WALL_FRONT, 4);
+		Setup(pBuilding, CElem::WALL_REAR, 4);
+		Setup(pBuilding, CElem::WALL_SIDE, 4);
 		break;
 	case MAT_LOBBY_5:		// Lobby walls 5
-		Setup(pBuilding, CBuildingVis::WALL_FRONT, 5);
-		Setup(pBuilding, CBuildingVis::WALL_REAR, 5);
-		Setup(pBuilding, CBuildingVis::WALL_SIDE, 5);
+		Setup(pBuilding, CElem::WALL_FRONT, 5);
+		Setup(pBuilding, CElem::WALL_REAR, 5);
+		Setup(pBuilding, CElem::WALL_SIDE, 5);
 		break;
 	case MAT_LOBBY_6:		// Lobby walls 6
-		Setup(pBuilding, CBuildingVis::WALL_FRONT, 6);
-		Setup(pBuilding, CBuildingVis::WALL_REAR, 6);
-		Setup(pBuilding, CBuildingVis::WALL_SIDE, 6);
+		Setup(pBuilding, CElem::WALL_FRONT, 6);
+		Setup(pBuilding, CElem::WALL_REAR, 6);
+		Setup(pBuilding, CElem::WALL_SIDE, 6);
 		break;
 	case MAT_LOBBY_7:		// Lobby walls 7
-		Setup(pBuilding, CBuildingVis::WALL_FRONT, 7);
-		Setup(pBuilding, CBuildingVis::WALL_REAR, 7);
-		Setup(pBuilding, CBuildingVis::WALL_SIDE, 7);
+		Setup(pBuilding, CElem::WALL_FRONT, 7);
+		Setup(pBuilding, CElem::WALL_REAR, 7);
+		Setup(pBuilding, CElem::WALL_SIDE, 7);
 		break;
 	case MAT_FLOOR:			// Lobby floors
-		Setup(pBuilding, CBuildingVis::WALL_FLOOR);
+		Setup(pBuilding, CElem::WALL_FLOOR);
 		break;
 	case MAT_CEILING:		// Lobby ceilings
-		Setup(pBuilding, CBuildingVis::WALL_CEILING);
+		Setup(pBuilding, CElem::WALL_CEILING);
 		break;
 	case MAT_DOOR:			// Shaft doors
-		Setup(pBuilding, CBuildingVis::WALL_DOOR);
+		Setup(pBuilding, CElem::WALL_DOOR);
 		break;
 	case MAT_LIFT_DOOR:		// Lift doors
-		Setup(pBuilding, CBuildingVis::WALL_LIFT_DOOR);
+		Setup(pBuilding, CElem::WALL_LIFT_DOOR);
 		break;
 	case MAT_OPENING:		// Openings
-		Setup(pBuilding, CBuildingVis::WALL_OPENING);
+		Setup(pBuilding, CElem::WALL_OPENING);
 		break;
 	case MAT_LIFT:			// Lift walls
-		Setup(pBuilding, CBuildingVis::WALL_LIFT);
+		Setup(pBuilding, CElem::WALL_LIFT);
 		break;
 	case MAT_LIFT_FLOOR:	// Lift floors
-		Setup(pBuilding, CBuildingVis::WALL_LIFT_FLOOR);
+		Setup(pBuilding, CElem::WALL_LIFT_FLOOR);
 		break;
 	case MAT_LIFT_CEILING:	// Lift ceiling
-		Setup(pBuilding, CBuildingVis::WALL_LIFT_CEILING);
+		Setup(pBuilding, CElem::WALL_LIFT_CEILING);
 		break;
 	case MAT_SHAFT:			// Shaft Walls
-		Setup(pBuilding, CBuildingVis::WALL_SHAFT);
+		Setup(pBuilding, CElem::WALL_SHAFT);
 		break;
 	case MAT_BEAM:			// Shaft Walls
-		Setup(pBuilding, CBuildingVis::WALL_BEAM);
+		Setup(pBuilding, CElem::WALL_BEAM);
 		break;
 	}
 }

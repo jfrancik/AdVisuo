@@ -15,7 +15,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CBuildingVis
 
-CBuildingVis::CBuildingVis(CProject *pProject) : CBuildingConstr(pProject), m_materials(this), m_pRenderer(NULL), m_pScene(NULL)
+CBuildingVis::CBuildingVis(CProject *pProject, AVULONG iIndex) : CBuildingConstr(pProject, iIndex), m_materials(this), m_pRenderer(NULL), m_pScene(NULL)
 {
 	memset(m_pMaterials, 0, sizeof(m_pMaterials));
 }
@@ -51,14 +51,14 @@ void CBuildingVis::SetScene(IScene *pScene)
 
 	static void _helperConvMatInd(AVULONG &nWallId, AVULONG &i)
 	{
-		if (nWallId < CBuildingVis::WALL_LIFT_NUMBER_PLATE)
+		if (nWallId < CElem::WALL_LIFT_NUMBER_PLATE)
 		{
 			nWallId *= 8;
 			i = i % 8;
 		}
 		else
 		{
-			nWallId = CBuildingVis::WALL_LIFT_NUMBER_PLATE * 8 + (nWallId - CBuildingVis::WALL_LIFT_NUMBER_PLATE) * 256;
+			nWallId = CElem::WALL_LIFT_NUMBER_PLATE * 8 + (nWallId - CElem::WALL_LIFT_NUMBER_PLATE) * 256;
 			i = i % 256;
 		}
 	}
@@ -264,9 +264,9 @@ void CBuildingVis::Construct(AVVECTOR vec)
 	m_materials.Set(::MAT_LIFT_CEILING,	_stdPathModels + L"metal3.jpg", 2.0f, 2.0f);
 
 	for (AVLONG i = -(AVLONG)GetBasementStoreyCount(); i < (AVLONG)(GetStoreyCount() - GetBasementStoreyCount()); i++)
-		SetMaterialFloorPlate(CBuildingVis::WALL_FLOOR_NUMBER_PLATE, (i+256)%256, i);
+		SetMaterialFloorPlate(CElem::WALL_FLOOR_NUMBER_PLATE, (i+256)%256, i);
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
-		SetMaterialLiftPlate(CBuildingVis::WALL_LIFT_NUMBER_PLATE, i, i);
+		SetMaterialLiftPlate(CElem::WALL_LIFT_NUMBER_PLATE, i, i);
 
 	CBuildingConstr::Construct(vec);
 }

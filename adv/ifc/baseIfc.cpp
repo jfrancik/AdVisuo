@@ -38,11 +38,11 @@ int IFCGetModel()
 //////////////////////////////////////////////////////////////////////
 //
 //
-// CIFCInstance Class
+// CIFCRoot Class
 //
 //
 
-CIFCInstance::CIFCInstance(CIFCInstance *_pParent, transformationMatrixStruct *pMatrix)
+CIFCRoot::CIFCRoot(CIFCRoot *_pParent, transformationMatrixStruct *pMatrix)
 { 
 	pParent = _pParent;
 	
@@ -60,13 +60,13 @@ CIFCInstance::CIFCInstance(CIFCInstance *_pParent, transformationMatrixStruct *p
 	pchRelDescription = "UndefinedContainer for Unknown Elements";
 }
 
-void CIFCInstance::reset()
+void CIFCRoot::reset()
 { 
 	ifcInstance = ifcPlacementInstance = 0; 
 	pifcRelAggregates = pifcRelContainedInSpatialStructure = NULL;
 }
 
-int *CIFCInstance::appendRelAggregate(CIFCInstance *pRelatedInstance)
+int *CIFCRoot::appendRelAggregate(CIFCRoot *pRelatedInstance)
 {
 	if (!pifcRelAggregates)
 	{
@@ -84,7 +84,7 @@ int *CIFCInstance::appendRelAggregate(CIFCInstance *pRelatedInstance)
 	return	pifcRelAggregates;
 }
 
-int *CIFCInstance::appendRelContainedInSpatialStructure(CIFCInstance *pRelatedInstance)
+int *CIFCRoot::appendRelContainedInSpatialStructure(CIFCRoot *pRelatedInstance)
 {
 	if (!pifcRelContainedInSpatialStructure)
 	{
@@ -102,7 +102,7 @@ int *CIFCInstance::appendRelContainedInSpatialStructure(CIFCInstance *pRelatedIn
 	return	pifcRelContainedInSpatialStructure;
 }
 
-int *CIFCInstance::appendRelContainedInSpatialStructure(int nRelatedInstance)
+int *CIFCRoot::appendRelContainedInSpatialStructure(int nRelatedInstance)
 {
 	if (!pifcRelContainedInSpatialStructure)
 	{
@@ -128,7 +128,7 @@ int *CIFCInstance::appendRelContainedInSpatialStructure(int nRelatedInstance)
 //
 
 
-CIFCProject::CIFCProject(char *ifcSchemaName, char *lengthUnitConversion) : CIFCInstance(NULL, NULL)
+CIFCProject::CIFCProject(char *ifcSchemaName, char *lengthUnitConversion) : CIFCRoot(NULL, NULL)
 {
 	reset();
 	pParent = NULL;
@@ -136,8 +136,8 @@ CIFCProject::CIFCProject(char *ifcSchemaName, char *lengthUnitConversion) : CIFC
 	this->ifcSchemaName = strdup(ifcSchemaName);
 	this->lengthUnitConversion = lengthUnitConversion;
 
-	projectName = "Lifts";
-	projectDescription = "Lifts Project";
+	strName = "Lifts";
+	strDescription = "Lifts Project";
 	personGivenName = "Jarek";
 	personFamilyName = "Francik";
 	orgName = "LBA";
@@ -164,8 +164,8 @@ int CIFCProject::build()
 
 	sdaiPutAttrBN(ifcInstance, "GlobalId", sdaiSTRING, (void*) CreateCompressedGuidString());
 	sdaiPutAttrBN(ifcInstance, "OwnerHistory", sdaiINSTANCE, (void*) getOwnerHistoryInstance());
-	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, projectName);
-	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, projectDescription);
+	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
+	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
 	sdaiPutAttrBN(ifcInstance, "UnitsInContext", sdaiINSTANCE, (void*) getUnitAssignmentInstance(lengthUnitConversion));
     int *aggrRepresentationContexts = sdaiCreateAggrBN(ifcInstance, "RepresentationContexts");
 	sdaiAppend((int) aggrRepresentationContexts, sdaiINSTANCE, (void*) getGeometricRepresentationContextInstance());
@@ -175,7 +175,7 @@ int CIFCProject::build()
 
 void CIFCProject::reset()
 {
-	CIFCInstance::reset();
+	CIFCRoot::reset();
 	ifcBuildOwnerHistoryInstance = 0;
 	ifcPersonAndOrganizationInstance = 0;
 	ifcPersonInstance = 0;
@@ -459,11 +459,11 @@ void CIFCProject::setupHeader(char *ifcFileName)
 //
 
 CIFCSite::CIFCSite(CIFCProject *pParent, transformationMatrixStruct *pMatrix)
-	: CIFCInstance(pParent, pMatrix)
+	: CIFCRoot(pParent, pMatrix)
 {
 	reset();
-	siteName = "Default Site";
-	siteDescription = "The project default site";
+	strName = "Default Site";
+	strDescription = "The project default site";
 	refLat_x = 51, refLat_y = 19, refLat_z = 45;
 	refLong_x = 0, refLong_y = 31, refLong_z = 58;
 	setRelNameAndDescription("SiteContainer", "SiteContainer for Buildings");
@@ -479,8 +479,8 @@ int CIFCSite::build()
 
 	sdaiPutAttrBN(ifcInstance, "GlobalId", sdaiSTRING, (void*) CreateCompressedGuidString());
 	sdaiPutAttrBN(ifcInstance, "OwnerHistory", sdaiINSTANCE, (void*) getProject()->getOwnerHistoryInstance());
-	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, siteName);
-	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, siteDescription);
+	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
+	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
 
 	ifcPlacementInstance = buildLocalPlacementInstance(pMatrix, pParent->getPlacementInstance());
 	sdaiPutAttrBN(ifcInstance, "ObjectPlacement", sdaiINSTANCE, (void*) ifcPlacementInstance);
@@ -511,11 +511,11 @@ int CIFCSite::build()
 //
 
 CIFCBuilding::CIFCBuilding(CIFCSite *pParent, transformationMatrixStruct *pMatrix)
-	: CIFCInstance(pParent, pMatrix)
+	: CIFCRoot(pParent, pMatrix)
 {
 	reset();
-	buildingName = "Default Building";
-	buildingDescription = "The project default building";
+	strName = "Default Building";
+	strDescription = "The project default building";
 	setRelNameAndDescription("BuildingContainer", "BuildingContainer for Building Stories");
 }
 
@@ -527,8 +527,8 @@ int CIFCBuilding::build()
 
 	sdaiPutAttrBN(ifcInstance, "GlobalId", sdaiSTRING, (void*) CreateCompressedGuidString());
 	sdaiPutAttrBN(ifcInstance, "OwnerHistory", sdaiINSTANCE, (void*) getProject()->getOwnerHistoryInstance());
-	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, buildingName);
-	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, buildingDescription);
+	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
+	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
 
 	ifcPlacementInstance = buildLocalPlacementInstance(pMatrix, pParent->getPlacementInstance());
 	sdaiPutAttrBN(ifcInstance, "ObjectPlacement", sdaiINSTANCE, (void*)ifcPlacementInstance);
@@ -549,11 +549,11 @@ int CIFCBuilding::build()
 //
 
 CIFCStorey::CIFCStorey(CIFCBuilding *pParent, transformationMatrixStruct *pMatrix)
-	: CIFCInstance(pParent, pMatrix)
+	: CIFCRoot(pParent, pMatrix)
 {
 	reset();
-	storeyName = "Default Storey";
-	storeyDescription = "The project default building storey";
+	strName = "Default Storey";
+	strDescription = "The project default building storey";
 	setRelNameAndDescription("StoreyContainer", "StoreyContainer for Building Elements");
 }
 
@@ -567,8 +567,94 @@ int CIFCStorey::build()
 
 	sdaiPutAttrBN(ifcInstance, "GlobalId", sdaiSTRING, (void*) CreateCompressedGuidString());
 	sdaiPutAttrBN(ifcInstance, "OwnerHistory", sdaiINSTANCE, (void*) getProject()->getOwnerHistoryInstance());
-	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, storeyName);
-	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, storeyDescription);
+	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
+	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
+
+	ifcPlacementInstance = buildLocalPlacementInstance(pMatrix, pParent->getPlacementInstance());
+	sdaiPutAttrBN(ifcInstance, "ObjectPlacement", sdaiINSTANCE, (void*)ifcPlacementInstance);
+	sdaiPutAttrBN(ifcInstance, "CompositionType", sdaiENUM, "ELEMENT");
+	sdaiPutAttrBN(ifcInstance, "Elevation", sdaiREAL, &elevation);
+
+	pParent->appendRelAggregate(this);
+
+	return	ifcInstance;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//
+//
+// CIFCSpace Class
+//
+//
+
+CIFCSpace::CIFCSpace(CIFCBuilding *pParent, transformationMatrixStruct *pMatrix)
+	: CIFCRoot(pParent, pMatrix)
+{
+	reset();
+	strName = "Default Space";
+	strDescription = "The project default building space";
+	setRelNameAndDescription("SpaceContainer", "SpaceContainer for Building Elements");
+}
+
+int CIFCSpace::build()
+{
+	if (!getProject() || !model) return false;
+
+	double	elevation = 0;
+
+	ifcInstance = sdaiCreateInstanceBN(model, "IFCSPACE");
+
+	sdaiPutAttrBN(ifcInstance, "GlobalId", sdaiSTRING, (void*) CreateCompressedGuidString());
+	sdaiPutAttrBN(ifcInstance, "OwnerHistory", sdaiINSTANCE, (void*) getProject()->getOwnerHistoryInstance());
+	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
+	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
+
+	ifcPlacementInstance = buildLocalPlacementInstance(pMatrix, pParent->getPlacementInstance());
+	sdaiPutAttrBN(ifcInstance, "ObjectPlacement", sdaiINSTANCE, (void*)ifcPlacementInstance);
+	sdaiPutAttrBN(ifcInstance, "CompositionType", sdaiENUM, "ELEMENT");
+	sdaiPutAttrBN(ifcInstance, "Elevation", sdaiREAL, &elevation);
+
+	sdaiPutAttrBN(ifcInstance, "InteriorOrExteriorSpace", sdaiENUM, "INTERNAL");
+
+	pParent->appendRelAggregate(this);
+
+	return	ifcInstance;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//
+//
+// CIFCTmp Class
+//
+//
+
+CIFCTmp::CIFCTmp(CIFCBuilding *pParent, transformationMatrixStruct *pMatrix)
+	: CIFCRoot(pParent, pMatrix)
+{
+	reset();
+	strName = "Default Tmp";
+	strDescription = "The project default building tmp";
+	setRelNameAndDescription("TmpContainer", "TmpContainer for Building Elements");
+}
+
+int CIFCTmp::build()
+{
+	if (!getProject() || !model) return false;
+
+	double	elevation = 0;
+
+	ifcInstance = sdaiCreateInstanceBN(model, "IFCSPACE");
+
+	sdaiPutAttrBN(ifcInstance, "GlobalId", sdaiSTRING, (void*) CreateCompressedGuidString());
+	sdaiPutAttrBN(ifcInstance, "OwnerHistory", sdaiINSTANCE, (void*) getProject()->getOwnerHistoryInstance());
+	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
+	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
 
 	ifcPlacementInstance = buildLocalPlacementInstance(pMatrix, pParent->getPlacementInstance());
 	sdaiPutAttrBN(ifcInstance, "ObjectPlacement", sdaiINSTANCE, (void*)ifcPlacementInstance);

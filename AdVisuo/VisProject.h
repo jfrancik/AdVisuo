@@ -19,26 +19,6 @@ class CSimVis;
 
 using namespace std;
 
-
-class _prj_error
-{
-public:
-	enum ERROR_CODES { 
-		E_PRJ_NOT_FOUND = 0x80000100, 
-		E_PRJ_NO_BUILDING,
-		E_PRJ_PASSENGERS, 
-		E_PRJ_LIFTS, 
-		E_PRJ_FLOORS, 
-		E_PRJ_LIFT_DECKS,
-		E_PRJ_FILE_STRUCT,
-		E_PRJ_INTERNAL };
-	_prj_error(enum ERROR_CODES err_code)	{ _error = err_code; }
-	enum ERROR_CODES Error()				{ return _error; }
-	std::wstring ErrorMessage();
-private:
-	enum ERROR_CODES _error;
-};
-
 class CBoneVis : public CBone
 {
 	IKineNode *m_pNode;
@@ -60,7 +40,8 @@ protected:
 	// Implementation
 	ISceneObject *m_pObj;
 
-	virtual void onCreate(CElem *pParent, AVULONG nElemId, AVSTRING name, AVVECTOR &vec);
+	virtual std::wstring onCreateName(AVULONG nElemId, std::wstring name,  AVLONG i);
+	virtual void onCreate(AVULONG nElemId, AVVECTOR &vec);
 	virtual void onMove(AVVECTOR &vec);
 	virtual CBone *onAddBone(AVULONG nBoneId, AVSTRING name, AVVECTOR &vec);
 	virtual void onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, 
@@ -87,6 +68,25 @@ public:
 	void Render(IRenderer *pRenderer);
 };
 
+class _prj_error
+{
+public:
+	enum ERROR_CODES { 
+		E_PRJ_NOT_FOUND = 0x80000100, 
+		E_PRJ_NO_BUILDING,
+		E_PRJ_PASSENGERS, 
+		E_PRJ_LIFTS, 
+		E_PRJ_FLOORS, 
+		E_PRJ_LIFT_DECKS,
+		E_PRJ_FILE_STRUCT,
+		E_PRJ_INTERNAL };
+	_prj_error(enum ERROR_CODES err_code)	{ _error = err_code; }
+	enum ERROR_CODES Error()				{ return _error; }
+	std::wstring ErrorMessage();
+private:
+	enum ERROR_CODES _error;
+};
+
 class CProjectVis : public CProjectConstr
 {
 	// Loading Phase
@@ -98,8 +98,8 @@ public:
 	CProjectVis()							{ }
 	virtual ~CProjectVis()					{ }
 
-	virtual CBuilding *CreateBuilding();
-	virtual CSim *CreateSim(CBuilding *pBuilding);
+	virtual CBuilding *CreateBuilding(AVULONG iIndex);
+	virtual CSim *CreateSim(CBuilding *pBuilding, AVULONG iIndex);
 
 	CSimVis *GetSim()						{ return (CSimVis*)CProjectConstr::GetSim(); }
 	CBuildingVis *GetBuilding()				{ return (CBuildingVis*)CProjectConstr::GetBuilding(); }

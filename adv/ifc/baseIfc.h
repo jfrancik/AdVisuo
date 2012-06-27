@@ -41,10 +41,10 @@ typedef struct TRANSFORMATIONMATRIXSTRUCT {
 	double			_41, _42, _43;
 }	transformationMatrixStruct;
 
-class CIFCInstance
+class CIFCRoot
 {
 protected:
-	CIFCInstance *pParent;
+	CIFCRoot *pParent;
 	CIFCProject *pProject;
 	int model;
 	transformationMatrixStruct *pMatrix;
@@ -54,13 +54,18 @@ protected:
 	int *pifcRelContainedInSpatialStructure;
 	char *pchRelName, *pchRelDescription;
 
+	char *strName;
+	char *strDescription;
+
 public:
-	CIFCInstance(CIFCInstance *pParent, transformationMatrixStruct *pMatrix);
+	CIFCRoot(CIFCRoot *pParent, transformationMatrixStruct *pMatrix);
 
 	virtual int build() = 0;
 	virtual void reset();
 
-	CIFCInstance *getParent()						{ return pParent; }
+	void setInfo(char *name, char *description)		{ strName = name; strDescription = description; }
+
+	CIFCRoot *getParent()							{ return pParent; }
 	CIFCProject *getProject()						{ return pProject; }
 	int getModel()									{ return model; }
 	transformationMatrixStruct *getMatrix()			{ return pMatrix; }
@@ -70,12 +75,12 @@ public:
 
 	// RelAggregates, RelContainedInSpatialStructure
 	void setRelNameAndDescription(char *name, char *description)	{ pchRelName = name; pchRelDescription = description; }
-	int *appendRelAggregate(CIFCInstance *pRelatedInstance);
-	int *appendRelContainedInSpatialStructure(CIFCInstance *pRelatedInstance);
+	int *appendRelAggregate(CIFCRoot *pRelatedInstance);
+	int *appendRelContainedInSpatialStructure(CIFCRoot *pRelatedInstance);
 	int *appendRelContainedInSpatialStructure(int nRelatedInstance);
 };
 
-class CIFCProject : public CIFCInstance
+class CIFCProject : public CIFCRoot
 {
 	// various instances
 	int	ifcProjectInstance;
@@ -95,8 +100,6 @@ class CIFCProject : public CIFCInstance
 	char *lengthUnitConversion;
 
 	// attributes
-	char *projectName;
-	char *projectDescription;
 	char *personGivenName;
 	char *personFamilyName;
 	char *orgName;
@@ -119,7 +122,6 @@ public:
 	bool saveAsXml(char *ifcFileName);
 
 	// Attributes
-	void setProjectInfo(char *name, char *description)		{ projectName = name; projectDescription = description; }
 	void setPeronName(char *given, char *family)			{ personGivenName = given; personFamilyName = family; }
 	void SetOrganisationInfo(char *name, char *description)	{ orgName = name; orgDescription = description; }
 	void setApplicationInfo(char *name, char *ver, char *id){ appVersion = ver; appFullName = name; appId = id; }
@@ -145,10 +147,8 @@ private:
 	void setupHeader(char *ifcFileName);
 };
 
-class CIFCSite : public CIFCInstance
+class CIFCSite : public CIFCRoot
 {
-	char *siteName;
-	char *siteDescription;
 	int refLat_x, refLat_y, refLat_z;
 	int refLong_x, refLong_y, refLong_z;
 
@@ -157,35 +157,36 @@ public:
 
 	virtual int build();
 
-	void setSiteInfo(char *name, char *description)		{ siteName = name; siteDescription = description; }
 	void setLat(int d, int m, int s)					{ refLat_x = d; refLat_y = m; refLat_z = s; }
 	void setLong(int d, int m, int s)					{ refLong_x = d; refLong_y = m; refLong_z = s; }
 };
 
-class CIFCBuilding : public CIFCInstance
+class CIFCBuilding : public CIFCRoot
 {
-	char *buildingName;
-	char *buildingDescription;
-
 public:
 	CIFCBuilding(CIFCSite *pParent, transformationMatrixStruct *pMatrix);
-	
 	virtual int build();
-
-	void setBuildingInfo(char *name, char *description)		{ buildingName = name; buildingDescription = description; }
 };
 
-class CIFCStorey : public CIFCInstance
+class CIFCStorey : public CIFCRoot
 {
-	char *storeyName;
-	char *storeyDescription;
-
 public:
 	CIFCStorey(CIFCBuilding *pParent, transformationMatrixStruct *pMatrix);
-
 	virtual int build();
+};
 
-	void setStoreyInfo(char *name, char *description)		{ storeyName = name; storeyDescription = description; }
+class CIFCSpace : public CIFCRoot
+{
+public:
+	CIFCSpace(CIFCBuilding *pParent, transformationMatrixStruct *pMatrix);
+	virtual int build();
+};
+
+class CIFCTmp : public CIFCRoot
+{
+public:
+	CIFCTmp(CIFCBuilding *pParent, transformationMatrixStruct *pMatrix);
+	virtual int build();
 };
 
 

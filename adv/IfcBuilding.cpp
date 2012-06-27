@@ -2,60 +2,15 @@
 
 #include "StdAfx.h"
 #include "IfcBuilding.h"
-#include "ifc/baseIfcObject.h"
+#include "ifc/baseIfcElement.h"
 #include "ifcscanner.h"
 
 #pragma warning (disable:4996)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CElemIfc
-
-CIFCBuilding *pBuilding;
-
-CElemIfc::~CElemIfc()
-{
-	if (m_pBone) delete m_pBone;
-	m_pBone = NULL;
-}
-
-void CElemIfc::onCreate(CElem *pParent, AVULONG nElemId, AVSTRING name, AVVECTOR &vec)
-{
-	USES_CONVERSION;
-
-	//static OLECHAR buf[257];
-	//_snwprintf(buf, 256, L"_bld_%d_%ls", GetBuilding()->GetIndex(), name);
-
-	if (nElemId == CBuildingConstr::ELEM_STOREY)
-	{
-		transformationMatrixStruct matrix;
-		identityMatrix(&matrix);
-		// matrix._43 = pStorey->StoreyLevel;
-		CIFCStorey storey(pBuilding, &matrix);
-		storey.setStoreyInfo(OLE2A(name), OLE2A(name));
-
-		storey.build();
-		//if (!storey.build()) return Logf(ERROR_IFC_PRJ, L"storey");
-	}
-}
-
-void CElemIfc::onMove(AVVECTOR &vec)
-{
-}
-
-CBone *CElemIfc::onAddBone(AVULONG nBoneId, AVSTRING name, AVVECTOR &vec)
-{
-	CBone *pBone = NULL;
-	return pBone;
-}
-
-void CElemIfc::onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
-					AVULONG nDoorNum, FLOAT *pDoorData, CBone **ppNewBone)
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CBuildingIfc
 
+/*
 HRESULT CBuildingIfc::SaveAsIFC(LPCOLESTR pFileName, bool bBrep, bool bPresentation)
 {
 	//////////////////////////////////////////////////////////////////
@@ -97,8 +52,6 @@ HRESULT CBuildingIfc::SaveAsIFC(LPCOLESTR pFileName, bool bBrep, bool bPresentat
 	CIFCBuilding building(&site, &matrix);
 	if (!building.build()) return Logf(ERROR_IFC_PRJ, L"building");
 
-	pBuilding = &building;
-
 	GetProject()->Construct();
 
 	//char buf[257];
@@ -129,7 +82,6 @@ HRESULT CBuildingIfc::SaveAsIFC(LPCOLESTR pFileName, bool bBrep, bool bPresentat
 	//	//if (!ceiling.build()) return Logf(ERROR_IFC_PRJ, L"slab");
 	//}
 
-	/*
 
 	char buf[257];
 
@@ -629,13 +581,13 @@ HRESULT CBuildingIfc::SaveAsIFC(LPCOLESTR pFileName, bool bBrep, bool bPresentat
 				}
 			}
 		}
-	*/
 				
 	USES_CONVERSION;
 	prj.save(OLE2A(pFileName));
 
 	return S_OK;
 }
+*/
 
 
 

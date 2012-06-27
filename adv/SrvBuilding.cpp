@@ -54,7 +54,7 @@ HRESULT CBuildingSrv::Store(CDataBase db)
 //////////////////////////////////////////////////////////////////////////////////
 // Database Load
 
-HRESULT CBuildingSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId, ULONG iGroup)
+HRESULT CBuildingSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel, sel1;
@@ -67,12 +67,13 @@ HRESULT CBuildingSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId, ULONG i
 	if (!sel) throw ERROR_BUILDING;
 
 	// iterate to the desired lift group
-	for (ULONG i = 1; i <= iGroup; i++)
+	for (ULONG i = 1; i <= GetIndex(); i++)
 		sel++;
 
 	sel >> *this;
 
 	AVULONG nLiftGroupId = ME[L"LiftGroupId"];
+	ME[L"LiftGroupIndex"] = GetIndex();
 
 	sel = db.select(L"SELECT COUNT(LiftId) AS NumberOfLifts FROM Lifts WHERE LiftGroupId=%d", nLiftGroupId);
 	if (!sel) throw ERROR_BUILDING;
@@ -112,7 +113,7 @@ HRESULT CBuildingSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId, ULONG i
 	for (AVULONG i = 0; i < GetStoreyCount() && sel; i++, sel++)
 		sel >> *GetStorey(i);
 
-	ResolveLifts();
+	ResolveMore();
 
 	// Resolve and test
 	ConsoleCreate();
@@ -145,7 +146,7 @@ HRESULT CBuildingSrv::LoadFromVisualisation(CDataBase db, ULONG nSimID)
 	for (AVULONG i = 0; i < GetStoreyCount() && sel; i++, sel++)
 		sel >> *GetStorey(i);
 
-	ResolveLifts();
+	ResolveMore();
 
 	// Resolve and test
 	Create();

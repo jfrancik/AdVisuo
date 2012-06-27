@@ -17,10 +17,10 @@
 
 #include "stdafx.h"
 #include "boundingBoxIfc.h"
-#include "baseIfcObject.h"
+#include "baseIfcElement.h"
 
 
-void    createIfcBoundingBoxShape(CIFCObject *pObject, double width, double thickness, double height, char * representationIdentifier)
+void    createIfcBoundingBoxShape(CIFCElement *pObject, double width, double thickness, double height, char * representationIdentifier)
 {
     pObject->appendRepresentation(buildShapeRepresentationInstance(width, thickness, height, representationIdentifier));
 }

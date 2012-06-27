@@ -20,7 +20,7 @@
 #endif // _MSC_VER > 1000
 
 
-class CIFCObject;
+class CIFCElement;
 
 
 typedef struct POINT2DSTRUCT {
@@ -47,8 +47,8 @@ struct CPolygon2D : public polygon2DStruct
 
 
 
-void    createIfcExtrudedPolygonShape(CIFCObject *pObject, polygon2DStruct * pPolygon, double depth);
-void    createIfcPolylineShape(CIFCObject *pObject, double p0x, double p0y, double p1x, double p1y);
+void    createIfcExtrudedPolygonShape(CIFCElement *pObject, polygon2DStruct * pPolygon, double depth);
+void    createIfcPolylineShape(CIFCElement *pObject, double p0x, double p0y, double p1x, double p1y);
 
 
 //

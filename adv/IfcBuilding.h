@@ -3,58 +3,30 @@
 #pragma once
 
 #include "SrvBuilding.h"
-#include "ifc/baseIfcObject.h"
+#include "ifc/baseIfcElement.h"
 
-class CBuildingIfc;
-
-class CBoneIfc : public CBone
-{
-	CIFCInstance *m_pNode;
-public:
-	CBoneIfc(CIFCInstance *pNode) : m_pNode(pNode)	{ }
-	virtual ~CBoneIfc()					{ if (m_pNode) delete m_pNode; }
-	virtual void *GetHandle()			{ return m_pNode; }
-
-	// implementation specific
-	CIFCInstance *GetNode()				{ return m_pNode; }
-};
-
-class CElemIfc : public CElem
-{
-protected:
-	// Implementation
-	CIFCProject *m_pPrj;
-	CIFCInstance *m_pObj;
-
-	virtual void onCreate(CElem *pParent, AVULONG nElemId, AVSTRING name, AVVECTOR &vec);
-	virtual void onMove(AVVECTOR &vec);
-	virtual CBone *onAddBone(AVULONG nBoneId, AVSTRING name, AVVECTOR &vec);
-	virtual void onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, 
-					AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
-					AVULONG nDoorNum, FLOAT *pDoorData, CBone **ppNewBone);
-
-public:
-	CElemIfc(CProject *pProject, CBuilding *pBuilding) : CElem(pProject, pBuilding), m_pObj(NULL), m_pPrj(NULL)	{ }
-	virtual ~CElemIfc();
-	
-	CBuildingIfc *GetBuilding()				{ return (CBuildingIfc*)CElem::GetBuilding(); }
-	CBoneIfc *GetBone()						{ return (CBoneIfc*)CElem::GetBone(); }
-
-	// implementation specific
-	CIFCInstance *GetNode()					{ return GetBone()->GetNode(); }
-	CIFCInstance *GetNode(CBone *p)			{ return ((CBoneIfc*)p)->GetNode(); }
-
-	//void Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale = 1.0f, AVFLOAT fTexScale = 1.0f);
-};
+class CElemIfc;
+class CBoneIfc;
 
 class CBuildingIfc : public CBuildingSrv
 {
 public:
-	CBuildingIfc(CProject *pProject) : CBuildingSrv(pProject) { }
+	CBuildingIfc(CProject *pProject, AVULONG nIndex) : CBuildingSrv(pProject, nIndex) { }
 
-//	virtual CElem *CreateElement()	{ return new CElemIfc(this); }
+	CElemIfc *GetElement()																{ return (CElemIfc*)CBuildingSrv::GetElement(); }
 
-public:
-	// IFC
-	HRESULT SaveAsIFC(LPCOLESTR pFileName, bool bBrep = true, bool bPresentation = false);
+	CElemIfc *GetStoreyElement(AVULONG nStorey)											{ return (CElemIfc*)CBuildingSrv::GetStoreyElement(nStorey); }
+	CBoneIfc *GetStoreyBone(AVULONG nStorey)											{ return (CBoneIfc*)CBuildingSrv::GetStoreyBone(nStorey); }
+	
+	CElemIfc *GetLiftElement(AVULONG nLift)												{ return (CElemIfc*)CBuildingSrv::GetLiftElement(nLift); }
+	CBoneIfc *GetLiftBone(AVULONG nLift)												{ return (CBoneIfc*)CBuildingSrv::GetLiftBone(nLift); }
+	CBoneIfc *GetLiftDeck(AVULONG nLift, AVULONG nDeck)									{ return (CBoneIfc*)CBuildingSrv::GetLiftDeck(nLift, nDeck); }
+	CBoneIfc *GetLiftDoor(AVULONG nLift, AVULONG nDoor)									{ return (CBoneIfc*)CBuildingSrv::GetLiftDoor(nLift, nDoor); }
+
+	CElemIfc *GetShaftElement(AVULONG nStorey, AVULONG nShaft)							{ return (CElemIfc*)CBuildingSrv::GetShaftElement(nStorey, nShaft); }
+	CElemIfc *GetShaftElementLobbySide(AVULONG nStorey, AVULONG nShaft)					{ return (CElemIfc*)CBuildingSrv::GetShaftElementLobbySide(nStorey, nShaft); }
+	CElemIfc *GetShaftElementLeft(AVULONG nStorey, AVULONG nShaft)						{ return (CElemIfc*)CBuildingSrv::GetShaftElementLeft(nStorey, nShaft); }
+	CElemIfc *GetShaftElementRight(AVULONG nStorey, AVULONG nShaft)						{ return (CElemIfc*)CBuildingSrv::GetShaftElementRight(nStorey, nShaft); }
+	CElemIfc *GetShaftElementLeftOrRight(AVULONG nStorey, AVULONG nShaft, AVULONG n)	{ return (CElemIfc*)CBuildingSrv::GetShaftElementLeftOrRight(nStorey, nShaft, n); }
+	CBoneIfc *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)				{ return (CBoneIfc*)CBuildingSrv::GetShaftDoor(nStorey, nShaft, nDoor); }
 };

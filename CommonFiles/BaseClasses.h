@@ -26,11 +26,11 @@ class CSim : public dbtools::CCollection
 	std::vector<CPassenger*> m_passengers;
 
 public:
-	CSim(CBuilding *pBuilding);
+	CSim(CBuilding *pBuilding, AVULONG nIndex);
 	virtual ~CSim();
 
-	CBuilding *GetBuilding()				{ return m_pBuilding;}
-	void SetBuilding(CBuilding *pBuilding)	{ m_pBuilding = pBuilding; }
+	CBuilding *GetBuilding()					{ return m_pBuilding;}
+	void SetBuilding(CBuilding *pBuilding)		{ m_pBuilding = pBuilding; }
 
 	std::wstring GetSIMFileName()				{ return ME[L"SIMFileName"]; }
 	std::wstring GetIFCFileName()				{ return ME[L"IFCFileName"]; }
@@ -122,8 +122,8 @@ public:
 	void ResolveLiftGroups();
 
 protected:
-	virtual CBuilding *CreateBuilding() = 0;
-	virtual CSim *CreateSim(CBuilding *pBuilding) = 0;
+	virtual CBuilding *CreateBuilding(AVULONG iIndex) = 0;
+	virtual CSim *CreateSim(CBuilding *pBuilding, AVULONG iIndex) = 0;
 };
 
 class CLift : public dbtools::CCollection

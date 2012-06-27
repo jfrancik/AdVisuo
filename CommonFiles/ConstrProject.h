@@ -23,14 +23,25 @@ public:
 
 class CElem
 {
+public:
+	enum { WALL_FRONT, WALL_REAR, WALL_SIDE, WALL_CEILING, WALL_FLOOR,
+		WALL_BEAM, WALL_SHAFT, WALL_OPENING, WALL_DOOR, WALL_LIFT, WALL_LIFT_FLOOR, WALL_LIFT_CEILING, WALL_LIFT_DOOR,
+		WALL_LIFT_NUMBER_PLATE, WALL_FLOOR_NUMBER_PLATE
+	};
+	enum { ELEM_PROJECT, ELEM_SITE, ELEM_BUILDING, ELEM_STOREY, ELEM_SHAFT, ELEM_EXTRA, ELEM_LIFT };
+	enum { BONE_DECK };
+
 protected:
 	CProject *m_pProject;
 	CBuilding *m_pBuilding;
 	CBone *m_pBone;
+	CElem *m_pParent;
+	std::wstring m_name;
 
 protected:
 	// Implementation
-	virtual void onCreate(CElem *pParent, AVULONG nElemId, AVSTRING name, AVVECTOR &vec) = 0;
+	virtual std::wstring onCreateName(AVULONG nElemId, std::wstring name,  AVLONG i) = 0;
+	virtual void onCreate(AVULONG nElemId, AVVECTOR &vec) = 0;
 	virtual void onMove(AVVECTOR &vec) = 0;
 	virtual CBone *onAddBone(AVULONG nBoneId, AVSTRING name, AVVECTOR &vec) = 0;
 	virtual void onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, 
@@ -40,15 +51,17 @@ protected:
 	static OLECHAR *_name(OLECHAR *name, LONG i)	{ static OLECHAR buf[257]; _snwprintf_s(buf, 256, name, LOWORD(i), HIWORD(i)); return buf; }
 
 public:
-	CElem(CProject *pProject, CBuilding *pBuilding)	: m_pProject(pProject), m_pBuilding(pBuilding), m_pBone(NULL)	{ }
+	CElem(CProject *pProject, CBuilding *pBuilding)	: m_pProject(pProject), m_pBuilding(pBuilding), m_pBone(NULL), m_pParent(NULL)	{ }
 	virtual ~CElem()														{ }
 
 	CBuilding *GetBuilding()												{ return m_pBuilding; }
 	CProject *GetProject()													{ return m_pProject; }
-	CBone *GetBone()														{ return m_pBone; }
+	CBone *GetBone()														{ if (m_pBone) return m_pBone; if (m_pParent) return m_pParent->GetBone(); return NULL; }
+	CElem *GetParent()														{ return m_pParent; }
+	std::wstring GetName()													{ return m_name; }
 	
-	void Create(CElem *pParent, AVULONG nElemId, AVSTRING name, AVVECTOR vec)				{ onCreate(pParent, nElemId, name, vec); }
-	void Create(CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)		{ onCreate(pParent, nElemId, _name(name, i), vec); }
+	void Create(CElem *pParent, AVULONG nElemId, AVSTRING name, AVVECTOR vec)				{ m_pParent = pParent; m_name = onCreateName(nElemId, name, 0); onCreate(nElemId, vec); }
+	void Create(CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)		{ m_pParent = pParent; m_name = onCreateName(nElemId, name, i); onCreate(nElemId, vec); }
 
 	void Move(AVVECTOR vec)													{ onMove(vec); }
 
@@ -75,12 +88,14 @@ public:
 class CProjectConstr : public CProject
 {
 	CElem *m_pElem;
+	CElem *m_pElemSite;
 
 public:
-	CProjectConstr(): CProject()						{ m_pElem = NULL; }
+	CProjectConstr(): CProject()						{ m_pElem = m_pElemSite = NULL; }
 	virtual ~CProjectConstr()							{ Deconstruct(); }
 
 	CElem *GetElement()									{ return m_pElem; }
+	CElem *GetSiteElement()								{ return m_pElemSite; }
 
 	void Construct();
 	void Deconstruct();

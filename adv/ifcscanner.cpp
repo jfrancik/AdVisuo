@@ -302,7 +302,7 @@ void CIFCModelScanner::GetBB(BB &bb)
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // CIFCRevitElem
 
-CIFCRevitElem::CIFCRevitElem(CIFCStorey *pParent, transformationMatrixStruct *pMatrix) : CIFCObject(pParent, pMatrix)
+CIFCRevitElem::CIFCRevitElem(CIFCStorey *pParent, transformationMatrixStruct *pMatrix) : CIFCElement(pParent, pMatrix)
 {
 	reset();
 	revitName = "Default Revit Model";
