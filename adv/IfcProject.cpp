@@ -7,8 +7,15 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CElemIfc
 
+// GLOBAL VARIABLES!!!
 bool bBrep = true;
 bool bPresentation = false;
+
+int hMachine, hLift, hBuffer, hDoorCar, hDoorLanding;
+CIFCModelScanner::BB bbMachine;
+CIFCModelScanner::BB bbLift;
+CIFCModelScanner::BB bbBuffer;
+
 
 CElemIfc::~CElemIfc()
 {
@@ -169,6 +176,46 @@ USES_CONVERSION;
 	case WALL_LIFT_FLOOR:
 	case WALL_LIFT_CEILING:			pElem = new CIFCSlab(pBone->GetNode(), &matrix, l, h, -d, bBrep, bPresentation); break;
 
+	case WALL_MACHINE:
+
+		{
+		// EXPERIMENTAL
+		double dScale = l / (bbMachine.x1 - bbMachine.x0);
+		CIFCRevitElem machine(pBone->GetNode(), &matrix);
+		machine.setInfo(OLE2A(strName), OLE2A(strName));
+		int h = machine.build(hMachine, [dScale] (CIFCModelScanner::ITEM *pItem) 
+								{
+									if (pItem->type == CIFCModelScanner::ITEM::AGGREG && pItem->nIndex >= 0 && pItem->nType == sdaiREAL && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE && strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 && sdaiGetMemberCount(pItem->hAggreg) == 3)
+										pItem->dvalue *= dScale;
+								}); 
+		if (!h) throw Logf(ERROR_IFC_PRJ, L"revit");
+		return;
+		}
+
+	case WALL_BUFFER:
+
+		{
+		// EXPERIMENTAL
+		identityMatrix(&matrix);
+		matrix._41 = vecPos.x + 300;
+		matrix._42 = vecPos.y - 300;
+		matrix._43 = vecPos.z + 1800;
+
+		double dScale = l / (bbBuffer.y1 - bbBuffer.y0);	// x0 - x1 doesn't provide correct values!
+		CIFCRevitElem buffer(pBone->GetNode(), &matrix);
+		buffer.setInfo(OLE2A(strName), OLE2A(strName));
+		int h = buffer.build(hBuffer, [dScale] (CIFCModelScanner::ITEM *pItem) 
+								{
+									if (pItem->type == CIFCModelScanner::ITEM::AGGREG && pItem->nIndex >= 0 && pItem->nType == sdaiREAL && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE && strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 && sdaiGetMemberCount(pItem->hAggreg) == 3)
+										pItem->dvalue *= dScale;
+								}); 
+		if (!h) throw Logf(ERROR_IFC_PRJ, L"revit");
+		return;
+		}
+
+
+
+
 	case WALL_FRONT:
 	case WALL_REAR:
 	case WALL_SIDE:
@@ -226,19 +273,17 @@ void CProjectIfc::Construct()
 	//////////////////////////////////////////////////////////////////
 	// Prepare for creation of REVIT elements
 	CRevitFile revit1("Machine30T_UPSTAND.ifc");
-	int hMachine = revit1.GetInstance(0);
 	CRevitFile revit2("21April2011AllComponents.ifc");
-	int hLift = revit2.GetInstance(0);
-	int hBuffer = revit2.GetInstance(1);
-	int hDoorCar = revit2.GetInstance(4);
-	int hDoorLanding = revit2.GetInstance(5);
+
+	hMachine = revit1.GetInstance(0);
+	hLift = revit2.GetInstance(0);
+	hBuffer = revit2.GetInstance(1);
+	hDoorCar = revit2.GetInstance(4);
+	hDoorLanding = revit2.GetInstance(5);
 
 	// Bounding boxes
-	CIFCModelScanner::BB bbMachine;
 	CIFCModelScanner::GetBB(hMachine, bbMachine);
-	CIFCModelScanner::BB bbLift;
 	CIFCModelScanner::GetBB(hLift, bbLift);
-	CIFCModelScanner::BB bbBuffer;
 	CIFCModelScanner::GetBB(hBuffer, bbBuffer);
 
 	CProjectSrv::Construct();

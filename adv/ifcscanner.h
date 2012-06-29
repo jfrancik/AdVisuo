@@ -117,17 +117,17 @@ public:
 	typedef int  HINSTANCE;
 
 private:
-	char *revitName;
-	char *revitDescription;
+	char *strName;
+	char *strDescription;
 	HINSTANCE hCloneInstance;
 
 public:
-	CIFCRevitElem(CIFCStorey *pParent, transformationMatrixStruct *pMatrix);
+	CIFCRevitElem(CIFCRoot *pParent, transformationMatrixStruct *pMatrix);
 	
 	virtual int build(HINSTANCE hSourceInstance, CIFCModelScanner::CB_FUNC cbUserFilter = NULL);
 	virtual int build() { return 0; }
 
 	HINSTANCE getCloneInstance()							{ return hCloneInstance; }
 
-	void setRevitInfo(char *name, char *description)		{ revitName = name; revitDescription = description; }
+	void setInfo(char *name, char *description)		{ strName = name; strDescription = description; }
 };

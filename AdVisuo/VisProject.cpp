@@ -100,6 +100,9 @@ void CElemVis::onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG
 {
 	//TRACE(L"Building wall: pos = (%f, %f, %f), l = %f, h = %f, d = %f\n", vecPos.x/0.04f, vecPos.y/0.04f, vecPos.z/0.04f, l/0.04f, h/0.04f, d/0.04f);
 
+	if (nWallId == CElem::WALL_BUFFER) return;
+	if (nWallId == CElem::WALL_MACHINE) nWallId = CElem::WALL_BEAM;
+
 	CBlock block;
 	block.Open(m_pObj, GetNode(pBone), strName, l, h, d, vecPos, vecRot.z, vecRot.x, vecRot.y);
 	block.BuildFrontSection();
@@ -112,6 +115,8 @@ void CElemVis::onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG
 	
 	block.BuildWall();
 	block.BuildRearSection();
+
+	
 
 	block.SetMaterial(GetBuilding()->GetMaterial(nWallId, LOWORD(nIndex)));
 	if (ppNewBone)

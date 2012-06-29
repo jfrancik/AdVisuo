@@ -302,11 +302,11 @@ void CIFCModelScanner::GetBB(BB &bb)
 //////////////////////////////////////////////////////////////////////////////////////////////////
 // CIFCRevitElem
 
-CIFCRevitElem::CIFCRevitElem(CIFCStorey *pParent, transformationMatrixStruct *pMatrix) : CIFCElement(pParent, pMatrix)
+CIFCRevitElem::CIFCRevitElem(CIFCRoot *pParent, transformationMatrixStruct *pMatrix) : CIFCElement(pParent, pMatrix)
 {
 	reset();
-	revitName = "Default Revit Model";
-	revitDescription = "The project default Revit model";
+	strName = "Default Revit Model";
+	strDescription = "The project default Revit model";
 	setRelNameAndDescription("RevitContainer", "RevitContainer");
 }
 	
@@ -316,8 +316,8 @@ int CIFCRevitElem::build(HINSTANCE hSourceInstance, CIFCModelScanner::CB_FUNC cb
 
 	sdaiPutAttrBN(ifcInstance, "GlobalId", sdaiSTRING, (void*) CreateCompressedGuidString());
 	sdaiPutAttrBN(ifcInstance, "OwnerHistory", sdaiINSTANCE, (void*) getProject()->getOwnerHistoryInstance());
-	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, revitName);
-	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, revitDescription);
+	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
+	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
 
 	ifcPlacementInstance = buildLocalPlacementInstance(pMatrix, pParent->getPlacementInstance());
 	sdaiPutAttrBN(ifcInstance, "ObjectPlacement", sdaiINSTANCE, (void*) ifcPlacementInstance);

@@ -212,7 +212,21 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 void CBuildingConstr::SHAFT::ConstructMachine(AVULONG iShaft)
 {
 	m_pElemMachine = GetProject()->CreateElement(GetBuilding());
-	m_pElemMachine->Create(GetBuilding()->GetMachineRoomElement(), CElem::ELEM_SHAFT, L"Machine %c", iShaft + 'A', Vector(0, 0, GetBuilding()->GetMachineRoomLevel()));
+	GetMachineElement()->Create(GetBuilding()->GetMachineRoomElement(), CElem::ELEM_SHAFT, L"Machine %c", iShaft + 'A', Vector(0, 0, GetBuilding()->GetMachineRoomLevel()));
+
+	BOX box = GetBoxCar();
+	box.SetHeight(box.Width());
+	if (GetShaftLine())
+	{
+		box.Move(box.Width(), box.Depth(), 0);
+		box.SetDepth(-box.Depth());
+		GetMachineElement()->AddWall(CElem::WALL_MACHINE, L"Machine", 0, box, Vector(0, 0, M_PI));
+	}
+	else
+	{
+		box.Move(0, box.Depth(), 0);
+		GetMachineElement()->AddWall(CElem::WALL_MACHINE, L"Machine", 0, box, Vector(0));
+	}
 }
 
 void CBuildingConstr::SHAFT::ConstructPit(AVULONG iShaft)
@@ -250,6 +264,11 @@ void CBuildingConstr::SHAFT::ConstructPit(AVULONG iShaft)
 		GetPitElement()->AddWall(CElem::WALL_SHAFT, L"RearWall", 0, GetBox().LeftExtRearLower(), GetBox().WidthExt(), GetBox().Height(), -GetBox().RearThickness());
 		GetPitElementLobbySide()->AddWall(CElem::WALL_SHAFT, L"FrontWall", 0, GetBox().LeftExtFrontLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().RearThickness());
 	}
+
+	// Buffer
+	AVFLOAT x = GetBoxCar().CenterX();
+	AVFLOAT y = GetBoxCar().CenterY();
+	GetPitElement()->AddWall(CElem::WALL_BUFFER, L"Buffer", 0, Vector(x-300, y-300, 0), 600, 600, 1800);
 }
 
 void CBuildingConstr::SHAFT::Deconstruct()
