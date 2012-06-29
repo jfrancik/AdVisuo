@@ -28,21 +28,57 @@ public:
 		virtual void Deconstruct();
 	};
 
+	struct MACHINEROOM : public CBuilding::MACHINEROOM
+	{
+		CElem *m_pElem;
+	public:
+		MACHINEROOM(CBuildingConstr *pBuilding) : CBuilding::MACHINEROOM(pBuilding), m_pElem(NULL)	{ }
+		~MACHINEROOM()							{ }
+
+		CBuildingConstr *GetBuilding()			{ return (CBuildingConstr*)CBuilding::STOREY::GetBuilding(); }
+		CProjectConstr *GetProject()			{ return (CProjectConstr*)CBuilding::STOREY::GetProject(); }
+
+		CElem *GetElement()						{ return m_pElem; }
+
+		virtual void Construct();
+		virtual void Deconstruct();
+	};
+
+	struct PIT : public CBuilding::PIT
+	{
+		CElem *m_pElem;
+	public:
+		PIT(CBuildingConstr *pBuilding) : CBuilding::PIT(pBuilding), m_pElem(NULL)	{ }
+		~PIT()									{ }
+
+		CBuildingConstr *GetBuilding()			{ return (CBuildingConstr*)CBuilding::STOREY::GetBuilding(); }
+		CProjectConstr *GetProject()			{ return (CProjectConstr*)CBuilding::STOREY::GetProject(); }
+
+		CElem *GetElement()						{ return m_pElem; }
+
+		virtual void Construct();
+		virtual void Deconstruct();
+	};
+
 	struct SHAFT : public CBuilding::SHAFT
 	{
 		// storey structures
 		struct BONES
 		{
-			BONES() 	{ memset(m_ppDoors, 0, sizeof(m_ppDoors)); }
+			BONES() 	{ m_pElem = m_pElemLobbySide = m_pElemLeft = m_pElemRight = NULL; memset(m_ppDoors, 0, sizeof(m_ppDoors)); }
 			CElem *m_pElem;
 			CElem *m_pElemLobbySide;
 			CElem *m_pElemLeft;
 			CElem *m_pElemRight;
 			CBone *m_ppDoors[MAX_DOORS];
-		} *m_pStoreyBones;
+		};
+		
+		BONES *m_pStoreyBones;		// regular stories
+		CElem *m_pElemMachine;		// machine room zone
+		BONES m_PitBones;			// lift pit bones
 
 	public:
-		SHAFT(CBuildingConstr *pBuilding, AVULONG nId) : CBuilding::SHAFT(pBuilding, nId), m_pStoreyBones(NULL)		{ }
+		SHAFT(CBuildingConstr *pBuilding, AVULONG nId) : CBuilding::SHAFT(pBuilding, nId), m_pStoreyBones(NULL), m_pElemMachine(NULL)		{ }
 		~SHAFT()											{ }
 
 		CBuildingConstr *GetBuilding()						{ return (CBuildingConstr*)CBuilding::SHAFT::GetBuilding(); }
@@ -55,7 +91,17 @@ public:
 		CElem *GetElementLeftOrRight(AVULONG nStorey, AVULONG n)	{ return n == 0 ? GetElementLeft(nStorey) : GetElementRight(nStorey); }
 		CBone *GetDoor(AVULONG nStorey, AVULONG nDoor)		{ return m_pStoreyBones ? m_pStoreyBones[nStorey].m_ppDoors[nDoor] : NULL; }
 
+		CElem *GetMachineElement()							{ return m_pElemMachine; }
+
+		CElem *GetPitElement()								{ return m_PitBones.m_pElem; }
+		CElem *GetPitElementLobbySide()						{ return m_PitBones.m_pElemLobbySide; }
+		CElem *GetPitElementLeft()							{ return m_PitBones.m_pElemLeft; }
+		CElem *GetPitElementRight()							{ return m_PitBones.m_pElemRight; }
+		CElem *GetPitElementLeftOrRight(AVULONG n)			{ return n == 0 ? GetPitElementLeft() : GetPitElementRight(); }
+
 		virtual void Construct(AVULONG iStorey, AVULONG iShaft);
+		virtual void ConstructMachine(AVULONG iShaft);
+		virtual void ConstructPit(AVULONG iShaft);
 		virtual void Deconstruct();
 	};
 
@@ -86,22 +132,10 @@ public:
 		virtual void Deconstruct();
 	};
 
-	struct MACHINEROOM : public STOREY
-	{
-	public:
-		MACHINEROOM(CBuildingConstr *pBuilding) : STOREY(pBuilding, 0)	{ }
-		~MACHINEROOM()													{ }
-
-		virtual void Construct(AVULONG iStorey)							{ STOREY::Construct(iStorey); }
-		virtual void Deconstruct()										{ STOREY::Deconstruct(); }
-	};
-
 // Main Implementation
 private:
 	bool bFastLoad;	// press Shift+Esc to stop building most of the building structures
 	CElem *m_pElem;
-
-	MACHINEROOM *m_pMachineRoom;
 
 public:
 	CBuildingConstr(CProject *pProject, AVULONG nIndex);
@@ -113,11 +147,13 @@ public:
 	virtual SHAFT *CreateShaft(AVULONG nId)	{ return new SHAFT(this, nId); }
 	virtual LIFT *CreateLift(AVULONG nId)	{ return new LIFT(this, nId); }
 	virtual MACHINEROOM *CreateMachineRoom(){ return new MACHINEROOM(this); }
+	virtual PIT *CreatePit()				{ return new PIT(this); }
 	STOREY *GetStorey(AVULONG i)			{ return (STOREY*)CBuilding::GetStorey(i); }
 	STOREY *GetGroundStorey(AVULONG i = 0)	{ return (STOREY*)CBuilding::GetGroundStorey(i); }
 	SHAFT *GetShaft(AVULONG i)				{ return (SHAFT*)CBuilding::GetShaft(i); }
 	LIFT *GetLift(AVULONG i)				{ return (LIFT*)CBuilding::GetLift(i); }
-	MACHINEROOM *GetMachineRoom()			{ return m_pMachineRoom; }
+	MACHINEROOM *GetMachineRoom()			{ return (MACHINEROOM*)CBuilding::GetMachineRoom(); }
+	PIT *GetPit()							{ return (PIT*)CBuilding::GetPit(); }
 
 
 	CElem *GetElement()																{ return m_pElem; }
@@ -125,6 +161,12 @@ public:
 	CElem *GetStoreyElement(AVULONG nStorey)										{ return GetStorey(nStorey)->GetElement(); }
 	CBone *GetStoreyBone(AVULONG nStorey)											{ return GetStoreyElement(nStorey)->GetBone(); }
 	
+	CElem *GetMachineRoomElement()													{ return GetMachineRoom()->GetElement(); }
+	CBone *GetMachineRoomBone()														{ return GetMachineRoomElement()->GetBone(); }
+
+	CElem *GetPitElement()															{ return GetPit()->GetElement(); }
+	CBone *GetPitBone()																{ return GetPitElement()->GetBone(); }
+
 	CElem *GetLiftElement(AVULONG nLift)											{ return GetLift(nLift)->GetElement(); }
 	CBone *GetLiftBone(AVULONG nLift)												{ return GetLiftElement(nLift)->GetBone(); }
 	CBone *GetLiftDeck(AVULONG nLift, AVULONG nDeck)								{ return GetLift(nLift)->GetDeck(nDeck); }
@@ -137,13 +179,13 @@ public:
 	CElem *GetShaftElementLeftOrRight(AVULONG nStorey, AVULONG nShaft, AVULONG n)	{ return GetShaft(nShaft)->GetElementLeftOrRight(nStorey, n); }
 	CBone *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)				{ return GetShaft(nShaft)->GetDoor(nStorey, nDoor); }
 
-	// machine room and lift pit
-	virtual void ResolveMore();
-	virtual void ConsoleCreate();
-	virtual void Create();
-	virtual void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
-	virtual void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
-	void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
+	CElem *GetMachineElement(AVULONG nShaft)										{ return GetShaft(nShaft)->GetMachineElement(); }
+
+	CElem *GetPitElement(AVULONG nShaft)											{ return GetShaft(nShaft)->GetPitElement(); }
+	CElem *GetPitElementLobbySide(AVULONG nShaft)									{ return GetShaft(nShaft)->GetPitElementLobbySide(); }
+	CElem *GetPitElementLeft(AVULONG nShaft)										{ return GetShaft(nShaft)->GetPitElementLeft(); }
+	CElem *GetPitElementRight(AVULONG nShaft)										{ return GetShaft(nShaft)->GetPitElementRight(); }
+	CElem *GetPitElementLeftOrRight(AVULONG nShaft, AVULONG n)						{ return GetShaft(nShaft)->GetPitElementLeftOrRight(n); }
 
 	virtual void Construct(AVVECTOR vec);
 	virtual void Deconstruct();

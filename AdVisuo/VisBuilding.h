@@ -37,6 +37,12 @@ public:
 	CElemVis *GetStoreyElement(AVULONG nStorey)											{ return (CElemVis*)CBuildingConstr::GetStoreyElement(nStorey); }
 	CBoneVis *GetStoreyBone(AVULONG nStorey)											{ return (CBoneVis*)CBuildingConstr::GetStoreyBone(nStorey); }
 	
+	CElemVis *GetMachineRoomElement()													{ return (CElemVis*)CBuildingConstr::GetMachineRoomElement(); }
+	CBoneVis *GetMachineRoomBone()														{ return (CBoneVis*)CBuildingConstr::GetMachineRoomBone(); }
+
+	CElemVis *GetPitElement()															{ return (CElemVis*)CBuildingConstr::GetPitElement(); }
+	CBoneVis *GetPitBone()																{ return (CBoneVis*)CBuildingConstr::GetPitBone(); }
+
 	CElemVis *GetLiftElement(AVULONG nLift)												{ return (CElemVis*)CBuildingConstr::GetLiftElement(nLift); }
 	CBoneVis *GetLiftBone(AVULONG nLift)												{ return (CBoneVis*)CBuildingConstr::GetLiftBone(nLift); }
 	CBoneVis *GetLiftDeck(AVULONG nLift, AVULONG nDeck)									{ return (CBoneVis*)CBuildingConstr::GetLiftDeck(nLift, nDeck); }
@@ -48,6 +54,14 @@ public:
 	CElemVis *GetShaftElementRight(AVULONG nStorey, AVULONG nShaft)						{ return (CElemVis*)CBuildingConstr::GetShaftElementRight(nStorey, nShaft); }
 	CElemVis *GetShaftElementLeftOrRight(AVULONG nStorey, AVULONG nShaft, AVULONG n)	{ return (CElemVis*)CBuildingConstr::GetShaftElementLeftOrRight(nStorey, nShaft, n); }
 	CBoneVis *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)				{ return (CBoneVis*)CBuildingConstr::GetShaftDoor(nStorey, nShaft, nDoor); }
+
+	CElemVis *GetMachineElement(AVULONG nShaft)											{ return (CElemVis*)CBuildingConstr::GetMachineElement(nShaft); }
+
+	CElemVis *GetPitElement(AVULONG nShaft)												{ return (CElemVis*)CBuildingConstr::GetPitElement(nShaft); }
+	CElemVis *GetPitElementLobbySide(AVULONG nShaft)									{ return (CElemVis*)CBuildingConstr::GetPitElementLobbySide(nShaft); }
+	CElemVis *GetPitElementLeft(AVULONG nShaft)											{ return (CElemVis*)CBuildingConstr::GetPitElementLeft(nShaft); }
+	CElemVis *GetPitElementRight(AVULONG nShaft)										{ return (CElemVis*)CBuildingConstr::GetPitElementRight(nShaft); }
+	CElemVis *GetPitElementLeftOrRight(AVULONG nShaft, AVULONG n)						{ return (CElemVis*)CBuildingConstr::GetPitElementLeftOrRight(nShaft, n); }
 
 // Main Implementation
 public:

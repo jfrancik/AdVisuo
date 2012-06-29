@@ -2,6 +2,7 @@
 
 #include "StdAfx.h"
 #include "ConstrBuilding.h"
+#include "DBTools.h"
 #include <math.h>
 
 #define F_PI	((AVFLOAT)M_PI)
@@ -14,13 +15,11 @@ CBuildingConstr::CBuildingConstr(CProject *pProject, AVULONG nIndex) : CBuilding
 { 
 	m_pElem = NULL; 
 	bFastLoad = false; 
-	m_pMachineRoom = NULL;
 }
 
 CBuildingConstr::~CBuildingConstr()
 {
 	Deconstruct(); 
-	if (m_pMachineRoom) delete m_pMachineRoom;
 }
 
 void CBuildingConstr::STOREY::Construct(AVULONG iStorey)
@@ -92,6 +91,47 @@ void CBuildingConstr::STOREY::Construct(AVULONG iStorey)
 void CBuildingConstr::STOREY::Deconstruct()
 {
 	delete m_pElem;
+}
+
+void CBuildingConstr::MACHINEROOM::Construct()
+{
+	if (::GetKeyState(VK_CONTROL) < 0 && ::GetKeyState(VK_SHIFT) < 0 && !GetBuilding()->bFastLoad) { GetBuilding()->bFastLoad = true; MessageBeep(MB_OK); }
+
+	// create skeletal structure (object & bone)
+	m_pElem = GetProject()->CreateElement(GetBuilding());
+	m_pElem->Create(GetBuilding()->GetElement(), CElem::ELEM_STOREY, (LPOLESTR)GetName().c_str(), Vector(0, 0, GetLevel()));
+
+	// build walls
+	m_pElem->AddWall(CElem::WALL_FLOOR,   L"Floor", 0, GetBox().LeftExtRearExtLower(), GetBox().WidthExt(), -GetBox().LowerThickness(), GetBox().DepthExt());
+	if (GetBuilding()->bFastLoad) return;
+	m_pElem->AddWall(CElem::WALL_SHAFT, L"RearWall", 0, GetBox().LeftExtFrontLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().FrontThickness(), Vector(0));
+	m_pElem->AddWall(CElem::WALL_SHAFT, L"FrontWall", 0, GetBox().RightExtRearLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().RearThickness(), Vector(0, 0, F_PI));
+	m_pElem->AddWall(CElem::WALL_SHAFT, L"LeftWall", 0, GetBox().LeftExtFrontLower(), GetBox().Depth(), GetBox().Height(), GetBox().LeftThickness(), Vector(0, 0, F_PI_2));
+	m_pElem->AddWall(CElem::WALL_SHAFT, L"RightWall", 0, GetBox().RightExtRearLower(), GetBox().Depth(), GetBox().Height(), GetBox().RightThickness(), Vector(0, 0, -F_PI_2));
+}
+
+void CBuildingConstr::MACHINEROOM::Deconstruct()
+{
+	if (m_pElem) delete m_pElem;
+}
+
+void CBuildingConstr::PIT::Construct()
+{
+	if (::GetKeyState(VK_CONTROL) < 0 && ::GetKeyState(VK_SHIFT) < 0 && !GetBuilding()->bFastLoad) { GetBuilding()->bFastLoad = true; MessageBeep(MB_OK); }
+
+	// create skeletal structure (object & bone)
+	m_pElem = GetProject()->CreateElement(GetBuilding());
+	m_pElem->Create(GetBuilding()->GetElement(), CElem::ELEM_STOREY, (LPOLESTR)GetName().c_str(), Vector(0, 0, GetLevel()));
+
+	// build walls - what walls?
+	if (GetBuilding()->bFastLoad) return;
+
+	// for walls - look at SHAFT::ConstructPit
+}
+
+void CBuildingConstr::PIT::Deconstruct()
+{
+	if (m_pElem) delete m_pElem;
 }
 
 void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
@@ -169,6 +209,49 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 	}
 }
 
+void CBuildingConstr::SHAFT::ConstructMachine(AVULONG iShaft)
+{
+	m_pElemMachine = GetProject()->CreateElement(GetBuilding());
+	m_pElemMachine->Create(GetBuilding()->GetMachineRoomElement(), CElem::ELEM_SHAFT, L"Machine %c", iShaft + 'A', Vector(0, 0, GetBuilding()->GetMachineRoomLevel()));
+}
+
+void CBuildingConstr::SHAFT::ConstructPit(AVULONG iShaft)
+{
+	if (::GetKeyState(VK_CONTROL) < 0 && ::GetKeyState(VK_SHIFT) < 0 && !GetBuilding()->bFastLoad) { GetBuilding()->bFastLoad = true; MessageBeep(MB_OK); }
+
+	// create skeletal structure (object & bone)
+	m_PitBones.m_pElem = GetProject()->CreateElement(GetBuilding());
+	m_PitBones.m_pElemLobbySide = GetProject()->CreateElement(GetBuilding());
+	m_PitBones.m_pElemLeft = GetProject()->CreateElement(GetBuilding());
+	m_PitBones.m_pElemRight = GetProject()->CreateElement(GetBuilding());
+
+	CElem *pParent = GetBuilding()->GetPitElement();
+	GetPitElement()->Create(pParent, CElem::ELEM_SHAFT, L"Pit %c", iShaft + 'A', Vector(0, 0, GetBuilding()->GetPitLevel()));
+	pParent = GetBuilding()->GetPitElement(iShaft);
+	GetPitElementLobbySide()->Create(pParent, CElem::ELEM_EXTRA, L"LobbySide", Vector(0, 0, GetBuilding()->GetPitLevel()));
+	GetPitElementLeft()->Create(pParent, CElem::ELEM_EXTRA, L"LeftSide", Vector(0, 0, GetBuilding()->GetPitLevel()));
+	GetPitElementRight()->Create(pParent, CElem::ELEM_EXTRA, L"RightSide", Vector(0, 0, GetBuilding()->GetPitLevel()));
+	
+	GetBox().SetHeight(-GetBuilding()->GetPitLevel());
+
+	if (GetBoxBeam().Width() > 0)
+	{
+		GetPitElement()->AddWall(CElem::WALL_BEAM, L"Beam", 0, GetBoxBeam().LeftFrontLower(), GetBoxBeam().Width(), GetBoxBeam().Height(), -GetBoxBeam().Depth());
+		GetPitElement()->AddWall(CElem::WALL_SHAFT, L"BmRr", 0, GetBoxBeam().LeftRearLower(), GetBoxBeam().Width(), GetBox().Height(), -GetBox().RearThickness());
+		GetPitElementLobbySide()->AddWall(CElem::WALL_SHAFT, L"BmFt", 0, GetBoxBeam().LeftFrontLower(), GetBoxBeam().Width(), GetBox().Height(), GetBox().RearThickness());
+	}
+
+	if (GetBox().LeftThickness() > 0)
+		GetPitElementLeft()->AddWall(CElem::WALL_SHAFT, L"LeftWall", 0, GetLeftWallBox(), Vector(0, 0, F_PI_2));
+	if (GetBox().RightThickness() > 0)
+		GetPitElementRight()->AddWall(CElem::WALL_SHAFT, L"RightWall", 0, GetRightWallBox(), Vector(0, 0, F_PI_2));
+	if (GetBox().RearThickness() != 0)
+	{
+		GetPitElement()->AddWall(CElem::WALL_SHAFT, L"RearWall", 0, GetBox().LeftExtRearLower(), GetBox().WidthExt(), GetBox().Height(), -GetBox().RearThickness());
+		GetPitElementLobbySide()->AddWall(CElem::WALL_SHAFT, L"FrontWall", 0, GetBox().LeftExtFrontLower(), GetBox().WidthExt(), GetBox().Height(), GetBox().RearThickness());
+	}
+}
+
 void CBuildingConstr::SHAFT::Deconstruct()
 {
 	if (m_pStoreyBones == NULL) return;
@@ -183,6 +266,14 @@ void CBuildingConstr::SHAFT::Deconstruct()
 	}
 	delete [] m_pStoreyBones;
 	m_pStoreyBones = NULL;
+
+	if (m_pElemMachine) delete m_pElemMachine;
+	m_pElemMachine = NULL;
+
+	if (m_PitBones.m_pElem) delete m_PitBones.m_pElem; m_PitBones.m_pElem = NULL;
+	if (m_PitBones.m_pElemLobbySide) delete m_PitBones.m_pElemLobbySide; m_PitBones.m_pElemLobbySide = NULL;
+	if (m_PitBones.m_pElemLeft) delete m_PitBones.m_pElemLeft; m_PitBones.m_pElemLeft = NULL;
+	if (m_PitBones.m_pElemRight) delete m_PitBones.m_pElemRight; m_PitBones.m_pElemRight = NULL;
 }
 
 void CBuildingConstr::LIFT::Construct(AVULONG iShaft)
@@ -227,32 +318,6 @@ void CBuildingConstr::LIFT::Deconstruct()
 	memset(m_ppDoors, 0, sizeof(m_ppDoors));
 }
 
-void CBuildingConstr::ResolveMore()
-{
-	CBuilding::ResolveMore();
-	m_pMachineRoom = CreateMachineRoom();
-}
-
-void CBuildingConstr::ConsoleCreate()
-{
-	CBuilding::ConsoleCreate();
-}
-
-void CBuildingConstr::Create()
-{
-	CBuilding::Create();
-}
-
-void CBuildingConstr::Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z)
-{
-	CBuilding::Scale(x, y, z);
-}
-
-void CBuildingConstr::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
-{
-	CBuilding::Move(x, y, z);
-}
-
 void CBuildingConstr::Construct(AVVECTOR vec)
 {
 	Move(vec.x, vec.y, vec.z);
@@ -263,14 +328,25 @@ void CBuildingConstr::Construct(AVVECTOR vec)
 	for (AVULONG iLift = 0; iLift < GetLiftCount(); iLift++)
 		GetLift(iLift)->Construct(iLift);
 
+	if (GetPit())
+	{
+		GetPit()->Construct();
+		for (AVULONG iShaft = 0; iShaft < GetShaftCount(); iShaft++)
+			GetShaft(iShaft)->ConstructPit(iShaft);
+	}
+
 	for (AVULONG iStorey = 0; iStorey < GetStoreyCount(); iStorey++)
 	{
 		GetStorey(iStorey)->Construct(iStorey);
 		for (AVULONG iShaft = 0; iShaft < GetShaftCount(); iShaft++)
 			GetShaft(iShaft)->Construct(iStorey, iShaft);
 	}
-	if (m_pMachineRoom)
-		m_pMachineRoom->Construct(0);
+	if (GetMachineRoom())
+	{
+		GetMachineRoom()->Construct();
+		for (AVULONG iShaft = 0; iShaft < GetShaftCount(); iShaft++)
+			GetShaft(iShaft)->ConstructMachine(iShaft);
+	}
 }
 
 void CBuildingConstr::Deconstruct()
@@ -283,6 +359,11 @@ void CBuildingConstr::Deconstruct()
 		GetShaft(i)->Deconstruct();
 	for (AVULONG i = 0; i < GetLiftCount(); i++)
 		GetLift(i)->Deconstruct();
+
+	if (GetMachineRoom())
+		GetMachineRoom()->Deconstruct();
+	if (GetPit())
+		GetPit()->Deconstruct();
 }
 
 

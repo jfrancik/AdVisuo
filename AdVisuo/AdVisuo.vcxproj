@@ -133,6 +133,7 @@
     <ClCompile Include="..\CommonFiles\XMLTools.cpp" />
     <ClCompile Include="AdVisuo.cpp" />
     <ClCompile Include="AdVisuoDoc.cpp" />
+    <ClCompile Include="AdVisuoRenderer.cpp" />
     <ClCompile Include="AdVisuoView.cpp" />
     <ClCompile Include="..\CommonFiles\BaseBuilding.cpp" />
     <ClCompile Include="..\CommonFiles\BaseClasses.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="..\CommonFiles\XMLTools.h" />
     <ClInclude Include="AdVisuo.h" />
     <ClInclude Include="AdVisuoDoc.h" />
+    <ClInclude Include="AdVisuoRenderer.h" />
     <ClInclude Include="AdVisuoView.h" />
     <ClInclude Include="..\CommonFiles\BaseBuilding.h" />
     <ClInclude Include="..\CommonFiles\BaseClasses.h" />

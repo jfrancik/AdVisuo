@@ -18,6 +18,7 @@
 #pragma once
 
 #include "AdVisuoDoc.h"
+#include "AdVisuoRenderer.h"
 #include "Camera.h"
 #include "Screen.h"
 #include "Sprite.h"
@@ -32,32 +33,6 @@
 #include <functional>
 
 #define N_CAMERAS	10						// number of cameras
-
-class CAdVisuoRenderer
-{
-	CBuildingVis *m_pBuilding;
-	IRenderer *m_pRenderer;
-	CCamera *m_pCamera;
-public:
-	CAdVisuoRenderer(CBuildingVis *pBuilding, IRenderer *pRenderer, CCamera *pCamera = NULL)
-		: m_pBuilding(pBuilding), m_pRenderer(pRenderer), m_pCamera(pCamera)	{ }
-
-	void SetBuilding(CBuildingVis *pBuilding)	{ m_pBuilding = pBuilding; }
-
-	bool SetupCamera(CCamera *pCamera);
-
-	void RenderLifts(FWULONG nRow);
-	void RenderShafts(FWULONG nRow, FWULONG iStorey);
-	void RenderShafts(FWULONG nRow);
-	void RenderShaftsLobbySide(FWULONG nRow, FWULONG iStorey);
-	void RenderShaftsLobbySide(FWULONG nRow);
-	void RenderStoreys();
-
-	void RenderCentre();
-	void RenderSide(AVLONG nLiftRow = -1);
-	void RenderCentreOuter();
-	void RenderSideOuter(AVLONG nLiftRow = -1);
-};
 
 class CAdVisuoView : public CView
 {

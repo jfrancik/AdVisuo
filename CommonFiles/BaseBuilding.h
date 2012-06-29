@@ -32,6 +32,7 @@ public:
 	// Storey Data
 	class STOREY : public dbtools::CCollection
 	{
+	protected:
 		AVULONG m_nId;							// Storey Id
 		CBuilding *m_pBuilding;					// main building
 		std::wstring m_strName;					// storey name
@@ -55,6 +56,9 @@ public:
 		AVFLOAT GetCeilingLevel()				{ return m_fLevel + GetBox().Height(); }
 		AVFLOAT GetRoofLevel()					{ return m_fLevel + GetBox().HeightExt(); }
 
+		void SetName(std::wstring strName)		{ m_strName = strName; }
+		void SetLevel(AVFLOAT fLevel)			{ m_fLevel = fLevel; }
+
 		AVVECTOR GetLiftPos(AVULONG nShaft)		{ return GetBuilding()->GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetLevel()); }
 
 		BOX &GetBox()							{ return m_box; }
@@ -70,6 +74,24 @@ public:
 		void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
 		void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 		void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	};
+
+	class MACHINEROOM : public STOREY
+	{
+	public:
+		MACHINEROOM(CBuilding *pBuilding) : STOREY(pBuilding, 9999)	{ }
+		virtual ~MACHINEROOM()										{ }
+		void ConsoleCreate();
+		void Create();
+	};
+
+	class PIT : public STOREY
+	{
+	public:
+		PIT(CBuilding *pBuilding) : STOREY(pBuilding, 9998)	{ }
+		virtual ~PIT()											{ }
+		void ConsoleCreate();
+		void Create();
 	};
 
 	// Shaft Layout data
@@ -213,10 +235,18 @@ private:
 	LOBBY_ARRANGEMENT m_LobbyArrangement;// Lobby arrangement
 
 	BOX m_box;							// scaled lobby floor plan (size of the lobby & its walls, zero height)
+	
+	BOX m_boxMachineRoom;				// scaled floor plan and level for the machine room
+	AVFLOAT m_fMachineRoomLevel;
+
+	BOX m_boxPit;						// scaled floor plan and level for the pit level
+	AVFLOAT m_fPitLevel;
 
 	STOREY **m_ppStoreys;
 	SHAFT **m_ppShafts;
 	LIFT **m_ppLifts;
+	MACHINEROOM *m_pMachineRoom;
+	PIT *m_pPit;
 
 public:
 	CBuilding(CProject *pProject, AVULONG nIndex);
@@ -241,6 +271,12 @@ public:
 	BOX &GetBox()							{ return m_box; }
 	bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
 
+	BOX &GetBoxMachineRoom()				{ return m_boxMachineRoom; }
+	bool InBoxMachineRoom(AVVECTOR &pt)		{ return m_boxMachineRoom.InBoxExt(pt); }
+	BOX &GetBoxPit()						{ return m_boxPit; }
+	bool InBoxPit(AVVECTOR &pt)				{ return m_boxPit.InBoxExt(pt); }
+
+
 	// Storeys
 	void CreateStoreys(AVULONG nStoreyCount, AVULONG nBasementStoreyCount = 0);
 	void DeleteStoreys();
@@ -249,6 +285,14 @@ public:
 	STOREY *GetStorey(AVULONG i)			{ return i < GetStoreyCount() ? m_ppStoreys[i] : NULL; }
 	STOREY *GetGroundStorey(AVULONG i = 0)	{ return GetStorey(i + GetBasementStoreyCount()); }
 
+	// Extras: Machine Room & Pit
+	void CreateExtras();
+	void DeleteExtras();
+
+	MACHINEROOM *GetMachineRoom()			{ return m_pMachineRoom; }
+	AVFLOAT GetMachineRoomLevel()			{ return m_fMachineRoomLevel; }
+	PIT *GetPit()							{ return m_pPit; }
+	AVFLOAT GetPitLevel()					{ return m_fPitLevel; }
 
 	// Shafts
 	void CreateShafts(AVULONG nShaftCount);
@@ -305,5 +349,7 @@ protected:
 	virtual STOREY *CreateStorey(AVULONG nId) = 0;
 	virtual SHAFT *CreateShaft(AVULONG nId) = 0;
 	virtual LIFT *CreateLift(AVULONG nId) = 0;
+	virtual MACHINEROOM *CreateMachineRoom() = 0;
+	virtual PIT *CreatePit() = 0;
 };
 

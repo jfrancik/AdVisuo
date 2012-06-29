@@ -98,6 +98,26 @@ public:
 	AVFLOAT LowerThickness()	{ return A.z - A1.z; }
 	AVFLOAT UpperThickness()	{ return B1.z - B.z; }
 
+	void SetLeft(AVFLOAT f)		{ A.x = f; }
+	void SetRight(AVFLOAT f)	{ B.x = f; }
+	void SetFront(AVFLOAT f)	{ A.y = f; }
+	void SetRear(AVFLOAT f)		{ B.y = f; }
+	void SetLower(AVFLOAT f)	{ A.z = f; }
+	void SetUpper(AVFLOAT f)	{ B.z = f; }
+
+	void SetLeftExt(AVFLOAT f)	{ A1.x = f; }
+	void SetRightExt(AVFLOAT f)	{ B1.x = f; }
+	void SetFrontExt(AVFLOAT f)	{ A1.y = f; }
+	void SetRearExt(AVFLOAT f)	{ B1.y = f; }
+	void SetLowerExt(AVFLOAT f)	{ A1.z = f; }
+	void SetUpperExt(AVFLOAT f)	{ B1.z = f; }
+
+	void SetWidth(AVFLOAT w)			{ AVFLOAT dw = w - Width(); B.x += dw; B1.x += dw; }
+	void SetDepth(AVFLOAT d)			{ AVFLOAT dd = d - Depth(); B.y += dd; B1.y += dd; }
+	void SetHeight(AVFLOAT h)			{ AVFLOAT dh = h - Height(); B.z += dh; B1.z += dh; }
+	void SetAspectWidth(AVFLOAT a)		{ SetWidth(Depth() * a); }
+	void SetAspectDepth(AVFLOAT a)		{ SetDepth(Width() / a); }
+
 	void SetThickness(AVFLOAT t)										{ A1 = A; A1.x -= t; A1.y -= t; A1.z -= t; B1 = B; B1.x += t; B1.y += t; B1.z += t; }
 	void SetThickness(AVFLOAT ltrt, AVFLOAT ftre)						{ SetThickness(ltrt, ltrt, ftre, ftre); }
 	void SetThickness(AVFLOAT lt, AVFLOAT rt, AVFLOAT ft, AVFLOAT re)	{ A1 = A; A1.x -= lt; A1.y -= ft; B1 = B; B1.x += rt; B1.y += re; }
@@ -109,10 +129,6 @@ public:
 	void SetRightThickness(AVFLOAT f)	{ B1.x = B.x + f; }
 	void SetLowerThickness(AVFLOAT f)	{ A1.z = A.z - f; }
 	void SetUpperThickness(AVFLOAT f)	{ B1.z = B.z + f; }
-
-	void SetWidth(AVFLOAT w)			{ AVFLOAT dw = w - B.x; B.x += dw; B1.x += dw; }
-	void SetDepth(AVFLOAT d)			{ AVFLOAT dd = d - B.y; B.y += dd; B1.y += dd; }
-	void SetHeight(AVFLOAT h)			{ AVFLOAT dh = h - B.z; B.z += dh; B1.z += dh; }
 
 	void Move(AVVECTOR v)				{ A.x += v.x; A.y += v.y; A.z += v.z; B.x += v.x; B.y += v.y; B.z += v.z; A1.x += v.x; A1.y += v.y; A1.z += v.z; B1.x += v.x; B1.y += v.y; B1.z += v.z; }
 	void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)	{ A.x += x; A.y += y; A.z += z; B.x += x; B.y += y; B.z += z; A1.x += x; A1.y += y; A1.z += z; B1.x += x; B1.y += y; B1.z += z; }

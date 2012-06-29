@@ -99,6 +99,9 @@
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AdVisuoRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdVisuo.h">
@@ -192,6 +195,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\CommonFiles\ConstrProject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AdVisuoRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

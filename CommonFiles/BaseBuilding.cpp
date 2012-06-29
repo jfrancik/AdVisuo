@@ -6,10 +6,16 @@
 //////////////////////////////////////////////////////////////////////////////////
 // CBuilding
 
-CBuilding::CBuilding(CProject *pProject, AVULONG nIndex) : m_pProject(pProject), m_nIndex(nIndex), m_ppStoreys(NULL), m_ppShafts(NULL), m_ppLifts(NULL), m_nStoreyCount(0), m_nShaftCount(0), m_nLiftCount(0), m_nBasementStoreyCount(0),
+CBuilding::CBuilding(CProject *pProject, AVULONG nIndex) : m_pProject(pProject), m_nIndex(nIndex), m_nStoreyCount(0), m_nShaftCount(0), m_nLiftCount(0), m_nBasementStoreyCount(0),
 									 m_nId(0), m_LiftShaftArrang(SHAFT_INLINE), m_LobbyArrangement(LOBBY_OPENPLAN)
 {
+	m_ppStoreys = NULL;
+	m_ppShafts = NULL;
+	m_ppLifts = NULL;
 	m_pnShaftCount[0] = m_pnShaftCount[1] = 0;
+	m_pMachineRoom = NULL;
+	m_pPit = NULL;
+	m_fPitLevel = m_fMachineRoomLevel = 0;
 }
 
 CBuilding::~CBuilding()
@@ -17,6 +23,7 @@ CBuilding::~CBuilding()
 	DeleteStoreys();
 	DeleteShafts();
 	DeleteLifts();
+	DeleteExtras();
 }
 
 void CBuilding::CreateStoreys(AVULONG nStoreyCount, AVULONG nBasementStoreyCount)
@@ -56,6 +63,21 @@ void CBuilding::DeleteShafts()
 	m_ppShafts = NULL;
 }
 
+void CBuilding::CreateExtras()
+{
+	DeleteExtras();
+	m_pMachineRoom = CreateMachineRoom();
+	m_pPit = CreatePit();
+}
+
+void CBuilding::DeleteExtras()
+{
+	if (m_pMachineRoom) delete m_pMachineRoom;
+	m_pMachineRoom = NULL;
+	if (m_pPit) delete m_pPit;
+	m_pPit = NULL;
+}
+
 void CBuilding::CreateLifts(AVULONG nLiftCount)
 {
 	DeleteLifts();
@@ -81,6 +103,7 @@ void CBuilding::ResolveMe(AVLONG nId)
 	SetIndex(ME[L"LiftGroupIndex"]);
 	CreateStoreys((ULONG)ME[L"NumberOfStoreys"], (ULONG)ME[L"NumberOfBasementStoreys"]);
 	CreateShafts(ME[L"NumberOfLifts"]);
+	CreateExtras();
 }
 
 void CBuilding::ResolveMore()
@@ -114,6 +137,7 @@ void CBuilding::ConsoleCreate()
 	AVFLOAT fSideWallThickness = ME[L"FrontWallThickness"];
 	AVFLOAT fShaftWallThicknessRear = ME[L"ShaftWallThicknessRear"];
 	AVFLOAT fShaftWallThicknessSide = ME[L"ShaftWallThicknessSide"];
+	AVFLOAT fMachineRoomSlabThickness = ME[L"MachineRoomSlabThickness"];
 	fLobbyCeilingSlabHeight = 1000;
 	// calculate width of the lobby if lifts in-line, no side walls
 	AVFLOAT fLobbyWidth = 0;
@@ -249,17 +273,51 @@ void CBuilding::ConsoleCreate()
 		fLevel += pStorey->GetHeight();
 	}
 
+	// calculate machine room box & level
+	m_boxMachineRoom = BOX(0, 0, 0, 0, 0, 0);
+	for (AVULONG i = 0; i < GetShaftCount(); i++)
+	{
+		SHAFT *pShaft = GetShaft(i);
+		m_boxMachineRoom.SetLeft(min(m_boxMachineRoom.Left(), pShaft->GetBox().Left()));
+		m_boxMachineRoom.SetRight(max(m_boxMachineRoom.Right(), pShaft->GetBox().Right()));
+		m_boxMachineRoom.SetFront(min(m_boxMachineRoom.Front(), pShaft->GetBox().Front()));
+		m_boxMachineRoom.SetFront(min(m_boxMachineRoom.Front(), pShaft->GetBox().Rear()));
+		m_boxMachineRoom.SetRear(max(m_boxMachineRoom.Rear(), pShaft->GetBox().Rear()));
+		m_boxMachineRoom.SetHeight(max(m_boxMachineRoom.Height(), (AVFLOAT)(*pShaft)[L"MachineRoomHeight"]));
+	}
+	m_boxMachineRoom.SetThickness(fShaftWallThicknessSide, fShaftWallThicknessSide, fShaftWallThicknessRear, fShaftWallThicknessRear, fMachineRoomSlabThickness, 0);
+	m_fMachineRoomLevel = GetStorey(GetHighestStoreyServed())->GetRoofLevel() + fMachineRoomSlabThickness;
+	if (GetMachineRoom()) GetMachineRoom()->ConsoleCreate();
+
+	// calculate pit level box & level
+	m_boxPit = m_box;
+	m_fPitLevel = 0;
+	for (AVULONG i = 0; i < GetShaftCount(); i++)
+	{
+		AVFLOAT fPitLevel = (*GetShaft(i))[L"PitDepth"];
+		if (fPitLevel > m_fPitLevel) m_fPitLevel = fPitLevel;
+	}
+	m_fPitLevel = -m_fPitLevel;
+	if (GetPit()) GetPit()->ConsoleCreate();
+	
+	// update ME
 	ME[L"Line1"] = m_pnShaftCount[0];
 	ME[L"Line2"] = m_pnShaftCount[1];
 	ME[L"BoxLobby"] = m_box.Stringify();
+	ME[L"BoxMachineRoom"] = m_boxMachineRoom.Stringify();
+	ME[L"MachineRoomLevel"] = m_fMachineRoomLevel;
+	ME[L"BoxPit"] = m_boxPit.Stringify();
+	ME[L"PitLevel"] = m_fPitLevel;
+
 	erase(L"LobbyCeilingSlabHeight");
 	erase(L"LobbyDepth");
 	erase(L"FrontWallThickness");
 	erase(L"IntDivBeamWidth");
 	erase(L"IntDivBeamHeight");
 	erase(L"SideWallThickness");
-	erase(L"ShaftWallThickness");
-	erase(L"ShaftWallThickness");
+	erase(L"ShaftWallThicknessRear");
+	erase(L"ShaftWallThicknessSide");
+	erase(L"MachineRoomSlabThickness");
 }
 
 void CBuilding::Create()
@@ -270,21 +328,33 @@ void CBuilding::Create()
 	m_pnShaftCount[0] = ME[L"Line1"];
 	m_pnShaftCount[1] = ME[L"Line2"];
 	m_box.ParseFromString(ME[L"BoxLobby"]);
+	m_boxMachineRoom.ParseFromString(ME[L"BoxMachineRoom"]);
+	m_fMachineRoomLevel = ME[L"MachineRoomLevel"];
+	m_boxPit.ParseFromString(ME[L"BoxPit"]);
+	m_fPitLevel = ME[L"PitLevel"];
 	
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
 		GetShaft(i)->Create();
 
 	for (AVULONG i = 0; i < GetStoreyCount(); i++)
 		GetStorey(i)->Create();
+
+	if (GetMachineRoom()) GetMachineRoom()->Create();
+	if (GetPit()) GetPit()->Create();
 }
 
 void CBuilding::Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 {
 	m_box.Scale(x, y, z);
+	m_boxPit.Scale(x, y, z);
+	m_fMachineRoomLevel *= z;
+	m_fPitLevel *= z;
 	for (AVULONG i = 0; i < GetShaftCount(); i++) 
 		GetShaft(i)->Scale(x, y, z);
 	for (AVULONG i = 0; i < GetStoreyCount(); i++) 
 		GetStorey(i)->Scale(x, y, z);
+	if (GetMachineRoom()) GetMachineRoom()->Scale(x, y, z);
+	if (GetPit()) GetPit()->Scale(x, y, z);
 }
 
 void CBuilding::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
@@ -294,6 +364,8 @@ void CBuilding::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 		GetShaft(i)->Move(x, y, z);
 	for (AVULONG i = 0; i < GetStoreyCount(); i++) 
 		GetStorey(i)->Move(x, y, z);
+	if (GetMachineRoom()) GetMachineRoom()->Move(x, y, z);
+	if (GetPit()) GetPit()->Move(x, y, z);
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -332,6 +404,44 @@ void CBuilding::STOREY::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 {
 	m_fLevel += z;
 	m_box.Move(x, y, z);
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+// CBuilding::MACHINEROOM
+
+void CBuilding::MACHINEROOM::ConsoleCreate()
+{
+	m_nId = 9999;
+	m_fLevel = GetBuilding()->GetMachineRoomLevel();
+	m_strName = L"Machine Room";
+	m_box = GetBuilding()->GetBoxMachineRoom();
+}
+
+void CBuilding::MACHINEROOM::Create()
+{
+	m_nId = 9999;
+	m_fLevel = GetBuilding()->GetMachineRoomLevel();
+	m_strName = L"Machine Room";
+	m_box = GetBuilding()->GetBoxMachineRoom();
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+// CBuilding::PIT
+
+void CBuilding::PIT::ConsoleCreate()
+{
+	m_nId = 9998;
+	m_fLevel = GetBuilding()->GetPitLevel();
+	m_strName = L"Lift Pit Level";
+	m_box = GetBuilding()->GetBoxPit();
+}
+
+void CBuilding::PIT::Create()
+{
+	m_nId = 9998;
+	m_fLevel = GetBuilding()->GetPitLevel();
+	m_strName = L"Lift Pit Level";
+	m_box = GetBuilding()->GetBoxPit();
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -478,6 +588,7 @@ void CBuilding::SHAFT::ConsoleCreateAmend()
 	erase(L"CarHeight");
 	erase(L"LiftDoorHeight");
 	erase(L"LiftDoorWidth");
+	//erase(L"PitDepth");
 }
 
 void CBuilding::SHAFT::Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z)
