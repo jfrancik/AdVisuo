@@ -17,6 +17,7 @@ public:
 	BOX()														{ this->A = this->A1 = Vector(0, 0, 0); this->B = this->B1 = Vector(0, 0, 0); }
 	BOX(AVVECTOR A, AVVECTOR B)									{ this->A = this->A1 = A; this->B = this->B1 = B; }
 	BOX(AVFLOAT x, AVFLOAT y, AVFLOAT z, AVFLOAT w, AVFLOAT d, AVFLOAT h)	{ this->A = this->A1 = Vector(x, y, z); this->B = this->B1 = Vector(x + w, y + d, z + h); }
+	BOX(AVVECTOR A, AVFLOAT w, AVFLOAT d, AVFLOAT h)			{ this->A = this->A1 = A; this->B = this->B1 = Vector(A.x + w, A.y + d, A.z + h); }
 	BOX(AVFLOAT x, AVFLOAT y, AVFLOAT w, AVFLOAT d)				{ this->A = this->A1 = Vector(x, y, 0); this->B = this->B1 = Vector(x + w, y + d, 0); }
 
 	operator AVVECTOR&()	{ return A; }
@@ -232,6 +233,21 @@ public:
 	AVVECTOR CentreRearUpperExt()		{ return Vector((A.x + B.x) / 2, B.y, B1.z); }
 	AVVECTOR CentreRearExtUpper()		{ return Vector((A.x + B.x) / 2, B1.y, B.z); }
 	AVVECTOR CentreRearExtUpperExt()	{ return Vector((A.x + B.x) / 2, B1.y, B1.z); }
+
+	BOX LowerSlab()										{ return BOX(LeftExtRearExtLower(), WidthExt(), DepthExt(), -LowerThickness()); }
+	BOX UpperSlab()										{ return BOX(LeftExtRearExtUpper(), WidthExt(), DepthExt(), UpperThickness()); }
+	BOX FrontWall(AVFLOAT fShift = 0, AVFLOAT fExt = 0)	{ return BOX(LeftExtFrontLower() + Vector(fShift, 0, 0), WidthExt() - fShift + fExt, FrontThickness(), Height()); }
+	BOX RearWall(AVFLOAT fShift = 0, AVFLOAT fExt = 0)	{ return BOX(RightExtRearLower() + Vector(fShift, 0, 0), WidthExt() - fShift + fExt, RearThickness(),  Height()); }
+	BOX LeftWall(AVFLOAT fShift = 0, AVFLOAT fExt = 0)	{ return BOX(LeftExtFrontLower() + Vector(0, fShift, 0), Depth() - fShift + fExt, LeftThickness(), Height()); }
+	BOX RightWall(AVFLOAT fShift = 0, AVFLOAT fExt = 0)	{ return BOX(RightExtRearLower() + Vector(0, fShift, 0), Depth() - fShift + fExt, RightThickness(), Height()); }
+
+	void Normalise()
+	{
+		if (A.x > B.x)	{ AVFLOAT t = A.x; A.x = B.x; B.x = t; t = A1.x; A1.x = B1.x; B1.x = t; }
+		if (A.y > B.y)	{ AVFLOAT t = A.y; A.y = B.y; B.y = t; t = A1.y; A1.y = B1.y; B1.y = t; }
+		if (A.z > B.z)	{ AVFLOAT t = A.z; A.z = B.z; B.z = t; t = A1.z; A1.z = B1.z; B1.z = t; }
+	}
+	BOX Normalised()	{ BOX box = *this; box.Normalise(); return box; }
 
 	std::wstring Stringify()
 	{

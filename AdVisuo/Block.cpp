@@ -8,7 +8,6 @@
 
 CBlock::CBlock()
 {
-	m_pBoneLabel = NULL;
 	m_pBone = NULL;
 	m_pMesh = NULL;
 
@@ -23,16 +22,17 @@ CBlock::~CBlock(void)
 	if (m_pBone) m_pBone->Release();
 }
 
-void CBlock::Open(ISceneObject *pObject, IKineNode *pParentNode, FWSTRING strBoneLabel, FWFLOAT l, FWFLOAT h, FWFLOAT d, AVVECTOR v, FWFLOAT fRotZ, FWFLOAT fRotX, FWFLOAT fRotY)
+void CBlock::Open(ISceneObject *pObject, IKineNode *pBone, FWFLOAT l, FWFLOAT h, FWFLOAT d, AVVECTOR v, FWFLOAT fRotZ, FWFLOAT fRotX, FWFLOAT fRotY)
 {
 	Close();
 
-	m_pBoneLabel = strBoneLabel;
 	m_l = l; m_h = h; m_d = d;
 	m_x = 0.0f;
 
 	// create a bone
-	pParentNode->CreateChild(m_pBoneLabel, &m_pBone);
+	m_pBone = pBone;
+	if (!m_pBone) return;
+	m_pBone->AddRef();
 
 	// place & rotate the bone
 	ITransform *pT = NULL;
@@ -44,9 +44,9 @@ void CBlock::Open(ISceneObject *pObject, IKineNode *pParentNode, FWSTRING strBon
 	m_pBone->PutLocalTransform(pT);
 
 	// create a new mesh
-	OLECHAR buf[256];
-	_snwprintf(buf, 255, L"%s_mesh", strBoneLabel);
-	pObject->NewMesh(buf, &m_pMesh);
+	LPOLESTR pLabel;
+	m_pBone->GetLabel(&pLabel);
+	pObject->NewMesh(pLabel, &m_pMesh);
 
 	pT->FromRotationX((FWFLOAT)(M_PI/2));
 	m_pMesh->PutTransform(pT);
@@ -127,8 +127,10 @@ void CBlock::Close()
 	m_planes.clear();
 
 	m_pMesh->SupportBlendWeight(0.01f, 0);
+	LPOLESTR pLabel;
+	m_pBone->GetLabel(&pLabel);
 	for (FWULONG i = 0; i < nVertex; i++)
-		m_pMesh->AddBlendWeight(i, 1.0f, m_pBoneLabel); 
+		m_pMesh->AddBlendWeight(i, 1.0f, pLabel); 
 
 	m_pMesh->Close();
 

@@ -31,7 +31,7 @@ AVVECTOR CBuildingVis::GetLiftPos(int nLift)
 {
 	AVVECTOR vec = { 0, 0, 0 };
 	if (GetLiftElement(nLift)->GetBone())
-		GetLiftElement(nLift)->GetBone()->GetNode()->LtoG((FWVECTOR*)&vec);
+		GetLiftElement(nLift)->GetBone()->LtoG((FWVECTOR*)&vec);
 	return vec;
 }
 

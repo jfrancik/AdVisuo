@@ -70,7 +70,7 @@ public:
 			CElem *m_pElemLobbySide;
 			CElem *m_pElemLeft;
 			CElem *m_pElemRight;
-			CBone *m_ppDoors[MAX_DOORS];
+			CElem *m_ppDoors[MAX_DOORS];
 		};
 		
 		BONES *m_pStoreyBones;		// regular stories
@@ -89,7 +89,7 @@ public:
 		CElem *GetElementLeft(AVULONG nStorey)				{ return m_pStoreyBones[nStorey].m_pElemLeft; }
 		CElem *GetElementRight(AVULONG nStorey)				{ return m_pStoreyBones[nStorey].m_pElemRight; }
 		CElem *GetElementLeftOrRight(AVULONG nStorey, AVULONG n)	{ return n == 0 ? GetElementLeft(nStorey) : GetElementRight(nStorey); }
-		CBone *GetDoor(AVULONG nStorey, AVULONG nDoor)		{ return m_pStoreyBones ? m_pStoreyBones[nStorey].m_ppDoors[nDoor] : NULL; }
+		CElem *GetDoor(AVULONG nStorey, AVULONG nDoor)		{ return m_pStoreyBones ? m_pStoreyBones[nStorey].m_ppDoors[nDoor] : NULL; }
 
 		CElem *GetMachineElement()							{ return m_pElemMachine; }
 
@@ -109,8 +109,8 @@ public:
 	{
 		// lift structure
 		CElem *m_pElem;
-		CBone *m_ppDecks[DECK_NUM];
-		CBone *m_ppDoors[MAX_DOORS];
+		CElem *m_ppDecks[DECK_NUM];
+		CElem *m_ppDoors[MAX_DOORS];
 
 	public:
 		LIFT(CBuildingConstr *pBuilding, AVULONG nId) : CBuilding::LIFT(pBuilding, nId)
@@ -125,8 +125,8 @@ public:
 		CProjectConstr *GetProject()						{ return (CProjectConstr*)CBuilding::LIFT::GetProject(); }
 
 		CElem *GetElement()									{ return m_pElem; }
-		CBone *GetDeck(AVULONG nDeck)						{ return m_ppDecks[nDeck]; }
-		CBone *GetDoor(AVULONG nDoor)						{ return m_ppDoors[nDoor]; }
+		CElem *GetDeck(AVULONG nDeck)						{ return m_ppDecks[nDeck]; }
+		CElem *GetDoor(AVULONG nDoor)						{ return m_ppDoors[nDoor]; }
 
 		virtual void Construct(AVULONG iShaft);
 		virtual void Deconstruct();
@@ -157,27 +157,21 @@ public:
 
 
 	CElem *GetElement()																{ return m_pElem; }
-
-	CElem *GetStoreyElement(AVULONG nStorey)										{ return GetStorey(nStorey)->GetElement(); }
-	CBone *GetStoreyBone(AVULONG nStorey)											{ return GetStoreyElement(nStorey)->GetBone(); }
 	
+	CElem *GetStoreyElement(AVULONG nStorey)										{ return GetStorey(nStorey)->GetElement(); }
 	CElem *GetMachineRoomElement()													{ return GetMachineRoom()->GetElement(); }
-	CBone *GetMachineRoomBone()														{ return GetMachineRoomElement()->GetBone(); }
-
 	CElem *GetPitElement()															{ return GetPit()->GetElement(); }
-	CBone *GetPitBone()																{ return GetPitElement()->GetBone(); }
-
+	
 	CElem *GetLiftElement(AVULONG nLift)											{ return GetLift(nLift)->GetElement(); }
-	CBone *GetLiftBone(AVULONG nLift)												{ return GetLiftElement(nLift)->GetBone(); }
-	CBone *GetLiftDeck(AVULONG nLift, AVULONG nDeck)								{ return GetLift(nLift)->GetDeck(nDeck); }
-	CBone *GetLiftDoor(AVULONG nLift, AVULONG nDoor)								{ return GetLift(nLift)->GetDoor(nDoor); }
+	CElem *GetLiftDeck(AVULONG nLift, AVULONG nDeck)								{ return GetLift(nLift)->GetDeck(nDeck); }
+	CElem *GetLiftDoor(AVULONG nLift, AVULONG nDoor)								{ return GetLift(nLift)->GetDoor(nDoor); }
 
 	CElem *GetShaftElement(AVULONG nStorey, AVULONG nShaft)							{ return GetShaft(nShaft)->GetElement(nStorey); }
 	CElem *GetShaftElementLobbySide(AVULONG nStorey, AVULONG nShaft)				{ return GetShaft(nShaft)->GetElementLobbySide(nStorey); }
 	CElem *GetShaftElementLeft(AVULONG nStorey, AVULONG nShaft)						{ return GetShaft(nShaft)->GetElementLeft(nStorey); }
 	CElem *GetShaftElementRight(AVULONG nStorey, AVULONG nShaft)					{ return GetShaft(nShaft)->GetElementRight(nStorey); }
 	CElem *GetShaftElementLeftOrRight(AVULONG nStorey, AVULONG nShaft, AVULONG n)	{ return GetShaft(nShaft)->GetElementLeftOrRight(nStorey, n); }
-	CBone *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)				{ return GetShaft(nShaft)->GetDoor(nStorey, nDoor); }
+	CElem *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)				{ return GetShaft(nShaft)->GetDoor(nStorey, nDoor); }
 
 	CElem *GetMachineElement(AVULONG nShaft)										{ return GetShaft(nShaft)->GetMachineElement(); }
 

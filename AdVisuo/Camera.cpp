@@ -104,7 +104,7 @@ void CCamera::SetStorey(AVLONG nStorey, bool bKeepCoord)
 	m_nStorey = nStorey;
 
 	// new base bone
-	SetBaseBone(m_pBuilding->GetStoreyBone(m_nStorey)->GetNode(), bKeepCoord);
+	SetBaseBone(m_pBuilding->GetStoreyElement(m_nStorey)->GetBone(), bKeepCoord);
 }
 
 void CCamera::SetLift(AVLONG nLift, bool bKeepCoord)
@@ -118,7 +118,7 @@ void CCamera::SetLift(AVLONG nLift, bool bKeepCoord)
 	m_nShaft = GetBuilding()->GetLift(nLift)->GetShaftId();
 
 	// new base bone
-	SetBaseBone(m_pBuilding->GetLiftBone(m_nLift)->GetNode(), bKeepCoord);
+	SetBaseBone(m_pBuilding->GetLiftElement(m_nLift)->GetBone(), bKeepCoord);
 }
 
 bool CCamera::Create()

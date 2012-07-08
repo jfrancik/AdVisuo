@@ -14,57 +14,38 @@ interface IScene;
 interface IMaterial;
 interface IKineChild;
 
+class CProjectVis;
 class CBuildingVis;
 class CSimVis;
 
 using namespace std;
 
-class CBoneVis : public CBone
+class CElemVis : public CElem
 {
-	IKineNode *m_pNode;
+	IKineNode *m_pBone;
 public:
-	CBoneVis(IKineNode *pNode);
-	virtual ~CBoneVis();
-	virtual void *GetHandle()			{ return m_pNode; }
+	CElemVis(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
+	virtual ~CElemVis();
+
+	CProjectVis *GetProject()				{ return (CProjectVis*)CElem::GetProject(); }
+	CBuildingVis *GetBuilding()				{ return (CBuildingVis*)CElem::GetBuilding(); }
+	CElemVis *GetParent()					{ return (CElemVis*)CElem::GetParent(); }
+	IKineNode *GetBone()					{ return m_pBone; }
+	ISceneObject *GetObject();
+
+	// Implemenmtation
+	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL);
+	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0));
+	virtual void Move(AVVECTOR vec);
 
 	// implementation specific
-	IKineNode *GetNode()				{ return m_pNode; }
+
 	void PushState();
 	void PopState();
 	void Invalidate();
-};
-
-class CElemVis : public CElem
-{
-protected:
-	// Implementation
-	ISceneObject *m_pObj;
-
-	virtual std::wstring onCreateName(AVULONG nElemId, std::wstring name,  AVLONG i);
-	virtual void onCreate(AVULONG nElemId, AVVECTOR &vec);
-	virtual void onMove(AVVECTOR &vec);
-	virtual CBone *onAddBone(AVULONG nBoneId, AVSTRING name, AVVECTOR &vec);
-	virtual void onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, 
-					AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
-					AVULONG nDoorNum, FLOAT *pDoorData, CBone **ppNewBone);
-
-public:
-	CElemVis(CProject *pProject, CBuilding *pBuilding) : CElem(pProject, (CBuilding*)pBuilding), m_pObj(NULL)	{ }
-	virtual ~CElemVis();
-	
-	CBuildingVis *GetBuilding()				{ return (CBuildingVis*)CElem::GetBuilding(); }
-	CBoneVis *GetBone()						{ return (CBoneVis*)CElem::GetBone(); }
-
-	// implementation specific
-	IKineNode *GetNode()					{ return GetBone()->GetNode(); }
-	IKineNode *GetNode(CBone *p)			{ return ((CBoneVis*)p)->GetNode(); }
 
 	IMesh *AddMesh(AVSTRING strName);
-
 	void Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale = 1.0f, AVFLOAT fTexScale = 1.0f);
-
-	void PushState();
-	void PopState();
 	void Render(IRenderer *pRenderer);
 };
 
@@ -106,7 +87,8 @@ public:
 	CSimVis *GetSim(int i)					{ return (CSimVis*)CProjectConstr::GetSim(i); }
 	CBuildingVis *GetBuilding(int i)		{ return (CBuildingVis*)CProjectConstr::GetBuilding(i); }
 	
-	virtual CElem *CreateElement(CBuilding *pBuilding)			{ return new CElemVis(this, pBuilding); }
+	virtual CElem *CreateElement(CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)			
+											{ return new CElemVis(this, pBuilding, pParent, nElemId, name, i, vec); }
 
 	// FreeWill specific
 	void SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped);

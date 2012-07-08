@@ -5,46 +5,36 @@
 #include "SrvProject.h"
 #include "IfcBuilding.h"
 
+#include "ifcscanner.h"
+
 class CProjectIfc;
-
-class CBoneIfc : public CBone
-{
-	CIFCRoot *m_pNode;
-public:
-	CBoneIfc(CIFCRoot *pNode) : m_pNode(pNode)	{ }
-	virtual ~CBoneIfc()						{ if (m_pNode) delete m_pNode; }
-	virtual void *GetHandle()				{ return m_pNode; }
-
-	// implementation specific
-	CIFCRoot *GetNode()						{ return m_pNode; }
-};
 
 class CElemIfc : public CElem
 {
-protected:
-	// Implementation
-	virtual std::wstring onCreateName(AVULONG nElemId, std::wstring name,  AVLONG i);
-	virtual void onCreate(AVULONG nElemId, AVVECTOR &vec);
-	virtual void onMove(AVVECTOR &vec);
-	virtual CBone *onAddBone(AVULONG nBoneId, AVSTRING name, AVVECTOR &vec);
-	virtual void onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, 
-					AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
-					AVULONG nDoorNum, FLOAT *pDoorData, CBone **ppNewBone);
-
+	CIFCRoot *m_pBone;
 public:
-	CElemIfc(CProject *pProject, CBuilding *pBuilding) : CElem(pProject, pBuilding) { }
+	CElemIfc(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 	virtual ~CElemIfc();
 	
 	CProjectIfc *GetProject()				{ return (CProjectIfc*)CElem::GetProject(); }
 	CBuildingIfc *GetBuilding()				{ return (CBuildingIfc*)CElem::GetBuilding(); }
-	CBoneIfc *GetBone()						{ return (CBoneIfc*)CElem::GetBone(); }
 	CElemIfc *GetParent()					{ return (CElemIfc*)CElem::GetParent(); }
+	CIFCRoot *GetBone()						{ if (m_pBone) return m_pBone; if (GetParent()) return GetParent()->GetBone(); return NULL; }
 
-	// implementation specific
-	CIFCRoot *GetNode()						{ return GetBone()->GetNode(); }
-	CIFCRoot *GetNode(CBone *p)				{ return ((CBoneIfc*)p)->GetNode(); }
+	// implementation
+	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL);
+	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0));
+	virtual void Move(AVVECTOR vec);
+};
 
-	//void Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale = 1.0f, AVFLOAT fTexScale = 1.0f);
+class CIfcBuilder
+{
+	CRevitFile m_revitfile;
+	int m_h;
+	CIFCModelScanner::BB m_bb;
+public:
+	CIfcBuilder(char *pFilename, AVULONG nInstanceIndex);
+	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0);
 };
 
 class CProjectIfc : public CProjectSrv
@@ -52,7 +42,8 @@ class CProjectIfc : public CProjectSrv
 public:
 	CProjectIfc();
 
-	virtual CElem *CreateElement(CBuilding *pBuilding)		{ return new CElemIfc(this, pBuilding); }
+	virtual CElem *CreateElement(CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)
+															{ return new CElemIfc(this, pBuilding, pParent, nElemId, name, i, vec); }
 
 	HRESULT SaveAsIFC(LPCOLESTR pFileName, bool bBrep = true, bool bPresentation = false);
 

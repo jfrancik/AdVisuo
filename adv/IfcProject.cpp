@@ -5,23 +5,11 @@
 #include "ifcscanner.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CElemIfc
+// helpers
 
-// GLOBAL VARIABLES!!!
-bool bBrep = true;
-bool bPresentation = false;
-
-int hMachine, hLift, hBuffer, hDoorCar, hDoorLanding;
-CIFCModelScanner::BB bbMachine;
-CIFCModelScanner::BB bbLift;
-CIFCModelScanner::BB bbBuffer;
-
-
-CElemIfc::~CElemIfc()
-{
-	if (m_pBone) delete m_pBone;
-	m_pBone = NULL;
-}
+	// GLOBAL VARIABLES!!!
+	bool bBrep = true;
+	bool bPresentation = false;
 
 	static void RotateX(transformationMatrixStruct &A, double a)
 	{
@@ -50,122 +38,66 @@ CElemIfc::~CElemIfc()
 		x1 = fCos * A._41 - fSin * A._42;  x2 = fSin * A._41 + fCos * A._42;  A._41 = x1; A._42 = x2;
 	}
 
-std::wstring CElemIfc::onCreateName(AVULONG nElemId, std::wstring name,  AVLONG i)
-{
-	OLECHAR _name[257]; 
-	_snwprintf_s(_name, 256, (AVSTRING)name.c_str(), LOWORD(i), HIWORD(i));
-	return _name;
-}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CElemIfc
 
-void CElemIfc::onCreate(AVULONG nElemId, AVVECTOR &vec)
+CElemIfc::CElemIfc(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) 
+	: CElem(pProject, pBuilding, pParent, nElemId, name, i, vec)
 {
 	USES_CONVERSION;
 	char *pName = OLE2A((LPOLESTR)GetName().c_str());
 
+	m_pBone = NULL;
+
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);
 	matrix._41 = vec.x;
 	matrix._42 = vec.y;
 	matrix._43 = vec.z;
 
-	CIFCRoot *pParentNode = GetParent() ? GetParent()->GetNode() : NULL;
-	if (nElemId != ELEM_PROJECT && !pParentNode) return;
+	CIFCRoot *pParentBone = GetParent() ? GetParent()->GetBone() : NULL;
+	if (nElemId != ELEM_PROJECT && !pParentBone) return;
 
 	switch (nElemId)
 	{
-	case ELEM_PROJECT:
-		{
-			CIFCProject *pPrj = new CIFCProject("IFC2X3_TC1.exp", "MILLI");
-			pPrj->setInfo(pName, pName);
-			if (!pPrj->build()) throw Logf(ERROR_IFC_PRJ, L"project");
-			m_pBone = new CBoneIfc(pPrj);
-		}
-		break;
-	case ELEM_SITE:
-		{
-			CIFCSite *pSite = new CIFCSite((CIFCProject*)pParentNode, &matrix);
-			pSite->setInfo(pName, pName);
-			if (!pSite->build()) throw Logf(ERROR_IFC_PRJ, L"site");
-			m_pBone = new CBoneIfc(pSite);
-		}
-		break;
-	case ELEM_BUILDING:
-		{
-			CIFCBuilding *pBuilding = new CIFCBuilding((CIFCSite*)pParentNode, &matrix);
-			pBuilding->setInfo(pName, pName);
-			if (!pBuilding->build()) throw Logf(ERROR_IFC_PRJ, L"building");
-			m_pBone = new CBoneIfc(pBuilding);
-		}
-		break;
-	case ELEM_STOREY:
-		{
-			CIFCStorey *pStorey = new CIFCStorey((CIFCBuilding*)pParentNode, &matrix);
-			pStorey->setInfo(pName, pName);
-			if (!pStorey->build()) throw Logf(ERROR_IFC_PRJ, L"storey");
-			m_pBone = new CBoneIfc(pStorey);
-		}
-		break;
-	case ELEM_SHAFT:
-		{
-			matrix._41 = 0;
-			matrix._42 = 0;
-			matrix._43 = 0;
-			CIFCSpace *pSpace = new CIFCSpace((CIFCBuilding*)pParentNode, &matrix);
-			pSpace->setInfo(pName, pName);
-			if (!pSpace->build()) throw Logf(ERROR_IFC_PRJ, L"sub storey space");
-			m_pBone = new CBoneIfc(pSpace);
-		}
-		break;
+	case ELEM_PROJECT:	m_pBone = new CIFCProject("IFC2X3_TC1.exp", "MILLI"); break;
+	case ELEM_SITE:		m_pBone = new CIFCSite((CIFCProject*)pParentBone, &matrix); break;
+	case ELEM_BUILDING:	m_pBone = new CIFCBuilding((CIFCSite*)pParentBone, &matrix); break;
+	case ELEM_STOREY:	m_pBone = new CIFCStorey((CIFCBuilding*)pParentBone, &matrix); break;
+	case ELEM_SHAFT:	matrix._41 = matrix._42 = matrix._43 = 0; m_pBone = new CIFCSpace((CIFCBuilding*)pParentBone, &matrix); break;
+	case ELEM_DECK:
+	case ELEM_LIFT:		m_pBone = new CIFCSpace((CIFCBuilding*)pParentBone, &matrix); break;
 	case ELEM_EXTRA:
-		break;
-	case ELEM_LIFT:
-		{
-			CIFCSpace *pSpace = new CIFCSpace((CIFCBuilding*)pParentNode, &matrix);
-			pSpace->setInfo(pName, pName);
-			if (!pSpace->build()) throw Logf(ERROR_IFC_PRJ, L"lift space");
-			m_pBone = new CBoneIfc(pSpace);
-		}
-		break;
+	case ELEM_BONE:		break;
+	}
+
+	if (m_pBone)
+	{
+		m_pBone->setInfo(pName, pName);
+		if (!m_pBone->build()) throw Logf(ERROR_IFC_PRJ, L"project");
 	}
 }
 
-void CElemIfc::onMove(AVVECTOR &vec)
+CElemIfc::~CElemIfc()
 {
+	if (m_pBone) delete m_pBone; 
 }
 
-CBone *CElemIfc::onAddBone(AVULONG nBoneId, AVSTRING name, AVVECTOR &vec)
+void CElemIfc::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData)
 {
 USES_CONVERSION;
-	char *pName = OLE2A((LPOLESTR)name);
+	char *pName = OLE2A((LPOLESTR)strName);
 
-	transformationMatrixStruct matrix;
-	identityMatrix(&matrix);
-	matrix._41 = vec.x;
-	matrix._42 = vec.y;
-	matrix._43 = vec.z;
-
-	CIFCSpace *pSpace = new CIFCSpace((CIFCBuilding*)GetNode(), &matrix);
-	pSpace->setInfo(pName, pName);
-	if (!pSpace->build()) throw Logf(ERROR_IFC_PRJ, L"lift space");
-	return new CBoneIfc(pSpace);
-}
-
-void CElemIfc::onAddWall(CBone *pBone_, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
-					AVULONG nDoorNum, FLOAT *pDoorData, CBone **ppNewBone)
-{
-#define pBone ((CBoneIfc*)pBone_)
-USES_CONVERSION;
-
-	if (!pBone || !pBone->GetNode()) return;
+	if (!GetBone()) return;
 
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);
 	RotateZ(matrix, vecRot.z);
 	RotateX(matrix, vecRot.x);
 	RotateY(matrix, vecRot.y);
-	matrix._41 += vecPos.x;
-	matrix._42 += vecPos.y;
-	matrix._43 += vecPos.z;
+	matrix._41 += box.Left();
+	matrix._42 += box.Front();
+	matrix._43 += box.Lower();
 
 	CIFCElement *pElem = NULL;
 
@@ -174,66 +106,25 @@ USES_CONVERSION;
 	case WALL_FLOOR:
 	case WALL_CEILING:
 	case WALL_LIFT_FLOOR:
-	case WALL_LIFT_CEILING:			pElem = new CIFCSlab(pBone->GetNode(), &matrix, l, h, -d, bBrep, bPresentation); break;
-
-	case WALL_MACHINE:
-
-		{
-		// EXPERIMENTAL
-		double dScale = l / (bbMachine.x1 - bbMachine.x0);
-		CIFCRevitElem machine(pBone->GetNode(), &matrix);
-		machine.setInfo(OLE2A(strName), OLE2A(strName));
-		int h = machine.build(hMachine, [dScale] (CIFCModelScanner::ITEM *pItem) 
-								{
-									if (pItem->type == CIFCModelScanner::ITEM::AGGREG && pItem->nIndex >= 0 && pItem->nType == sdaiREAL && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE && strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 && sdaiGetMemberCount(pItem->hAggreg) == 3)
-										pItem->dvalue *= dScale;
-								}); 
-		if (!h) throw Logf(ERROR_IFC_PRJ, L"revit");
-		return;
-		}
-
-	case WALL_BUFFER:
-
-		{
-		// EXPERIMENTAL
-		identityMatrix(&matrix);
-		matrix._41 = vecPos.x + 300;
-		matrix._42 = vecPos.y - 300;
-		matrix._43 = vecPos.z + 1800;
-
-		double dScale = l / (bbBuffer.y1 - bbBuffer.y0);	// x0 - x1 doesn't provide correct values!
-		CIFCRevitElem buffer(pBone->GetNode(), &matrix);
-		buffer.setInfo(OLE2A(strName), OLE2A(strName));
-		int h = buffer.build(hBuffer, [dScale] (CIFCModelScanner::ITEM *pItem) 
-								{
-									if (pItem->type == CIFCModelScanner::ITEM::AGGREG && pItem->nIndex >= 0 && pItem->nType == sdaiREAL && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE && strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 && sdaiGetMemberCount(pItem->hAggreg) == 3)
-										pItem->dvalue *= dScale;
-								}); 
-		if (!h) throw Logf(ERROR_IFC_PRJ, L"revit");
-		return;
-		}
-
-
-
+	case WALL_LIFT_CEILING:	pElem = new CIFCSlab(GetBone(), &matrix, box.Width(), box.Height(), -box.Depth(), bBrep, bPresentation); break;
 
 	case WALL_FRONT:
 	case WALL_REAR:
 	case WALL_SIDE:
 	case WALL_SHAFT:
-	case WALL_LIFT:					pElem = new CIFCWall(pBone->GetNode(), &matrix, l, h, -d, bBrep, bPresentation); break;
+	case WALL_LIFT:			pElem = new CIFCWall(GetBone(), &matrix, box.Width(), box.Height(), -box.Depth(), bBrep, bPresentation); break;
 
 	case WALL_DOOR:
-	case WALL_LIFT_DOOR:			pElem = new CIFCWall(pBone->GetNode(), &matrix, l, h, -d, bBrep, bPresentation); break;
+	case WALL_LIFT_DOOR:	pElem = new CIFCWall(GetBone(), &matrix, box.Width(), box.Height(), -box.Depth(), bBrep, bPresentation); break;
 
-	case WALL_OPENING:				break;
-
-	case WALL_BEAM:					pElem = new CIFCBeam(pBone->GetNode(), &matrix, l, h, -d, bBrep, bPresentation); break;
+	case WALL_BEAM:			pElem = new CIFCBeam(GetBone(), &matrix, box.Width(), box.Height(), -box.Depth(), bBrep, bPresentation); break;
 
 	case WALL_FLOOR_NUMBER_PLATE:
-	case WALL_LIFT_NUMBER_PLATE:	break;
+	case WALL_LIFT_NUMBER_PLATE:
+	case WALL_OPENING:		break;
 	}
 	if (!pElem) return;
-	pElem->setInfo(OLE2A(strName), OLE2A(strName));
+	pElem->setInfo(pName, pName);
 	if (!pElem->build()) throw Logf(ERROR_IFC_PRJ, L"wall");
 
 	// openings
@@ -246,11 +137,93 @@ USES_CONVERSION;
 		transformationMatrixStruct matrix;
 		identityMatrix(&matrix);
 		matrix._41 = fPos;
-		CIFCOpening opening(pElem, &matrix, fW, fH, -d, bBrep, bPresentation);
+		CIFCOpening opening(pElem, &matrix, fW, fH, -box.Depth(), bBrep, bPresentation);
 		if (!opening.build()) throw Logf(ERROR_IFC_PRJ, L"opening");
 	}
 
 	delete pElem;
+}
+
+void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot)
+{
+USES_CONVERSION;
+	char *pName = OLE2A((LPOLESTR)strName);
+
+	if (!GetBone()) return;
+
+	transformationMatrixStruct matrix;
+	identityMatrix(&matrix);
+	RotateZ(matrix, vecRot.z);
+	RotateX(matrix, vecRot.x);
+	RotateY(matrix, vecRot.y);
+	matrix._41 += box.Left();
+	matrix._42 += box.Front();
+	matrix._43 += box.Lower();
+
+	CIfcBuilder *p = NULL;
+
+	switch (nModelId)
+	{
+	case MODEL_MACHINE:	p = new CIfcBuilder("Machine30T_UPSTAND.ifc", 0); break;
+	case MODEL_BUFFER:	p = new CIfcBuilder("21April2011AllComponents.ifc", 2); break;
+	case MODEL_LIFT:	p = new CIfcBuilder("21April2011AllComponents.ifc", 0); break;
+	case MODEL_DOOR_CAR:		p = new CIfcBuilder("21April2011AllComponents.ifc", 4); break;
+	case MODEL_DOOR_LANDING:	p = new CIfcBuilder("21April2011AllComponents.ifc", 5); break;
+	}
+
+	if (p)
+	{
+		p->build(this, nModelId, strName, nIndex, box, vecRot.z);
+		delete p;
+	}
+}
+
+void CElemIfc::Move(AVVECTOR vec)
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CIfcBuilder
+
+CIfcBuilder::CIfcBuilder(char *pFilename, AVULONG nInstanceIndex)
+{
+	m_revitfile.Open(pFilename);
+	m_h = m_revitfile.GetInstance(nInstanceIndex);
+	CIFCModelScanner::GetBB(m_h, m_bb);
+}
+
+void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot)
+{
+USES_CONVERSION;
+	char *pName = OLE2A((LPOLESTR)strName);
+
+	if (!pElem->GetBone()) return;
+
+	transformationMatrixStruct matrix;
+	identityMatrix(&matrix);
+	RotateZ(matrix, fRot);
+	matrix._41 += box.Left();
+	matrix._42 += box.Front();
+	matrix._43 += box.Lower();
+
+	double dScale = box.Width() / (m_bb.x1 - m_bb.x0);
+
+	if (nModelId == CElem::MODEL_BUFFER)
+	{
+		matrix._41 = box.Left() + 300;
+		matrix._42 = box.Front() - 300;
+		matrix._43 = box.Lower() + 1800;
+		dScale = box.Width() / (m_bb.y1 - m_bb.y0);	// x0 - x1 doesn't provide correct values!
+	}
+
+	CIFCRevitElem machine(pElem->GetBone(), &matrix);
+	machine.setInfo(pName, pName);
+	int h = machine.build(m_h, [dScale] (CIFCModelScanner::ITEM *pItem) 
+								{
+									if (pItem->type == CIFCModelScanner::ITEM::AGGREG && pItem->nIndex >= 0 && pItem->nType == sdaiREAL && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE && strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 && sdaiGetMemberCount(pItem->hAggreg) == 3)
+										pItem->dvalue *= dScale;
+								}); 
+	if (!h) throw Logf(ERROR_IFC_PRJ, L"revit");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -263,28 +236,12 @@ CProjectIfc::CProjectIfc() : CProjectSrv()
 HRESULT CProjectIfc::SaveAsIFC(LPCOLESTR pFileName, bool bBrep, bool bPresentation)
 {
 	USES_CONVERSION;
-	CIFCProject *pPrj = (CIFCProject*)(GetElement()->GetNode());
+	CIFCProject *pPrj = (CIFCProject*)(GetElement()->GetBone());
 	pPrj->save(OLE2A(pFileName));
 	return S_OK;
 }
 
 void CProjectIfc::Construct()
 {
-	//////////////////////////////////////////////////////////////////
-	// Prepare for creation of REVIT elements
-	CRevitFile revit1("Machine30T_UPSTAND.ifc");
-	CRevitFile revit2("21April2011AllComponents.ifc");
-
-	hMachine = revit1.GetInstance(0);
-	hLift = revit2.GetInstance(0);
-	hBuffer = revit2.GetInstance(1);
-	hDoorCar = revit2.GetInstance(4);
-	hDoorLanding = revit2.GetInstance(5);
-
-	// Bounding boxes
-	CIFCModelScanner::GetBB(hMachine, bbMachine);
-	CIFCModelScanner::GetBB(hLift, bbLift);
-	CIFCModelScanner::GetBB(hBuffer, bbBuffer);
-
 	CProjectSrv::Construct();
 }

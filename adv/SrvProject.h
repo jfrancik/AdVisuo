@@ -11,7 +11,8 @@ class CProjectSrv : public CProjectConstr
 public:
 	CProjectSrv();
 
-	virtual CElem *CreateElement(CBuilding *pBuilding)			{ return NULL; }
+	virtual CElem *CreateElement(CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)
+											{ return NULL; }
 
 	CSimSrv *GetSim()						{ return (CSimSrv*)CProjectConstr::GetSim(); }
 	CBuildingSrv *GetBuilding()				{ return (CBuildingSrv*)CProjectConstr::GetBuilding(); }

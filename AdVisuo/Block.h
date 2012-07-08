@@ -5,9 +5,8 @@
 
 class CBlock
 {
-	FWSTRING m_pBoneLabel;			// bone label
-	IKineNode *m_pBone;				// bone created
-	IMesh *m_pMesh;					// mesh created
+	IKineNode *m_pBone;				// bone
+	IMesh *m_pMesh;					// mesh - created on the bone
 
 	FWFLOAT m_l, m_h, m_d;			// length (x); height (y); depth (z)
 
@@ -22,7 +21,7 @@ public:
 	CBlock();
 	~CBlock();
 
-	void Open(ISceneObject *pObject, IKineNode *pParentNode, FWSTRING strBoneLabel, FWFLOAT l, FWFLOAT h, FWFLOAT d, AVVECTOR v, FWFLOAT fRotZ = 0, FWFLOAT fRotX = 0, FWFLOAT fRotY = 0);
+	void Open(ISceneObject *pObject, IKineNode *pBone, FWFLOAT l, FWFLOAT h, FWFLOAT d, AVVECTOR v, FWFLOAT fRotZ = 0, FWFLOAT fRotX = 0, FWFLOAT fRotY = 0);
 	void Close();
 
 	IMesh *GetMesh()				{ m_pMesh->AddRef(); return m_pMesh; }

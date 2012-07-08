@@ -157,8 +157,8 @@ public:
 		BOX &GetBoxDoor(AVULONG i = 0)			{ return m_boxDoor[i]; }
 		BOX &GetBoxCar()						{ return m_boxCar; }
 		BOX &GetBoxCarDoor(AVULONG i = 0)		{ return m_boxCarDoor[i]; }
-		BOX GetLeftWallBox();
-		BOX GetRightWallBox();
+		AVFLOAT GetWallLtStart()				{ return m_fWallLtStart; }
+		AVFLOAT GetWallRtStart()				{ return m_fWallRtStart; }
 
 		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetBuilding()->GetStorey(nStorey)->GetLevel()); }
 

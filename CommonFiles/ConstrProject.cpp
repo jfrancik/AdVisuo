@@ -5,17 +5,32 @@
 #include "ConstrBuilding.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CProject
+// CBone / CElem
+
+CElem::CElem(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)	
+	: m_pProject(pProject), m_pBuilding(pBuilding), m_pParent(pParent)
+{
+	OLECHAR _name[257];
+	_snwprintf_s(_name, 256, name, LOWORD(i), HIWORD(i));
+	m_name = _name;
+
+//	m_pBone = NULL;
+}
+
+CElem::~CElem()
+{
+//	SetBone(NULL);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CProjectConstr
 
 void CProjectConstr::Construct()
 {
-	m_pElem = CreateElement(NULL);
-	m_pElemSite = CreateElement(NULL);
+	m_pElem = CreateElement(NULL, NULL, CElem::ELEM_PROJECT, (LPOLESTR)GetProjectInfo(PRJ_PROJECT_NAME).c_str(), 0, Vector(0));
+	m_pElemSite = CreateElement(NULL, GetElement(), CElem::ELEM_SITE, (LPOLESTR)GetProjectInfo(PRJ_BUILDING_NAME).c_str(), 0, Vector(0));
 
 	if (!m_pElem) return;
-
-	m_pElem->Create(NULL, CElem::ELEM_PROJECT, (LPOLESTR)GetProjectInfo(PRJ_PROJECT_NAME).c_str(), Vector(0));
-	m_pElemSite->Create(GetElement(), CElem::ELEM_SITE, (LPOLESTR)GetProjectInfo(PRJ_BUILDING_NAME).c_str(), Vector(0));
 
 	float y = GetBuilding()->GetShaftLinesCount() == 2 ? GetBuilding()->GetShaft(GetBuilding()->GetShaftCount()-1)->GetBox().RearExt() : GetBuilding()->GetBox().RearExt();
 	for each (CSim *pSim in m_sims)

@@ -8,7 +8,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	CoInitialize(NULL);
 	AVSetupDiagnosticOutput(true, true, true);
-	HRESULT h = AVIFC(1196);
+	HRESULT h = AVIFC(1199);
 	CoUninitialize();
 	return 0;
 }

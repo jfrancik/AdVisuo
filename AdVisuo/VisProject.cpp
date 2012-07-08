@@ -10,101 +10,67 @@
 #pragma warning (disable:4996)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CBoneVis
-
-CBoneVis::CBoneVis(IKineNode *pNode) : m_pNode(pNode)
-{ 
-	m_pNode->AddRef(); 
-}
-
-CBoneVis::~CBoneVis()
-{ 
-	if (m_pNode) m_pNode->Release(); 
-}
-
-void CBoneVis::PushState()					{ if (m_pNode) m_pNode->PushState(); }
-void CBoneVis::PopState()					{ if (m_pNode) m_pNode->PopState(); }
-void CBoneVis::Invalidate()					{ if (m_pNode) m_pNode->Invalidate(); }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CElemVis
+
+CElemVis::CElemVis(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) 
+	: CElem(pProject, (CBuilding*)pBuilding, pParent, nElemId, name, i, vec)
+{ 
+	m_pBone = NULL;
+
+	// create name
+	if (GetParent() && GetParent()->GetName().size())
+		SetName(GetParent()->GetName() + L" - " + GetName());
+
+	if (!GetBuilding()) 
+		return;
+
+	switch (nElemId)
+	{
+	case ELEM_PROJECT:
+	case ELEM_SITE:
+		break;
+
+	case ELEM_BONE:
+	case ELEM_DECK:
+		((CElemVis*)pParent)->GetBone()->CreateChild(name, &m_pBone);
+		Move(vec);
+		break;
+
+	default:
+		GetBuilding()->GetScene()->NewObject((AVSTRING)GetName().c_str(), (ISceneObject**)&m_pBone);
+		Move(vec);
+		break;
+	}
+}
 
 CElemVis::~CElemVis()
 {
-	if (m_pObj) m_pObj->Release();
-	m_pObj = NULL;
-	if (m_pBone) delete m_pBone;
-	m_pBone = NULL;
+	if (m_pBone) m_pBone->Release(); 
 }
 
-std::wstring CElemVis::onCreateName(AVULONG nElemId, std::wstring name,  AVLONG i)
+ISceneObject *CElemVis::GetObject()
 {
-	if (nElemId == ELEM_PROJECT || nElemId == ELEM_SITE)
-		return L"";
+	ISceneObject *pObj = NULL;
+	if (m_pBone) m_pBone->QueryInterface(&pObj);
+	if (pObj)
+	{
+		pObj->Release();	// weak pointer!
+		return pObj;
+	}
 
-	static OLECHAR _name[257];
-	_snwprintf_s(_name, 256, (AVSTRING)name.c_str(), LOWORD(i), HIWORD(i));
-
-	if (GetParent() && GetParent()->GetName().size())
-		return GetParent()->GetName() + L" - " + _name;
+	if (GetParent())
+		return GetParent()->GetObject();
 	else
-		return _name;
+		return NULL;
 }
 
-void CElemVis::onCreate(AVULONG nElemId, AVVECTOR &vec)
+void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData)
 {
-	if (!GetBuilding()) return;
-	if (nElemId == ELEM_PROJECT || nElemId == ELEM_SITE)
-		return;
-
-	IKineNode *pNode = NULL;
-	GetBuilding()->GetScene()->NewObject((AVSTRING)GetName().c_str(), &m_pObj);
-	m_pObj->CreateChild((AVSTRING)GetName().c_str(), &pNode);
-	m_pBone = new CBoneVis(pNode);
-	pNode->Release();
-
-	ITransform *pT = NULL;
-	GetNode()->CreateCompatibleTransform(&pT);
-	pT->FromTranslationVector((FWVECTOR*)(&vec));
-	GetNode()->PutLocalTransform(pT);
-	pT->Release();
-}
-
-void CElemVis::onMove(AVVECTOR &vec)
-{
-	ITransform *pT = NULL;
-	m_pObj->CreateCompatibleTransform(&pT);
-	pT->FromTranslationVector((FWVECTOR*)(&vec));
-	m_pObj->TransformLocal(pT);
-	pT->Release();
-}
-
-CBone *CElemVis::onAddBone(AVULONG nBoneId, AVSTRING name, AVVECTOR &vec)
-{
-	IKineNode *pNode = NULL;
-	GetNode()->CreateChild(name, &pNode);
-	CBoneVis *pBone = new CBoneVis(pNode);
-	pNode->Release();
-
-	ITransform *pT = NULL;
-	pBone->GetNode()->CreateCompatibleTransform(&pT);
-	pT->FromTranslationVector((FWVECTOR*)(&vec));
-	pBone->GetNode()->PutLocalTransform(pT);
-	pT->Release();
-
-	return pBone;
-}
-
-void CElemVis::onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG nIndex, AVVECTOR vecPos, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR vecRot,
-					AVULONG nDoorNum, FLOAT *pDoorData, CBone **ppNewBone)
-{
-	//TRACE(L"Building wall: pos = (%f, %f, %f), l = %f, h = %f, d = %f\n", vecPos.x/0.04f, vecPos.y/0.04f, vecPos.z/0.04f, l/0.04f, h/0.04f, d/0.04f);
-
-	if (nWallId == CElem::WALL_BUFFER) return;
-	if (nWallId == CElem::WALL_MACHINE) nWallId = CElem::WALL_BEAM;
+	IKineNode *pNewBone = NULL;
+	GetBone()->CreateChild(strName, &pNewBone);
 
 	CBlock block;
-	block.Open(m_pObj, GetNode(pBone), strName, l, h, d, vecPos, vecRot.z, vecRot.x, vecRot.y);
+	block.Open(GetObject(), pNewBone, box.Width(), box.Height(), box.Depth(), box.LeftFrontLower(), vecRot.z, vecRot.x, vecRot.y);
 	block.BuildFrontSection();
 	
 	for (AVULONG i = 0; i < nDoorNum * 3; i += 3)
@@ -116,22 +82,31 @@ void CElemVis::onAddWall(CBone *pBone, AVULONG nWallId, AVSTRING strName, AVLONG
 	block.BuildWall();
 	block.BuildRearSection();
 
-	
-
 	block.SetMaterial(GetBuilding()->GetMaterial(nWallId, LOWORD(nIndex)));
-	if (ppNewBone)
-	{
-		IKineNode *pNewNode = block.GetBone();
-		*ppNewBone = new CBoneVis(pNewNode);
-		pNewNode->Release();
-	}
+	
+	pNewBone->Release();
+
 	block.Close();
+}
+
+void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot)
+{
+	BuildWall(WALL_BEAM, strName, nIndex, box, vecRot);
+}
+
+void CElemVis::Move(AVVECTOR vec)
+{
+	ITransform *pT = NULL;
+	GetBone()->CreateCompatibleTransform(&pT);
+	pT->FromTranslationVector((FWVECTOR*)(&vec));
+	GetBone()->TransformLocal(pT);
+	pT->Release();
 }
 
 IMesh *CElemVis::AddMesh(AVSTRING strName)
 {
 	IMesh *pMesh = NULL;
-	m_pObj->NewMesh(strName, &pMesh);
+	GetObject()->NewMesh(strName, &pMesh);
 	pMesh->Open(NULL, NULL);
 	pMesh->SupportNormal(0);
 	return pMesh;
@@ -227,22 +202,28 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 
 void CElemVis::PushState()
 {
-	if (!m_pObj) return;
-	m_pObj->PushState();
+	if (!GetObject()) return;
+	GetObject()->PushState();
 }
 
 void CElemVis::PopState()
 {
-	if (!m_pObj) return;
-	m_pObj->PopState(); 
-	m_pObj->Invalidate(); 
-	m_pObj->PushState();
+	if (!GetObject()) return;
+	GetObject()->PopState(); 
+	GetObject()->Invalidate(); 
+	GetObject()->PushState();
+}
+
+void CElemVis::Invalidate()
+{
+	if (!GetObject()) return;
+	GetObject()->Invalidate(); 
 }
 
 void CElemVis::Render(IRenderer *pRenderer)
 {
-	if (!m_pObj) return;
-	m_pObj->Render((IRndrGeneric*)pRenderer);
+	if (!GetObject()) return;
+	GetObject()->Render((IRndrGeneric*)pRenderer);
 }
 
 //////////////////////////////////////////////////////////////////////////////////

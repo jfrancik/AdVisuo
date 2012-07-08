@@ -11,7 +11,6 @@ interface IMaterial;
 interface IRenderer;
 interface IScene;
 
-class CBoneVis;
 class CElemVis;
 
 class CBuildingVis : public CBuildingConstr
@@ -35,25 +34,19 @@ public:
 	CElemVis *GetElement()																{ return (CElemVis*)CBuildingConstr::GetElement(); }
 
 	CElemVis *GetStoreyElement(AVULONG nStorey)											{ return (CElemVis*)CBuildingConstr::GetStoreyElement(nStorey); }
-	CBoneVis *GetStoreyBone(AVULONG nStorey)											{ return (CBoneVis*)CBuildingConstr::GetStoreyBone(nStorey); }
-	
 	CElemVis *GetMachineRoomElement()													{ return (CElemVis*)CBuildingConstr::GetMachineRoomElement(); }
-	CBoneVis *GetMachineRoomBone()														{ return (CBoneVis*)CBuildingConstr::GetMachineRoomBone(); }
-
 	CElemVis *GetPitElement()															{ return (CElemVis*)CBuildingConstr::GetPitElement(); }
-	CBoneVis *GetPitBone()																{ return (CBoneVis*)CBuildingConstr::GetPitBone(); }
 
 	CElemVis *GetLiftElement(AVULONG nLift)												{ return (CElemVis*)CBuildingConstr::GetLiftElement(nLift); }
-	CBoneVis *GetLiftBone(AVULONG nLift)												{ return (CBoneVis*)CBuildingConstr::GetLiftBone(nLift); }
-	CBoneVis *GetLiftDeck(AVULONG nLift, AVULONG nDeck)									{ return (CBoneVis*)CBuildingConstr::GetLiftDeck(nLift, nDeck); }
-	CBoneVis *GetLiftDoor(AVULONG nLift, AVULONG nDoor)									{ return (CBoneVis*)CBuildingConstr::GetLiftDoor(nLift, nDoor); }
+	CElemVis *GetLiftDeck(AVULONG nLift, AVULONG nDeck)									{ return (CElemVis*)CBuildingConstr::GetLiftDeck(nLift, nDeck); }
+	CElemVis *GetLiftDoor(AVULONG nLift, AVULONG nDoor)									{ return (CElemVis*)CBuildingConstr::GetLiftDoor(nLift, nDoor); }
 
 	CElemVis *GetShaftElement(AVULONG nStorey, AVULONG nShaft)							{ return (CElemVis*)CBuildingConstr::GetShaftElement(nStorey, nShaft); }
 	CElemVis *GetShaftElementLobbySide(AVULONG nStorey, AVULONG nShaft)					{ return (CElemVis*)CBuildingConstr::GetShaftElementLobbySide(nStorey, nShaft); }
 	CElemVis *GetShaftElementLeft(AVULONG nStorey, AVULONG nShaft)						{ return (CElemVis*)CBuildingConstr::GetShaftElementLeft(nStorey, nShaft); }
 	CElemVis *GetShaftElementRight(AVULONG nStorey, AVULONG nShaft)						{ return (CElemVis*)CBuildingConstr::GetShaftElementRight(nStorey, nShaft); }
 	CElemVis *GetShaftElementLeftOrRight(AVULONG nStorey, AVULONG nShaft, AVULONG n)	{ return (CElemVis*)CBuildingConstr::GetShaftElementLeftOrRight(nStorey, nShaft, n); }
-	CBoneVis *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)				{ return (CBoneVis*)CBuildingConstr::GetShaftDoor(nStorey, nShaft, nDoor); }
+	CElemVis *GetShaftDoor(AVULONG nStorey, AVULONG nShaft, AVULONG nDoor)				{ return (CElemVis*)CBuildingConstr::GetShaftDoor(nStorey, nShaft, nDoor); }
 
 	CElemVis *GetMachineElement(AVULONG nShaft)											{ return (CElemVis*)CBuildingConstr::GetMachineElement(nShaft); }
 
