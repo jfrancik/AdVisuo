@@ -319,9 +319,9 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "About AdVisuo"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "",IDC_STATIC,48,7,149,67,0,WS_EX_CLIENTEDGE
-    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
-    LTEXT           "AdSimulo Project\nAdVisuo 2.00.20220\nPre-release 20 February 2012\npowered by FreeWill+\n\nCopyright (C) 2009-12 by Lerch Bates\nPortions Copyright by Kingston University",IDC_STATIC,54,12,135,59,SS_NOPREFIX
+    LTEXT           "",IDC_STATIC,48,7,149,74,0,WS_EX_CLIENTEDGE
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+    LTEXT           "AdSimulo Project\nAdVisuo 2.00.20712\nPre-release 12 July 2012\npowered by FreeWill+\n\nCopyright (C) 2009-12 by Lerch Bates\nPortions Copyright by Kingston University and Openboard Media",IDC_STATIC,54,12,135,64,SS_NOPREFIX
     DEFPUSHBUTTON   "OK",IDOK,77,87,50,14,WS_GROUP
 END
 

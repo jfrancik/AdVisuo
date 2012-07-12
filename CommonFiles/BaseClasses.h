@@ -121,6 +121,9 @@ public:
 	void ResolveMe();
 	void ResolveLiftGroups();
 
+	void Scale(AVFLOAT fScale)						{ for each (CSim *pSim in m_sims) pSim->GetBuilding()->Scale(fScale); }
+	void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)		{ for each (CSim *pSim in m_sims) pSim->GetBuilding()->Move(x, y, z); }
+
 protected:
 	virtual CBuilding *CreateBuilding(AVULONG iIndex) = 0;
 	virtual CSim *CreateSim(CBuilding *pBuilding, AVULONG iIndex) = 0;

@@ -13,13 +13,10 @@ CElem::CElem(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG n
 	OLECHAR _name[257];
 	_snwprintf_s(_name, 256, name, LOWORD(i), HIWORD(i));
 	m_name = _name;
-
-//	m_pBone = NULL;
 }
 
 CElem::~CElem()
 {
-//	SetBone(NULL);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

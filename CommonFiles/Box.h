@@ -51,7 +51,7 @@ public:
 	AVFLOAT InBoxAzimuth(AVVECTOR &v, bool bNormalise = false)
 	{
 		AVFLOAT f = 1; if (bNormalise) f = 1 / Aspect();
-		return atan2(f * (v.x - CenterX()), v.y - CenterY());
+		return atan2(f * (v.x - CentreX()), v.y - CentreY());
 	}
 
 	AVFLOAT Left()		{ return A.x; }
@@ -61,9 +61,9 @@ public:
 	AVFLOAT Lower()		{ return A.z; }
 	AVFLOAT Upper()		{ return B.z; }
 
-	AVFLOAT CenterX()	{ return (A.x + B.x) / 2; }
-	AVFLOAT CenterY()	{ return (A.y + B.y) / 2; }
-	AVFLOAT CenterZ()	{ return (A.z + B.z) / 2; }
+	AVFLOAT CentreX()	{ return (A.x + B.x) / 2; }
+	AVFLOAT CentreY()	{ return (A.y + B.y) / 2; }
+	AVFLOAT CentreZ()	{ return (A.z + B.z) / 2; }
 
 	AVFLOAT LeftExt()	{ return A1.x; }
 	AVFLOAT RightExt()	{ return B1.x; }
@@ -72,9 +72,9 @@ public:
 	AVFLOAT LowerExt()	{ return A1.z; }
 	AVFLOAT UpperExt()	{ return B1.z; }
 
-	AVFLOAT CenterXExt()	{ return (A1.x + B1.x) / 2; }
-	AVFLOAT CenterYExt()	{ return (A1.y + B1.y) / 2; }
-	AVFLOAT CenterZExt()	{ return (A1.z + B1.z) / 2; }
+	AVFLOAT CentreXExt()	{ return (A1.x + B1.x) / 2; }
+	AVFLOAT CentreYExt()	{ return (A1.y + B1.y) / 2; }
+	AVFLOAT CentreZExt()	{ return (A1.z + B1.z) / 2; }
 
 	AVFLOAT Width()		{ return B.x - A.x; };
 	AVFLOAT Depth()		{ return B.y - A.y; };
@@ -141,6 +141,11 @@ public:
 	void ScaleX(AVFLOAT f)				{ A.x *= f; B.x *= f; A1.x *= f; B1.x *= f; }
 	void ScaleY(AVFLOAT f)				{ A.y *= f; B.y *= f; A1.y *= f; B1.y *= f; }
 	void ScaleZ(AVFLOAT f)				{ A.z *= f; B.z *= f; A1.z *= f; B1.z *= f; }
+	void Grow(AVFLOAT f)				{ AVVECTOR centre = Centre(); Move(-centre); Scale(f); Move(centre); }
+	void Grow(AVFLOAT x, AVFLOAT y, AVFLOAT z)	{ AVVECTOR centre = Centre(); Move(-centre); Scale(x, y, z); Move(centre); }
+	void GrowX(AVFLOAT f)				{ AVVECTOR centre = Centre(); Move(-centre); ScaleX(f); Move(centre); }
+	void GrowY(AVFLOAT f)				{ AVVECTOR centre = Centre(); Move(-centre); ScaleY(f); Move(centre); }
+	void GrowZ(AVFLOAT f)				{ AVVECTOR centre = Centre(); Move(-centre); ScaleZ(f); Move(centre); }
 
 	AVVECTOR LeftFrontLower()			{ return A; }
 	AVVECTOR LeftFrontLowerExt()		{ return Vector(A.x, A.y, A1.z); }
@@ -233,6 +238,12 @@ public:
 	AVVECTOR CentreRearUpperExt()		{ return Vector((A.x + B.x) / 2, B.y, B1.z); }
 	AVVECTOR CentreRearExtUpper()		{ return Vector((A.x + B.x) / 2, B1.y, B.z); }
 	AVVECTOR CentreRearExtUpperExt()	{ return Vector((A.x + B.x) / 2, B1.y, B1.z); }
+
+	AVVECTOR CentreLower()				{ return Vector(CentreX(), CentreY(), A.z); }
+	AVVECTOR CentreLowerEx()			{ return Vector(CentreX(), CentreY(), A1.z); }
+	AVVECTOR CentreUpper()				{ return Vector(CentreX(), CentreY(), B.z); }
+	AVVECTOR CentreUpperEx()			{ return Vector(CentreX(), CentreY(), B1.z); }
+	AVVECTOR Centre()					{ return Vector(CentreX(), CentreY(), CentreZ()); }
 
 	BOX LowerSlab()										{ return BOX(LeftExtRearExtLower(), WidthExt(), DepthExt(), -LowerThickness()); }
 	BOX UpperSlab()										{ return BOX(LeftExtRearExtUpper(), WidthExt(), DepthExt(), UpperThickness()); }

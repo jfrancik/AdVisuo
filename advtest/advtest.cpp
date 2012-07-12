@@ -163,7 +163,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			h = AVProcess(nProjectID);
 		break;
 	case IFC:
-		h = AVIFC(nSimulationID);
+		h = AVIFC(nSimulationID, L"out.ifc");
 		break;
 	case DEL:
 		h = AVDelete(nSimulationID);

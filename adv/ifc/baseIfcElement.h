@@ -83,6 +83,14 @@ public:
 	virtual int build();
 };
 
+class CIFCDoor : public CIFCElement
+{
+public:
+	CIFCDoor(CIFCRoot *pParent, transformationMatrixStruct *pMatrix, double width, double height, double thickness,
+					bool bBrep = true, bool bPresentation = true);	
+	virtual int build();
+};
+
 class CIFCBeam : public CIFCElement
 {
 public:

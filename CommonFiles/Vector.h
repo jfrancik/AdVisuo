@@ -34,6 +34,12 @@ inline AVVECTOR VectorSub(const AVVECTOR &a, const AVVECTOR &b)
 	return v;
 }
 
+inline AVVECTOR VectorNeg(const AVVECTOR &a)
+{
+	AVVECTOR v = { -a.x, -a.y, -a.z };
+	return v;
+}
+
 inline AVVECTOR VectorMul(const AVVECTOR &a, AVFLOAT f)
 {
 	AVVECTOR v = { a.x * f, a.y * f, a.z * f };
@@ -66,6 +72,11 @@ inline AVVECTOR operator+ (AVVECTOR &v1, AVVECTOR &v2)
 inline AVVECTOR operator- (AVVECTOR &v1, AVVECTOR &v2)
 {
 	return VectorSub(v1, v2);
+}
+
+inline AVVECTOR operator- (AVVECTOR &v)
+{
+	return VectorNeg(v);
 }
 
 inline AVVECTOR operator* (AVFLOAT f, AVVECTOR &v)

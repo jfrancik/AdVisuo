@@ -52,7 +52,7 @@ CElemIfc::CElemIfc(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVU
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);
 	matrix._41 = vec.x;
-	matrix._42 = vec.y;
+	matrix._42 = -vec.y;
 	matrix._43 = vec.z;
 
 	CIFCRoot *pParentBone = GetParent() ? GetParent()->GetBone() : NULL;
@@ -92,11 +92,11 @@ USES_CONVERSION;
 
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);
-	RotateZ(matrix, vecRot.z);
+	RotateZ(matrix, -vecRot.z);
 	RotateX(matrix, vecRot.x);
 	RotateY(matrix, vecRot.y);
 	matrix._41 += box.Left();
-	matrix._42 += box.Front();
+	matrix._42 += -box.Front();
 	matrix._43 += box.Lower();
 
 	CIFCElement *pElem = NULL;
@@ -106,18 +106,18 @@ USES_CONVERSION;
 	case WALL_FLOOR:
 	case WALL_CEILING:
 	case WALL_LIFT_FLOOR:
-	case WALL_LIFT_CEILING:	pElem = new CIFCSlab(GetBone(), &matrix, box.Width(), box.Height(), -box.Depth(), bBrep, bPresentation); break;
+	case WALL_LIFT_CEILING:	pElem = new CIFCSlab(GetBone(), &matrix, box.Width(), box.Height(), box.Depth(), bBrep, bPresentation); break;
 
 	case WALL_FRONT:
 	case WALL_REAR:
 	case WALL_SIDE:
 	case WALL_SHAFT:
-	case WALL_LIFT:			pElem = new CIFCWall(GetBone(), &matrix, box.Width(), box.Height(), -box.Depth(), bBrep, bPresentation); break;
+	case WALL_LIFT:			pElem = new CIFCWall(GetBone(), &matrix, box.Width(), box.Height(), box.Depth(), bBrep, bPresentation); break;
 
 	case WALL_DOOR:
-	case WALL_LIFT_DOOR:	pElem = new CIFCWall(GetBone(), &matrix, box.Width(), box.Height(), -box.Depth(), bBrep, bPresentation); break;
+	case WALL_LIFT_DOOR:	pElem = new CIFCDoor(GetBone(), &matrix, box.Width(), box.Height(), box.Depth(), bBrep, bPresentation); break;
 
-	case WALL_BEAM:			pElem = new CIFCBeam(GetBone(), &matrix, box.Width(), box.Height(), -box.Depth(), bBrep, bPresentation); break;
+	case WALL_BEAM:			pElem = new CIFCBeam(GetBone(), &matrix, box.Width(), box.Height(), box.Depth(), bBrep, bPresentation); break;
 
 	case WALL_FLOOR_NUMBER_PLATE:
 	case WALL_LIFT_NUMBER_PLATE:
@@ -137,44 +137,116 @@ USES_CONVERSION;
 		transformationMatrixStruct matrix;
 		identityMatrix(&matrix);
 		matrix._41 = fPos;
-		CIFCOpening opening(pElem, &matrix, fW, fH, -box.Depth(), bBrep, bPresentation);
+		CIFCOpening opening(pElem, &matrix, fW, fH, box.Depth(), bBrep, bPresentation);
 		if (!opening.build()) throw Logf(ERROR_IFC_PRJ, L"opening");
 	}
 
 	delete pElem;
 }
 
-void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot)
+void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot)
 {
-USES_CONVERSION;
-	char *pName = OLE2A((LPOLESTR)strName);
-
 	if (!GetBone()) return;
-
-	transformationMatrixStruct matrix;
-	identityMatrix(&matrix);
-	RotateZ(matrix, vecRot.z);
-	RotateX(matrix, vecRot.x);
-	RotateY(matrix, vecRot.y);
-	matrix._41 += box.Left();
-	matrix._42 += box.Front();
-	matrix._43 += box.Lower();
-
 	CIfcBuilder *p = NULL;
+	AVFLOAT fScale = GetBuilding()->GetScale();
+	AVVECTOR centre = box.CentreLower();
+	AVULONG i;
 
 	switch (nModelId)
 	{
-	case MODEL_MACHINE:	p = new CIfcBuilder("Machine30T_UPSTAND.ifc", 0); break;
-	case MODEL_BUFFER:	p = new CIfcBuilder("21April2011AllComponents.ifc", 2); break;
-	case MODEL_LIFT:	p = new CIfcBuilder("21April2011AllComponents.ifc", 0); break;
-	case MODEL_DOOR_CAR:		p = new CIfcBuilder("21April2011AllComponents.ifc", 4); break;
-	case MODEL_DOOR_LANDING:	p = new CIfcBuilder("21April2011AllComponents.ifc", 5); break;
-	}
 
-	if (p)
-	{
-		p->build(this, nModelId, strName, nIndex, box, vecRot.z);
+	case MODEL_MACHINE:
+		p = new CIfcBuilder("c:\\IFC\\machine40t.ifc");
+		if (!p) return;
+		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
+		break;
+	case MODEL_OVERSPEED:
+		p = new CIfcBuilder("c:\\IFC\\overspeed.ifc"); 
+		if (!p) return;
+		box.SetDepth(box.Depth() / 2);		// adjustment to avoid collision with the guide rail
+		centre = box.CentreLower();
+		p->build(this, nModelId, strName, nIndex, centre, fRot);
+		delete p;
+		break;
+	case MODEL_CONTROL:
+		p = new CIfcBuilder("c:\\IFC\\control.ifc"); 
+		if (!p) return;
+		i = GetBuilding()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
+		centre.x += p->Width() * (nIndex - GetBuilding()->GetShaftBegin(i) - (AVFLOAT)(GetBuilding()->GetShaftCount(i) - 1) / 2.0f);
+		if (i == 0)
+			centre.y -= p->Depth()/2;
+		else
+			centre.y += p->Depth()/2;
+		p->build(this, nModelId, strName, nIndex, centre, fRot);
+		delete p;
+		break;
+	case MODEL_ISOLATOR:
+		p = new CIfcBuilder("c:\\IFC\\isolator.ifc"); 
+		if (!p) return;
+		p->build(this, nModelId, strName, nIndex, centre, fRot);
+		delete p;
+		break;
+	case MODEL_CWT:
+		//p = new CIfcBuilder("c:\\IFC\\cwt.ifc"); 
+		//if (!p) return;
+		//p->build(this, nModelId, strName, nIndex, centre, fRot);
+		//delete p;
+		box.SetDepth(-box.Depth());	// unclear why needed
+		BuildWall(WALL_SHAFT, strName, nIndex, box, Vector(0, 0, fRot));
+		break;
+	case MODEL_RAIL_CAR:
+		p = new CIfcBuilder("c:\\IFC\\rail.ifc"); 
+		if (!p) return;
+		{
+			BOX b = box;
+			b.Grow(1, 0, 1);
+			b.SetRight(b.Left() + 100);
+			p->build(this, nModelId, strName, nIndex, b, fRot + M_PI);
+			b = box;
+			b.Grow(1, 0, 1);
+			b.SetLeft(b.Right() - 100);
+			p->build(this, nModelId, strName, nIndex, b, fRot);
+		}
+		delete p;
+		break;
+	case MODEL_RAIL_CWT:
+		p = new CIfcBuilder("c:\\IFC\\rail.ifc"); 
+		if (!p) return;
+		{
+			BOX b = box;
+			b.Grow(1, 0, 1);
+			b.SetRight(b.Left() - 75);
+			p->build(this, nModelId, strName, nIndex, b, fRot + M_PI);
+			b = box;
+			b.Grow(1, 0, 1);
+			b.SetLeft(b.Right() + 75);
+			p->build(this, nModelId, strName, nIndex, b, fRot);
+		}
+		delete p;
+		break;
+	case MODEL_BUFFER:
+		p = new CIfcBuilder("c:\\IFC\\buffer.ifc"); 
+		if (!p) return;
+		p->build(this, nModelId, strName, nIndex, centre, fRot);
+		delete p;
+		break;
+	case MODEL_PULLEY:
+		p = new CIfcBuilder("c:\\IFC\\pulley.ifc"); 
+		if (!p) return;
+		box.SetDepth(box.Depth() / 2);		// adjustment to avoid collision with the guide rail
+		centre = box.CentreLower();
+		p->build(this, nModelId, strName, nIndex, centre, fRot);
+		delete p;
+		break;
+	case MODEL_LADDER:
+		p = new CIfcBuilder("c:\\IFC\\ladder.ifc"); 
+		if (!p) return;
+		box.SetDepth(box.Depth() / 2);		// adjustment to avoid collision with the guide rail
+		centre = box.CentreLower();
+		p->build(this, nModelId, strName, nIndex, centre, 0.8, 0.8, 1, fRot);
+		delete p;
+		break;
 	}
 }
 
@@ -192,7 +264,32 @@ CIfcBuilder::CIfcBuilder(char *pFilename, AVULONG nInstanceIndex)
 	CIFCModelScanner::GetBB(m_h, m_bb);
 }
 
-void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot)
+void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fRot)
+{
+	build(pElem, nModelId, strName, nIndex, base, 1, 1, 1, fRot);
+}
+
+void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, bool bIsotropic)
+{
+	double w = box.Width();
+	double d = box.Depth();
+	double h = box.Height();
+	double W = abs(cos(fRot)*w - sin(fRot)*d);
+	double D = abs(cos(fRot)*d + sin(fRot)*w);
+	double dScaleX = W / Width();
+	double dScaleY = D / Depth();
+	double dScaleZ = h / Height();
+
+	if (w == 0 && d == 0 && h == 0) return;
+	else if (w == 0 && d == 0) dScaleX = dScaleY = dScaleZ;
+	else if (w == 0 || d == 0) dScaleX = dScaleY = max(dScaleX, dScaleY);
+	else if (bIsotropic) dScaleX = dScaleY = min(dScaleX, dScaleY);
+	if (h == 0) dScaleZ = dScaleX;
+
+	build(pElem, nModelId, strName, nIndex, box.CentreLower(), dScaleX, dScaleY, dScaleZ, fRot);
+}
+
+void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fScaleX, AVFLOAT fScaleY, AVFLOAT fScaleZ, AVFLOAT fRot)
 {
 USES_CONVERSION;
 	char *pName = OLE2A((LPOLESTR)strName);
@@ -202,28 +299,30 @@ USES_CONVERSION;
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);
 	RotateZ(matrix, fRot);
-	matrix._41 += box.Left();
-	matrix._42 += box.Front();
-	matrix._43 += box.Lower();
+	matrix._41 += base.x;
+	matrix._42 += -base.y;
+	matrix._43 += base.z;
 
-	double dScale = box.Width() / (m_bb.x1 - m_bb.x0);
-
-	if (nModelId == CElem::MODEL_BUFFER)
-	{
-		matrix._41 = box.Left() + 300;
-		matrix._42 = box.Front() - 300;
-		matrix._43 = box.Lower() + 1800;
-		dScale = box.Width() / (m_bb.y1 - m_bb.y0);	// x0 - x1 doesn't provide correct values!
-	}
+	// shift
+	double dShiftX = Width() / 4;
+	double dShiftY = Depth() / 4;
+	double dShiftZ = Lower();
 
 	CIFCRevitElem machine(pElem->GetBone(), &matrix);
 	machine.setInfo(pName, pName);
-	int h = machine.build(m_h, [dScale] (CIFCModelScanner::ITEM *pItem) 
+	int hRes = machine.build(m_h, [dShiftX, dShiftY, dShiftZ, fScaleX, fScaleY, fScaleZ] (CIFCModelScanner::ITEM *pItem) 
 								{
 									if (pItem->type == CIFCModelScanner::ITEM::AGGREG && pItem->nIndex >= 0 && pItem->nType == sdaiREAL && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE && strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 && sdaiGetMemberCount(pItem->hAggreg) == 3)
-										pItem->dvalue *= dScale;
+									{
+										switch (pItem->nIndex)
+										{
+										case 0: pItem->dvalue = (pItem->dvalue - dShiftX) * fScaleX; break;
+										case 1: pItem->dvalue = (pItem->dvalue - dShiftY) * fScaleY; break;
+										case 2: pItem->dvalue = (pItem->dvalue - dShiftZ) * fScaleZ; break;
+										}
+									}
 								}); 
-	if (!h) throw Logf(ERROR_IFC_PRJ, L"revit");
+	if (!hRes) throw Logf(ERROR_IFC_PRJ, L"revit");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////

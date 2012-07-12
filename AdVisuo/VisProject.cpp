@@ -89,9 +89,107 @@ void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX b
 	block.Close();
 }
 
-void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot)
+
+	BOX __helper(AVVECTOR base, AVFLOAT w, AVFLOAT d, AVFLOAT h)
+	{
+		return BOX(base + Vector(-w/2, -d/2, 0), w, d, h);
+	}
+
+void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot)
 {
-	BuildWall(WALL_BEAM, strName, nIndex, box, vecRot);
+//	BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
+	
+	if (!GetBone()) return;
+	AVFLOAT fScale = GetBuilding()->GetScale();
+	float f;
+	AVVECTOR centre = box.CentreLower();
+
+	switch (nModelId)
+	{
+	case MODEL_MACHINE:
+		box.SetDepth(-box.Depth());
+		box.Grow(0.9f, 0.9f, 0.9f);
+		BuildWall(WALL_BEAM, strName, nIndex, box);
+		break;
+	case MODEL_OVERSPEED:
+		f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
+		box.Move(0, f*60, 0);
+		centre = box.CentreLower();
+		BuildWall(WALL_BEAM, strName, nIndex, __helper(centre, 7, f*30, 30));
+		break;
+	//case MODEL_CONTROL:
+	//	i = GetBuilding()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
+	//	centre.x += p->Width() * (nIndex - GetBuilding()->GetShaftBegin(i) - (AVFLOAT)(GetBuilding()->GetShaftCount(i) - 1) / 2.0f);
+	//	if (i == 0)
+	//		centre.y -= p->Depth()/2;
+	//	else
+	//		centre.y += p->Depth()/2;
+	//	p->build(this, nModelId, strName, nIndex, centre, fRot);
+	//	break;
+	//case MODEL_ISOLATOR:
+	//	p->build(this, nModelId, strName, nIndex, centre, fRot);
+	//	break;
+	case MODEL_CWT:
+		f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		box.SetDepth(-box.Depth());
+		box.Move(0, -f*2, 0);
+		BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
+		break;
+	case MODEL_RAIL_CAR:
+		{
+			f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+			BOX b = box;
+			b.Grow(1, 0, 1);
+			b.SetRight(b.Left() + 4);
+			b.SetRear(b.Rear() - f*2);
+			b.SetFront(b.Front() + f*2);
+			BuildWall(WALL_BEAM, L"Rail1", nIndex, b);
+			b = box;
+			b.Grow(1, 0, 1);
+			b.SetLeft(b.Right() - 4);
+			b.SetRear(b.Rear() - f*2);
+			b.SetFront(b.Front() + f*2);
+			BuildWall(WALL_BEAM, L"Rail2", nIndex, b);
+		}
+		break;
+	case MODEL_RAIL_CWT:
+		{
+			f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+			BOX b = box;
+			b.Grow(1, 0, 1);
+			b.SetRight(b.Left() - 3);
+			b.SetRear(b.Rear() + f*1.5f);
+			b.SetFront(b.Front() - f*1.5f);
+			BuildWall(WALL_BEAM, L"Rail3", nIndex, b);
+			b = box;
+			b.Grow(1, 0, 1);
+			b.SetLeft(b.Right() + 3);
+			b.SetRear(b.Rear() + f*1.5f);
+			b.SetFront(b.Front() - f*1.5f);
+			BuildWall(WALL_BEAM, L"Rail4", nIndex, b);
+		}
+		break;
+	case MODEL_BUFFER:
+		{
+			f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+			BOX b = __helper(centre, 6, f*6, 45);
+			BuildWall(WALL_BEAM, strName, nIndex, b);
+		}
+		break;
+	case MODEL_PULLEY:
+		f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
+		box.Move(0, f*60, 0);
+		centre = box.CentreLower();
+		BuildWall(WALL_BEAM, strName, nIndex, __helper(centre, 6, f*20, 30));
+		break;
+	//case MODEL_LADDER:
+	//	box.SetDepth(box.Depth() / 2);		// adjustment to avoid collision with the guide rail
+	//	centre = box.CentreLower();
+	//	p->build(this, nModelId, strName, nIndex, centre, 0.8, 0.8, 1, fRot);
+	//	break;
+	}
 }
 
 void CElemVis::Move(AVVECTOR vec)

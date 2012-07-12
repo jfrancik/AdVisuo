@@ -133,8 +133,10 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID);
 ADV_API HRESULT AVProcess(AVULONG nProjectId);
 
 // Generates the IFC file for the given simulation ID
-// Uses Advisuo_Console database to acquire data and IFC file desired location
-ADV_API HRESULT AVIFC(AVULONG nSimulationId);
+// Uses Advisuo_Console database to acquire data
+// Stores IFC data in the location provided
+ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName);
+ADV_API HRESULT AVIFC8(AVULONG nSimulationId, char *pIFCPathName);
 
 // Deletes the simulation data from the visualisation database.
 // Returns immediately if data not found.
@@ -149,38 +151,6 @@ ADV_API HRESULT AVDeleteAll();
 // Drops tables in the VISUALISATION database - may be used to re-initialize
 // Returns standard error codes in case of database/connection errors - check with FAILED(...) macro
 ADV_API HRESULT AVDropTables();
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Legacy
-// These functions are deprecated now and are kept only for backward compatibility reasons.
-// Once they are completely withdrawn from other applications, they will be removed from here.
-// Note that these functions now call the proper part of the interface and most parameters,
-// like connection strings, pathnames and scaling factors, are ignored.
-
-
-// Loads Building Information and stores the data in database
-// This function does not load actual simulation data; call AVLoadSim to complete the task
-ADV_API HRESULT AVLoadBuilding(AVSTRING pConnStr, AVULONG nProjectId, AVSTRING pBuildingXml);
-
-// Loads Simulation Data and stores then in database
-// The Building Information must be loaded with AVLoadBuilding function
-ADV_API HRESULT AVLoadSim(AVSTRING pConnStr, AVULONG nProjectId, AVSTRING pBinarySim, AVFLOAT fScale = 0.04f);
-
-// Loads Building Information and Simulation Data, then stores them in database
-ADV_API HRESULT AVLoad(AVSTRING pConnStr, AVULONG nProjectId, AVSTRING pBuildingXml, AVSTRING pBinarySim, AVFLOAT fScale = 0.04f);
-
-// Removes all the information regarding the project identified with nProjectId param from the database
-ADV_API HRESULT AVCleanUp(AVSTRING pConnStr, AVULONG nProjectId);
-
-// Removes all the information from the database (leaves the database empty)
-ADV_API HRESULT AVCleanUpAll(AVSTRING pConnStr);
-
-// 8-bit string versions
-ADV_API HRESULT AVLoadBuilding8(char *pConnStr, AVULONG nProjectId, char *pBuildingXml);
-ADV_API HRESULT AVLoadSim8(char *pConnStr, AVULONG nProjectId, char *pBinarySim, AVFLOAT fScale = 0.04f);
-ADV_API HRESULT AVLoad8(char *pConnStr, AVULONG nProjectId, char *pBuildingXml, char *pBinarySim, AVFLOAT fScale = 0.04f);
-ADV_API HRESULT AVCleanUp8(char *pConnStr, AVULONG nProjectId);
-ADV_API HRESULT AVCleanUpAll8(char *pConnStr);
 
 
 //// Parameters:

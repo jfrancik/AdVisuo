@@ -23,7 +23,7 @@ public:
 
 	// implementation
 	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL);
-	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0));
+	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0);
 	virtual void Move(AVVECTOR vec);
 };
 
@@ -33,8 +33,19 @@ class CIfcBuilder
 	int m_h;
 	CIFCModelScanner::BB m_bb;
 public:
-	CIfcBuilder(char *pFilename, AVULONG nInstanceIndex);
-	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0);
+	CIfcBuilder(char *pFilename, AVULONG nInstanceIndex = 0);
+
+	double Left()	{ return m_bb.x0; }			double Right()	{ return m_bb.x1; }
+	double Front()	{ return m_bb.y0; }			double Rear()	{ return m_bb.y1; }
+	double Lower()	{ return m_bb.z0; }			double Upper()	{ return m_bb.z1; }
+
+	double Width()	{ return m_bb.x1 - m_bb.x0; }
+	double Depth()	{ return m_bb.y1 - m_bb.y0; }
+	double Height()	{ return m_bb.z1 - m_bb.z0; }
+
+	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, bool bIsotropic = true);
+	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fScaleX, AVFLOAT fScaleY, AVFLOAT fScaleZ, AVFLOAT fRot = 0);
+	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fRot = 0);
 };
 
 class CProjectIfc : public CProjectSrv

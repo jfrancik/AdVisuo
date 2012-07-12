@@ -32,9 +32,7 @@ void CBuildingConstr::STOREY::Construct(AVULONG iStorey)
 	AVLONG iStorey2 = iStorey - GetBuilding()->GetBasementStoreyCount();
 
 	// imposed parameters
-	AVFLOAT gap = 1.0f;			// gap between lift doors
-	AVFLOAT opn = 2.5f;			// width of the opening around the door
-	AVFLOAT bulge = 2;			// bulge of the opening (above the wall)
+	AVFLOAT opn = 0;	//2.5f;			// width of the opening around the door
 
 	// create skeletal structure (object & bone)
 	m_pElem = GetProject()->CreateElement(GetBuilding(), GetBuilding()->GetElement(), CElem::ELEM_STOREY, (LPOLESTR)GetName().c_str(), iStorey, Vector(0, 0, GetLevel()));
@@ -134,11 +132,8 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 	if (::GetKeyState(VK_CONTROL) < 0 && ::GetKeyState(VK_SHIFT) < 0 && !GetBuilding()->bFastLoad) { GetBuilding()->bFastLoad = true; MessageBeep(MB_OK); }
 
 	// imposed parameters
-	AVFLOAT gap = 1.0f;			// gap between lift doors
-	AVFLOAT opn = 2.5f;			// width of the opening around the door
-	AVFLOAT bulge = 2;			// bulge of the opening (above the wall)
-	AVFLOAT fDoorThickness = GetBoxDoor().Depth() * 0.2f;
-	AVFLOAT fOpeningThickness = GetBoxDoor().Depth() * 0.4f;
+//	AVFLOAT opn = 2.5f;			// width of the opening around the door
+//	AVFLOAT fOpeningThickness = GetBoxDoor().Depth() * 0.4f;
 
 	AVLONG iStorey2 = iStorey - GetBuilding()->GetBasementStoreyCount();
 
@@ -180,10 +175,10 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 		if (GetBuilding()->IsStoreyServed(iStorey, iShaft))
 		{
 			// The Opening
-			AVFLOAT door[] = { opn, GetBoxDoor().Width(), GetBoxDoor().Height() };
-			GetElementLobbySide(iStorey)->BuildWall(CElem::WALL_OPENING, L"Opening", nIndex, 
-				BOX(GetBoxDoor().LeftRearLower() + Vector(-opn, 0, 0), GetBoxDoor().Width() + opn + opn, fOpeningThickness, GetBoxDoor().Height() + opn),
-				Vector(0), 1, door);
+//			AVFLOAT door[] = { opn, GetBoxDoor().Width(), GetBoxDoor().Height() };
+//			GetElementLobbySide(iStorey)->BuildWall(CElem::WALL_OPENING, L"Opening", nIndex, 
+//				BOX(GetBoxDoor().LeftRearLower() + Vector(-opn, 0, 0), GetBoxDoor().Width() + opn + opn, fOpeningThickness, GetBoxDoor().Height() + opn),
+//				Vector(0), 1, door);
 
 			// Plates
 			if (GetShaftLine() == 0)
@@ -195,9 +190,9 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 
 			// Door
 			m_pStoreyBones[iStorey].m_ppDoors[0] = GetProject()->CreateElement(GetBuilding(), GetElementLobbySide(iStorey), CElem::ELEM_BONE, L"Door_Left", MAKELONG(iStorey, iShaft), Vector(0));
-			m_pStoreyBones[iStorey].m_ppDoors[0]->BuildWall(CElem::WALL_DOOR, L"DoorL" , MAKELONG(iStorey, iShaft), BOX(GetBoxDoor().LeftRearLower(), GetBoxDoor().Width()/2, fDoorThickness, GetBoxDoor().Height()));
+			m_pStoreyBones[iStorey].m_ppDoors[0]->BuildWall(CElem::WALL_DOOR, L"DoorL" , MAKELONG(iStorey, iShaft), BOX(GetBoxDoor().LeftRearLower(), GetBoxDoor().Width()/2, GetBoxDoor().Depth(), GetBoxDoor().Height()));
 			m_pStoreyBones[iStorey].m_ppDoors[1] = GetProject()->CreateElement(GetBuilding(), GetElementLobbySide(iStorey), CElem::ELEM_BONE, L"Door_Right", MAKELONG(iStorey, iShaft), Vector(0));
-			m_pStoreyBones[iStorey].m_ppDoors[1]->BuildWall(CElem::WALL_DOOR, L"DoorR", MAKELONG(iStorey, iShaft), BOX(GetBoxDoor().LeftRearLower() + Vector(GetBoxDoor().Width()/2), GetBoxDoor().Width()/2, fDoorThickness, GetBoxDoor().Height()));
+			m_pStoreyBones[iStorey].m_ppDoors[1]->BuildWall(CElem::WALL_DOOR, L"DoorR", MAKELONG(iStorey, iShaft), BOX(GetBoxDoor().LeftRearLower() + Vector(GetBoxDoor().Width()/2), GetBoxDoor().Width()/2, GetBoxDoor().Depth(), GetBoxDoor().Height()));
 		}
 	}
 }
@@ -206,19 +201,12 @@ void CBuildingConstr::SHAFT::ConstructMachine(AVULONG iShaft)
 {
 	m_pElemMachine = GetProject()->CreateElement(GetBuilding(), GetBuilding()->GetMachineRoomElement(), CElem::ELEM_SHAFT, L"Machine %c", iShaft + 'A', Vector(0, 0, GetBuilding()->GetMachineRoomLevel()));
 
-	BOX box = GetBoxCar();
-	box.SetHeight(box.Width());
-	if (GetShaftLine())
-	{
-		box.Move(box.Width(), box.Depth(), 0);
-		box.SetDepth(-box.Depth());
-		GetMachineElement()->BuildModel(CElem::MODEL_MACHINE, L"Machine", 0, box, Vector(0, 0, (AVFLOAT)M_PI));
-	}
-	else
-	{
-		box.Move(0, box.Depth(), 0);
-		GetMachineElement()->BuildModel(CElem::MODEL_MACHINE, L"Machine", 0, box, Vector(0));
-	}
+	AVFLOAT fAngle = M_PI * (GetShaftLine() ? 3 : 1) / 2;
+	GetMachineElement()->BuildModel(CElem::MODEL_MACHINE, L"Machine", iShaft, GetBoxCar(), fAngle);
+	fAngle = M_PI * (GetShaftLine() ? 3 : 1) / 2;
+	GetMachineElement()->BuildModel(CElem::MODEL_OVERSPEED, L"Overspeed Governor", iShaft, GetBoxGovernor(), fAngle);
+	fAngle = M_PI * (GetShaftLine() ? 0 : 2) / 2;
+	GetMachineElement()->BuildModel(CElem::MODEL_CONTROL, L"Control Panel", iShaft, GetBuilding()->GetBox(), fAngle);
 }
 
 void CBuildingConstr::SHAFT::ConstructPit(AVULONG iShaft)
@@ -260,10 +248,26 @@ void CBuildingConstr::SHAFT::ConstructPit(AVULONG iShaft)
 			GetPitElementLobbySide()->BuildWall(CElem::WALL_SHAFT, L"RearWall", 0, box.FrontWall(0, GetBoxBeam().Width()));
 		}
 
-	// Buffer
-	AVFLOAT x = GetBoxCar().CenterX();
-	AVFLOAT y = GetBoxCar().CenterY();
-	GetPitElement()->BuildModel(CElem::MODEL_BUFFER, L"Buffer", 0, BOX(Vector(x-300, y-300, 0), 600, 1800, 600));
+	// Components
+	GetPitElement()->BuildModel(CElem::MODEL_BUFFER, L"Car Buffer", iShaft, GetBoxCar()); 
+	GetPitElement()->BuildModel(CElem::MODEL_BUFFER, L"Counterweight Buffer", iShaft, GetBoxCwt());
+	GetPitElement()->BuildModel(CElem::MODEL_PULLEY, L"Governor Tension Pulley", iShaft, GetBoxGovernor(), F_PI/2);
+	
+	AVFLOAT fAngle = M_PI * (GetShaftLine() ? 3 : 1) / 2;
+	GetPitElement()->BuildModel(CElem::MODEL_LADDER, L"Pit Ladder", iShaft, GetBoxLadder(), fAngle);
+	
+	box = GetBoxCarMounting();
+	box.SetHeight(abs(GetBuilding()->GetPitLevel()) + GetBuilding()->GetMachineRoomLevel() - GetBuilding()->GetMachineRoomSlabThickness());
+	GetPitElement()->BuildModel(CElem::MODEL_RAIL_CAR, L"Car Guide Rail", iShaft, box);
+	
+	box = GetBoxCwt();
+	box.SetHeight(abs(GetBuilding()->GetPitLevel()) + GetBuilding()->GetMachineRoomLevel() - GetBuilding()->GetMachineRoomSlabThickness());
+	GetPitElement()->BuildModel(CElem::MODEL_RAIL_CWT, L"Counterweight Guide Rail", iShaft, box);
+
+	box = GetBoxCwt();
+	box.Move(0, 0, abs(GetBuilding()->GetPitLevel()) + GetBuilding()->GetStorey(GetBuilding()->GetHighestStoreyServed())->GetLevel());
+	
+	GetPitElement()->BuildModel(CElem::MODEL_CWT, L"Counterweight", iShaft, box);
 }
 
 void CBuildingConstr::SHAFT::Deconstruct()
@@ -308,15 +312,14 @@ void CBuildingConstr::LIFT::Construct(AVULONG iShaft)
 		BOX box = GetShaft()->GetBoxCar() - GetShaft()->GetLiftPos(0);
 		BOX boxDoor0 = GetShaft()->GetBoxCarDoor(0) - GetShaft()->GetLiftPos(0);
 		AVFLOAT door[] = { boxDoor0.Left() - box.LeftExt(), boxDoor0.Width(), boxDoor0.Height() };
-		AVFLOAT fDoorThickness0 = boxDoor0.Depth() * 0.4f;
 
 		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT_FLOOR,   L"Floor",     iShaft, box.LowerSlab());
 		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT_CEILING, L"Ceiling",   iShaft, box.UpperSlab());
 
 		m_ppDoors[0] = GetProject()->CreateElement(GetBuilding(), m_ppDecks[iDeck], CElem::ELEM_BONE, L"Door_Left", iShaft, Vector(0));
-		m_ppDoors[0]->BuildWall(CElem::WALL_LIFT_DOOR, L"DoorL",     iShaft, BOX(boxDoor0.LeftFrontLower(), boxDoor0.Width()/2, -fDoorThickness0, boxDoor0.Height()));
+		m_ppDoors[0]->BuildWall(CElem::WALL_LIFT_DOOR, L"DoorL",     iShaft, BOX(boxDoor0.LeftFrontLower(), boxDoor0.Width()/2, -boxDoor0.Depth(), boxDoor0.Height()));
 		m_ppDoors[1] = GetProject()->CreateElement(GetBuilding(), m_ppDecks[iDeck], CElem::ELEM_BONE, L"Door_Right", iShaft, Vector(0));
-		m_ppDoors[1]->BuildWall(CElem::WALL_LIFT_DOOR, L"DoorR",     iShaft, BOX(boxDoor0.LeftFrontLower() + Vector(boxDoor0.Width()/2), boxDoor0.Width()/2, -fDoorThickness0, boxDoor0.Height()));
+		m_ppDoors[1]->BuildWall(CElem::WALL_LIFT_DOOR, L"DoorR",     iShaft, BOX(boxDoor0.LeftFrontLower() + Vector(boxDoor0.Width()/2), boxDoor0.Width()/2, -boxDoor0.Depth(), boxDoor0.Height()));
 		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"FrontWall", iShaft, box.FrontWall(), Vector(0), 1, door);
 		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"RearWall",  iShaft, box.RearWall(), Vector(0, 0, F_PI));
 		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"LeftWall",  iShaft, box.LeftWall(), Vector(0, 0, F_PI_2));

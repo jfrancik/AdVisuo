@@ -258,13 +258,13 @@ CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLOAT fAspec
 		switch (nId)
 		{
 		case 0: cp.eye = Vector(m_box.Left(), m_box.Front(), fEyeHeight); break;		// rear left
-		case 1: cp.eye = Vector(m_box.CenterX(), m_box.Front(), fEyeHeight); break;	// rear centre
+		case 1: cp.eye = Vector(m_box.CentreX(), m_box.Front(), fEyeHeight); break;	// rear centre
 		case 2: cp.eye = Vector(m_box.Right(), m_box.Front(), fEyeHeight); break;	// rear right
-		case 3: cp.eye = Vector(m_box.Right(), m_box.CenterY(), fEyeHeight); break;	// right side
+		case 3: cp.eye = Vector(m_box.Right(), m_box.CentreY(), fEyeHeight); break;	// right side
 		case 4: cp.eye = Vector(m_box.Right(), m_box.Rear(), fEyeHeight); break;	// front right
-		case 5: cp.eye = Vector(m_box.CenterX(), m_box.Rear(), fEyeHeight); break;	// front centre
+		case 5: cp.eye = Vector(m_box.CentreX(), m_box.Rear(), fEyeHeight); break;	// front centre
 		case 6: cp.eye = Vector(m_box.Left(), m_box.Rear(), fEyeHeight); break;	// front left
-		case 7: cp.eye = Vector(m_box.Left(), m_box.CenterY(), fEyeHeight); break;	// left side
+		case 7: cp.eye = Vector(m_box.Left(), m_box.CentreY(), fEyeHeight); break;	// left side
 		}
 
 		AVFLOAT fTargetDist;								// distance to the point the camera is looking at
@@ -330,7 +330,7 @@ CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLOAT fAspec
 		AVFLOAT fEyeHeight1 = 1.25f * m_box.Depth() / 2 / tan(cp.fHFOV/2);
 		AVFLOAT fEyeHeight2 = 1.10f * m_box.Width() / fAspect / 2 / tan(cp.fHFOV/2);
 		AVFLOAT fEyeHeight = max(fEyeHeight1, fEyeHeight2);
-		cp.eye = Vector(m_box.CenterX(), m_box.CenterY(), fEyeHeight);
+		cp.eye = Vector(m_box.CentreX(), m_box.CentreY(), fEyeHeight);
 		AVFLOAT nStoreyHeight = m_pBuilding->GetStorey(GetStorey())->GetBox().Height();
 		cp.fClipNear = fEyeHeight - nStoreyHeight + 20;
 		if (cp.fClipNear < 10) cp.fClipNear = 10;

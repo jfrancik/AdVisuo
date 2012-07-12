@@ -314,14 +314,12 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 	STD_CATCH(L"AVProcess(%d)", nProjectID);
 }
 
-ADV_API HRESULT AVIFC(AVULONG nSimulationId)
+ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)
 {
 	CLogTime lt;
 	AVSTRING pConsoleConn;
 	GetConnStrings(&pConsoleConn, NULL, NULL);
 
-	std::wstring strIFCFileName = L"c:\\users\\jarek\\desktop\\test.ifc";
-	
 	try
 	{
 		HRESULT h;
@@ -333,13 +331,20 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId)
 
 		prj.Construct();
 
-		h = prj.SaveAsIFC(strIFCFileName.c_str());
+		h = prj.SaveAsIFC(strIFCPathName);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		lt.Log(L"AVIFC");
-		Logf(STATUS_GENERIC, L"IFC file saved to: %s", strIFCFileName);
+		Logf(STATUS_GENERIC, L"IFC file saved to: %s", strIFCPathName);
 		return Logf(dwStatus, L"AVIFC(%d)", nSimulationId);
 	}
 	STD_CATCH(L"AVIFC(%d)", nSimulationId);
+}
+
+ADV_API HRESULT AVIFC8(AVULONG nSimulationId, char *pIFCPathName)
+{
+	USES_CONVERSION;
+	CA2W wIFCPathName(pIFCPathName);
+	return AVIFC(nSimulationId, wIFCPathName);
 }
 

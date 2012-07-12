@@ -71,8 +71,7 @@ public:
 		// Operations:
 		void ConsoleCreate(AVULONG nId, AVFLOAT fLevel);
 		void Create();
-		void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
-		void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+		void Scale(AVFLOAT fScale);
 		void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 	};
 
@@ -119,6 +118,10 @@ public:
 		BOX m_boxDoor[2];						// shaft external door (thickness = 0)
 		BOX m_boxCar;							// lift car (including car walls thickness)
 		BOX m_boxCarDoor[2];					// car internal door (thickness = 0)
+		BOX m_boxCarMounting;					// car external shape + void areas on the left & right
+		BOX m_boxCwt;							// counterweight
+		BOX m_boxGovernor;						// governors
+		BOX m_boxLadder;						// pit ladder
 
 	public:
 
@@ -151,12 +154,16 @@ public:
 		AVULONG GetLiftEnd()					{ return m_nLiftBegin + m_nLiftCount; }
 		void SetLiftRange(AVULONG i, AVULONG n)	{ m_nLiftBegin = i; m_nLiftCount = n; } 
 
-		enum SHAFT_BOX { BOX_SHAFT, BOX_BEAM, BOX_DOOR, BOX_CAR, BOX_CARDOOR };
+		enum SHAFT_BOX { BOX_SHAFT, BOX_BEAM, BOX_DOOR, BOX_CAR, BOX_CARDOOR, BOX_MOUNTING, BOX_CW, BOX_GOVERNOR, BOX_LADDER };
 		BOX &GetBox(enum SHAFT_BOX n = BOX_SHAFT, AVULONG i = 0);
 		BOX &GetBoxBeam()						{ return m_boxBeam; }
 		BOX &GetBoxDoor(AVULONG i = 0)			{ return m_boxDoor[i]; }
 		BOX &GetBoxCar()						{ return m_boxCar; }
 		BOX &GetBoxCarDoor(AVULONG i = 0)		{ return m_boxCarDoor[i]; }
+		BOX &GetBoxCarMounting()				{ return m_boxCarMounting; }
+		BOX &GetBoxCwt()						{ return m_boxCwt; }
+		BOX &GetBoxGovernor()					{ return m_boxGovernor; }
+		BOX &GetBoxLadder()						{ return m_boxLadder; }
 		AVFLOAT GetWallLtStart()				{ return m_fWallLtStart; }
 		AVFLOAT GetWallRtStart()				{ return m_fWallRtStart; }
 
@@ -179,7 +186,7 @@ public:
 		void ConsoleCreateRightWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
 		void ConsoleCreateAmend();
 		void Create();
-		void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
+		void Scale(AVFLOAT fScale);
 		void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 		void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 	};
@@ -223,6 +230,8 @@ private:
 	AVULONG m_nSimId;					// Sim ID
 
 	AVULONG m_nIndex;					// index in multi-group structures
+
+	AVFLOAT m_fScale;
 
 	AVULONG m_nStoreyCount;				// Counters (floors/shafts/lifts)
 	AVULONG m_nShaftCount;
@@ -276,6 +285,8 @@ public:
 	BOX &GetBoxPit()						{ return m_boxPit; }
 	bool InBoxPit(AVVECTOR &pt)				{ return m_boxPit.InBoxExt(pt); }
 
+	AVFLOAT GetScale()						{ return m_fScale; }
+
 
 	// Storeys
 	void CreateStoreys(AVULONG nStoreyCount, AVULONG nBasementStoreyCount = 0);
@@ -291,6 +302,7 @@ public:
 
 	MACHINEROOM *GetMachineRoom()			{ return m_pMachineRoom; }
 	AVFLOAT GetMachineRoomLevel()			{ return m_fMachineRoomLevel; }
+	AVFLOAT GetMachineRoomSlabThickness()	{ return GetBoxMachineRoom().LowerThickness(); }
 	PIT *GetPit()							{ return m_pPit; }
 	AVFLOAT GetPitLevel()					{ return m_fPitLevel; }
 
@@ -341,8 +353,7 @@ public:
 	virtual void ConsoleCreate();
 	virtual void Create();
 
-	void Scale(AVFLOAT fScale)	{ Scale(fScale, fScale, fScale); }
-	virtual void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	void Scale(AVFLOAT fScale);
 	virtual void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 
 protected:
