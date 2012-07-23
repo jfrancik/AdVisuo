@@ -83,6 +83,10 @@ struct AVVECTOR
 	AVFLOAT z;
 };
 
+#define SIDE_LEFT	0
+#define SIDE_RIGHT	1
+#define SIDE_REAR	2
+
 // Max Number of Lifts
 #define LIFT_MAXNUM	100
 

@@ -136,46 +136,11 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		box.Move(0, -f*2, 0);
 		BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
-	case MODEL_RAIL_CAR:
-		{
-			f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
-			BOX b = box;
-			b.Grow(1, 0, 1);
-			b.SetRight(b.Left() + 4);
-			b.SetRear(b.Rear() - f*2);
-			b.SetFront(b.Front() + f*2);
-			BuildWall(WALL_BEAM, L"Rail1", nIndex, b);
-			b = box;
-			b.Grow(1, 0, 1);
-			b.SetLeft(b.Right() - 4);
-			b.SetRear(b.Rear() - f*2);
-			b.SetFront(b.Front() + f*2);
-			BuildWall(WALL_BEAM, L"Rail2", nIndex, b);
-		}
-		break;
-	case MODEL_RAIL_CWT:
-		{
-			f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
-			BOX b = box;
-			b.Grow(1, 0, 1);
-			b.SetRight(b.Left() - 3);
-			b.SetRear(b.Rear() + f*1.5f);
-			b.SetFront(b.Front() - f*1.5f);
-			BuildWall(WALL_BEAM, L"Rail3", nIndex, b);
-			b = box;
-			b.Grow(1, 0, 1);
-			b.SetLeft(b.Right() + 3);
-			b.SetRear(b.Rear() + f*1.5f);
-			b.SetFront(b.Front() - f*1.5f);
-			BuildWall(WALL_BEAM, L"Rail4", nIndex, b);
-		}
+	case MODEL_RAIL:
+		BuildWall(WALL_BEAM, strName, nIndex, box);
 		break;
 	case MODEL_BUFFER:
-		{
-			f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
-			BOX b = __helper(centre, 6, f*6, 45);
-			BuildWall(WALL_BEAM, strName, nIndex, b);
-		}
+//		BuildWall(WALL_BEAM, strName, nIndex, box);
 		break;
 	case MODEL_PULLEY:
 		f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
