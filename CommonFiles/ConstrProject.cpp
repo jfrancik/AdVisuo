@@ -29,18 +29,21 @@ void CProjectConstr::Construct()
 
 	if (!m_pElem) return;
 
-	float y = GetBuilding()->GetShaftLinesCount() == 2 ? GetBuilding()->GetShaft(GetBuilding()->GetShaftCount()-1)->GetBox().RearExt() : GetBuilding()->GetBox().RearExt();
+	BOX _box = GetBuilding()->GetTotalAreaBox();
+
+	float y = GetBuilding()->GetTotalAreaBox().RearExt();
 	for each (CSim *pSim in m_sims)
 	{
 		CBuildingConstr *pBuilding = (CBuildingConstr*)pSim->GetBuilding();
-		y -= pBuilding->GetShaftLinesCount() == 2 ? pBuilding->GetShaft(pBuilding->GetShaftCount()-1)->GetBox().RearExt() : pBuilding->GetBox().RearExt();
+		
 		float x = -(GetBuilding()->GetBox().WidthExt() - pBuilding->GetBox().WidthExt()) / 2;
+		y -= pBuilding->GetTotalAreaBox().RearExt();
 
 		pBuilding->Deconstruct();
 		pBuilding->Construct(Vector(x, y, 0));
 
 		pSim->SetOffsetVector(Vector(x, y, 0));
-		y += pBuilding->GetShaft(0)->GetBox().RearExt();
+		y = pBuilding->GetTotalAreaBox().FrontExt();
 	}
 }
 

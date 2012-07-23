@@ -140,10 +140,11 @@ HRESULT CProjectSrv::LoadSim(dbtools::CDataBase db, AVULONG nSimulationId)
 	HRESULT h = S_OK;
 	for each (CSimSrv *pSim in m_sims)
 	{
-		HRESULT hh;
-		hh = pSim->LoadSim(db, nSimulationId);
+		HRESULT h1 = S_OK;
+		h1 = pSim->LoadSim(db, nSimulationId);
+		if (h1 != S_OK) h = h1;
 	}
-	return S_OK;
+	return h;
 }
 
 HRESULT CProjectSrv::CleanUp(CDataBase db, ULONG nSimulationId)

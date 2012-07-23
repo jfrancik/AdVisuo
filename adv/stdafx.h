@@ -52,6 +52,10 @@ struct AVVECTOR
 	AVFLOAT z;
 };
 
+#define SIDE_LEFT	0
+#define SIDE_RIGHT	1
+#define SIDE_REAR	2
+
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -80,6 +84,7 @@ inline void Debug(LPCTSTR fmt, ...)
 //	OutputDebugString(L"\n");
 //	printf("%ls\n", out);
 }
+
 #define ASSERT(x) {if(!(x)) _asm{int 0x03}}
 #define VERIFY(x) {if(!(x)) _asm{int 0x03}}
 #define TRACE _trace

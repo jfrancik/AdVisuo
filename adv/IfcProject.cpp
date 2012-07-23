@@ -144,33 +144,69 @@ USES_CONVERSION;
 	delete pElem;
 }
 
-void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot)
+void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVULONG nParam, AVFLOAT fParam1, AVFLOAT fParam2)
 {
 	if (!GetBone()) return;
 	CIfcBuilder *p = NULL;
 	AVFLOAT fScale = GetBuilding()->GetScale();
 	AVVECTOR centre = box.CentreLower();
 	AVULONG i;
+	bool b;
 
 	switch (nModelId)
 	{
-
 	case MODEL_MACHINE:
-		p = new CIfcBuilder("c:\\IFC\\machine40t.ifc");
-		if (!p) return;
-		p->build(this, nModelId, strName, nIndex, centre, fRot);
-		delete p;
+		switch (nParam)
+		{	
+		case 1: 
+			p = new CIfcBuilder("c:\\IFC\\machine138.ifc"); 
+			if (!p) return;
+			p->build(this, nModelId, L"Machine 138", 0, centre, fRot);
+			delete p;
+			break;
+		case 2: 
+			p = new CIfcBuilder("c:\\IFC\\machine30t.ifc"); 
+			if (!p) return;
+			p->build(this, nModelId, L"30T Machine", 0, centre, 0.25, 0.25, 0.25, fRot);
+			delete p;
+			break;
+		case 3: 
+			p = new CIfcBuilder("c:\\IFC\\machine40t.ifc"); 
+			if (!p) return;
+			p->build(this, nModelId, L"40T Machine", 0, centre, fRot);
+			delete p;
+			break;
+		case 4: 
+			p = new CIfcBuilder("c:\\IFC\\machine70t.ifc"); 
+			if (!p) return;
+			p->build(this, nModelId, L"70T Machine", 0, centre, fRot);
+			delete p;
+			break;
+		}
 		break;
 	case MODEL_OVERSPEED:
 		p = new CIfcBuilder("c:\\IFC\\overspeed.ifc"); 
 		if (!p) return;
-		box.SetDepth(box.Depth() / 2);		// adjustment to avoid collision with the guide rail
 		centre = box.CentreLower();
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
 		break;
 	case MODEL_CONTROL:
-		p = new CIfcBuilder("c:\\IFC\\control.ifc"); 
+		p = new CIfcBuilder("c:\\IFC\\control.ifc");
+
+
+		//if (nIndex == 1)
+		//{
+		//	transformationMatrixStruct matrix;
+		//	identityMatrix(&matrix);
+
+		//	CIFCRevitElem machine(GetBone(), &matrix);
+		//	machine.setInfo("dupa", "dupa");
+		//	machine.build_tmp(p->GetHandle());
+		//	delete p;
+		//	return;
+		//}
+
 		if (!p) return;
 		i = GetBuilding()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
 		centre.x += p->Width() * (nIndex - GetBuilding()->GetShaftBegin(i) - (AVFLOAT)(GetBuilding()->GetShaftCount(i) - 1) / 2.0f);
@@ -184,6 +220,9 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	case MODEL_ISOLATOR:
 		p = new CIfcBuilder("c:\\IFC\\isolator.ifc"); 
 		if (!p) return;
+		centre.x = box.Right() - p->Depth() + 35 * fScale;
+		centre.y = box.Rear() - p->Width() / 2 - fScale * 1500 - (nIndex / 2) * p->Width();
+		centre.z = 1000 * fScale + (nIndex % 2) * p->Height();
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
 		break;
@@ -195,46 +234,47 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		box.SetDepth(-box.Depth());	// unclear why needed
 		BuildWall(WALL_SHAFT, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
-	case MODEL_RAIL_CAR:
+	case MODEL_RAIL:
 		p = new CIfcBuilder("c:\\IFC\\rail.ifc"); 
 		if (!p) return;
-		{
-			BOX b = box;
-			b.Grow(1, 0, 1);
-			b.SetRight(b.Left() + 100);
-			p->build(this, nModelId, strName, nIndex, b, fRot + M_PI);
-			b = box;
-			b.Grow(1, 0, 1);
-			b.SetLeft(b.Right() - 100);
-			p->build(this, nModelId, strName, nIndex, b, fRot);
-		}
+		p->build(this, nModelId, strName, nIndex, box, fRot);
 		delete p;
 		break;
-	case MODEL_RAIL_CWT:
-		p = new CIfcBuilder("c:\\IFC\\rail.ifc"); 
-		if (!p) return;
-		{
-			BOX b = box;
-			b.Grow(1, 0, 1);
-			b.SetRight(b.Left() - 75);
-			p->build(this, nModelId, strName, nIndex, b, fRot + M_PI);
-			b = box;
-			b.Grow(1, 0, 1);
-			b.SetLeft(b.Right() + 75);
-			p->build(this, nModelId, strName, nIndex, b, fRot);
-		}
-		delete p;
-		break;
-	case MODEL_BUFFER:
+	case MODEL_BUFFER_CAR:
 		p = new CIfcBuilder("c:\\IFC\\buffer.ifc"); 
 		if (!p) return;
-		p->build(this, nModelId, strName, nIndex, centre, fRot);
+		box = BOX(box.CentreX() - fParam1/2, box.CentreY() - fParam1/2, 0, fParam1, fParam1, fParam2);
+		if (nParam == 1)
+			p->build(this, nModelId, strName, nIndex, box, fRot);
+		else
+		{
+			box.Move(-300, 0, 0);
+			p->build(this, nModelId, strName, nIndex, box, fRot);
+			box.Move(600, 0, 0);
+			p->build(this, nModelId, strName, nIndex, box, fRot);
+		}
+		delete p;
+		break;
+	case MODEL_BUFFER_CWT:
+		b = abs(box.Width()) > abs(box.Depth());
+		p = new CIfcBuilder("c:\\IFC\\buffer.ifc"); 
+		if (!p) return;
+		box = BOX(box.CentreX() - fParam1/2, box.CentreY() - fParam1/2, 0, fParam1, fParam1, fParam2);
+		if (nParam == 1)
+			p->build(this, nModelId, strName, nIndex, box, fRot);
+		else
+		{
+			if (b) box.Move(-300, 0, 0); else box.Move(0, -300, 0);
+			p->build(this, nModelId, strName, nIndex, box, fRot);
+			if (b) box.Move(600, 0, 0); else box.Move(0, 600, 0);
+			p->build(this, nModelId, strName, nIndex, box, fRot);
+		}
 		delete p;
 		break;
 	case MODEL_PULLEY:
 		p = new CIfcBuilder("c:\\IFC\\pulley.ifc"); 
 		if (!p) return;
-		box.SetDepth(box.Depth() / 2);		// adjustment to avoid collision with the guide rail
+		box.Move(0, 0, 500 * fScale);
 		centre = box.CentreLower();
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
@@ -242,9 +282,20 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	case MODEL_LADDER:
 		p = new CIfcBuilder("c:\\IFC\\ladder.ifc"); 
 		if (!p) return;
-		box.SetDepth(box.Depth() / 2);		// adjustment to avoid collision with the guide rail
 		centre = box.CentreLower();
-		p->build(this, nModelId, strName, nIndex, centre, 0.8, 0.8, 1, fRot);
+		p->build(this, nModelId, strName, nIndex, box, fRot);
+		delete p;
+		break;
+	case MODEL_LIGHT:
+		p = new CIfcBuilder("c:\\IFC\\light.ifc"); 
+		if (!p) return;
+		centre.y = box.Rear() + ((fRot > 0) ? p->Height() : -p->Height());
+
+		if (nParam == 1 && fParam1 < 500 * fScale + p->Width()) { delete p; return; }	// the pit is too shallow
+		if (nParam == 2 && fParam2 - fParam1 < 500 * fScale + p->Width()) { delete p; return; }	// the headroom is too shallow
+		centre.z = 500 * fScale + p->Width() / 2;
+		if (nParam == 2) centre.z = fParam2 - 500 * fScale - p->Width() / 2;	// special location for the headroom light
+		p->build(this, nModelId, strName, nIndex, centre, fRot, (AVFLOAT)M_PI/2);
 		delete p;
 		break;
 	}
@@ -264,12 +315,12 @@ CIfcBuilder::CIfcBuilder(char *pFilename, AVULONG nInstanceIndex)
 	CIFCModelScanner::GetBB(m_h, m_bb);
 }
 
-void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fRot)
+void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fRot, AVFLOAT fRotX)
 {
-	build(pElem, nModelId, strName, nIndex, base, 1, 1, 1, fRot);
+	build(pElem, nModelId, strName, nIndex, base, 1, 1, 1, fRot, fRotX);
 }
 
-void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, bool bIsotropic)
+void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVFLOAT fRotX, bool bIsotropic)
 {
 	double w = box.Width();
 	double d = box.Depth();
@@ -286,10 +337,10 @@ void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVL
 	else if (bIsotropic) dScaleX = dScaleY = min(dScaleX, dScaleY);
 	if (h == 0) dScaleZ = dScaleX;
 
-	build(pElem, nModelId, strName, nIndex, box.CentreLower(), dScaleX, dScaleY, dScaleZ, fRot);
+	build(pElem, nModelId, strName, nIndex, box.CentreLower(), dScaleX, dScaleY, dScaleZ, fRot, fRotX);
 }
 
-void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fScaleX, AVFLOAT fScaleY, AVFLOAT fScaleZ, AVFLOAT fRot)
+void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fScaleX, AVFLOAT fScaleY, AVFLOAT fScaleZ, AVFLOAT fRot, AVFLOAT fRotX)
 {
 USES_CONVERSION;
 	char *pName = OLE2A((LPOLESTR)strName);
@@ -298,6 +349,7 @@ USES_CONVERSION;
 
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);
+	RotateY(matrix, fRotX);
 	RotateZ(matrix, fRot);
 	matrix._41 += base.x;
 	matrix._42 += -base.y;
@@ -321,7 +373,8 @@ USES_CONVERSION;
 										case 2: pItem->dvalue = (pItem->dvalue - dShiftZ) * fScaleZ; break;
 										}
 									}
-								}); 
+								});
+
 	if (!hRes) throw Logf(ERROR_IFC_PRJ, L"revit");
 }
 

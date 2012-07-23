@@ -220,6 +220,58 @@ void CIFCModelScanner::Dump()
 				});
 }
 
+void CIFCModelScanner::DumpAsCpp()
+{
+	SetCallback([] (ITEM *pItem)
+				{
+					switch (pItem->type)
+					{
+					case CIFCModelScanner::ITEM::AGGREG:
+						if (pItem->nIndex < 0)
+						{
+							// aggregate
+							printf("hAggreg%d = sdaiCreateAggrBN(hInstance%d, \"%s\");\n", pItem->nLevel, pItem->nLevel-1, pItem->pParent->pstrAttrName);
+						}
+						else
+						{
+							// aggregate element
+							if (pItem->nType == sdaiREAL)
+								printf("dVal = %lf; sdaiAppend((int)hAggreg%d, %d, (void*)(&dVal));\n", pItem->dvalue, pItem->nLevel, pItem->nType);
+							else if (pItem->nType == sdaiINSTANCE)
+								printf("sdaiAppend((int)hAggreg%d, %d, (void*)hInstance%d);\n", pItem->nLevel, pItem->nType, pItem->nLevel+1);
+							else
+								printf("sdaiAppend((int)hAggreg%d, %d, pItem->value);\n", pItem->nLevel, pItem->nType, pItem->value);
+						}
+						break;
+					case CIFCModelScanner::ITEM::INSTANCE:
+						if (pItem->pstrAttrName == NULL)
+						{
+							// instance
+							printf("hInstance%d = sdaiCreateInstanceBN(nTargetModel, \"%s\");\n", pItem->nLevel, engiGetInstanceClassInfo(pItem->hInstance));
+						}
+						else
+						{
+							// instance attribute
+							if (pItem->nType >= 0)
+							{
+								switch (pItem->nType)
+								{
+								case sdaiBOOLEAN:	printf("bVal = %d; sdaiPutAttrBN(hInstance%d, \"%s\", %d, &bVal); \n", pItem->value, pItem->nLevel, pItem->pstrAttrName, pItem->nType); break;
+								case sdaiINTEGER:	printf("nVal = %d;  sdaiPutAttrBN(hInstance%d, \"%s\", %d, &nVal); \n", pItem->value, pItem->nLevel, pItem->pstrAttrName, pItem->nType); break;
+//								case sdaiENUM:		printf("sdaiPutAttrBN(hInstance, \"%s\", %d, pItem->value); \n", pItem->pstrAttrName, pItem->nType); break;
+								case sdaiREAL:		printf("dVal = %lf; sdaiPutAttrBN(hInstance%d, \"%s\", %d, &dVal); \n", pItem->dvalue, pItem->nLevel, pItem->pstrAttrName, pItem->nType); break;
+								case sdaiAGGR:		printf("sdaiPutAttrBN(hInstance%d, \"%s\", %d, (void*)hAggreg%d); \n", pItem->nLevel, pItem->pstrAttrName, pItem->nType, pItem->nLevel+1); break;
+								case sdaiINSTANCE:	printf("sdaiPutAttrBN(hInstance%d, \"%s\", %d, (void*)hInstance%d); \n", pItem->nLevel, pItem->pstrAttrName, pItem->nType, pItem->nLevel+1); break;
+								case sdaiSTRING:	printf("sdaiPutAttrBN(hInstance%d, \"%s\", %d, \"%s\"); \n", pItem->nLevel, pItem->pstrAttrName, pItem->nType, pItem->value); break;
+								default:			printf("sdaiPutAttrBN(hInstance%d, \"%s\", %d, \"%s\"); \n", pItem->nLevel, pItem->pstrAttrName, pItem->nType, pItem->value); break;
+								}
+							}
+						}
+						break;
+					}
+				});
+}
+
 void CIFCModelScanner::Clone(HINSTANCE nTargetModel, CB_FUNC cbUserFilter)
 {
 	SetCallback([nTargetModel, cbUserFilter] (ITEM *pItem)
@@ -325,6 +377,28 @@ int CIFCRevitElem::build(HINSTANCE hSourceInstance, CIFCModelScanner::CB_FUNC cb
 	pParent->appendRelContainedInSpatialStructure(ifcInstance);
 
 	hCloneInstance = CIFCModelScanner::Clone(hSourceInstance, getModel(), cbUserFilter);
+
+	sdaiPutAttrBN(getInstance(), "Representation", sdaiINSTANCE, (void*)hCloneInstance);
+
+	return ifcInstance;
+}
+
+int temp__(int nTargetModel);
+int CIFCRevitElem::build_tmp(HINSTANCE hSourceInstance)
+{
+	ifcInstance = sdaiCreateInstanceBN(getModel(), "IFCBUILDINGELEMENTPROXY");
+
+	sdaiPutAttrBN(ifcInstance, "GlobalId", sdaiSTRING, (void*) CreateCompressedGuidString());
+	sdaiPutAttrBN(ifcInstance, "OwnerHistory", sdaiINSTANCE, (void*) getProject()->getOwnerHistoryInstance());
+	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
+	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
+
+	ifcPlacementInstance = buildLocalPlacementInstance(pMatrix, pParent->getPlacementInstance());
+	sdaiPutAttrBN(ifcInstance, "ObjectPlacement", sdaiINSTANCE, (void*) ifcPlacementInstance);
+
+	pParent->appendRelContainedInSpatialStructure(ifcInstance);
+
+	hCloneInstance = temp__(getModel());
 
 	sdaiPutAttrBN(getInstance(), "Representation", sdaiINSTANCE, (void*)hCloneInstance);
 

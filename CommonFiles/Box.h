@@ -27,6 +27,15 @@ public:
 	BOX operator -(AVVECTOR v)		{ BOX box = *this; box -= v; return box; }
 	BOX &operator *=(AVFLOAT f)		{ Scale(f); return *this; }
 
+	BOX &operator +=(BOX box)		{ if (A.x <= B.x) { A.x = min(A.x, min(box.A.x, box.B.x)); A1.x = min(A1.x, min(box.A1.x, box.B1.x)); B.x = max(B.x, max(box.B.x, box.A.x)); B1.x = max(B1.x, max(box.B1.x, box.A1.x)); }
+									  else		 	  { A.x = max(A.x, max(box.A.x, box.B.x)); A1.x = max(A1.x, max(box.A1.x, box.B1.x)); B.x = min(B.x, min(box.B.x, box.A.x)); B1.x = min(B1.x, min(box.B1.x, box.A1.x)); }
+									  if (A.y <= B.y) { A.y = min(A.y, min(box.A.y, box.B.y)); A1.y = min(A1.y, min(box.A1.y, box.B1.y)); B.y = max(B.y, max(box.B.y, box.A.y)); B1.y = max(B1.y, max(box.B1.y, box.A1.y)); }
+									  else			  { A.y = max(A.y, max(box.A.y, box.B.y)); A1.y = max(A1.y, max(box.A1.y, box.B1.y)); B.y = min(B.y, min(box.B.y, box.A.y)); B1.y = min(B1.y, min(box.B1.y, box.A1.y)); }
+									  if (A.z <= B.z) { A.z = min(A.z, min(box.A.z, box.B.z)); A1.z = min(A1.z, min(box.A1.z, box.B1.z)); B.z = max(B.z, max(box.B.z, box.A.z)); B1.z = max(B1.z, max(box.B1.z, box.A1.z)); }
+									  else			  { A.z = max(A.z, max(box.A.z, box.B.z)); A1.z = max(A1.z, max(box.A1.z, box.B1.z)); B.z = min(B.z, min(box.B.z, box.A.z)); B1.z = min(B1.z, min(box.B1.z, box.A1.z)); }
+									  return *this;  }
+	BOX operator+(BOX box)			{ BOX Box = *this; Box += box; return Box; }
+
 	bool InBox(AVVECTOR &v)	{ return ((v.x >= Left() && v.x <= Right()) || (v.x <= Left() && v.x >= Right())) && ((v.y >= Front() && v.y <= Rear()) || (v.y <= Front() && v.y >= Rear())); }
 	bool InBoxExt(AVVECTOR &v)	{ return ((v.x >= LeftExt() && v.x <= RightExt()) || (v.x <= LeftExt() && v.x >= RightExt())) && ((v.y >= FrontExt() && v.y <= RearExt()) || (v.y <= FrontExt() && v.y >= RearExt())); }
 

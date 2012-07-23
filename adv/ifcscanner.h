@@ -55,6 +55,10 @@ public:
 	static HAGGREG Dump(HAGGREG hAggreg)			{ CIFCModelScanner s; s.Dump(); return s.Scan(hAggreg); }
 	static HINSTANCE Dump(HINSTANCE hInstance)		{ CIFCModelScanner s; s.Dump(); return s.Scan(hInstance); }
 
+	void DumpAsCpp();
+	static HAGGREG DumpAsCpp(HAGGREG hAggreg)		{ CIFCModelScanner s; s.DumpAsCpp(); return s.Scan(hAggreg); }
+	static HINSTANCE DumpAsCpp(HINSTANCE hInstance)	{ CIFCModelScanner s; s.DumpAsCpp(); return s.Scan(hInstance); }
+
 	void Clone(HINSTANCE nTargetModel, CB_FUNC cbUserFilter = NULL);
 	static HAGGREG Clone(HAGGREG hAggreg, HINSTANCE nTargetModel, CB_FUNC cbUserFilter = NULL)			
 													{ CIFCModelScanner s; s.Clone(nTargetModel, cbUserFilter); return s.Scan(hAggreg); }
@@ -126,6 +130,8 @@ public:
 	
 	virtual int build(HINSTANCE hSourceInstance, CIFCModelScanner::CB_FUNC cbUserFilter = NULL);
 	virtual int build() { return 0; }
+
+	int build_tmp(HINSTANCE hSourceInstance);
 
 	HINSTANCE getCloneInstance()							{ return hCloneInstance; }
 

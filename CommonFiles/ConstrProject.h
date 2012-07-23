@@ -23,13 +23,13 @@ public:
 		WALL_LIFT_NUMBER_PLATE, WALL_FLOOR_NUMBER_PLATE
 	};
 
-	enum { MODEL_MACHINE, MODEL_OVERSPEED, MODEL_CONTROL, MODEL_ISOLATOR, MODEL_CWT, MODEL_RAIL_CAR, MODEL_RAIL_CWT, MODEL_BUFFER, MODEL_PULLEY, MODEL_LADDER };
+	enum { MODEL_MACHINE, MODEL_OVERSPEED, MODEL_CONTROL, MODEL_ISOLATOR, MODEL_CWT, MODEL_RAIL, MODEL_BUFFER_CAR, MODEL_BUFFER_CWT, MODEL_PULLEY, MODEL_LADDER, MODEL_LIGHT };
 
 	CElem(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 	virtual ~CElem();
 
 	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL) = 0;
-	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0) = 0;
+	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVULONG nParam = 0, AVFLOAT fParam1 = 0, AVFLOAT fParam2 = 0) = 0;
 	virtual void Move(AVVECTOR vec) = 0;
 
 	CBuilding *GetBuilding()			{ return m_pBuilding; }

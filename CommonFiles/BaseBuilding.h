@@ -111,22 +111,29 @@ public:
 		AVULONG m_nLiftCount;					// usually 1, may be more for multiple lifts options
 		AVULONG m_nLiftBegin;					// index of the first lift, usually m_nId but may be different for multiple lifts options
 
-		// Dimensions
+		// Dimensions and similar
 		BOX m_boxShaft;							// shaft box (including ext walls thickness)
-		AVFLOAT m_fWallLtStart, m_fWallRtStart;	// offset at which left & right walls start, 0 if all the length
-		BOX m_boxBeam;							// left-side int beam (thickness = 0)
+		AVFLOAT m_fWallLtStart, m_fWallRtStart;	// Y-coordinate where left & right walls start, 0 if no wall
+		AVFLOAT m_fBeamLtHeight, m_fBeamRtHeight;// Height of the Left/Right Int Beam
 		BOX m_boxDoor[2];						// shaft external door (thickness = 0)
 		BOX m_boxCar;							// lift car (including car walls thickness)
 		BOX m_boxCarDoor[2];					// car internal door (thickness = 0)
-		BOX m_boxCarMounting;					// car external shape + void areas on the left & right
 		BOX m_boxCwt;							// counterweight
 		BOX m_boxGovernor;						// governors
 		BOX m_boxLadder;						// pit ladder
 
+		AVULONG m_nMachineType;					// machine type (1 - 4)
+		AVFLOAT m_fRailWidth;					// guiding rail width
+		AVFLOAT m_fRailLength;					// guiding rail length
+		AVULONG m_nBufferNum;					// number of car/cwt buffers
+		AVULONG m_nBufferDiameter;				// diameter of the buffers
+		AVULONG m_nBufferHeight;				// height of the buffers
+		AVFLOAT m_fLightingXPos;				// position of the lighting
+
 	public:
 
 		SHAFT(CBuilding *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), 
-			m_nShaftLine(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_nLiftCount(1), m_fWallLtStart(0), m_fWallRtStart(0)	{ }
+			m_nShaftLine(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_nLiftCount(1), m_fWallLtStart(0), m_fWallRtStart(0), m_fBeamLtHeight(0), m_fBeamRtHeight(0)	{ }
 		virtual ~SHAFT()						{ }
 
 		// Attributes:
@@ -154,18 +161,25 @@ public:
 		AVULONG GetLiftEnd()					{ return m_nLiftBegin + m_nLiftCount; }
 		void SetLiftRange(AVULONG i, AVULONG n)	{ m_nLiftBegin = i; m_nLiftCount = n; } 
 
-		enum SHAFT_BOX { BOX_SHAFT, BOX_BEAM, BOX_DOOR, BOX_CAR, BOX_CARDOOR, BOX_MOUNTING, BOX_CW, BOX_GOVERNOR, BOX_LADDER };
+		enum SHAFT_BOX { BOX_SHAFT, BOX_DOOR, BOX_CAR, BOX_CARDOOR, BOX_MOUNTING, BOX_CW, BOX_GOVERNOR, BOX_LADDER };
 		BOX &GetBox(enum SHAFT_BOX n = BOX_SHAFT, AVULONG i = 0);
-		BOX &GetBoxBeam()						{ return m_boxBeam; }
 		BOX &GetBoxDoor(AVULONG i = 0)			{ return m_boxDoor[i]; }
 		BOX &GetBoxCar()						{ return m_boxCar; }
 		BOX &GetBoxCarDoor(AVULONG i = 0)		{ return m_boxCarDoor[i]; }
-		BOX &GetBoxCarMounting()				{ return m_boxCarMounting; }
 		BOX &GetBoxCwt()						{ return m_boxCwt; }
 		BOX &GetBoxGovernor()					{ return m_boxGovernor; }
 		BOX &GetBoxLadder()						{ return m_boxLadder; }
 		AVFLOAT GetWallLtStart()				{ return m_fWallLtStart; }
 		AVFLOAT GetWallRtStart()				{ return m_fWallRtStart; }
+		AVFLOAT GetBeamLtHeight()				{ return m_fBeamLtHeight; }
+		AVFLOAT GetBeamRtHeight()				{ return m_fBeamRtHeight; }
+		AVULONG GetMachineType()				{ return m_nMachineType; }
+		AVFLOAT GetRailWidth()					{ return m_fRailWidth; }
+		AVFLOAT GetRailLength()					{ return m_fRailLength; }
+		AVULONG GetBufferNum()					{ return m_nBufferNum; }
+		AVULONG GetBufferDiameter()				{ return m_nBufferDiameter; }
+		AVULONG GetBufferHeight()				{ return m_nBufferHeight; }
+		AVFLOAT GetLightingXPos()				{ return m_fLightingXPos; }
 
 		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetBuilding()->GetStorey(nStorey)->GetLevel()); }
 
@@ -174,20 +188,18 @@ public:
 		AVFLOAT GetRawBeamWidth()				{ return (*this)[L"DividingBeamWidth"]; }
 
 		// checks if point within the shaft, beam or door box
-		bool InBox(AVVECTOR &pt)							{ return GetBox().InBoxExt(pt) || GetBox(BOX_DOOR).InBoxExt(pt) || GetBox(BOX_BEAM).InBoxExt(pt); }
+		bool InBox(AVVECTOR &pt)							{ return GetBox().InBoxExt(pt) || GetBox(BOX_DOOR).InBoxExt(pt); }
 		// checks if x coordinate within the shaft or beam width
-		bool InWidth(AVFLOAT x)								{ return GetBox().InWidthExt(x) || GetBox(BOX_DOOR).InWidthExt(x) || GetBox(BOX_BEAM).InWidthExt(x); }
+		bool InWidth(AVFLOAT x)								{ return GetBox().InWidthExt(x); }
 
 		// Operations:
 		void ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall);
-		void ConsoleCreateLeftBeam(AVFLOAT fDepth, SHAFT *pPrev);
-		void ConsoleCreateRightBeam(AVFLOAT fDepth, SHAFT *pPrev);
-		void ConsoleCreateLeftWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
-		void ConsoleCreateRightWall(AVFLOAT fThickness, AVFLOAT fStart = 0);
+		void ConsoleCreateBeam(AVULONG side, SHAFT *pNeighbour);
+		void ConsoleCreateSideWall(AVULONG side, AVFLOAT fThickness, AVFLOAT fOffset = 0);
 		void ConsoleCreateAmend();
 		void Create();
 		void Scale(AVFLOAT fScale);
-		void Scale(AVFLOAT x, AVFLOAT y, AVFLOAT z);
+		void Reflect();
 		void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 	};
 
@@ -284,6 +296,8 @@ public:
 	bool InBoxMachineRoom(AVVECTOR &pt)		{ return m_boxMachineRoom.InBoxExt(pt); }
 	BOX &GetBoxPit()						{ return m_boxPit; }
 	bool InBoxPit(AVVECTOR &pt)				{ return m_boxPit.InBoxExt(pt); }
+
+	BOX GetTotalAreaBox();
 
 	AVFLOAT GetScale()						{ return m_fScale; }
 
