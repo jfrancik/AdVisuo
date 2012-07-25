@@ -193,7 +193,7 @@ void CBuilding::ConsoleCreate()
 	AVFLOAT fRt = 0; if (m_LobbyArrangement == LOBBY_DEADEND_RIGHT) fRt = fSideWallThickness;
 
 	m_box = BOX(-fLobbyWidth/2 + fLt, -fLobbyDepth/2, 0, fLobbyWidth - fLt - fRt, fLobbyDepth, 0);
-	m_box.SetThickness(fLt, fRt, fFrontWallThickness, (m_LobbyArrangement == LOBBY_OPENPLAN) ? 0 : fFrontWallThickness, -1, fLobbyCeilingSlabHeight);
+	m_box.SetThickness(fLt, fRt, fFrontWallThickness, (m_LobbyArrangement == LOBBY_OPENPLAN) ? 0 : fFrontWallThickness, 2, fLobbyCeilingSlabHeight);
 
 	// Resolve Shafts and Storeys
 
@@ -609,8 +609,8 @@ void CBuilding::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftP
 	}
 	
 	switch (sideLadder)
-	{	case SIDE_LEFT:		m_boxLadder = BOX(m_boxShaft.Left(),        m_boxCar.FrontExt(), 0, 165, 400, 0); break;
-		case SIDE_RIGHT:	m_boxLadder = BOX(m_boxShaft.Right() - 165, m_boxCar.FrontExt(), 0, 165, 400, 0); break;
+	{	case SIDE_LEFT:		m_boxLadder = BOX(m_boxShaft.Left(),        m_boxCar.FrontExt(), 0, 120, 500, 0); break;
+		case SIDE_RIGHT:	m_boxLadder = BOX(m_boxShaft.Right() - 120, m_boxCar.FrontExt(), 0, 120, 500, 0); break;
 	}
 	
 	switch (sideCwt)

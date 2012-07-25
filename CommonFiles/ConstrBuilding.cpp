@@ -91,9 +91,9 @@ void CBuildingConstr::STOREY::Construct(AVULONG iStorey)
 		box.SetHeight(h1 - h);
 		box.Move(0, 0, h);
 		if (box.FrontThickness() > 0)
-			m_pElem->BuildWall(CElem::WALL_REAR, L"RearWall",   iStorey2, box.FrontWall());
+			m_pElem->BuildWall(CElem::WALL_REAR, L"RearWall (HR)",   iStorey2, box.FrontWall());
 		if (box.RearThickness() > 0)
-			m_pElem->BuildWall(CElem::WALL_FRONT, L"FrontWall",	iStorey2, box.RearWall(), Vector(0, 0, F_PI));
+			m_pElem->BuildWall(CElem::WALL_FRONT, L"FrontWall (HR)",	iStorey2, box.RearWall(), Vector(0, 0, F_PI));
 	}
 
 }
@@ -142,7 +142,7 @@ void CBuildingConstr::PIT::Construct()
 	// collect door information
 	AVFLOAT h = -GetBuilding()->GetPitLevel();
 	std::vector<FLOAT> doordata[2];
-	if (h >= 2500)	// only high pits have doors
+	if (GetBuilding()->GetPitLadderSteps() == 0)	// high pits have no ladders but doors
 		for (AVULONG iLine = 0; iLine < 2; iLine++)
 			for (AVULONG iShaft = GetBuilding()->GetShaftBegin(iLine); iShaft < GetBuilding()->GetShaftEnd(iLine); iShaft++)
 			{
@@ -200,7 +200,12 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 			{
 				// left int div beam
 				BOX box = GetBox().LeftWall();
-				box.SetHeight(-GetBeamLtHeight());
+				box.SetHeight(GetBeamLtHeight());
+				AVFLOAT fLadderBracket = GetElement(iStorey)->GetLadderBracketPos(GetBuilding()->GetPitLadderSteps(), 1);
+				if (iStorey == 0 && fLadderBracket > 0)	// on ground floor, place the beam to fit the pit ladder top bracket
+					box.Move(0, 0, fLadderBracket + GetBuilding()->GetPitLevel() - GetBeamLtHeight()/2);
+				else				// on all other floors, hide just below the floor
+					box.Move(0, 0, -GetBeamLtHeight());
 				GetElement(iStorey)->BuildWall(CElem::WALL_BEAM, L"BeamL", nIndex, box, Vector(0, 0, F_PI_2));
 			}
 			else // lhs wall segment
@@ -211,7 +216,12 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 			{
 				// right int div beam
 				BOX box = GetBox().RightWall();
-				box.SetHeight(-GetBeamRtHeight());
+				box.SetHeight(GetBeamRtHeight());
+				AVFLOAT fLadderBracket = GetElement(iStorey)->GetLadderBracketPos(GetBuilding()->GetPitLadderSteps(), 1);
+				if (iStorey == 0 && fLadderBracket > 0)	// on ground floor, place the beam to fit the pit ladder top bracket
+					box.Move(0, 0, fLadderBracket + GetBuilding()->GetPitLevel() - GetBeamRtHeight()/2);
+				else				// on all other floors, hide just below the floor
+					box.Move(0, 0, -GetBeamLtHeight());
 				GetElement(iStorey)->BuildWall(CElem::WALL_BEAM, L"BeamR", nIndex, box, Vector(0, 0, -F_PI_2));
 			}
 			else // rhs wall segment
@@ -267,8 +277,8 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 			{
 				// left int div beam
 				BOX box = GetBox().LeftWall();
-				box.SetHeight(-GetBeamLtHeight());
-				box.Move(0, 0, h1);
+				box.SetHeight(GetBeamLtHeight());
+				box.Move(0, 0, h1 - GetBeamLtHeight());
 				GetElement(iStorey)->BuildWall(CElem::WALL_BEAM, L"BeamL (HR)", nIndex, box, Vector(0, 0, F_PI_2));
 			}
 			else // lhs wall segment
@@ -279,8 +289,8 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 			{
 				// right int div beam
 				BOX box = GetBox().RightWall();
-				box.SetHeight(-GetBeamRtHeight());
-				box.Move(0, 0, h1);
+				box.SetHeight(GetBeamRtHeight());
+				box.Move(0, 0, h1- GetBeamLtHeight());
 				GetElement(iStorey)->BuildWall(CElem::WALL_BEAM, L"BeamR (HR)", nIndex, box, Vector(0, 0, -F_PI_2));
 			}
 			else // rhs wall segment
@@ -335,6 +345,9 @@ void CBuildingConstr::SHAFT::ConstructPit(AVULONG iShaft)
 			// left int div beam
 			BOX box = GetBox().LeftWall();
 			box.SetHeight(GetBeamLtHeight());
+			AVFLOAT fLadderBracket = GetPitElement()->GetLadderBracketPos(GetBuilding()->GetPitLadderSteps(), 0);
+			if (fLadderBracket > 0)
+				box.Move(0, 0, GetPitElement()->GetLadderBracketPos(GetBuilding()->GetPitLadderSteps(), 0) - GetBeamLtHeight()/2);
 			GetPitElement()->BuildWall(CElem::WALL_BEAM, L"BeamL", 0, box, Vector(0, 0, F_PI_2));
 		}
 		else // lhs wall segment
@@ -346,6 +359,9 @@ void CBuildingConstr::SHAFT::ConstructPit(AVULONG iShaft)
 			// right int div beam
 			BOX box = GetBox().RightWall();
 			box.SetHeight(GetBeamRtHeight());
+			AVFLOAT fLadderBracket = GetPitElement()->GetLadderBracketPos(GetBuilding()->GetPitLadderSteps(), 0);
+			if (fLadderBracket > 0)
+				box.Move(0, 0, GetPitElement()->GetLadderBracketPos(GetBuilding()->GetPitLadderSteps(), 0) - GetBeamRtHeight()/2);
 			GetPitElement()->BuildWall(CElem::WALL_BEAM, L"BeamR", 0, box, Vector(0, 0, -F_PI_2));
 		}
 		else // rhs wall segment
@@ -367,11 +383,8 @@ void CBuildingConstr::SHAFT::ConstructPit(AVULONG iShaft)
 	GetPitElement()->BuildModel(CElem::MODEL_BUFFER_CWT, L"Counterweight Buffer", iShaft, GetBoxCwt(), 0, GetBufferNum(), GetBufferDiameter(), min(GetBufferHeight(), h - 250)); 
 
 	// Ladder
-	if (h < 2500)
-	{	// higher pits have doors rather than ladders
-		AVFLOAT fAngle = (GetBoxLadder().CentreX() > GetBoxCar().CentreX()) ? M_PI * 3 / 2 : M_PI / 2;
-		GetPitElement()->BuildModel(CElem::MODEL_LADDER, L"Pit Ladder", iShaft, GetBoxLadder(), fAngle);
-	}
+	AVFLOAT fAngle = (GetBoxLadder().CentreX() > GetBoxCar().CentreX()) ? M_PI * 3 / 2 : M_PI / 2;
+	GetPitElement()->BuildModel(CElem::MODEL_LADDER, L"Pit Ladder", iShaft, GetBoxLadder(), fAngle, GetBuilding()->GetPitLadderSteps());
 	
 	// car rails
 	AVFLOAT rw = GetRailWidth();
@@ -405,12 +418,12 @@ void CBuildingConstr::SHAFT::ConstructPit(AVULONG iShaft)
 
 	// cwt
 	box = GetBoxCwt();
-	box.Move(0, 0, h + GetBuilding()->GetStorey(GetBuilding()->GetHighestStoreyServed())->GetLevel());
+	box.Move(0, 0, h + GetBuilding()->GetStorey(GetBuilding()->GetHighestStoreyServed() - GetBuilding()->GetBasementStoreyCount())->GetLevel());
 	GetPitElement()->BuildModel(CElem::MODEL_CWT, L"Counterweight", iShaft, box);
 
 	// light
 	box = BOX(GetLightingXPos(), GetBox().Rear(), 0, 0, 0, 0);
-	AVFLOAT fAngle = M_PI * (GetShaftLine() ? -1 : 1) / 2;
+	fAngle = M_PI * (GetShaftLine() ? -1 : 1) / 2;
 	GetPitElement()->BuildModel(CElem::MODEL_LIGHT, L"Lighting", iShaft, box, fAngle, 1, /* pit */ h);
 }
 
@@ -442,7 +455,7 @@ void CBuildingConstr::LIFT::Construct(AVULONG iShaft)
 {
 	if (::GetKeyState(VK_CONTROL) < 0 && ::GetKeyState(VK_SHIFT) < 0 && !GetBuilding()->bFastLoad) { GetBuilding()->bFastLoad = true; MessageBeep(MB_OK); }
 
-	AVULONG nStartingStorey = 0;
+	AVULONG nStartingStorey = GetBuilding()->GetBasementStoreyCount();
 
 	// Create skeletal elements (entire lift)
 	m_pElem = GetProject()->CreateElement(GetBuilding(), GetBuilding()->GetElement(), CElem::ELEM_LIFT, (LPOLESTR)GetName().c_str(), iShaft, GetShaft()->GetLiftPos(nStartingStorey));

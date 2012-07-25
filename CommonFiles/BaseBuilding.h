@@ -319,6 +319,7 @@ public:
 	AVFLOAT GetMachineRoomSlabThickness()	{ return GetBoxMachineRoom().LowerThickness(); }
 	PIT *GetPit()							{ return m_pPit; }
 	AVFLOAT GetPitLevel()					{ return m_fPitLevel; }
+	AVULONG GetPitLadderSteps()				{ if (m_fPitLevel <= -2500 * GetScale()) return 0; else return (-m_fPitLevel / GetScale() + 1000) / 300; }
 
 	// Shafts
 	void CreateShafts(AVULONG nShaftCount);

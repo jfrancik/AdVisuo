@@ -95,7 +95,7 @@ void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX b
 		return BOX(base + Vector(-w/2, -d/2, 0), w, d, h);
 	}
 
-void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot)
+void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVULONG nParam, AVFLOAT fParam1, AVFLOAT fParam2)
 {
 //	BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
 	
@@ -139,7 +139,10 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	case MODEL_RAIL:
 		BuildWall(WALL_BEAM, strName, nIndex, box);
 		break;
-	case MODEL_BUFFER:
+	case MODEL_BUFFER_CAR:
+//		BuildWall(WALL_BEAM, strName, nIndex, box);
+		break;
+	case MODEL_BUFFER_CWT:
 //		BuildWall(WALL_BEAM, strName, nIndex, box);
 		break;
 	case MODEL_PULLEY:

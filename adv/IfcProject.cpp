@@ -193,8 +193,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		break;
 	case MODEL_CONTROL:
 		p = new CIfcBuilder("c:\\IFC\\control.ifc");
-
-
+		
 		//if (nIndex == 1)
 		//{
 		//	transformationMatrixStruct matrix;
@@ -280,10 +279,27 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		delete p;
 		break;
 	case MODEL_LADDER:
-		p = new CIfcBuilder("c:\\IFC\\ladder.ifc"); 
+		switch (nParam)
+		{
+			case 0: p = NULL; break;
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+			case 9:
+			case 10:
+			case 11:
+			case 12: p = new CIfcBuilder("c:\\IFC\\ladder.ifc"); break;
+		}
 		if (!p) return;
 		centre = box.CentreLower();
-		p->build(this, nModelId, strName, nIndex, box, fRot);
+		centre.y = p->Height() / 2;
+		//p->build(this, nModelId, strName, nIndex, centre, fRot);
+		p->build(this, nModelId, strName, nIndex, box, fRot, 0, false, false);
 		delete p;
 		break;
 	case MODEL_LIGHT:
@@ -320,7 +336,7 @@ void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVL
 	build(pElem, nModelId, strName, nIndex, base, 1, 1, 1, fRot, fRotX);
 }
 
-void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVFLOAT fRotX, bool bIsotropic)
+void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVFLOAT fRotX, bool bIsotropicHeight, bool bIsotropicXY)
 {
 	double w = box.Width();
 	double d = box.Depth();
@@ -334,8 +350,8 @@ void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVL
 	if (w == 0 && d == 0 && h == 0) return;
 	else if (w == 0 && d == 0) dScaleX = dScaleY = dScaleZ;
 	else if (w == 0 || d == 0) dScaleX = dScaleY = max(dScaleX, dScaleY);
-	else if (bIsotropic) dScaleX = dScaleY = min(dScaleX, dScaleY);
-	if (h == 0) dScaleZ = dScaleX;
+	else if (bIsotropicXY) dScaleX = dScaleY = min(dScaleX, dScaleY);
+	if (h == 0) dScaleZ = bIsotropicHeight ? dScaleX : 1;
 
 	build(pElem, nModelId, strName, nIndex, box.CentreLower(), dScaleX, dScaleY, dScaleZ, fRot, fRotX);
 }
