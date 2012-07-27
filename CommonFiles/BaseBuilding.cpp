@@ -510,9 +510,8 @@ void CBuilding::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftP
 
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
+	m_nLiftType = ME[L"LiftTypeId"];
 	m_nDoorType = ME[L"DoorTypeId"];
-m_nDoorType = m_nId+1;
-ME[L"DoorTypeId"] = m_nDoorType;
 
 	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
 	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);
@@ -780,6 +779,7 @@ void CBuilding::SHAFT::Create()
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
 	m_nDoorType = ME[L"DoorTypeId"];
+	m_nLiftType = ME[L"LiftTypeId"];
 
 	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
 	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);

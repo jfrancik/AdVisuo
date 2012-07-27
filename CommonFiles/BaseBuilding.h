@@ -122,6 +122,7 @@ public:
 		BOX m_boxGovernor;						// governors
 		BOX m_boxLadder;						// pit ladder
 
+		AVULONG m_nLiftType;					// 1 = conventional, 2 = MRL
 		AVULONG m_nMachineType;					// machine type (1 - 4)
 		AVFLOAT m_fRailWidth;					// guiding rail width
 		AVFLOAT m_fRailLength;					// guiding rail length
@@ -174,6 +175,8 @@ public:
 		AVFLOAT GetWallRtStart()				{ return m_fWallRtStart; }
 		AVFLOAT GetBeamLtHeight()				{ return m_fBeamLtHeight; }
 		AVFLOAT GetBeamRtHeight()				{ return m_fBeamRtHeight; }
+
+		bool IsMRL()							{ return (m_nLiftType == 2); }
 		AVULONG GetMachineType()				{ return m_nMachineType; }
 		AVFLOAT GetRailWidth()					{ return m_fRailWidth; }
 		AVFLOAT GetRailLength()					{ return m_fRailLength; }
@@ -296,6 +299,8 @@ public:
 
 	BOX &GetBox()							{ return m_box; }
 	bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
+
+	bool IsMRL()							{ for (AVULONG i = 0; i < GetShaftCount(); i++) if (!GetShaft(i)->IsMRL()) return false; return true; }
 
 	BOX &GetBoxMachineRoom()				{ return m_boxMachineRoom; }
 	bool InBoxMachineRoom(AVVECTOR &pt)		{ return m_boxMachineRoom.InBoxExt(pt); }

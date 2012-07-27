@@ -48,6 +48,8 @@ public:
 	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVFLOAT fRotX = 0, bool bIsotropicHeight = true, bool bIsotropicXY = true);
 	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fScaleX, AVFLOAT fScaleY, AVFLOAT fScaleZ, AVFLOAT fRot = 0, AVFLOAT fRotX = 0);
 	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fRot = 0, AVFLOAT fRotX = 0);
+
+	static void buildApron(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVFLOAT fRotX = 0);
 };
 
 class CProjectIfc : public CProjectSrv

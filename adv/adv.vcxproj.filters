@@ -96,9 +96,6 @@
     <ClCompile Include="ifc\baseIfcElement.cpp">
       <Filter>Source Files\IFC</Filter>
     </ClCompile>
-    <ClCompile Include="tmp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="adv.h">

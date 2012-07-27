@@ -131,9 +131,32 @@ public:
 	virtual int build(HINSTANCE hSourceInstance, CIFCModelScanner::CB_FUNC cbUserFilter = NULL);
 	virtual int build() { return 0; }
 
-	int build_tmp(HINSTANCE hSourceInstance);
-
 	HINSTANCE getCloneInstance()							{ return hCloneInstance; }
 
 	void setInfo(char *name, char *description)		{ strName = name; strDescription = description; }
+};
+
+class CIFCPointsElem : public CIFCElement
+{
+public:
+	typedef int  HINSTANCE;
+
+private:
+	char *strName;
+	char *strDescription;
+	HINSTANCE hCloneInstance;
+
+public:
+	CIFCPointsElem(CIFCRoot *pParent, transformationMatrixStruct *pMatrix);
+	
+	virtual int build(AVULONG nFaceSets, AVULONG *pnFaceSets, double *pData);
+	virtual int build() { return 0; }
+
+	void setInfo(char *name, char *description)		{ strName = name; strDescription = description; }
+
+private:
+	void _buildCartesianPoint(int *hAggregPolygon, double dX, double dY, double dZ);
+	double *_buildFace(int *hAggregCfsFaces, double *pData);
+	double *_buildConnectedFaceSet(int *hAggregFbsmFaces, AVULONG nData, double *pData);
+	int _build(AVULONG nFaceSets, AVULONG *pnFaceSets, double *pData);
 };

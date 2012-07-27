@@ -110,22 +110,30 @@ void CBuildingConstr::MACHINEROOM::Construct()
 	// create skeletal structure (object & bone)
 	m_pElem = GetProject()->CreateElement(GetBuilding(), GetBuilding()->GetElement(), CElem::ELEM_STOREY, (LPOLESTR)GetName().c_str(), 9999, Vector(0, 0, GetLevel()));
 
-	// Door Info
-	AVFLOAT fScale = GetBuilding()->GetScale();
-	FLOAT doors[] = { GetBox().Rear() - GetBuilding()->GetBox().Rear() + 500 * fScale, 750 * fScale, 2000 * fScale };
+	// do nothing if Machine Room-Less Lift
+	if (GetBuilding()->IsMRL())
+	{
+		m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Slab (MRL)", 0, GetBox().LowerSlab());
+	}
+	else
+	{
+		// Door Info
+		AVFLOAT fScale = GetBuilding()->GetScale();
+		FLOAT doors[] = { GetBox().Rear() - GetBuilding()->GetBox().Rear() + 500 * fScale, 750 * fScale, 2000 * fScale };
 
-	// build walls
-	m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Floor", 0, GetBox().LowerSlab());
-	if (GetBuilding()->bFastLoad) return;
-	m_pElem->BuildWall(CElem::WALL_SHAFT, L"RearWall", 0, GetBox().FrontWall());
-	m_pElem->BuildWall(CElem::WALL_SHAFT, L"FrontWall", 0, GetBox().RearWall(), Vector(0, 0, F_PI));
-	m_pElem->BuildWall(CElem::WALL_SHAFT, L"LeftWall", 0, GetBox().LeftWall(), Vector(0, 0, F_PI_2));
-	m_pElem->BuildWall(CElem::WALL_SHAFT, L"RightWall", 0, GetBox().RightWall(), Vector(0, 0, -F_PI_2), 1, doors);
+		// build walls
+		m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Machine Room Slab", 0, GetBox().LowerSlab());
+		if (GetBuilding()->bFastLoad) return;
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RearWall", 0, GetBox().FrontWall());
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"FrontWall", 0, GetBox().RearWall(), Vector(0, 0, F_PI));
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"LeftWall", 0, GetBox().LeftWall(), Vector(0, 0, F_PI_2));
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RightWall", 0, GetBox().RightWall(), Vector(0, 0, -F_PI_2), 1, doors);
 
-	// Build the Lifting Beam
-	AVFLOAT w = GetBuilding()->GetLiftingBeamWidth(), h = GetBuilding()->GetLiftingBeamHeight();
-	BOX box(GetBox().Left(), GetBox().CentreY() - w/2, GetBox().Height() - h, GetBox().Width(), -w, h);
-	m_pElem->BuildWall(CElem::WALL_BEAM, L"LiftingBeam", 0, box);
+		// Build the Lifting Beam
+		AVFLOAT w = GetBuilding()->GetLiftingBeamWidth(), h = GetBuilding()->GetLiftingBeamHeight();
+		BOX box(GetBox().Left(), GetBox().CentreY() - w/2, GetBox().Height() - h, GetBox().Width(), -w, h);
+		m_pElem->BuildWall(CElem::WALL_BEAM, L"LiftingBeam", 0, box);
+	}
 }
 
 void CBuildingConstr::MACHINEROOM::Deconstruct()
@@ -343,6 +351,10 @@ void CBuildingConstr::SHAFT::Construct(AVULONG iStorey, AVULONG iShaft)
 void CBuildingConstr::SHAFT::ConstructMachine(AVULONG iShaft)
 {
 	m_pElemMachine = GetProject()->CreateElement(GetBuilding(), GetBuilding()->GetMachineRoomElement(), CElem::ELEM_SHAFT, L"Machine %c", iShaft + 'A', Vector(0, 0, GetBuilding()->GetMachineRoomLevel()));
+
+	// do nothing if Machine Room-Less Lift
+	if (IsMRL())
+		return;
 
 	AVFLOAT fAngle = M_PI * (GetShaftLine() ? 3 : 1) / 2;
 	GetMachineElement()->BuildModel(CElem::MODEL_MACHINE, L"Machine", iShaft, GetBoxCar(), fAngle, GetMachineType());
