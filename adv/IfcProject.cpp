@@ -86,7 +86,9 @@ CElemIfc::~CElemIfc()
 void CElemIfc::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData)
 {
 USES_CONVERSION;
-	char *pName = OLE2A((LPOLESTR)strName);
+	OLECHAR _name[257];
+	_snwprintf_s(_name, 256, strName, nIndex);
+	char *pName = OLE2A((LPOLESTR)_name);
 
 	if (!GetBone()) return;
 
@@ -119,9 +121,12 @@ USES_CONVERSION;
 
 	case WALL_BEAM:			pElem = new CIFCBeam(GetBone(), &matrix, box.Width(), box.Height(), box.Depth(), bBrep, bPresentation); break;
 
+	case WALL_OPENING:
+	case WALL_CWT:			pElem = new CIFCBuildingElementProxy(GetBone(), &matrix, box.Width(), box.Height(), box.Depth(), bBrep, bPresentation); break;
+
 	case WALL_FLOOR_NUMBER_PLATE:
 	case WALL_LIFT_NUMBER_PLATE:
-	case WALL_OPENING:		break;
+							break;
 	}
 	if (!pElem) return;
 	pElem->setInfo(pName, pName);
@@ -161,25 +166,25 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		case 1: 
 			p = new CIfcBuilder("c:\\IFC\\machine138.ifc"); 
 			if (!p) return;
-			p->build(this, nModelId, L"Machine 138", 0, centre, fRot);
+			p->build(this, nModelId, L"Machine - small", 0, centre, fRot);
 			delete p;
 			break;
 		case 2: 
 			p = new CIfcBuilder("c:\\IFC\\machine30t.ifc"); 
 			if (!p) return;
-			p->build(this, nModelId, L"30T Machine", 0, centre, 0.25, 0.25, 0.25, fRot);
+			p->build(this, nModelId, L"Machine - medium", 0, centre, 0.25, 0.25, 0.25, fRot);
 			delete p;
 			break;
 		case 3: 
 			p = new CIfcBuilder("c:\\IFC\\machine40t.ifc"); 
 			if (!p) return;
-			p->build(this, nModelId, L"40T Machine", 0, centre, fRot);
+			p->build(this, nModelId, L"Machine - large", 0, centre, fRot);
 			delete p;
 			break;
 		case 4: 
 			p = new CIfcBuilder("c:\\IFC\\machine70t.ifc"); 
 			if (!p) return;
-			p->build(this, nModelId, L"70T Machine", 0, centre, fRot);
+			p->build(this, nModelId, L"Machine - extra large", 0, centre, fRot);
 			delete p;
 			break;
 		}
@@ -231,7 +236,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		//p->build(this, nModelId, strName, nIndex, centre, fRot);
 		//delete p;
 		box.SetDepth(-box.Depth());	// unclear why needed
-		BuildWall(WALL_SHAFT, strName, nIndex, box, Vector(0, 0, fRot));
+		BuildWall(WALL_CWT, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
 	case MODEL_RAIL:
 		p = new CIfcBuilder("c:\\IFC\\rail.ifc"); 
@@ -313,6 +318,22 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		if (nParam == 2) centre.z = fParam2 - 500 * fScale - p->Width() / 2;	// special location for the headroom light
 		p->build(this, nModelId, strName, nIndex, centre, fRot, (AVFLOAT)M_PI/2);
 		delete p;
+		break;
+
+
+	case MODEL_JAMB:
+	case MODEL_JAMB_CAR:
+		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
+		break;
+	case MODEL_HEADING:
+	case MODEL_HEADING_CAR:
+		box.SetDepth(-box.Depth());	// unclear why needed
+		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
+		break;
+	case MODEL_APRON:
+	case MODEL_APRON_CAR:
+		box.SetDepth(-box.Depth());	// unclear why needed
+		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
 	}
 }

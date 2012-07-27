@@ -129,6 +129,7 @@ public:
 		AVULONG m_nBufferDiameter;				// diameter of the buffers
 		AVULONG m_nBufferHeight;				// height of the buffers
 		AVFLOAT m_fLightingXPos;				// position of the lighting
+		AVULONG m_nDoorType;					// door type - see GetDoorType() and GetDoorPanelsCount()
 
 	public:
 
@@ -180,6 +181,8 @@ public:
 		AVULONG GetBufferDiameter()				{ return m_nBufferDiameter; }
 		AVULONG GetBufferHeight()				{ return m_nBufferHeight; }
 		AVFLOAT GetLightingXPos()				{ return m_fLightingXPos; }
+		AVULONG GetDoorType()					{ return (m_nDoorType - 1) % 3; }		// 0 = center; 1 = left; 2 = right
+		AVULONG GetDoorPanelsCount()			{ return (m_nDoorType - 1) / 3 + 1; }	// 1, 2, or 3 (no zero!)
 
 		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetBuilding()->GetStorey(nStorey)->GetLevel()); }
 
@@ -259,6 +262,8 @@ private:
 	
 	BOX m_boxMachineRoom;				// scaled floor plan and level for the machine room
 	AVFLOAT m_fMachineRoomLevel;
+	AVFLOAT m_fLiftingBeamHeight;		// lifting beam height
+	AVFLOAT m_fLiftingBeamWidth;		// lifting beam height
 
 	BOX m_boxPit;						// scaled floor plan and level for the pit level
 	AVFLOAT m_fPitLevel;
@@ -317,6 +322,8 @@ public:
 	MACHINEROOM *GetMachineRoom()			{ return m_pMachineRoom; }
 	AVFLOAT GetMachineRoomLevel()			{ return m_fMachineRoomLevel; }
 	AVFLOAT GetMachineRoomSlabThickness()	{ return GetBoxMachineRoom().LowerThickness(); }
+	AVFLOAT GetLiftingBeamHeight()			{ return m_fLiftingBeamHeight; }
+	AVFLOAT GetLiftingBeamWidth()			{ return m_fLiftingBeamWidth; }
 	PIT *GetPit()							{ return m_pPit; }
 	AVFLOAT GetPitLevel()					{ return m_fPitLevel; }
 	AVULONG GetPitLadderSteps()				{ if (m_fPitLevel <= -2500 * GetScale()) return 0; else return (-m_fPitLevel / GetScale() + 1000) / 300; }

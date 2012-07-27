@@ -81,6 +81,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_5775BA93BB394F77AE71740F663BEA25"
+        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_5EF344B884C149EF97B0382AE6D65B8A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -119,6 +125,12 @@
         {
         "MsmKey" = "8:_8339FC6EE62B4F549B432BE5813FF862"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_834992BF641945E786BB01B89289E701"
+        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -225,12 +237,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_F365F2622C7546A49BC9D9CDF74C1536"
-        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_F40F2FB595EB4BCC80D0BB70E74C7478"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -239,12 +245,6 @@
         {
         "MsmKey" = "8:_F531D83890344F90912FFCBAA3BF4DB8"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_F9F2F76F08E34271A03BF2BC5C374019"
-        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1225,7 +1225,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:AdVisuo"
         "ProductCode" = "8:{B176910A-E097-41CA-9615-6BA7DFAE979F}"
-        "PackageCode" = "8:{09E5C660-4F3F-40D5-BD31-4611DD964F89}"
+        "PackageCode" = "8:{CF2EB73B-5B56-4817-A1FA-D343C5F2A079}"
         "UpgradeCode" = "8:{C0274823-104C-4BC9-8FD3-3E2E42F3BC44}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1555,7 +1555,7 @@
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_9F738F5D4FCB4F879CF96A423D628192"
             {
-            "Name" = "8:AdVisuo 1.00 RC3"
+            "Name" = "8:AdVisuo 2.0 Beta"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -1569,7 +1569,7 @@
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_EA4795C7E57C4340AC118A3241938C1E"
             {
-            "Name" = "8:AdVisuo 1.0 RC3"
+            "Name" = "8:AdVisuo 2.0 Beta"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
@@ -1977,11 +1977,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_F365F2622C7546A49BC9D9CDF74C1536"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_5775BA93BB394F77AE71740F663BEA25"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC100_CRT_x86.msm"
+            "SourcePath" = "8:Microsoft_VC100_MFC_x86.msm"
                 "Properties"
                 {
                 }
@@ -1991,11 +1991,11 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_F9F2F76F08E34271A03BF2BC5C374019"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_834992BF641945E786BB01B89289E701"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC100_MFC_x86.msm"
+            "SourcePath" = "8:Microsoft_VC100_CRT_x86.msm"
                 "Properties"
                 {
                 }
@@ -2010,7 +2010,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_10B54625FC6B4DDC873D65E342D8248E"
             {
-            "SourcePath" = "8:..\\Debug\\AdVisuo.exe"
+            "SourcePath" = "8:..\\Release\\AdVisuo.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_B8128D4453284849ACE4122C291505AF"

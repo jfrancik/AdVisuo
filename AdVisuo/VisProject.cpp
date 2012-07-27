@@ -32,7 +32,7 @@ CElemVis::CElemVis(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVU
 
 	case ELEM_BONE:
 	case ELEM_DECK:
-		((CElemVis*)pParent)->GetBone()->CreateChild(name, &m_pBone);
+		((CElemVis*)pParent)->GetBone()->CreateChild((AVSTRING)GetName().c_str(), &m_pBone);
 		Move(vec);
 		break;
 
@@ -66,8 +66,11 @@ ISceneObject *CElemVis::GetObject()
 
 void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot, AVULONG nDoorNum, FLOAT *pDoorData)
 {
+	OLECHAR _name[257];
+	_snwprintf_s(_name, 256, strName, nIndex);
+
 	IKineNode *pNewBone = NULL;
-	GetBone()->CreateChild(strName, &pNewBone);
+	GetBone()->CreateChild(_name, &pNewBone);
 
 	CBlock block;
 	block.Open(GetObject(), pNewBone, box.Width(), box.Height(), box.Depth(), box.LeftFrontLower(), vecRot.z, vecRot.x, vecRot.y);
@@ -157,6 +160,21 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	//	centre = box.CentreLower();
 	//	p->build(this, nModelId, strName, nIndex, centre, 0.8, 0.8, 1, fRot);
 	//	break;
+	case MODEL_JAMB:
+	case MODEL_JAMB_CAR:
+		//box.SetDepth(-box.Depth());	// unclear why needed
+		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
+		break;
+	case MODEL_HEADING:
+	case MODEL_HEADING_CAR:
+		box.SetDepth(-box.Depth());	// unclear why needed
+		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
+		break;
+	case MODEL_APRON:
+	case MODEL_APRON_CAR:
+		box.SetDepth(-box.Depth());	// unclear why needed
+		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
+		break;
 	}
 }
 

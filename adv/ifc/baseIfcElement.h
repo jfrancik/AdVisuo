@@ -115,3 +115,11 @@ public:
 	virtual int build();
 };
 
+class CIFCBuildingElementProxy : public CIFCElement
+{
+public:
+	CIFCBuildingElementProxy(CIFCRoot *pParent, transformationMatrixStruct *pMatrix, double width, double height, double thickness,
+					bool bBrep = true, bool bPresentation = true);
+	virtual int build();
+};
+

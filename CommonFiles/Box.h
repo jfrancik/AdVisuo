@@ -269,12 +269,40 @@ public:
 	}
 	BOX Normalised()	{ BOX box = *this; box.Normalise(); return box; }
 
+	BOX Door(AVULONG nType, AVULONG nPanelsCount, AVULONG nIndex, AVULONG nPanel, bool bLiftNotLanding, bool bFlip = false)
+	{
+		if (bFlip) nIndex = 1 - nIndex;
+		AVULONG xDiv = (nType == 0) ? 2 * nPanelsCount : nPanelsCount;
+		AVULONG yDiv = nPanelsCount;
+		AVULONG xI = (nIndex == 0) ? nPanel : xDiv - nPanel - 1;
+		AVULONG yI = bLiftNotLanding ? nPanel : nPanelsCount - nPanel - 1;
+
+		BOX box(LeftRearLower() + Vector(Width() * xI / xDiv, -Depth() * yI / yDiv, 0), Width() / xDiv, Depth() / yDiv, Height());
+		if (bLiftNotLanding)
+			return box;
+		else
+			return box;
+	}
+
+	BOX DoorExtended(AVULONG nType, AVULONG nPanelsCount, AVFLOAT fExtra = 0, bool bFlip = false)
+	{
+		AVULONG xDiv = (nType == 0) ? 2 * nPanelsCount : nPanelsCount;
+		AVFLOAT dx = Width() / xDiv;
+		BOX box = *this;
+		if (bFlip && nType > 0) nType = 3 - nType;
+		switch (nType)
+		{	case 0: box.SetLeft(Left() - dx); box.SetRight(Right() + dx); break;
+			case 1: box.SetLeft(Left() - dx); box.SetRight(Right() + fExtra); break;
+			case 2: box.SetLeft(Left() - fExtra); box.SetRight(Right() + dx); break;
+		}
+		return box;
+	}
+
 	std::wstring Stringify()
 	{
 		std::wstringstream s;
 		s << A .x << L" "<< A .y << L" "<< A .z << L" "<< B .x << L" "<< B .y << L" "<< B .z << L" "
 		  << A1.x << L" "<< A1.y << L" "<< A1.z << L" "<< B1.x << L" "<< B1.y << L" "<< B1.z << L" ";
-		std::wstring dupa = s.str();
 		return s.str();
 	}
 

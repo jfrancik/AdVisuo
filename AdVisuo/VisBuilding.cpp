@@ -256,7 +256,7 @@ void CBuildingVis::Construct(AVVECTOR vec)
 	m_materials.Set(::MAT_CEILING,		_stdPathModels + L"ceiling.jpg", 2.0f, 2.0f, 1.0f);
 	m_materials.Set(::MAT_DOOR,			RGB(102, 76, 76), 0.5f);
 	m_materials.Set(::MAT_LIFT_DOOR,	RGB(102, 76, 76), 0.5f);
-	m_materials.Set(::MAT_OPENING,		RGB(154, 154, 154), 0.3f);
+	m_materials.Set(::MAT_OPENING,		RGB(128, 128, 128), 1.0f);
 	m_materials.Set(::MAT_SHAFT,		RGB(102, 51, 0), 0.3f);
 	m_materials.Set(::MAT_BEAM,			RGB(128, 128, 76));
 	m_materials.Set(::MAT_LIFT,			RGB(76, 80, 90), 0.3f);

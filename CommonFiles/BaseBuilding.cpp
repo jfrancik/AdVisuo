@@ -17,6 +17,7 @@ CBuilding::CBuilding(CProject *pProject, AVULONG nIndex) : m_pProject(pProject),
 	m_pMachineRoom = NULL;
 	m_pPit = NULL;
 	m_fPitLevel = m_fMachineRoomLevel = 0;
+	m_fLiftingBeamHeight = m_fLiftingBeamWidth = 0;
 }
 
 CBuilding::~CBuilding()
@@ -153,7 +154,8 @@ void CBuilding::ConsoleCreate()
 	AVFLOAT fMachineRoomSlabThickness = ME[L"MachineRoomSlabThickness"];
 
 	AVFLOAT fRearLobbyDepth = ME[L"RearLobbyWidth"];	// NOT USED YET!!!
-	AVFLOAT fLiftingBeamHeight = ME[L"LiftingBeamHeight"];	// NOT USED YET!!!
+	m_fLiftingBeamHeight = ME[L"LiftingBeamHeight"];
+	m_fLiftingBeamWidth = 200;
 
 	
 	// calculate width of the lobby if lifts in-line, no side walls
@@ -348,9 +350,6 @@ void CBuilding::ConsoleCreate()
 	erase(L"ShaftWallThicknessRear");
 	erase(L"ShaftWallThicknessSide");
 	erase(L"MachineRoomSlabThickness");
-
-//	erase(L"RearLobbyWidth"];	// NOT USED YET!!!
-//	erase(L"LiftingBeamHeight"];	// NOT USED YET!!!
 }
 
 void CBuilding::Create()
@@ -365,6 +364,8 @@ void CBuilding::Create()
 	m_fMachineRoomLevel = ME[L"MachineRoomLevel"];
 	m_boxPit.ParseFromString(ME[L"BoxPit"]);
 	m_fPitLevel = ME[L"PitLevel"];
+	m_fLiftingBeamHeight = ME[L"LiftingBeamHeight"];
+	m_fLiftingBeamWidth = 200;
 	
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
 		GetShaft(i)->Create();
@@ -383,6 +384,8 @@ void CBuilding::Scale(AVFLOAT f)
 	m_boxPit.Scale(f);
 	m_fMachineRoomLevel *= f;
 	m_fPitLevel *= f;
+	m_fLiftingBeamHeight *= f;
+	m_fLiftingBeamWidth *= f;
 	for (AVULONG i = 0; i < GetShaftCount(); i++) 
 		GetShaft(i)->Scale(f);
 	for (AVULONG i = 0; i < GetStoreyCount(); i++) 
@@ -507,6 +510,9 @@ void CBuilding::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftP
 
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
+	m_nDoorType = ME[L"DoorTypeId"];
+m_nDoorType = m_nId+1;
+ME[L"DoorTypeId"] = m_nDoorType;
 
 	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
 	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);
@@ -773,6 +779,7 @@ void CBuilding::SHAFT::Create()
 	m_nId = ME[L"ShaftId"];
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
 	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
+	m_nDoorType = ME[L"DoorTypeId"];
 
 	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
 	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);

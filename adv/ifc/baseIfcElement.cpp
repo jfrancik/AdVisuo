@@ -459,3 +459,49 @@ int CIFCWindow::build()
 	return ifcInstance;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
+// CIFCBuildingElementProxy
+
+CIFCBuildingElementProxy::CIFCBuildingElementProxy(CIFCRoot *pParent, transformationMatrixStruct *pMatrix, double width, double height, double thickness,
+				   bool bBrep, bool bPresentation)  : CIFCElement(pParent, pMatrix)
+{
+	reset();
+	strName = "Building Element Proxy";
+	strDescription = "The Building Element Proxy";
+	setRelNameAndDescription("BuildingElementProxyContainer", "BuildingElementProxyContainer");
+	fWidth = width; fHeight = height; fThickness = thickness;
+}
+	
+int CIFCBuildingElementProxy::build()
+{
+	ifcInstance = sdaiCreateInstanceBN(getModel(), IsBrep() ? "IFCBUILDINGELEMENTPROXY" : "IFCBUILDINGELEMENTPROXYSTANDARDCASE");
+
+	sdaiPutAttrBN(ifcInstance, "GlobalId", sdaiSTRING, (void*) CreateCompressedGuidString());
+	sdaiPutAttrBN(ifcInstance, "OwnerHistory", sdaiINSTANCE, (void*) getProject()->getOwnerHistoryInstance());
+	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
+	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
+
+	ifcPlacementInstance = buildLocalPlacementInstance(pMatrix, pParent->getPlacementInstance());
+	sdaiPutAttrBN(ifcInstance, "ObjectPlacement", sdaiINSTANCE, (void*) ifcPlacementInstance);
+
+	pParent->appendRelContainedInSpatialStructure(ifcInstance);
+
+	if (IsBrep())
+	{
+		createShellStructureForCuboid(0, 0, 0, fWidth, fThickness, fHeight);
+		buildBrepShapeRepresentationInstance();
+		//appendShellStructureForOpening(0, fThickness, 4200, 0, 5200, 1700);
+		//buildBrepShapeRepresentationInstance();
+	}
+	else
+	{
+		buildRelAssociatesMaterial(ifcInstance, fThickness);
+		createIfcPolylineShape(this, 0, fThickness/2, fWidth, fThickness/2);
+
+		CPolygon2D poly2D(0, 0, fWidth, fThickness);
+		createIfcExtrudedPolygonShape(this, &poly2D, fHeight);
+	}
+	return ifcInstance;
+}
+
