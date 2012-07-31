@@ -573,10 +573,13 @@ void CBuilding::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftP
 	if (fSpeed >= 2.5) m_nBufferHeight = 1203;
 	if (fSpeed >= 3.0) m_nBufferHeight = 1705;
 	if (fSpeed >= 3.5) m_nBufferHeight = 2100;
-	if (fSpeed >= 4.0) m_nBufferHeight = 2692;
-	if (fSpeed >= 5.0) m_nBufferHeight = 4216;
-	if (fSpeed >= 6.0) m_nBufferHeight = 6181;
-	if (fSpeed >= 7.0) m_nBufferHeight = 7374;
+	if (fSpeed >= 4.0) m_nBufferHeight = 2100;
+	if (fSpeed >= 5.0) m_nBufferHeight = 2692;
+	if (fSpeed >= 6.0) m_nBufferHeight = 2692;
+	if (fSpeed >= 7.0) m_nBufferHeight = 4216;
+	if (fSpeed >= 8.0) m_nBufferHeight = 6181;
+	if (fSpeed >= 9.0) m_nBufferHeight = 6181;
+	if (fSpeed >= 10.0) m_nBufferHeight = 7374;
 	
 //	MachRoomExt = ME[L"MachRoomExt"];
 //	if (MachRoomExt == -1.0f)
@@ -614,8 +617,8 @@ void CBuilding::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftP
 	}
 	
 	switch (sideLadder)
-	{	case SIDE_LEFT:		m_boxLadder = BOX(m_boxShaft.Left(),        m_boxCar.FrontExt(), 0, 120, 500, 0); break;
-		case SIDE_RIGHT:	m_boxLadder = BOX(m_boxShaft.Right() - 120, m_boxCar.FrontExt(), 0, 120, 500, 0); break;
+	{	case SIDE_LEFT:		m_boxLadder = BOX(m_boxShaft.Left(),        m_boxCar.FrontExt(), 0, 132, 610, 0); break;
+		case SIDE_RIGHT:	m_boxLadder = BOX(m_boxShaft.Right() - 132, m_boxCar.FrontExt(), 0, 132, 610, 0); break;
 	}
 	
 	switch (sideCwt)

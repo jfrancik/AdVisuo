@@ -96,6 +96,9 @@
     <ClCompile Include="ifc\baseIfcElement.cpp">
       <Filter>Source Files\IFC</Filter>
     </ClCompile>
+    <ClCompile Include="IfcBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="adv.h">
@@ -184,6 +187,9 @@
     </ClInclude>
     <ClInclude Include="ifc\baseIfcElement.h">
       <Filter>Header Files\IFC</Filter>
+    </ClInclude>
+    <ClInclude Include="IfcBuilder.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

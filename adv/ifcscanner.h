@@ -59,6 +59,10 @@ public:
 	static HAGGREG DumpAsCpp(HAGGREG hAggreg)		{ CIFCModelScanner s; s.DumpAsCpp(); return s.Scan(hAggreg); }
 	static HINSTANCE DumpAsCpp(HINSTANCE hInstance)	{ CIFCModelScanner s; s.DumpAsCpp(); return s.Scan(hInstance); }
 
+	void DumpAsPoints();
+	static HAGGREG DumpAsPoints(HAGGREG hAggreg)		{ CIFCModelScanner s; s.DumpAsPoints(); return s.Scan(hAggreg); }
+	static HINSTANCE DumpAsPoints(HINSTANCE hInstance)	{ CIFCModelScanner s; s.DumpAsPoints(); return s.Scan(hInstance); }
+
 	void Clone(HINSTANCE nTargetModel, CB_FUNC cbUserFilter = NULL);
 	static HAGGREG Clone(HAGGREG hAggreg, HINSTANCE nTargetModel, CB_FUNC cbUserFilter = NULL)			
 													{ CIFCModelScanner s; s.Clone(nTargetModel, cbUserFilter); return s.Scan(hAggreg); }
@@ -149,14 +153,14 @@ private:
 public:
 	CIFCPointsElem(CIFCRoot *pParent, transformationMatrixStruct *pMatrix);
 	
-	virtual int build(AVULONG nFaceSets, AVULONG *pnFaceSets, double *pData);
+	virtual int build(AVULONG nFaceSets, AVULONG *pnFacesPerSet, double *pData, AVULONG *pnPointsPerFace = NULL);
 	virtual int build() { return 0; }
 
 	void setInfo(char *name, char *description)		{ strName = name; strDescription = description; }
 
 private:
 	void _buildCartesianPoint(int *hAggregPolygon, double dX, double dY, double dZ);
-	double *_buildFace(int *hAggregCfsFaces, double *pData);
-	double *_buildConnectedFaceSet(int *hAggregFbsmFaces, AVULONG nData, double *pData);
-	int _build(AVULONG nFaceSets, AVULONG *pnFaceSets, double *pData);
+	double *_buildFace(int *hAggregCfsFaces, double *pData, AVULONG nData);
+	double *_buildConnectedFaceSet(int *hAggregFbsmFaces, double *pData, AVULONG nData, AVULONG *pnPointsPerFace = NULL);
+	int _build(AVULONG nFaceSets, AVULONG *pnFacesPerSet, double *pData, AVULONG *pnPointsPerFace = NULL);
 };

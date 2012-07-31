@@ -25,7 +25,7 @@ public:
 	};
 
 	enum { MODEL_MACHINE, MODEL_OVERSPEED, MODEL_CONTROL, MODEL_ISOLATOR, MODEL_CWT, MODEL_RAIL, MODEL_BUFFER_CAR, MODEL_BUFFER_CWT, MODEL_PULLEY, MODEL_LADDER, MODEL_LIGHT,
-		   MODEL_JAMB, MODEL_JAMB_CAR, MODEL_HEADING, MODEL_HEADING_CAR, MODEL_APRON, MODEL_APRON_CAR };
+		   MODEL_JAMB, MODEL_JAMB_CAR, MODEL_HEADING, MODEL_HEADING_CAR, MODEL_SILL, MODEL_SILL_CAR, MODEL_HANDRAIL };
 
 	CElem(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 	virtual ~CElem();
@@ -33,8 +33,6 @@ public:
 	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL) = 0;
 	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVULONG nParam = 0, AVFLOAT fParam1 = 0, AVFLOAT fParam2 = 0) = 0;
 	virtual void Move(AVVECTOR vec) = 0;
-
-	virtual AVFLOAT GetLadderBracketPos(AVULONG nSteps, AVULONG nBracket);	// nBracket: 0 = lower, 1 = upper
 
 	CBuilding *GetBuilding()			{ return m_pBuilding; }
 	CProject *GetProject()				{ return m_pProject; }

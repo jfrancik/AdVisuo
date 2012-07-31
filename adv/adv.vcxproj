@@ -99,6 +99,7 @@
     <ClCompile Include="adv.cpp" />
     <ClCompile Include="..\CommonFiles\BaseBuilding.cpp" />
     <ClCompile Include="..\CommonFiles\BaseClasses.cpp" />
+    <ClCompile Include="IfcBuilder.cpp" />
     <ClCompile Include="IfcProject.cpp" />
     <ClCompile Include="SrvBuilding.cpp" />
     <ClCompile Include="dllmain.cpp">
@@ -137,6 +138,7 @@
     <ClInclude Include="..\CommonFiles\BaseClasses.h" />
     <ClInclude Include="..\CommonFiles\BaseData.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
+    <ClInclude Include="IfcBuilder.h" />
     <ClInclude Include="IfcBuilding.h" />
     <ClInclude Include="IfcProject.h" />
     <ClInclude Include="SrvBuilding.h" />

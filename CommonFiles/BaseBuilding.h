@@ -331,7 +331,13 @@ public:
 	AVFLOAT GetLiftingBeamWidth()			{ return m_fLiftingBeamWidth; }
 	PIT *GetPit()							{ return m_pPit; }
 	AVFLOAT GetPitLevel()					{ return m_fPitLevel; }
-	AVULONG GetPitLadderSteps()				{ if (m_fPitLevel <= -2500 * GetScale()) return 0; else return (-m_fPitLevel / GetScale() + 1000) / 300; }
+	AVFLOAT GetPitHeight()					{ return -m_fPitLevel; }
+	bool IsPitLadder()						{ return GetPitHeight() > 600 * GetScale() && GetPitHeight() < 2500 * GetScale(); }
+	bool IsPitDoor()						{ return GetPitHeight() >= 2500 * GetScale(); }
+	AVULONG GetPitLadderRungs()				{ if (IsPitLadder()) return (GetPitHeight() / GetScale() + 1000) / 300; else return 0; }
+	AVFLOAT GetPitLadderHeight()			{ if (IsPitLadder()) return (GetPitLadderRungs() + 1) * 300 * GetScale(); else return 0; }
+	AVFLOAT GetPitLadderLowerBracket()		{ if (IsPitLadder()) return 500 * GetScale(); else return 0; }
+	AVFLOAT GetPitLadderUpperBracket()		{ if (IsPitLadder()) return (GetPitLadderHeight() - 600) * GetScale(); else return 0; }
 
 	// Shafts
 	void CreateShafts(AVULONG nShaftCount);

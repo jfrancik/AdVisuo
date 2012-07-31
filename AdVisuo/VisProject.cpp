@@ -170,8 +170,8 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		box.SetDepth(-box.Depth());	// unclear why needed
 		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
-	case MODEL_APRON:
-	case MODEL_APRON_CAR:
+	case MODEL_SILL:
+	case MODEL_SILL_CAR:
 		box.SetDepth(-box.Depth());	// unclear why needed
 		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
 		break;

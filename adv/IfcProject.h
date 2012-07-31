@@ -5,8 +5,6 @@
 #include "SrvProject.h"
 #include "IfcBuilding.h"
 
-#include "ifcscanner.h"
-
 class CProjectIfc;
 
 class CElemIfc : public CElem
@@ -25,31 +23,6 @@ public:
 	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL);
 	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVULONG nParam = 0, AVFLOAT fParam1 = 0, AVFLOAT fParam2 = 0);
 	virtual void Move(AVVECTOR vec);
-};
-
-class CIfcBuilder
-{
-	CRevitFile m_revitfile;
-	int m_h;
-	CIFCModelScanner::BB m_bb;
-public:
-	CIfcBuilder(char *pFilename, AVULONG nInstanceIndex = 0);
-
-	double Left()	{ return m_bb.x0; }			double Right()	{ return m_bb.x1; }
-	double Front()	{ return m_bb.y0; }			double Rear()	{ return m_bb.y1; }
-	double Lower()	{ return m_bb.z0; }			double Upper()	{ return m_bb.z1; }
-
-	double Width()	{ return m_bb.x1 - m_bb.x0; }
-	double Depth()	{ return m_bb.y1 - m_bb.y0; }
-	double Height()	{ return m_bb.z1 - m_bb.z0; }
-
-	int GetHandle()	{ return m_h; }
-
-	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVFLOAT fRotX = 0, bool bIsotropicHeight = true, bool bIsotropicXY = true);
-	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fScaleX, AVFLOAT fScaleY, AVFLOAT fScaleZ, AVFLOAT fRot = 0, AVFLOAT fRotX = 0);
-	void build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fRot = 0, AVFLOAT fRotX = 0);
-
-	static void buildApron(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVFLOAT fRotX = 0);
 };
 
 class CProjectIfc : public CProjectSrv

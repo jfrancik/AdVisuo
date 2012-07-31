@@ -220,6 +220,69 @@ void CIFCModelScanner::Dump()
 				});
 }
 
+void CIFCModelScanner::DumpAsPoints()
+{
+	SetCallback([] (ITEM *pItem)
+				{
+					switch (pItem->type)
+					{
+					case CIFCModelScanner::ITEM::AGGREG:
+						if (pItem->nIndex >= 0)
+						{
+							// aggregate element
+							if (pItem->nType == sdaiAGGR || pItem->nType == sdaiINSTANCE)
+								return;
+
+							if (pItem->nType < 0 && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE)
+								if (strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 || strcmp(pItem->pParent->pstrAttrName, "DirectionRatios") == 0)
+									pItem->nType = sdaiREAL;
+					
+							for (int i = 0; i < pItem->nLevel; i++) printf("  ");
+							if (pItem->nType== sdaiREAL) printf("%lf\n", pItem->dvalue); 
+						}
+						break;
+					case CIFCModelScanner::ITEM::INSTANCE:
+						if (pItem->pstrAttrName == NULL)
+						{
+							// instance
+							if (pItem->pParent == NULL)
+								printf ("Root = Instance of %s\n", engiGetInstanceClassInfo(pItem->hInstance));
+							else
+							{
+								for (int i = 0; i < pItem->pParent->nLevel; i++) printf("  ");
+								if (pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE)
+									printf("- %s = Instance of %s\n", pItem->pParent->pstrAttrName, engiGetInstanceClassInfo(pItem->hInstance));
+								else
+									printf("%d. Instance of %s\n", pItem->pParent->nIndex, engiGetInstanceClassInfo(pItem->hInstance));
+							}
+						}
+						else
+						{
+							// instance attribute
+							if (pItem->nType == sdaiAGGR || pItem->nType == sdaiINSTANCE)
+								return;
+
+							for (int i = 0; i < pItem->nLevel; i++) printf("  ");
+							switch (pItem->nType)
+							{
+								case sdaiADB:			printf("- %s = %s (ADB)\n", pItem->pstrAttrName, "?ADB"); break;
+								case sdaiBINARY:		printf("- %s = %s (binary)\n", pItem->pstrAttrName, "?BIN"); break;
+								case sdaiBOOLEAN:		printf("- %s = %d (bool)\n", pItem->pstrAttrName, pItem->value); break;
+								case sdaiENUM:			printf("- %s = %d (enum)\n", pItem->pstrAttrName, pItem->value); break;
+								case sdaiINTEGER:		printf("- %s = %d (integer)\n", pItem->pstrAttrName, pItem->value); break;
+								case sdaiLOGICAL:		printf("- %s = %d (logical)\n", pItem->pstrAttrName, pItem->value); break;
+								case sdaiREAL:			printf("- %s = %lf (real)\n", pItem->pstrAttrName, pItem->dvalue); break;
+								case sdaiSTRING:		printf("- %s = %s (string)\n", pItem->pstrAttrName, pItem->value); break;
+								case sdaiUNICODE:		printf("- %s = %ls (unicode)\n", pItem->pstrAttrName, pItem->value); break;
+								case sdaiEXPRESSSTRING:	printf("- %s = %s (express)\n", pItem->pstrAttrName, pItem->value); break;
+								default:				printf("- %s = %s (unknown)\n", pItem->pstrAttrName, "(NULL)"); break;
+							}
+						}
+						break;
+					}
+				});
+}
+
 void CIFCModelScanner::DumpAsCpp()
 {
 	SetCallback([] (ITEM *pItem)
@@ -395,7 +458,7 @@ CIFCPointsElem::CIFCPointsElem(CIFCRoot *pParent, transformationMatrixStruct *pM
 	setRelNameAndDescription("RevitContainer", "RevitContainer");
 }
 	
-int CIFCPointsElem::build(AVULONG nFaceSets, AVULONG *pnFaceSets, double *pData)
+int CIFCPointsElem::build(AVULONG nFaceSets, AVULONG *pnFacesPerSet, double *pData, AVULONG *pnPointsPerFace)
 {
 	ifcInstance = sdaiCreateInstanceBN(getModel(), "IFCBUILDINGELEMENTPROXY");
 
@@ -409,7 +472,7 @@ int CIFCPointsElem::build(AVULONG nFaceSets, AVULONG *pnFaceSets, double *pData)
 
 	pParent->appendRelContainedInSpatialStructure(ifcInstance);
 
-	hCloneInstance = _build(nFaceSets, pnFaceSets, pData);
+	hCloneInstance = _build(nFaceSets, pnFacesPerSet, pData, pnPointsPerFace);
 
 	sdaiPutAttrBN(getInstance(), "Representation", sdaiINSTANCE, (void*)hCloneInstance);
 
@@ -429,7 +492,7 @@ void CIFCPointsElem::_buildCartesianPoint(int *hAggregPolygon, double dX, double
 	sdaiAppend((int)hAggregPolygon, 6, (void*)hInstCP);
 }
 
-double *CIFCPointsElem::_buildFace(int *hAggregCfsFaces, double *pData)
+double *CIFCPointsElem::_buildFace(int *hAggregCfsFaces, double *pData, AVULONG nData)
 {
 	int hInstFace = sdaiCreateInstanceBN(model, "IfcFace");
 	int *hAggrBounds = sdaiCreateAggrBN(hInstFace, "Bounds");
@@ -437,10 +500,8 @@ double *CIFCPointsElem::_buildFace(int *hAggregCfsFaces, double *pData)
 	int hInstPolyLoop = sdaiCreateInstanceBN(model, "IfcPolyLoop");
 	int *hAggregPolygon = sdaiCreateAggrBN(hInstPolyLoop, "Polygon");
 	
-	_buildCartesianPoint(hAggregPolygon, pData[0], pData[1], pData[2]); pData += 3;
-	_buildCartesianPoint(hAggregPolygon, pData[0], pData[1], pData[2]); pData += 3;
-	_buildCartesianPoint(hAggregPolygon, pData[0], pData[1], pData[2]); pData += 3;
-	_buildCartesianPoint(hAggregPolygon, pData[0], pData[1], pData[2]); pData += 3;
+	for (AVULONG i = 0; i < nData; i++, pData += 3)
+		_buildCartesianPoint(hAggregPolygon, pData[0], pData[1], pData[2]);
 	
 	// Finishing
 	sdaiPutAttrBN(hInstPolyLoop, "Polygon", 2, (void*)hAggregPolygon); 
@@ -453,13 +514,13 @@ double *CIFCPointsElem::_buildFace(int *hAggregCfsFaces, double *pData)
 	return pData;
 }
 
-double *CIFCPointsElem::_buildConnectedFaceSet(int *hAggregFbsmFaces, AVULONG nData, double *pData)
+double *CIFCPointsElem::_buildConnectedFaceSet(int *hAggregFbsmFaces, double *pData, AVULONG nData, AVULONG *pnPointsPerFace)
 {
 	int hInstConFaceSets = sdaiCreateInstanceBN(model, "IfcConnectedFaceSet");
 	int *hAggregCfsFaces = sdaiCreateAggrBN(hInstConFaceSets, "CfsFaces");
 
 	for (AVULONG i = 0; i < nData; i++)
-		pData = _buildFace(hAggregCfsFaces, pData);
+		pData = _buildFace(hAggregCfsFaces, pData, pnPointsPerFace ? *pnPointsPerFace++ : 4);
 
 	sdaiPutAttrBN(hInstConFaceSets, "CfsFaces", 2, (void*)hAggregCfsFaces); 
 	sdaiAppend((int)hAggregFbsmFaces, 6, (void*)hInstConFaceSets);
@@ -467,7 +528,7 @@ double *CIFCPointsElem::_buildConnectedFaceSet(int *hAggregFbsmFaces, AVULONG nD
 	return pData;
 }
 
-int CIFCPointsElem::_build(AVULONG nFaceSets, AVULONG *pnFaceSets, double *pData)
+int CIFCPointsElem::_build(AVULONG nFaceSets, AVULONG *pnFacesPerSet, double *pData, AVULONG *pnPointsPerFace)
 {
 	int nVal;
 	double dVal;
@@ -529,7 +590,11 @@ int CIFCPointsElem::_build(AVULONG nFaceSets, AVULONG *pnFaceSets, double *pData
 
 	// CONNECTED FACE SETS
 	for (AVULONG i = 0; i < nFaceSets; i++)
-		pData = _buildConnectedFaceSet(hAggreg9, *pnFaceSets++, pData);
+	{
+		AVULONG nFacesPerSet = *pnFacesPerSet++;
+		pData = _buildConnectedFaceSet(hAggreg9, pData, nFacesPerSet, pnPointsPerFace);
+		if (pnPointsPerFace) pnPointsPerFace += nFacesPerSet;
+	}
 
 	// END OF THE FILE SEQ
 	sdaiPutAttrBN(hInstance8, "FbsmFaces", 2, (void*)hAggreg9); 

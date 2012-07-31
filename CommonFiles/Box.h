@@ -249,10 +249,16 @@ public:
 	AVVECTOR CentreRearExtUpperExt()	{ return Vector((A.x + B.x) / 2, B1.y, B1.z); }
 
 	AVVECTOR CentreLower()				{ return Vector(CentreX(), CentreY(), A.z); }
-	AVVECTOR CentreLowerEx()			{ return Vector(CentreX(), CentreY(), A1.z); }
+	AVVECTOR CentreLowerExt()			{ return Vector(CentreX(), CentreY(), A1.z); }
 	AVVECTOR CentreUpper()				{ return Vector(CentreX(), CentreY(), B.z); }
-	AVVECTOR CentreUpperEx()			{ return Vector(CentreX(), CentreY(), B1.z); }
+	AVVECTOR CentreUpperExt()			{ return Vector(CentreX(), CentreY(), B1.z); }
 	AVVECTOR Centre()					{ return Vector(CentreX(), CentreY(), CentreZ()); }
+
+	AVVECTOR CentreExtLower()			{ return Vector(CentreXExt(), CentreYExt(), A.z); }
+	AVVECTOR CentreExtLowerExt()		{ return Vector(CentreXExt(), CentreYExt(), A1.z); }
+	AVVECTOR CentreExtUpper()			{ return Vector(CentreXExt(), CentreYExt(), B.z); }
+	AVVECTOR CentreExtUpperExt()		{ return Vector(CentreXExt(), CentreYExt(), B1.z); }
+	AVVECTOR CentreExt()				{ return Vector(CentreXExt(), CentreYExt(), CentreZExt()); }
 
 	BOX LowerSlab()										{ return BOX(LeftExtRearExtLower(), WidthExt(), DepthExt(), -LowerThickness()); }
 	BOX UpperSlab()										{ return BOX(LeftExtRearExtUpper(), WidthExt(), DepthExt(), UpperThickness()); }

@@ -2,6 +2,7 @@
 
 #include "StdAfx.h"
 #include "IfcProject.h"
+#include "IfcBuilder.h"
 #include "ifcscanner.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -10,33 +11,6 @@
 	// GLOBAL VARIABLES!!!
 	bool bBrep = true;
 	bool bPresentation = false;
-
-	static void RotateX(transformationMatrixStruct &A, double a)
-	{
-		double fSin = sin(a), fCos = cos(a), x2, x3;
-		x2 = fCos * A._12 - fSin * A._13;  x3 = fSin * A._12 + fCos * A._13;  A._12 = x2; A._13 = x3;
-		x2 = fCos * A._22 - fSin * A._23;  x3 = fSin * A._22 + fCos * A._23;  A._22 = x2; A._23 = x3;
-		x2 = fCos * A._32 - fSin * A._33;  x3 = fSin * A._32 + fCos * A._33;  A._32 = x2; A._33 = x3;
-		x2 = fCos * A._42 - fSin * A._43;  x3 = fSin * A._42 + fCos * A._43;  A._42 = x2; A._43 = x3;
-	}
-	
-	void RotateY(transformationMatrixStruct &A, double a)
-	{
-		double fSin = sin(a), fCos = cos(a), x1, x3;
-		x1 =  fCos * A._11 + fSin * A._13;  x3 = -fSin * A._11 + fCos * A._13;  A._11 = x1; A._13 = x3;
-		x1 =  fCos * A._21 + fSin * A._23;  x3 = -fSin * A._21 + fCos * A._23;  A._21 = x1; A._23 = x3;
-		x1 =  fCos * A._31 + fSin * A._33;  x3 = -fSin * A._31 + fCos * A._33;  A._31 = x1; A._33 = x3;
-		x1 =  fCos * A._41 + fSin * A._43;  x3 = -fSin * A._41 + fCos * A._43;  A._41 = x1; A._43 = x3;
-	}
-
-	void RotateZ(transformationMatrixStruct &A, double a)
-	{
-		double fSin = sin(a), fCos = cos(a), x1, x2;
-		x1 = fCos * A._11 - fSin * A._12;  x2 = fSin * A._11 + fCos * A._12;  A._11 = x1; A._12 = x2;
-		x1 = fCos * A._21 - fSin * A._22;  x2 = fSin * A._21 + fCos * A._22;  A._21 = x1; A._22 = x2;
-		x1 = fCos * A._31 - fSin * A._32;  x2 = fSin * A._31 + fCos * A._32;  A._31 = x1; A._32 = x2;
-		x1 = fCos * A._41 - fSin * A._42;  x2 = fSin * A._41 + fCos * A._42;  A._41 = x1; A._42 = x2;
-	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CElemIfc
@@ -172,7 +146,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		case 2: 
 			p = new CIfcBuilder("c:\\IFC\\machine30t.ifc"); 
 			if (!p) return;
-			p->build(this, nModelId, L"Machine - medium", 0, centre, 0.25, 0.25, 0.25, fRot);
+			p->build(this, nModelId, L"Machine - medium", 0, centre, /*0.25, 0.25, 0.25, */fRot);
 			delete p;
 			break;
 		case 3: 
@@ -212,7 +186,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		p = new CIfcBuilder("c:\\IFC\\isolator.ifc"); 
 		if (!p) return;
 		centre.x = box.Right() - p->Depth() + 35 * fScale;
-		centre.y = box.Rear() - p->Width() / 2 - fScale * 1500 - (nIndex / 2) * p->Width();
+		centre.y = box.Rear() - p->Width() / 2 - fScale * 1950 - (nIndex / 2) * p->Width();
 		centre.z = 1000 * fScale + (nIndex % 2) * p->Height();
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
@@ -270,30 +244,6 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
 		break;
-	case MODEL_LADDER:
-		switch (nParam)
-		{
-			case 0: p = NULL; break;
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-			case 9:
-			case 10:
-			case 11:
-			case 12: p = new CIfcBuilder("c:\\IFC\\ladder.ifc"); break;
-		}
-		if (!p) return;
-		centre = box.CentreLower();
-		centre.y = p->Height() / 2;
-		//p->build(this, nModelId, strName, nIndex, centre, fRot);
-		p->build(this, nModelId, strName, nIndex, box, fRot, 0, false, false);
-		delete p;
-		break;
 	case MODEL_LIGHT:
 		p = new CIfcBuilder("c:\\IFC\\light.ifc"); 
 		if (!p) return;
@@ -308,6 +258,9 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		break;
 
 
+	case MODEL_LADDER:
+		CIfcBuilder::buildLadder(this, nModelId, strName, nIndex, box, nParam, fParam1, fParam2, fRot);
+		break;
 	case MODEL_JAMB:
 	case MODEL_JAMB_CAR:
 		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
@@ -317,212 +270,20 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		box.SetDepth(-box.Depth());	// unclear why needed
 		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
-	case MODEL_APRON:
-	case MODEL_APRON_CAR:
-		box.SetDepth(-box.Depth());	// unclear why needed
-		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
-//		CIfcBuilder::buildApron(this, nModelId, strName, nIndex, box, fRot);
+	case MODEL_SILL:
+		CIfcBuilder::buildSill(this, nModelId, strName, nIndex, box, fRot);
+		break;
+	case MODEL_SILL_CAR:
+		CIfcBuilder::buildSill(this, nModelId, strName, nIndex, box, fRot);
+		break;
+	case MODEL_HANDRAIL:
+		CIfcBuilder::buildHandrail(this, nModelId, strName, nIndex, box, fRot);
 		break;
 	}
 }
 
 void CElemIfc::Move(AVVECTOR vec)
 {
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CIfcBuilder
-
-CIfcBuilder::CIfcBuilder(char *pFilename, AVULONG nInstanceIndex)
-{
-	m_revitfile.Open(pFilename);
-	m_h = m_revitfile.GetInstance(nInstanceIndex);
-	CIFCModelScanner::GetBB(m_h, m_bb);
-}
-
-void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fRot, AVFLOAT fRotX)
-{
-	build(pElem, nModelId, strName, nIndex, base, 1, 1, 1, fRot, fRotX);
-}
-
-void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVFLOAT fRotX, bool bIsotropicHeight, bool bIsotropicXY)
-{
-	double w = box.Width();
-	double d = box.Depth();
-	double h = box.Height();
-	double W = abs(cos(fRot)*w - sin(fRot)*d);
-	double D = abs(cos(fRot)*d + sin(fRot)*w);
-	double dScaleX = W / Width();
-	double dScaleY = D / Depth();
-	double dScaleZ = h / Height();
-
-	if (w == 0 && d == 0 && h == 0) return;
-	else if (w == 0 && d == 0) dScaleX = dScaleY = dScaleZ;
-	else if (w == 0 || d == 0) dScaleX = dScaleY = max(dScaleX, dScaleY);
-	else if (bIsotropicXY) dScaleX = dScaleY = min(dScaleX, dScaleY);
-	if (h == 0) dScaleZ = bIsotropicHeight ? dScaleX : 1;
-
-	build(pElem, nModelId, strName, nIndex, box.CentreLower(), dScaleX, dScaleY, dScaleZ, fRot, fRotX);
-}
-
-void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fScaleX, AVFLOAT fScaleY, AVFLOAT fScaleZ, AVFLOAT fRot, AVFLOAT fRotX)
-{
-USES_CONVERSION;
-	char *pName = OLE2A((LPOLESTR)strName);
-
-	if (!pElem->GetBone()) return;
-
-	transformationMatrixStruct matrix;
-	identityMatrix(&matrix);
-	RotateY(matrix, fRotX);
-	RotateZ(matrix, fRot);
-	matrix._41 += base.x;
-	matrix._42 += -base.y;
-	matrix._43 += base.z;
-
-	// shift
-	double dShiftX = Width() / 4;
-	double dShiftY = Depth() / 4;
-	double dShiftZ = Lower();
-
-	CIFCRevitElem machine(pElem->GetBone(), &matrix);
-	machine.setInfo(pName, pName);
-	int hRes = machine.build(m_h, [dShiftX, dShiftY, dShiftZ, fScaleX, fScaleY, fScaleZ] (CIFCModelScanner::ITEM *pItem) 
-								{
-									if (pItem->type == CIFCModelScanner::ITEM::AGGREG && pItem->nIndex >= 0 && pItem->nType == sdaiREAL && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE && strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 && sdaiGetMemberCount(pItem->hAggreg) == 3)
-									{
-										switch (pItem->nIndex)
-										{
-										case 0: pItem->dvalue = (pItem->dvalue - dShiftX) * fScaleX; break;
-										case 1: pItem->dvalue = (pItem->dvalue - dShiftY) * fScaleY; break;
-										case 2: pItem->dvalue = (pItem->dvalue - dShiftZ) * fScaleZ; break;
-										}
-									}
-								});
-
-	if (!hRes) throw Logf(ERROR_IFC_PRJ, L"revit");
-}
-
-void CIfcBuilder::buildApron(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVFLOAT fRotX)
-{
-USES_CONVERSION;
-	char *pName = OLE2A((LPOLESTR)strName);
-
-	if (!pElem->GetBone()) return;
-
-	AVVECTOR base = box.Centre();
-	transformationMatrixStruct matrix;
-	identityMatrix(&matrix);
-	RotateY(matrix, fRotX);
-	RotateZ(matrix, fRot);
-	matrix._41 += base.x;
-	matrix._42 += -base.y;
-	matrix._43 += base.z;
-
-	double pData[] = 
-	{
-		// face set 1
-		700.000000, 700.000000, 10.000000,
-		0.000000, 700.000000, 10.000000,
-		0.000000, 0.000000, 10.000000,
-		700.000000, 0.000000, 10.000000,
-
-		700.000000, 700.000000, 0.000000,
-		700.000000, 0.000000, 0.000000,
-		0.000000, 0.000000, 0.000000,
-		0.000000, 700.000000, 0.000000,
-
-		0.000000, 700.000000, 10.000000,
-		700.000000, 700.000000, 10.000000,
-		700.000000, 700.000000, 0.000000,
-		0.000000, 700.000000, 0.000000,
-
-		0.000000, 0.000000, 10.000000,
-		0.000000, 700.000000, 10.000000,
-		0.000000, 700.000000, 0.000000,
-		0.000000, 0.000000, 0.000000,
-
-		700.000000, 0.000000, 10.000000,
-		700.000000, 0.000000, 0.000000,
-		0.000000, 0.000000, 0.000000,
-		0.000000, 0.000000, 10.000000,
-
-		700.000000, 700.000000, 10.000000,
-		700.000000, 0.000000, 10.000000,
-		700.000000, 0.000000, 0.000000,
-		700.000000, 700.000000, 0.000000,
-
-
-		// face set 2
-		700.000000, 700.000000, 2100.000000,
-		700.000000, 740.268702, 2100.000000,
-		0.000000, 740.268702, 2100.000000,
-		0.000000, 700.000000, 2100.000000,
-
-		700.000000, 700.000000, 0.000000,
-		0.000000, 700.000000, 0.000000,
-		0.000000, 740.268702, 0.000000,
-		700.000000, 740.268702, 0.000000,
-
-		700.000000, 740.268702, 2100.000000,
-		700.000000, 700.000000, 2100.000000,
-		700.000000, 700.000000, 0.000000,
-		700.000000, 740.268702, 0.000000,
-
-		0.000000, 740.268702, 2100.000000,
-		700.000000, 740.268702, 2100.000000,
-		700.000000, 740.268702, 0.000000,
-		0.000000, 740.268702, 0.000000,
-
-		0.000000, 700.000000, 2100.000000,
-		0.000000, 740.268702, 2100.000000,
-		0.000000, 740.268702, 0.000000,
-		0.000000, 700.000000, 0.000000,
-
-		700.000000, 700.000000, 2100.000000,
-		700.000000, 700.000000, 0.000000,
-		0.000000, 700.000000, 0.000000,
-		0.000000, 700.000000, 2100.000000,
-
-
-		// face set 3
-		700.000000, 1300.000000, 2100.000000,
-		0.000000, 1300.000000, 2100.000000,
-		0.000000, 700.000000, 2100.000000,
-		700.000000, 700.000000, 2100.000000,
-
-		700.000000, 1300.000000, 0.000000,
-		700.000000, 700.000000, 0.000000,
-		0.000000, 700.000000, 0.000000,
-		0.000000, 1300.000000, 0.000000,
-
-		700.000000, 1300.000000, 2100.000000,
-		700.000000, 700.000000, 2100.000000,
-		700.000000, 700.000000, 0.000000,
-		700.000000, 1300.000000, 0.000000,
-
-		700.000000, 700.000000, 2100.000000,
-		700.000000, 700.000000, 0.000000,
-		0.000000, 700.000000, 0.000000,
-		0.000000, 700.000000, 2100.000000,
-
-		0.000000, 700.000000, 2100.000000,
-		0.000000, 1300.000000, 2100.000000,
-		0.000000, 1300.000000, 0.000000,
-		0.000000, 700.000000, 0.000000,
-
-		0.000000, 1300.000000, 2100.000000,
-		700.000000, 1300.000000, 2100.000000,
-		700.000000, 1300.000000, 0.000000,
-		0.000000, 1300.000000, 0.000000,
-	};
-
-	AVULONG faces [] = { 6, 6, 6 };
-
-	CIFCPointsElem machine(pElem->GetBone(), &matrix);
-	machine.setInfo(pName, pName);
-	int hRes = machine.build(3, faces, pData);
-	if (!hRes) throw Logf(ERROR_IFC_PRJ, L"revit");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
