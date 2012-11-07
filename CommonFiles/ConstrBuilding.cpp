@@ -57,7 +57,9 @@ void CBuildingConstr::STOREY::Construct(AVULONG iStorey)
 		AVVECTOR v;
 
 		// build walls
-		m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Floor",   iStorey2, GetBox().LowerSlab());
+		BOX boxFloor = GetBox().LowerSlab();
+		boxFloor.SetHeight(0.05f);
+		m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Floor",   iStorey2, boxFloor);
 		m_pElem->BuildWall(CElem::WALL_CEILING, L"Ceiling", iStorey2, GetBox().UpperSlab());
 
 		if (GetBuilding()->bFastLoad) return;
@@ -356,12 +358,10 @@ void CBuildingConstr::SHAFT::ConstructMachine(AVULONG iShaft)
 	if (IsMRL())
 		return;
 
-	AVFLOAT fAngle = M_PI * (GetShaftLine() ? 3 : 1) / 2;
-	GetMachineElement()->BuildModel(CElem::MODEL_MACHINE, L"Machine", iShaft, GetBoxCar(), fAngle, GetMachineType());
-	fAngle = M_PI * (GetShaftLine() ? 3 : 1) / 2;
-	GetMachineElement()->BuildModel(CElem::MODEL_OVERSPEED, L"Overspeed Governor", iShaft, GetBoxGovernor(), fAngle);
-	fAngle = M_PI * (GetShaftLine() ? 0 : 2) / 2;
-	GetMachineElement()->BuildModel(CElem::MODEL_CONTROL, L"Control Panel", iShaft, GetBuilding()->GetBox(), fAngle);
+	GetMachineElement()->BuildModel(CElem::MODEL_MACHINE, L"Machine", iShaft, GetBoxCar(), GetMachineOrientation() + M_PI_2, GetMachineType());
+	GetMachineElement()->BuildModel(CElem::MODEL_OVERSPEED, L"Overspeed Governor", iShaft, GetBoxGovernor(), GetMachineOrientation() + M_PI_2);
+	GetMachineElement()->BuildModel(CElem::MODEL_CONTROL_PANEL, L"Control Panel", iShaft, GetBuilding()->GetBox(), GetShaftOrientation() + M_PI);
+	GetMachineElement()->BuildModel(CElem::MODEL_DRIVE_PANEL, L"Drive Panel", iShaft, GetBuilding()->GetBox(), GetShaftOrientation() + M_PI);
 	GetMachineElement()->BuildModel(CElem::MODEL_ISOLATOR, L"Isolator Panel", iShaft, GetBuilding()->GetBox(), -F_PI/2);
 
 	// Build the Lifting Beam

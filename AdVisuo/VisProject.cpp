@@ -5,6 +5,8 @@
 #include "VisBuilding.h"
 #include "VisSim.h"
 
+#include <fwrender.h>	// to start the renderer
+
 #include "Block.h"
 
 #pragma warning (disable:4996)
@@ -100,6 +102,7 @@ void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX b
 
 void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVULONG nParam, AVFLOAT fParam1, AVFLOAT fParam2)
 {
+	return;
 //	BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
 	
 	if (!GetBone()) return;
@@ -112,7 +115,49 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	case MODEL_MACHINE:
 		box.SetDepth(-box.Depth());
 		box.Grow(0.9f, 0.9f, 0.9f);
-		BuildWall(WALL_BEAM, strName, nIndex, box);
+		//BuildWall(WALL_BEAM, strName, nIndex, box);
+		{
+		OLECHAR _name[257];
+		_snwprintf_s(_name, 256, L"Machine %d", nIndex);
+
+		IKineNode *pNewBone = NULL;
+		GetBone()->CreateChild(_name, &pNewBone);
+
+
+
+
+		LPOLESTR pLabel;
+		pNewBone->GetLabel(&pLabel);
+		Load((LPOLESTR)(LPCOLESTR)(_stdPathModels + "bunny.obj"), pLabel, 700, 100);
+		
+		ITransform *pT = NULL;
+		pNewBone->CreateCompatibleTransform(&pT);
+		pT->FromRotationX(M_PI/2);
+		AVVECTOR vec = box.CentreLower();
+		pT->MulTranslationVector((FWVECTOR*)(&vec));
+		pNewBone->PutLocalTransform(pT);
+		pT->Release();
+		pNewBone->Release();
+
+	IMaterial *pMaterial = NULL;
+	ITexture *pTexture = NULL;
+	GetBuilding()->GetRenderer()->CreateTexture(&pTexture);
+	pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"dafoldil.jpg"));
+	pTexture->SetUVTile(1, 1);
+	GetBuilding()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	pMaterial->SetTexture(0, pTexture);
+	IKineChild *pChild = NULL;
+	m_pBone->GetChild(L"main", &pChild);
+	IMesh *pMesh = NULL;
+	pChild->QueryInterface(&pMesh);
+	pMesh->SetMaterial(pMaterial);
+	pMesh->Release();
+	pChild->Release();
+	pMaterial->Release();
+	pTexture->Release();
+		}
+
+
 		break;
 	case MODEL_OVERSPEED:
 		f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;

@@ -16,24 +16,29 @@ class CScriptEvent
 	AVULONG m_nTime;
 	AVULONG m_nTimeAnim;
 	AVULONG m_nTimeFF;
+	AVFLOAT m_fAccel;
 	CString m_desc;
 
 	CAMPARAMS m_camera[N_CAMERAS];
 
 public:
-	CScriptEvent(CAdVisuoView *pView) : m_pView(pView), m_nTime(0), m_nTimeAnim(0), m_nTimeFF(0) { } 
+	CScriptEvent(CAdVisuoView *pView) : m_pView(pView), m_nTime(0), m_nTimeAnim(0), m_nTimeFF(0), m_fAccel(0) { } 
 
 	CString CScriptEvent::GetDesc();
 	AVULONG GetTime()			{ return m_nTime; }
 	AVULONG GetAnimTime()		{ return m_nTimeAnim; }
 	AVULONG GetFFTime()			{ return m_nTimeFF; }
+	AVFLOAT GetAccel()			{ return m_fAccel; }
 
 	void SetTime(AVULONG n)		{ m_nTime = n; }
 	void SetAnimTime(AVULONG n)	{ m_nTime += m_nTimeAnim; m_nTimeAnim = n; if (m_nTime > m_nTimeAnim) m_nTime -= m_nTimeAnim; else m_nTime = 0; }
 	void SetFFTime(AVULONG n)	{ m_nTimeFF = n; }
+	void SetAccel(AVFLOAT f)	{ m_fAccel = f; }
 
 	void Record();
-	void Play();
+	void Play(AVULONG &nTime, AVULONG nAuxClockValue = 0x7FFFFFFF);
+
+	void Serialize(CArchive& ar);
 };
 
 class CScript
@@ -45,14 +50,19 @@ class CScript
 
 public:
 	CScript(CAdVisuoView *pView) : m_pView(pView) { } 
+	~CScript()									{ Reset(); }
 
 	AVULONG size()								{ return m_events.size(); }
 	CScriptEvent *operator[](AVULONG i)			{ return m_events[i]; }
 
 	void Record();
-	void Play(AVULONG i);
+	void Play(AVULONG i, AVULONG nAuxClockValue = 0x7FFFFFFF);
 	void Delete(AVULONG i);
 
 	void Play();
-	void Proceed(AVULONG nTime);
+	void Proceed(AVULONG &nTime, AVULONG nAuxClockValue = 0x7FFFFFFF);
+
+	void Sort();
+	void Reset();
+	void Serialize(CArchive& ar);
 };

@@ -34,7 +34,7 @@ CElemIfc::CElemIfc(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVU
 
 	switch (nElemId)
 	{
-	case ELEM_PROJECT:	m_pBone = new CIFCProject("IFC2X3_TC1.exp", "MILLI"); break;
+	case ELEM_PROJECT:	m_pBone = new CIFCProject("c:\\ifc\\IFC2X3_TC1.exp", "MILLI"); break;
 	case ELEM_SITE:		m_pBone = new CIFCSite((CIFCProject*)pParentBone, &matrix); break;
 	case ELEM_BUILDING:	m_pBone = new CIFCBuilding((CIFCSite*)pParentBone, &matrix); break;
 	case ELEM_STOREY:	m_pBone = new CIFCStorey((CIFCBuilding*)pParentBone, &matrix); break;
@@ -126,7 +126,7 @@ USES_CONVERSION;
 void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVULONG nParam, AVFLOAT fParam1, AVFLOAT fParam2)
 {
 	if (!GetBone()) return;
-	CIfcBuilder *p = NULL;
+	CIfcBuilder *p = NULL, *q = NULL;
 	AVFLOAT fScale = GetBuilding()->GetScale();
 	AVVECTOR centre = box.CentreLower();
 	AVULONG i;
@@ -170,17 +170,33 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
 		break;
-	case MODEL_CONTROL:
-		p = new CIfcBuilder("c:\\IFC\\control.ifc");
-		if (!p) return;
+	case MODEL_CONTROL_PANEL:
+		p = new CIfcBuilder("c:\\IFC\\control.ifc");	// control panel
+		q = new CIfcBuilder("c:\\IFC\\control.ifc");	// drive panel (missing file, control.ifc taken instead)
+		if (!p || !q) return;
 		i = GetBuilding()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
-		centre.x += p->Width() * (nIndex - GetBuilding()->GetShaftBegin(i) - (AVFLOAT)(GetBuilding()->GetShaftCount(i) - 1) / 2.0f);
+		centre.x += (p->Width() + q->Width()) * (nIndex - GetBuilding()->GetShaftBegin(i) - (AVFLOAT)(GetBuilding()->GetShaftCount(i) - 1) / 2.0f);
 		if (i == 0)
 			centre.y -= p->Depth()/2;
 		else
 			centre.y += p->Depth()/2;
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
+		delete q;
+		break;
+	case MODEL_DRIVE_PANEL:
+		p = new CIfcBuilder("c:\\IFC\\control.ifc");	// control panel
+		q = new CIfcBuilder("c:\\IFC\\control.ifc");	// drive panel (missing file, control.ifc taken instead)
+		if (!p || !q) return;
+		i = GetBuilding()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
+		centre.x += (p->Width() + q->Width()) * (nIndex - GetBuilding()->GetShaftBegin(i) - (AVFLOAT)(GetBuilding()->GetShaftCount(i) - 1) / 2.0f) + p->Width();
+		if (i == 0)
+			centre.y -= p->Depth()/2;
+		else
+			centre.y += p->Depth()/2;
+		q->build(this, nModelId, strName, nIndex, centre, fRot);
+		delete p;
+		delete q;
 		break;
 	case MODEL_ISOLATOR:
 		p = new CIfcBuilder("c:\\IFC\\isolator.ifc"); 

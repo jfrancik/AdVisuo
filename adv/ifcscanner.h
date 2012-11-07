@@ -101,7 +101,7 @@ public:
 		if (m_hModel) sdaiCloseModel(m_hModel);
 		if (pFilename)
 		{
-			m_hModel = sdaiOpenModelBN(0, pFilename, "IFC2X3_TC1.exp");
+			m_hModel = sdaiOpenModelBN(0, pFilename, "c:\\ifc\\IFC2X3_TC1.exp");
 			if (m_hModel) m_h = sdaiGetEntityExtentBN(m_hModel, "IFCBUILDINGELEMENTPROXY");
 		}
 		else

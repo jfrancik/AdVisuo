@@ -366,6 +366,8 @@ public:
 	afx_msg void OnBnClickedRemoveEvent();
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedProperties();
+	afx_msg void OnBnClickedLoad();
+	afx_msg void OnBnClickedSave();
 };
 #pragma once
 
@@ -399,4 +401,5 @@ public:
 	virtual BOOL OnInitDialog();
 	virtual void OnOK();
 	CString m_desc;
+	float m_fAccel;
 };

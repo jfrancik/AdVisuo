@@ -599,32 +599,46 @@ void CBuilding::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftP
 	m_boxCarDoor[1] = BOX(m_boxCar.CentreX() - LiftDoorWidth / 2, m_boxCar.Rear(),       0, LiftDoorWidth, fCarRearWallThickness, LiftDoorHeight);
 
 	// resolve left-right side
-	AVULONG sideCwt = SIDE_REAR; if (nCwtPos == 2) sideCwt = SIDE_LEFT; else if (nCwtPos == 3) sideCwt = SIDE_RIGHT;
-	if (m_nShaftLine == 1 && sideCwt != SIDE_REAR) sideCwt = 1 - sideCwt;
-	AVULONG sideGovernor = (m_nShaftLine == 0) ? SIDE_RIGHT : SIDE_LEFT;
-	AVULONG sideLadder = (m_nShaftLine == 0) ? SIDE_LEFT : SIDE_RIGHT;
-	if (sideLadder == sideCwt) sideLadder = 1 - sideLadder;
 
-	switch (sideCwt)
-	{	case SIDE_REAR:		m_boxCwt = BOX(m_boxCar.CentreX() - cwtl/2, m_boxShaft.Rear() - cwtx - cwtw, 0, cwtl, cwtw, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt); break;
-		case SIDE_LEFT:		m_boxCwt = BOX(m_boxShaft.Left() + cwtx, m_boxCar.CentreY() - cwtl/2, 0, cwtw, cwtl, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt); break;
-		case SIDE_RIGHT:	m_boxCwt = BOX(m_boxShaft.Right() - cwtx - cwtw, m_boxCar.CentreY() - cwtl/2, 0, cwtw, cwtl, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt); break;
+	AVLONG nMachineOrientation = 0;	// 0 = forward, 1 = left, 2 = backward, 3 = right
+	switch (nCwtPos)
+	{
+	case 1: nMachineOrientation = 0; break;
+	case 2: nMachineOrientation = 1; break;
+	case 3: nMachineOrientation = 3; break;
 	}
+	if (m_nShaftLine == 1) nMachineOrientation = (nMachineOrientation + 2) % 4;
 
-	switch (sideGovernor)
-	{	case SIDE_LEFT:		m_boxGovernor = BOX(m_boxCar.LeftExt() - 200, m_boxCar.CentreY(), 0, 200, m_boxCar.DepthExt() / 2, 0); break;
-		case SIDE_RIGHT:	m_boxGovernor = BOX(m_boxCar.RightExt(),	  m_boxCar.CentreY(), 0, 200, m_boxCar.DepthExt() / 2, 0); break;
-	}
-	
-	switch (sideLadder)
-	{	case SIDE_LEFT:		m_boxLadder = BOX(m_boxShaft.Left(),        m_boxCar.FrontExt(), 0, 132, 610, 0); break;
-		case SIDE_RIGHT:	m_boxLadder = BOX(m_boxShaft.Right() - 132, m_boxCar.FrontExt(), 0, 132, 610, 0); break;
-	}
-	
-	switch (sideCwt)
-	{	case SIDE_REAR:		m_fLightingXPos = (m_boxCwt.CentreX() >= m_boxShaft.CentreX()) ? (m_boxCwt.Left() + m_boxShaft.Left()) / 2 : (m_boxCwt.Right() + m_boxShaft.Right()) / 2; break;
-		case SIDE_LEFT:
-		case SIDE_RIGHT:	m_fLightingXPos = m_boxDoor[0].CentreX();
+	m_fShaftOrientation = (m_nShaftLine == 0) ? 0 : M_PI;
+	m_fMachineOrientation = nMachineOrientation * M_PI_2;
+
+	switch (nMachineOrientation)
+	{	case 0:	// forward (first line of lifts): cwt in the rear, gov on the right, light asymetrically, ladder on the left
+			m_boxCwt = BOX(m_boxCar.CentreX() - cwtl/2, m_boxShaft.Rear() - cwtx - cwtw, 0, cwtl, cwtw, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt);
+			m_boxGovernor = BOX(m_boxCar.RightExt(), m_boxCar.CentreY(), 0, 200, m_boxCar.DepthExt() / 2, 0);
+			m_fLightingXPos = (m_boxCwt.CentreX() >= m_boxShaft.CentreX()) ? (m_boxCwt.Left() + m_boxShaft.Left()) / 2 : (m_boxCwt.Right() + m_boxShaft.Right()) / 2;
+			m_boxLadder = BOX(m_boxShaft.Left(), m_boxCar.FrontExt(), 0, 132, 610, 0);
+			break;
+		case 2:	// backward (second line of lifts): cwt in the rear of line 2, gov on the left, light asymetrically, ladder on the right
+			m_boxCwt = BOX(m_boxCar.CentreX() - cwtl/2, m_boxShaft.Rear() - cwtx - cwtw, 0, cwtl, cwtw, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt);
+			m_boxGovernor = BOX(m_boxCar.LeftExt() - 200, m_boxCar.CentreY(), 0, 200, m_boxCar.DepthExt() / 2, 0);
+			m_fLightingXPos = (m_boxCwt.CentreX() >= m_boxShaft.CentreX()) ? (m_boxCwt.Left() + m_boxShaft.Left()) / 2 : (m_boxCwt.Right() + m_boxShaft.Right()) / 2;
+			m_boxLadder = BOX(m_boxShaft.Right() - 132, m_boxCar.FrontExt(), 0, 132, 610, 0);
+			break;
+		case 1:	// heading to the left: cwt on the left, gov in the rear, light centrally, ladder on the right
+			m_boxCwt = BOX(m_boxShaft.Left() + cwtx, m_boxCar.CentreY() - cwtl/2, 0, cwtw, cwtl, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt);
+			m_boxGovernor = BOX(m_boxCar.CentreX(), m_boxCar.Rear(), 0, m_boxCar.WidthExt() / 2, 200, 0);
+			if (m_nShaftLine == 0) m_boxGovernor.MoveY(200); 
+			m_fLightingXPos = m_boxDoor[0].CentreX();
+			m_boxLadder = BOX(m_boxShaft.Right() - 132, m_boxCar.FrontExt(), 0, 132, 610, 0);
+			break;
+		case 3:	// heading to the right: cwt on the right, gov in the rear, light centrally, ladder on the left
+			m_boxCwt = BOX(m_boxShaft.Right() - cwtx - cwtw, m_boxCar.CentreY() - cwtl/2, 0, cwtw, cwtl, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt); 
+			m_boxGovernor = BOX(m_boxCar.CentreX(), m_boxCar.Rear(), 0, m_boxCar.WidthExt() / 2, 200, 0);
+			if (m_nShaftLine == 1) m_boxGovernor.MoveY(200); 
+			m_fLightingXPos = m_boxDoor[0].CentreX();
+			m_boxLadder = BOX(m_boxShaft.Left(), m_boxCar.FrontExt(), 0, 132, 610, 0);
+			break;
 	}
 
 	if (fShaftPosY < 0)
@@ -687,7 +701,9 @@ void CBuilding::SHAFT::ConsoleCreateAmend()
 	ME[L"BoxGovernor"] = m_boxGovernor.Stringify();
 	ME[L"BoxLadder"] = m_boxLadder.Stringify();
 	
+	ME[L"ShaftOrientation"] = m_fShaftOrientation;
 	ME[L"MachineType"] = m_nMachineType;
+	ME[L"MachineOrientation"] = m_fMachineOrientation;
 	ME[L"RailWidth"] = m_fRailWidth;
 	ME[L"RailLength"] = m_fRailLength;
 	ME[L"BufferNum"] = m_nBufferNum;
@@ -803,7 +819,9 @@ void CBuilding::SHAFT::Create()
 	m_fBeamLtHeight = ME[L"BeamLtHeight"];
 	m_fBeamRtHeight = ME[L"BeamRtHeight"];
 
+	m_fShaftOrientation = ME[L"ShaftOrientation"];
 	m_nMachineType = ME[L"MachineType"];
+	m_fMachineOrientation = ME[L"MachineOrientation"];
 	m_fRailWidth = ME[L"RailWidth"];
 	m_fRailLength = ME[L"RailLength"];
 	m_nBufferNum = ME[L"BufferNum"];

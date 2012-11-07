@@ -112,7 +112,6 @@ public:
 	static CIFCProject *pDefProject;
 
 public:
-//	CIFCProject(char *ifcSchemaName = "IFC2X3_TC1.exp", char *lengthUnitConversion = "MILLI");
 	CIFCProject(char *ifcSchemaName, char *lengthUnitConversion);
 	
 	virtual int build();

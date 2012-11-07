@@ -86,6 +86,9 @@ class CAdVisuoView : public CView
 	// Other auxiliaries
 	DWORD m_nKeyScanTime;						// used internally by OnScanKey
 	bool m_bMaximised;							// used to keep the state of the main app window while full screen mode
+
+	// Temporary - Active Group Number
+	AVULONG m_nTmpGroup;
 	
 	// UI - specific
 	AVLONG m_nAspectImageIndex;					// image index for the ID_VIEW_ASPECT button
@@ -174,7 +177,7 @@ protected:
 	FWULONG GetFPS();
 
 	// Auxiliary Player - used for camera animation
-	void AuxPlay(IAction **pAuxAction);
+	void AuxPlay(IAction **pAuxAction, AVULONG nClockValue = 0x7FFFFFFF);
 	bool IsAuxPlaying();
 
 	// Camera Control
@@ -251,6 +254,12 @@ public:
 	afx_msg void OnUpdateRecScript(CCmdUI *pCmdUI);
 	afx_msg void OnRecRecord();
 	afx_msg void OnRecPlay();
+	afx_msg void OnTmpGroup1();
+	afx_msg void OnTmpGroup2();
+	afx_msg void OnTmpGroup3();
+	afx_msg void OnUpdateTmpGroup1(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateTmpGroup2(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateTmpGroup3(CCmdUI *pCmdUI);
 };
    
 

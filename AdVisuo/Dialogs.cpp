@@ -1409,7 +1409,7 @@ void CDlgMaterials::OnBnClickedCancel()
 
 #include "stdafx.h"
 #include "AdVisuo.h"
-#include "C:\Users\Jarek\Documents\_projects\AdVisuo\AdVisuo\Dialogs.h"
+#include "Dialogs.h"
 #include "afxdialogex.h"
 
 
@@ -1442,6 +1442,8 @@ BEGIN_MESSAGE_MAP(CDlgScript, CDialogEx)
 	ON_BN_CLICKED(IDC_REMOVE_EVENT, &CDlgScript::OnBnClickedRemoveEvent)
 	ON_BN_CLICKED(IDCANCEL, &CDlgScript::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_PROPERTIES, &CDlgScript::OnBnClickedProperties)
+	ON_BN_CLICKED(IDC_LOAD, &CDlgScript::OnBnClickedLoad)
+	ON_BN_CLICKED(IDC_SAVE, &CDlgScript::OnBnClickedSave)
 END_MESSAGE_MAP()
 
 
@@ -1521,18 +1523,36 @@ void CDlgScript::OnBnClickedProperties()
 	{
 		CDlgScriptProperties dlg((*m_pScript)[m_list.GetCurSel()]);
 		if (dlg.DoModal() == IDOK)
+		{
+			m_pScript->Sort();
 			PopulateList();
+		}
 	}
 }
 
-// C:\Users\Jarek\Documents\_projects\AdVisuo\AdVisuo\Dialogs.cpp : implementation file
-//
+void CDlgScript::OnBnClickedLoad()
+{
+	CFileDialog dlg(TRUE, L"scr");
+	if (dlg.DoModal() == IDOK)
+	{
+		CFile f(dlg.GetPathName(), CFile::modeRead);
+		CArchive ar(&f, CArchive::load);
+		m_pScript->Serialize(ar);
+		PopulateList();
+	}
+}
 
-#include "stdafx.h"
-#include "AdVisuo.h"
-#include "C:\Users\Jarek\Documents\_projects\AdVisuo\AdVisuo\Dialogs.h"
-#include "afxdialogex.h"
 
+void CDlgScript::OnBnClickedSave()
+{
+	CFileDialog dlg(FALSE, L"scr");
+	if (dlg.DoModal() == IDOK)
+	{
+		CFile f(dlg.GetPathName(), CFile::modeCreate | CFile::modeWrite);
+		CArchive ar(&f, CArchive::store);
+		m_pScript->Serialize(ar);
+	}
+}
 
 // CDlgScriptProperties dialog
 
@@ -1546,12 +1566,14 @@ CDlgScriptProperties::CDlgScriptProperties(CScriptEvent *pEvent, CWnd* pParent /
 	, m_timeFF(0)
 	, m_pEvent(pEvent)
 	, m_desc(_T(""))
+	, m_fAccel(0)
 {
 	m_desc = m_pEvent->GetDesc();
 	m_time = CTime(2011, 7, 30, (m_pEvent->GetTime() / 3600000) % 24, (m_pEvent->GetTime() / 60000) % 60, (m_pEvent->GetTime() / 1000) % 60);
 	m_nAnim = m_pEvent->GetAnimTime();
 	m_bFF = m_pEvent->GetFFTime() > 0;
 	m_timeFF = CTime(2011, 7, 30, (m_pEvent->GetFFTime() / 3600000) % 24, (m_pEvent->GetFFTime() / 60000) % 60, (m_pEvent->GetFFTime() / 1000) % 60);
+	m_fAccel = m_pEvent->GetAccel();
 }
 
 CDlgScriptProperties::~CDlgScriptProperties()
@@ -1569,6 +1591,8 @@ void CDlgScriptProperties::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_DATETIMEPICKER2, m_ctrlTimeFF);
 	DDX_DateTimeCtrl(pDX, IDC_DATETIMEPICKER2, m_timeFF);
 	DDX_Text(pDX, IDC_EDIT1, m_desc);
+	DDX_Text(pDX, IDC_EDIT2, m_fAccel);
+	DDV_MinMaxFloat(pDX, m_fAccel, 0.1, 10);
 }
 
 
@@ -1593,10 +1617,13 @@ void CDlgScriptProperties::OnOK()
 
 	m_pEvent->SetTime(m_time.GetSecond() * 1000 + m_time.GetMinute() * 60000 + m_time.GetHour() * 3600000);
 	m_pEvent->SetAnimTime(m_nAnim);
+	m_pEvent->SetAccel(m_fAccel);
 	if (m_bFF) 
 		m_pEvent->SetFFTime(m_timeFF.GetSecond() * 1000 + m_timeFF.GetMinute() * 60000 + m_timeFF.GetHour() * 3600000);
 
 	CDialogEx::OnOK();
 }
+
+
 
 

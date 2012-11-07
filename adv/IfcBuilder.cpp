@@ -527,6 +527,8 @@ USES_CONVERSION;
 
 	if (!pElem->GetBone()) return;
 
+	if (nRungs == 0) return;	// no ladder if no rungs
+
 	AVVECTOR base = box.CentreExtLower();
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);

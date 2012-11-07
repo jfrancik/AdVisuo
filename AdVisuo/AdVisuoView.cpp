@@ -89,6 +89,12 @@ BEGIN_MESSAGE_MAP(CAdVisuoView, CView)
 	ON_UPDATE_COMMAND_UI(ID_REC_SCRIPT, &CAdVisuoView::OnUpdateRecScript)
 	ON_COMMAND(ID_REC_RECORD, &CAdVisuoView::OnRecRecord)
 	ON_COMMAND(ID_REC_PLAY, &CAdVisuoView::OnRecPlay)
+	ON_COMMAND(ID_TMP_GROUP1, &CAdVisuoView::OnTmpGroup1)
+	ON_COMMAND(ID_TMP_GROUP2, &CAdVisuoView::OnTmpGroup2)
+	ON_COMMAND(ID_TMP_GROUP3, &CAdVisuoView::OnTmpGroup3)
+	ON_UPDATE_COMMAND_UI(ID_TMP_GROUP1, &CAdVisuoView::OnUpdateTmpGroup1)
+	ON_UPDATE_COMMAND_UI(ID_TMP_GROUP2, &CAdVisuoView::OnUpdateTmpGroup2)
+	ON_UPDATE_COMMAND_UI(ID_TMP_GROUP3, &CAdVisuoView::OnUpdateTmpGroup3)
 END_MESSAGE_MAP()
 
 // CAdVisuoView construction/destruction
@@ -123,6 +129,8 @@ CAdVisuoView::CAdVisuoView() : m_screen(NULL, 2), m_plateCam(&m_sprite), m_hud(&
 	m_pbutLift = NULL;
 	m_nCamExtSideOption = 2;
 	m_bLock = false;
+
+	m_nTmpGroup = 0;
 }
 
 CAdVisuoView::~CAdVisuoView()
@@ -612,12 +620,14 @@ void CAdVisuoView::RenderScene(bool bHUDSelection)
 			GetDocument()->GetProject()->GetSim(i)->RenderPassengers(m_pRenderer, 0);
 
 		// for multiple lift groups
-		for (AVULONG i = 1; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
+		for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
 		{
+			if (i == m_nTmpGroup)
+				continue;
 			renderer.SetBuilding(GetDocument()->GetProject()->GetBuilding(i));
-			renderer.RenderSideOuter(1);
+			renderer.RenderSideOuter(i < m_nTmpGroup ? 0 : 1);
 		}
-		renderer.SetBuilding(GetDocument()->GetProject()->GetBuilding());
+		renderer.SetBuilding(GetDocument()->GetProject()->GetBuilding(m_nTmpGroup));
 
 		switch (pCamera->GetLoc())
 		{
@@ -724,6 +734,7 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 		m_pRenderer->OpenMovieFile(lpszFilename, nFPS);
 
 		// first frame - to initialise
+		m_script.Play();
 		AVULONG t = nTimeFrom;
 		Proceed(t - GetDocument()->GetTimeLowerBound());
 
@@ -740,7 +751,7 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 		AfxGetMainWnd()->SetActiveWindow();
 
 		// all other frames
-		for (t; t <= nTimeTo; t += 1000 / nFPS)
+		for (t; t <= nTimeTo; t += GetAccel() * 1000 / nFPS)
 		{
 			MSG msg;
 			while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -754,7 +765,19 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 				}
 			}
 
+			// proceed the script - and provide for any pre-programmed fast forward
+			ULONG tt = t - GetDocument()->GetTimeLowerBound();
+			m_script.Proceed(tt, tt);
+			t = tt + GetDocument()->GetTimeLowerBound();
+
 			Proceed(t - GetDocument()->GetTimeLowerBound());
+
+			// push time to the auxiliary player
+			if (m_pAuxActionTick && m_pAuxActionTick->AnySubscriptionsLeft() == TRUE)
+			{
+				FWULONG nMSec = t - GetDocument()->GetTimeLowerBound() - m_nAuxTimeRef;
+				m_pAuxActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, NULL);
+			}
 
 			m_pRenderer->SetTargetOffScreen();
 			BeginFrame();
@@ -860,10 +883,6 @@ bool CAdVisuoView::Proceed()
 {
 	AVULONG nTime = GetPlayTime();
 	m_script.Proceed(nTime);
-
-	//m_instRec.Record();
-	//m_instRec.Play();
-
 	return Proceed(nTime);
 }
 
@@ -881,7 +900,6 @@ void CAdVisuoView::Play()
 
 void CAdVisuoView::Rewind(FWULONG nMSec)
 {
-return;
 	CWaitCursor wait;
 
 	m_pRenderer->Stop();
@@ -922,14 +940,14 @@ FWULONG CAdVisuoView::GetFPS()
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Auxiliary Player
 
-void CAdVisuoView::AuxPlay(IAction **pAuxAction)
+void CAdVisuoView::AuxPlay(IAction **pAuxAction, AVULONG nClockValue)
 {
 	if (!pAuxAction) return;
 	*pAuxAction = m_pAuxActionTick;
 	m_pAuxActionTick->AddRef();
 
 	m_pAuxActionTick->UnSubscribeAll();
-	m_nAuxTimeRef = ::GetTickCount();
+	m_nAuxTimeRef = (nClockValue == 0x7FFFFFFF) ? ::GetTickCount() : nClockValue;
 }
 
 bool CAdVisuoView::IsAuxPlaying()
@@ -1739,5 +1757,48 @@ void CAdVisuoView::OnRecRecord()
 
 void CAdVisuoView::OnRecPlay()
 {
-	m_instRec.Play();
+	AVULONG a = 0;
+	m_instRec.Play(a);
+}
+
+
+void CAdVisuoView::OnTmpGroup1()
+{
+	m_nTmpGroup = 0;
+	for (AVULONG i = 0; i < N_CAMERAS; i++)
+		GetCamera(i)->SetBuilding(GetDocument()->GetProject()->GetBuilding(m_nTmpGroup));
+}
+
+
+void CAdVisuoView::OnTmpGroup2()
+{
+	m_nTmpGroup = 1;
+	for (AVULONG i = 0; i < N_CAMERAS; i++)
+		GetCamera(i)->SetBuilding(GetDocument()->GetProject()->GetBuilding(m_nTmpGroup));
+}
+
+
+void CAdVisuoView::OnTmpGroup3()
+{
+	m_nTmpGroup = 2;
+	for (AVULONG i = 0; i < N_CAMERAS; i++)
+		GetCamera(i)->SetBuilding(GetDocument()->GetProject()->GetBuilding(m_nTmpGroup));
+}
+
+
+void CAdVisuoView::OnUpdateTmpGroup1(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetRadio(m_nTmpGroup == 0);
+}
+
+
+void CAdVisuoView::OnUpdateTmpGroup2(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetRadio(m_nTmpGroup == 1);
+}
+
+
+void CAdVisuoView::OnUpdateTmpGroup3(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetRadio(m_nTmpGroup == 2);
 }

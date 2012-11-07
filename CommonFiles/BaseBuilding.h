@@ -123,7 +123,9 @@ public:
 		BOX m_boxLadder;						// pit ladder
 
 		AVULONG m_nLiftType;					// 1 = conventional, 2 = MRL
+		AVFLOAT m_fShaftOrientation;			// machine orientation (0 for line 0, M_PI for line 1)
 		AVULONG m_nMachineType;					// machine type (1 - 4)
+		AVFLOAT m_fMachineOrientation;			// machine orientation
 		AVFLOAT m_fRailWidth;					// guiding rail width
 		AVFLOAT m_fRailLength;					// guiding rail length
 		AVULONG m_nBufferNum;					// number of car/cwt buffers
@@ -177,7 +179,9 @@ public:
 		AVFLOAT GetBeamRtHeight()				{ return m_fBeamRtHeight; }
 
 		bool IsMRL()							{ return (m_nLiftType == 2); }
+		AVFLOAT GetShaftOrientation()			{ return m_fShaftOrientation; }
 		AVULONG GetMachineType()				{ return m_nMachineType; }
+		AVFLOAT GetMachineOrientation()			{ return m_fMachineOrientation; }
 		AVFLOAT GetRailWidth()					{ return m_fRailWidth; }
 		AVFLOAT GetRailLength()					{ return m_fRailLength; }
 		AVULONG GetBufferNum()					{ return m_nBufferNum; }

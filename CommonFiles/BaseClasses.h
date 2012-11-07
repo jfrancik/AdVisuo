@@ -91,7 +91,7 @@ class CProject : public dbtools::CCollection
 
 protected:
 	std::vector<CSim*> m_sims;
-	int m_nDefault;
+//	int m_nDefault;
 
 public:
 	CProject();

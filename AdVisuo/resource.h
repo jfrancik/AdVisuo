@@ -170,6 +170,8 @@
 #define IDC_PROPERTIES                  1085
 #define IDC_DATETIMEPICKER1             1086
 #define IDC_DATETIMEPICKER2             1087
+#define IDC_LOAD                        1087
+#define IDC_SAVE                        1088
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_CAMERA_LAYOUT                32771
 #define ID_LAYOUT_1                     32772
@@ -266,14 +268,18 @@
 #define ID_REC_PLAY                     32890
 #define ID_EDIT_SCRIPT                  32893
 #define ID_EDIT_INSTANTRECORD           32894
+#define ID_TMP_GROUP1                   32895
+#define ID_TMP_GROUP2                   32896
+#define ID_BUTTON4                      32897
+#define ID_TMP_GROUP3                   32897
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        339
-#define _APS_NEXT_COMMAND_VALUE         32895
-#define _APS_NEXT_CONTROL_VALUE         1087
+#define _APS_NEXT_COMMAND_VALUE         32898
+#define _APS_NEXT_CONTROL_VALUE         1089
 #define _APS_NEXT_SYMED_VALUE           317
 #endif
 #endif
