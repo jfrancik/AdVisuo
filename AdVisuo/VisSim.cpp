@@ -43,8 +43,8 @@ void CSimVis::SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped)
 		m_pBiped->StoreState(m_nBipedBufCount, m_pBipedBuf, NULL);
 	}
 
-	if (GetLftGroup())
-		GetLftGroup()->SetScene(m_pScene);
+	if (GetLiftGroup())
+		GetLiftGroup()->SetScene(m_pScene);
 }
 
 IBody *CSimVis::GetBody()

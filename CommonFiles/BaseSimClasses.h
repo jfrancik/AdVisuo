@@ -9,7 +9,7 @@ class CSim;
 class CLift;
 class CPassenger;
 
-class CLftGroup;
+class CLiftGroup;
 
 /////////////////////////////////////////////////////////////
 // Simulation Class - encapsulates all sim data
@@ -18,13 +18,13 @@ class CSim : public dbtools::CCollection
 {
 	// basic information
 	AVULONG m_nId;					// sim id
-	AVULONG m_nLftGroupId;			// lift group id
+	AVULONG m_nLiftGroupId;			// lift group id
 	AVULONG m_nSIMVersionId;		// SIM version id
 	AVULONG m_nIndex;				// index in multi-group structures
 	AVLONG m_nSimulationTime;
 	AVULONG m_nTimeSaved;
 	
-	CLftGroup *m_pLftGroup;
+	CLiftGroup *m_pLiftGroup;
 	AVVECTOR m_vecOffset;
 
 	std::vector<CLift*> m_lifts;
@@ -34,8 +34,8 @@ public:
 	CSim();
 	virtual ~CSim();
 
-	CLftGroup *GetLftGroup()					{ return m_pLftGroup;}
-	void SetLftGroup(CLftGroup *pLftGroup)		{ m_pLftGroup = pLftGroup; }
+	CLiftGroup *GetLiftGroup()					{ return m_pLiftGroup;}
+	void SetLiftGroup(CLiftGroup *pLiftGroup)	{ m_pLiftGroup = pLiftGroup; }
 
 	AVULONG GetIndex()							{ return m_nIndex; }
 	void SetIndex(AVULONG n)					{ m_nIndex = n; }
@@ -49,11 +49,11 @@ public:
 	ALGORITHM GetAlgorithm()					{ return (ALGORITHM)(ULONG)ME[L"Algorithm"]; }
 
 	AVULONG GetId()								{ return m_nId; }
-	AVULONG GetLftGroupId()						{ return m_nLftGroupId; }
+	AVULONG GetLiftGroupId()					{ return m_nLiftGroupId; }
 	AVULONG GetSIMVersionId()					{ return m_nSIMVersionId; }
 
 	void SetId(AVULONG n)						{ m_nId = n; }
-	void SetLftGroupId(AVULONG n)				{ m_nLftGroupId = n; }
+	void SetLiftGroupId(AVULONG n)				{ m_nLiftGroupId = n; }
 	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionId = n; }
 
 	AVLONG GetSimulationTime()					{ return m_nSimulationTime; }

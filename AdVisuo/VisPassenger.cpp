@@ -8,7 +8,7 @@
 #include <freewill.h>
 #include <fwaction.h>
 #include "freewilltools.h"
-#include "VisLftGroup.h"
+#include "VisLiftGroup.h"
 
 #define DEG2RAD(d)	( (d) * (AVFLOAT)M_PI / 180.0f )
 #define RAD2DEG(r)	( 180.0f * (r) / (AVFLOAT)M_PI )
@@ -218,11 +218,11 @@ void CPassengerVis::Embark(enum ENUM_ACTION nAction, bool bSwitchCoord)
 	switch (nAction)
 	{
 	case ENTER_ARR_FLOOR:
-		pNode = GetSim()->GetLftGroup()->GetStoreyElement(GetArrivalFloor())->GetBone(); break;
+		pNode = GetSim()->GetLiftGroup()->GetStoreyElement(GetArrivalFloor())->GetBone(); break;
 	case ENTER_LIFT:
-		pNode = GetSim()->GetLftGroup()->GetLiftDeck(GetLiftId(), GetDeck())->GetBone(); break;
+		pNode = GetSim()->GetLiftGroup()->GetLiftDeck(GetLiftId(), GetDeck())->GetBone(); break;
 	case ENTER_DEST_FLOOR:
-		pNode = GetSim()->GetLftGroup()->GetStoreyElement(GetDestFloor())->GetBone(); break;
+		pNode = GetSim()->GetLiftGroup()->GetStoreyElement(GetDestFloor())->GetBone(); break;
 	}
 	Embark(pNode, bSwitchCoord);
 }

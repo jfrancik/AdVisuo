@@ -16,7 +16,7 @@ interface IMaterial;
 interface IKineChild;
 
 class CProjectVis;
-class CLftGroupVis;
+class CLiftGroupVis;
 class CSimVis;
 
 using namespace std;
@@ -25,11 +25,11 @@ class CElemVis : public CElem
 {
 	IKineNode *m_pBone;
 public:
-	CElemVis(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
+	CElemVis(CProject *pProject, CLiftGroup *pLiftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 	virtual ~CElemVis();
 
 	CProjectVis *GetProject()				{ return (CProjectVis*)CElem::GetProject(); }
-	CLftGroupVis *GetLftGroup()				{ return (CLftGroupVis*)CElem::GetLftGroup(); }
+	CLiftGroupVis *GetLiftGroup()			{ return (CLiftGroupVis*)CElem::GetLiftGroup(); }
 	CElemVis *GetParent()					{ return (CElemVis*)CElem::GetParent(); }
 	IKineNode *GetBone()					{ return m_pBone; }
 	ISceneObject *GetObject();
@@ -75,17 +75,17 @@ public:
 	CProjectVis()							{ }
 	virtual ~CProjectVis()					{ }
 
-	virtual CLftGroup *CreateLftGroup(AVULONG iIndex);
+	virtual CLiftGroup *CreateLiftGroup(AVULONG iIndex);
 
-	CLftGroupVis *GetLftGroup(int i)		{ return (CLftGroupVis*)CProjectConstr::GetLftGroup(i); }
-	CLftGroupVis *FindLftGroup(int id)		{ return (CLftGroupVis*)CProjectConstr::FindLftGroup(id); }
-	CLftGroupVis *AddLftGroup()				{ return (CLftGroupVis*)CProjectConstr::AddLftGroup(); }
+	CLiftGroupVis *GetLiftGroup(int i)		{ return (CLiftGroupVis*)CProjectConstr::GetLiftGroup(i); }
+	CLiftGroupVis *FindLiftGroup(int id)	{ return (CLiftGroupVis*)CProjectConstr::FindLiftGroup(id); }
+	CLiftGroupVis *AddLiftGroup()			{ return (CLiftGroupVis*)CProjectConstr::AddLiftGroup(); }
 
 	CSimVis *GetSim(int i)					{ return (CSimVis*)CProjectConstr::GetSim(i); }
 	CSimVis *FindSim(int id)				{ return (CSimVis*)CProjectConstr::FindSim(id); }
 	
-	virtual CElem *CreateElement(CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)			
-											{ return new CElemVis(this, pLftGroup, pParent, nElemId, name, i, vec); }
+	virtual CElem *CreateElement(CLiftGroup *pLiftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)			
+											{ return new CElemVis(this, pLiftGroup, pParent, nElemId, name, i, vec); }
 
 	// FreeWill specific
 	void SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped);

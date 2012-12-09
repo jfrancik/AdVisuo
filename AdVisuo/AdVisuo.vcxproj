@@ -126,10 +126,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\CommonFiles\BaseLftGroup.cpp" />
+    <ClCompile Include="..\CommonFiles\BaseLiftGroup.cpp" />
     <ClCompile Include="..\CommonFiles\BaseProject.cpp" />
     <ClCompile Include="..\CommonFiles\BaseSimClasses.cpp" />
-    <ClCompile Include="..\CommonFiles\ConstrLftGroup.cpp" />
+    <ClCompile Include="..\CommonFiles\ConstrLiftGroup.cpp" />
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp" />
     <ClCompile Include="..\CommonFiles\DBTools.cpp" />
     <ClCompile Include="..\CommonFiles\XMLTools.cpp" />
@@ -138,7 +138,7 @@
     <ClCompile Include="AdVisuoRenderer.cpp" />
     <ClCompile Include="AdVisuoView.cpp" />
     <ClCompile Include="Block.cpp" />
-    <ClCompile Include="VisLftGroup.cpp" />
+    <ClCompile Include="VisLiftGroup.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
     <ClCompile Include="Dialogs.cpp" />
@@ -160,10 +160,10 @@
     <ClCompile Include="xmlrequest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\CommonFiles\BaseLftGroup.h" />
+    <ClInclude Include="..\CommonFiles\BaseLiftGroup.h" />
     <ClInclude Include="..\CommonFiles\BaseProject.h" />
     <ClInclude Include="..\CommonFiles\BaseSimClasses.h" />
-    <ClInclude Include="..\CommonFiles\ConstrLftGroup.h" />
+    <ClInclude Include="..\CommonFiles\ConstrLiftGroup.h" />
     <ClInclude Include="..\CommonFiles\ConstrProject.h" />
     <ClInclude Include="..\CommonFiles\DBTools.h" />
     <ClInclude Include="..\CommonFiles\XMLTools.h" />
@@ -172,7 +172,7 @@
     <ClInclude Include="AdVisuoRenderer.h" />
     <ClInclude Include="AdVisuoView.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
-    <ClInclude Include="VisLftGroup.h" />
+    <ClInclude Include="VisLiftGroup.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ChildFrm.h" />
     <ClInclude Include="Dialogs.h" />

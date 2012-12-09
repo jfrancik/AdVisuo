@@ -4,7 +4,7 @@
 
 #include "../CommonFiles/ConstrProject.h"
 
-class CLftGroupSrv;
+class CLiftGroupSrv;
 class CSimSrv;
 
 class CProjectSrv : public CProjectConstr
@@ -12,12 +12,12 @@ class CProjectSrv : public CProjectConstr
 public:
 	CProjectSrv();
 
-	virtual CElem *CreateElement(CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)
+	virtual CElem *CreateElement(CLiftGroup *pLiftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)
 											{ return NULL; }
 
-	CLftGroupSrv *GetLftGroup(int i)		{ return (CLftGroupSrv*)CProjectConstr::GetLftGroup(i); }
-	CLftGroupSrv *FindLftGroup(int id)		{ return (CLftGroupSrv*)CProjectConstr::FindLftGroup(id); }
-	CLftGroupSrv *AddLftGroup()				{ return (CLftGroupSrv*)CProjectConstr::AddLftGroup(); }
+	CLiftGroupSrv *GetLiftGroup(int i)		{ return (CLiftGroupSrv*)CProjectConstr::GetLiftGroup(i); }
+	CLiftGroupSrv *FindLiftGroup(int id)	{ return (CLiftGroupSrv*)CProjectConstr::FindLiftGroup(id); }
+	CLiftGroupSrv *AddLiftGroup()			{ return (CLiftGroupSrv*)CProjectConstr::AddLiftGroup(); }
 
 	CSimSrv *GetSim(int i)					{ return (CSimSrv*)CProjectConstr::GetSim(i); }
 	CSimSrv *FindSim(int id)				{ return (CSimSrv*)CProjectConstr::FindSim(id); }
@@ -38,5 +38,5 @@ public:
 	void Play();
 
 protected:
-	virtual CLftGroup *CreateLftGroup(AVULONG nIndex);
+	virtual CLiftGroup *CreateLiftGroup(AVULONG nIndex);
 };

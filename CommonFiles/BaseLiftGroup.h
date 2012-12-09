@@ -6,12 +6,12 @@
 #include "DBTools.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CLftGroup
+// CLiftGroup
 
 class CProject;
 class CSim;
 
-class CLftGroup : public dbtools::CCollection
+class CLiftGroup : public dbtools::CCollection
 {
 // enum & struct definitions
 public:
@@ -29,20 +29,20 @@ public:
 	{
 	protected:
 		AVULONG m_nId;							// Storey Id
-		CLftGroup *m_pLftGroup;					// lift group
+		CLiftGroup *m_pLiftGroup;				// lift group
 		std::wstring m_strName;					// storey name
 
 		AVFLOAT m_fLevel;						// lobby floor level
 		BOX m_box;								// lobby floor plan (the same as lift group's, but includes storey height - from floor to ceiling
 		
 	public:
-		STOREY(CLftGroup *pLftGroup, AVULONG nId) : m_pLftGroup(pLftGroup), m_nId(nId), m_fLevel(0)	{ }
+		STOREY(CLiftGroup *pLiftGroup, AVULONG nId) : m_pLiftGroup(pLiftGroup), m_nId(nId), m_fLevel(0)	{ }
 		virtual ~STOREY()						{ }
 
 		// Attributes
 		AVULONG GetId()							{ return m_nId; }
-		CLftGroup *GetLftGroup()				{ return m_pLftGroup; }
-		CProject *GetProject()					{ return GetLftGroup()->GetProject(); }
+		CLiftGroup *GetLiftGroup()				{ return m_pLiftGroup; }
+		CProject *GetProject()					{ return GetLiftGroup()->GetProject(); }
 		std::wstring GetName()					{ return m_strName; }
 
 		AVFLOAT GetLevel()						{ return m_fLevel; }
@@ -54,14 +54,14 @@ public:
 		void SetName(std::wstring strName)		{ m_strName = strName; }
 		void SetLevel(AVFLOAT fLevel)			{ m_fLevel = fLevel; }
 
-		AVVECTOR GetLiftPos(AVULONG nShaft)		{ return GetLftGroup()->GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetLevel()); }
+		AVVECTOR GetLiftPos(AVULONG nShaft)		{ return GetLiftGroup()->GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetLevel()); }
 
 		BOX &GetBox()							{ return m_box; }
 		bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
 		bool Within(AVVECTOR &pos)				{ return pos.z >= GetLevel() && pos.z < GetLevel() + GetHeight(); }
 
-		bool IsStoreyServed()					{ for (AVULONG i = 0; i < GetLftGroup()->GetShaftCount(); i++) if (GetLftGroup()->GetShaft(i)->IsStoreyServed(GetId())) return true; return false; }
-		bool IsStoreyServed(AVULONG nShaft)		{ return GetLftGroup()->GetShaft(nShaft)->IsStoreyServed(GetId()); }
+		bool IsStoreyServed()					{ for (AVULONG i = 0; i < GetLiftGroup()->GetShaftCount(); i++) if (GetLiftGroup()->GetShaft(i)->IsStoreyServed(GetId())) return true; return false; }
+		bool IsStoreyServed(AVULONG nShaft)		{ return GetLiftGroup()->GetShaft(nShaft)->IsStoreyServed(GetId()); }
 
 		// Operations:
 		void ConsoleCreate(AVULONG nId, AVFLOAT fLevel);
@@ -73,7 +73,7 @@ public:
 	class MACHINEROOM : public STOREY
 	{
 	public:
-		MACHINEROOM(CLftGroup *pLftGroup) : STOREY(pLftGroup, 9999)	{ }
+		MACHINEROOM(CLiftGroup *pLiftGroup) : STOREY(pLiftGroup, 9999)	{ }
 		virtual ~MACHINEROOM()										{ }
 		void ConsoleCreate();
 		void Create();
@@ -82,7 +82,7 @@ public:
 	class PIT : public STOREY
 	{
 	public:
-		PIT(CLftGroup *pLftGroup) : STOREY(pLftGroup, 9998)		{ }
+		PIT(CLiftGroup *pLiftGroup) : STOREY(pLiftGroup, 9998)		{ }
 		virtual ~PIT()											{ }
 		void ConsoleCreate();
 		void Create();
@@ -92,7 +92,7 @@ public:
 	class SHAFT : public dbtools::CCollection
 	{
 		AVULONG m_nId;							// Shaft Id
-		CLftGroup *m_pLftGroup;					// lift group
+		CLiftGroup *m_pLiftGroup;				// lift group
 		AVULONG m_nShaftLine;					// 0 for SHAFT_INLINE and 0 or 1 for SHAFT_OPPOSITE
 
 		TYPE_OF_LIFT m_type;					// type of lift (conventional/MRL)
@@ -131,14 +131,14 @@ public:
 
 	public:
 
-		SHAFT(CLftGroup *pLftGroup, AVULONG nId) : m_pLftGroup(pLftGroup), m_nId(nId), 
+		SHAFT(CLiftGroup *pLiftGroup, AVULONG nId) : m_pLiftGroup(pLiftGroup), m_nId(nId), 
 			m_nShaftLine(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_nLiftCount(1), m_fWallLtStart(0), m_fWallRtStart(0), m_fBeamLtHeight(0), m_fBeamRtHeight(0)	{ }
 		virtual ~SHAFT()						{ }
 
 		// Attributes:
 		AVULONG GetId()							{ return m_nId; }
-		CLftGroup *GetLftGroup()				{ return m_pLftGroup; }
-		CProject *GetProject()					{ return GetLftGroup()->GetProject(); }
+		CLiftGroup *GetLiftGroup()				{ return m_pLiftGroup; }
+		CProject *GetProject()					{ return GetLiftGroup()->GetProject(); }
 		AVULONG GetShaftLine()					{ return m_nShaftLine; }
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
@@ -186,7 +186,7 @@ public:
 		AVULONG GetDoorType()					{ return (m_nDoorType - 1) % 3; }		// 0 = center; 1 = left; 2 = right
 		AVULONG GetDoorPanelsCount()			{ return (m_nDoorType - 1) / 3 + 1; }	// 1, 2, or 3 (no zero!)
 
-		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetLftGroup()->GetStorey(nStorey)->GetLevel()); }
+		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetLiftGroup()->GetStorey(nStorey)->GetLevel()); }
 
 		// raw data functions
 		AVFLOAT GetRawWidth()					{ return (*this)[L"ShaftWidth"]; }
@@ -214,18 +214,18 @@ public:
 	{
 		AVULONG m_nId;							// Lift Id
 		AVULONG m_nShaftId;						// Shaft Id - will be different if many lifts per shaft
-		CLftGroup *m_pLftGroup;					// lift group
+		CLiftGroup *m_pLiftGroup;				// lift group
 
 	public:
-		LIFT(CLftGroup *pLftGroup, AVULONG nId) : m_pLftGroup(pLftGroup), m_nId(nId), m_nShaftId(0)	{ }
+		LIFT(CLiftGroup *pLiftGroup, AVULONG nId) : m_pLiftGroup(pLiftGroup), m_nId(nId), m_nShaftId(0)	{ }
 		virtual ~LIFT()							{ }
 
 		AVULONG GetId()							{ return m_nId; }
 		AVULONG GetShaftId()					{ return m_nShaftId; }
 		void SetShaftId(AVULONG nShaftId)		{ m_nShaftId = nShaftId; }
-		SHAFT *GetShaft()						{ return m_pLftGroup->GetShaft(GetShaftId() >= 0 ? GetShaftId() : 0); }
-		CLftGroup *GetLftGroup()				{ return m_pLftGroup; }
-		CProject *GetProject()					{ return GetLftGroup()->GetProject(); }
+		SHAFT *GetShaft()						{ return m_pLiftGroup->GetShaft(GetShaftId() >= 0 ? GetShaftId() : 0); }
+		CLiftGroup *GetLiftGroup()				{ return m_pLiftGroup; }
+		CProject *GetProject()					{ return GetLiftGroup()->GetProject(); }
 
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
@@ -275,8 +275,8 @@ protected:
 	PIT *m_pPit;
 
 public:
-	CLftGroup(CProject *pProject, AVULONG nIndex);
-	virtual ~CLftGroup();
+	CLiftGroup(CProject *pProject, AVULONG nIndex);
+	virtual ~CLiftGroup();
 
 	CProject *GetProject()					{ return m_pProject; }
 	void SetProject(CProject *pProject)		{ m_pProject = pProject; }

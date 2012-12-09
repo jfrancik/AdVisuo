@@ -1,13 +1,13 @@
-// BaseLftGroup.cpp - AdVisuo Common Source File
+// BaseLiftGroup.cpp - AdVisuo Common Source File
 
 #include "StdAfx.h"
-#include "BaseLftGroup.h"
+#include "BaseLiftGroup.h"
 #include "BaseSimClasses.h"
 
 //////////////////////////////////////////////////////////////////////////////////
-// CLftGroup
+// CLiftGroup
 
-CLftGroup::CLftGroup(CProject *pProject, AVULONG nIndex) : m_pProject(pProject), m_nIndex(nIndex)
+CLiftGroup::CLiftGroup(CProject *pProject, AVULONG nIndex) : m_pProject(pProject), m_nIndex(nIndex)
 {
 	m_nId = 0;
 	m_nProjectId = 0;
@@ -23,7 +23,7 @@ CLftGroup::CLftGroup(CProject *pProject, AVULONG nIndex) : m_pProject(pProject),
 	m_fLiftingBeamHeight = m_fLiftingBeamWidth = 0;
 }
 
-CLftGroup::~CLftGroup()
+CLiftGroup::~CLiftGroup()
 {
 	DeleteStoreys();
 	DeleteShafts();
@@ -32,7 +32,7 @@ CLftGroup::~CLftGroup()
 	DeleteSim();
 }
 
-BOX CLftGroup::GetTotalAreaBox()
+BOX CLiftGroup::GetTotalAreaBox()
 {
 	BOX box = GetBox();
 	box.SetLeft(0); box.SetRight(0); box.SetLeftThickness(0); box.SetRightThickness(0);
@@ -44,42 +44,42 @@ BOX CLftGroup::GetTotalAreaBox()
 	return box;
 }
 
-CLftGroup::STOREY *CLftGroup::AddStorey()
+CLiftGroup::STOREY *CLiftGroup::AddStorey()
 {
 	STOREY *p = CreateStorey(m_storeys.size());
 	m_storeys.push_back(p);
 	return p;
 }
 
-void CLftGroup::DeleteStoreys()
+void CLiftGroup::DeleteStoreys()
 {
 	for each (STOREY *pStorey in m_storeys)
 		delete pStorey;
 	m_storeys.clear();
 }
 
-CLftGroup::SHAFT *CLftGroup::AddShaft()
+CLiftGroup::SHAFT *CLiftGroup::AddShaft()
 {
 	SHAFT *p = CreateShaft(m_shafts.size());
 	m_shafts.push_back(p);
 	return p;
 }
 
-void CLftGroup::DeleteShafts()
+void CLiftGroup::DeleteShafts()
 {
 	for each (SHAFT *pShaft in m_shafts)
 		delete pShaft;
 	m_shafts.clear();
 }
 
-void CLftGroup::AddExtras()
+void CLiftGroup::AddExtras()
 {
 	DeleteExtras();
 	m_pMachineRoom = CreateMachineRoom();
 	m_pPit = CreatePit();
 }
 
-void CLftGroup::DeleteExtras()
+void CLiftGroup::DeleteExtras()
 {
 	if (m_pMachineRoom) delete m_pMachineRoom;
 	m_pMachineRoom = NULL;
@@ -87,37 +87,37 @@ void CLftGroup::DeleteExtras()
 	m_pPit = NULL;
 }
 
-CLftGroup::LIFT *CLftGroup::AddLift()
+CLiftGroup::LIFT *CLiftGroup::AddLift()
 {
 	LIFT *p = CreateLift(m_lifts.size());
 	m_lifts.push_back(p);
 	return p;
 }
 
-void CLftGroup::DeleteLifts()
+void CLiftGroup::DeleteLifts()
 {
 	for each (LIFT *pLift in m_lifts)
 		delete pLift;
 	m_lifts.clear();
 }
 
-CSim *CLftGroup::AddSim()
+CSim *CLiftGroup::AddSim()
 {
 	m_pSim = CreateSim();
 	if (m_pSim)
 	{
-		m_pSim->SetLftGroup(this);
+		m_pSim->SetLiftGroup(this);
 		m_pSim->SetIndex(GetIndex());
 	}
 	return m_pSim;
 }
 
-void CLftGroup::DeleteSim()
+void CLiftGroup::DeleteSim()
 {
 	if (m_pSim) delete m_pSim;
 }
 
-void CLftGroup::ResolveMe()
+void CLiftGroup::ResolveMe()
 {
 	SetId(ME[L"ID"]);
 	SetIndex(ME[L"LiftGroupIndex"]);
@@ -137,7 +137,7 @@ void CLftGroup::ResolveMe()
 			GetLift(j)->SetShaftId(i);
 }
 
-void CLftGroup::ConsoleCreate()
+void CLiftGroup::ConsoleCreate()
 {
 	// resolve vars
 	m_LobbyArrangement = (LOBBY_ARRANGEMENT)(ULONG)ME[L"LobbyArrangementId"];
@@ -355,7 +355,7 @@ void CLftGroup::ConsoleCreate()
 	erase(L"MachineRoomSlabThickness");
 }
 
-void CLftGroup::Create()
+void CLiftGroup::Create()
 {
 	m_LobbyArrangement = (LOBBY_ARRANGEMENT)(ULONG)ME[L"LobbyArrangementId"];
 	m_LiftShaftArrang = (SHAFT_ARRANGEMENT)(ULONG)ME[L"LiftShaftArrangementId"];
@@ -380,7 +380,7 @@ void CLftGroup::Create()
 	if (GetPit()) GetPit()->Create();
 }
 
-void CLftGroup::Scale(AVFLOAT f)
+void CLiftGroup::Scale(AVFLOAT f)
 {
 	m_fScale *= f;
 	m_box.Scale(f);
@@ -399,7 +399,7 @@ void CLftGroup::Scale(AVFLOAT f)
 	GetBoxPit().Scale(f);
 }
 
-void CLftGroup::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
+void CLiftGroup::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 {
 	m_box.Move(x, y, z);
 	for (AVULONG i = 0; i < GetShaftCount(); i++) 
@@ -411,14 +411,14 @@ void CLftGroup::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-// CLftGroup::STOREY
+// CLiftGroup::STOREY
 
-void CLftGroup::STOREY::ConsoleCreate(AVULONG nId, AVFLOAT fLevel)
+void CLiftGroup::STOREY::ConsoleCreate(AVULONG nId, AVFLOAT fLevel)
 {
 //	m_nId = ME[L"GroundIndex"];
 	m_fLevel = fLevel;
 	m_strName = ME[L"Name"];
-	m_box = GetLftGroup()->m_box;
+	m_box = GetLiftGroup()->m_box;
 	m_box.SetHeight((AVFLOAT)ME[L"FloorHeight"] * 1000.0f- m_box.UpperThickness());
 
 	ME[L"FloorId"] = GetId();
@@ -428,7 +428,7 @@ void CLftGroup::STOREY::ConsoleCreate(AVULONG nId, AVFLOAT fLevel)
 	erase(L"GroundIndex");
 }
 
-void CLftGroup::STOREY::Create()
+void CLiftGroup::STOREY::Create()
 {
 	m_strName = ME[L"Name"];
 
@@ -436,60 +436,60 @@ void CLftGroup::STOREY::Create()
 	m_box.ParseFromString(ME[L"Box"]);
 }
 
-void CLftGroup::STOREY::Scale(AVFLOAT f)
+void CLiftGroup::STOREY::Scale(AVFLOAT f)
 {
 	m_fLevel *= f;
 	m_box.Scale(f);
 }
 
-void CLftGroup::STOREY::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
+void CLiftGroup::STOREY::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 {
 	m_fLevel += z;
 	m_box.Move(x, y, z);
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-// CLftGroup::MACHINEROOM
+// CLiftGroup::MACHINEROOM
 
-void CLftGroup::MACHINEROOM::ConsoleCreate()
+void CLiftGroup::MACHINEROOM::ConsoleCreate()
 {
 	m_nId = 9999;
-	m_fLevel = GetLftGroup()->GetMachineRoomLevel();
+	m_fLevel = GetLiftGroup()->GetMachineRoomLevel();
 	m_strName = L"Machine Room";
-	m_box = GetLftGroup()->GetBoxMachineRoom();
+	m_box = GetLiftGroup()->GetBoxMachineRoom();
 }
 
-void CLftGroup::MACHINEROOM::Create()
+void CLiftGroup::MACHINEROOM::Create()
 {
 	m_nId = 9999;
-	m_fLevel = GetLftGroup()->GetMachineRoomLevel();
+	m_fLevel = GetLiftGroup()->GetMachineRoomLevel();
 	m_strName = L"Machine Room";
-	m_box = GetLftGroup()->GetBoxMachineRoom();
+	m_box = GetLiftGroup()->GetBoxMachineRoom();
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-// CLftGroup::PIT
+// CLiftGroup::PIT
 
-void CLftGroup::PIT::ConsoleCreate()
+void CLiftGroup::PIT::ConsoleCreate()
 {
 	m_nId = 9998;
-	m_fLevel = GetLftGroup()->GetPitLevel();
+	m_fLevel = GetLiftGroup()->GetPitLevel();
 	m_strName = L"Lift Pit Level";
-	m_box = GetLftGroup()->GetBoxPit();
+	m_box = GetLiftGroup()->GetBoxPit();
 }
 
-void CLftGroup::PIT::Create()
+void CLiftGroup::PIT::Create()
 {
 	m_nId = 9998;
-	m_fLevel = GetLftGroup()->GetPitLevel();
+	m_fLevel = GetLiftGroup()->GetPitLevel();
 	m_strName = L"Lift Pit Level";
-	m_box = GetLftGroup()->GetBoxPit();
+	m_box = GetLiftGroup()->GetBoxPit();
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-// CLftGroup::SHAFT
+// CLiftGroup::SHAFT
 
-BOX &CLftGroup::SHAFT::GetBox(CLftGroup::SHAFT::SHAFT_BOX n, AVULONG i)
+BOX &CLiftGroup::SHAFT::GetBox(CLiftGroup::SHAFT::SHAFT_BOX n, AVULONG i)
 {
 	switch (n)
 	{
@@ -504,7 +504,7 @@ BOX &CLftGroup::SHAFT::GetBox(CLftGroup::SHAFT::SHAFT_BOX n, AVULONG i)
 	}
 }
 
-void CLftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall)
+void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall)
 {
 	m_nId = nId;
 	//m_nId = ME[L"LiftNumber"];
@@ -648,7 +648,7 @@ void CLftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftP
 		Reflect();
 }
 
-void CLftGroup::SHAFT::ConsoleCreateBeam(AVULONG side, CLftGroup::SHAFT *pNeighbour)
+void CLiftGroup::SHAFT::ConsoleCreateBeam(AVULONG side, CLiftGroup::SHAFT *pNeighbour)
 {
 	AVFLOAT fIntDivBeamWidth = ME[L"DividingBeamWidth"];
 	AVFLOAT fIntDivBeamHeight = ME[L"DividingBeamHeight"];
@@ -671,7 +671,7 @@ void CLftGroup::SHAFT::ConsoleCreateBeam(AVULONG side, CLftGroup::SHAFT *pNeighb
 	}
 }
 
-void CLftGroup::SHAFT::ConsoleCreateSideWall(AVULONG side, AVFLOAT fThickness, AVFLOAT fStart)
+void CLiftGroup::SHAFT::ConsoleCreateSideWall(AVULONG side, AVFLOAT fThickness, AVFLOAT fStart)
 {
 	if (side == SIDE_LEFT)
 	{
@@ -685,7 +685,7 @@ void CLftGroup::SHAFT::ConsoleCreateSideWall(AVULONG side, AVFLOAT fThickness, A
 	}
 }
 
-void CLftGroup::SHAFT::ConsoleCreateAmend()
+void CLiftGroup::SHAFT::ConsoleCreateAmend()
 {
 	ME[L"ShaftId"] = GetId();
 	ME[L"ShaftLine"] = m_nShaftLine;
@@ -742,7 +742,7 @@ void CLftGroup::SHAFT::ConsoleCreateAmend()
 	erase(L"PitDepth");
 }
 
-void CLftGroup::SHAFT::Scale(AVFLOAT f)
+void CLiftGroup::SHAFT::Scale(AVFLOAT f)
 {
 	m_boxShaft.Scale(f);
 	m_fWallLtStart *= f;
@@ -764,7 +764,7 @@ void CLftGroup::SHAFT::Scale(AVFLOAT f)
 	m_fLightingXPos *= f;
 }
 
-void CLftGroup::SHAFT::Reflect()
+void CLiftGroup::SHAFT::Reflect()
 {
 	m_boxShaft.Scale(1, -1, 1);
 	m_fWallLtStart *= -1;
@@ -779,7 +779,7 @@ void CLftGroup::SHAFT::Reflect()
 	m_boxLadder.Scale(1, -1, 1);
 }
 
-void CLftGroup::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
+void CLiftGroup::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 {
 	m_boxShaft.Move(x, y, z);
 	if (m_fWallLtStart) m_fWallLtStart += y;
@@ -795,7 +795,7 @@ void CLftGroup::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 	m_fLightingXPos += x;
 }
 
-void CLftGroup::SHAFT::Create()
+void CLiftGroup::SHAFT::Create()
 {
 	m_nId = ME[L"ShaftId"];
 	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];

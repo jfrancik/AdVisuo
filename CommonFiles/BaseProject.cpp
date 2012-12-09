@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "BaseProject.h"
-#include "BaseLftGroup.h"
+#include "BaseLiftGroup.h"
 #include "BaseSimClasses.h"
 
 #include <algorithm>
@@ -19,25 +19,25 @@ CProject::CProject()
 
 CProject::~CProject()
 {
-	DeleteLftGroups();
+	DeleteLiftGroups();
 }
 
-CLftGroup *CProject::FindLftGroup(int id)
+CLiftGroup *CProject::FindLiftGroup(int id)
 {
-	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLftGroup* p) -> bool { return (p->GetId() == id); } );
+	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLiftGroup* p) -> bool { return (p->GetId() == id); } );
 	return (i == m_groups.end()) ? NULL : *i;
 }
 
-CLftGroup *CProject::AddLftGroup()
+CLiftGroup *CProject::AddLiftGroup()
 {
-	CLftGroup *p = CreateLftGroup(m_groups.size());
+	CLiftGroup *p = CreateLiftGroup(m_groups.size());
 	m_groups.push_back(p);
 	return p;
 }
 
-void CProject::DeleteLftGroups()
+void CProject::DeleteLiftGroups()
 {
-	for each (CLftGroup *pGroup in m_groups)
+	for each (CLiftGroup *pGroup in m_groups)
 		delete pGroup;
 }
 
@@ -48,7 +48,7 @@ CSim *CProject::GetSim(int i)
 
 CSim *CProject::FindSim(int id)
 {
-	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLftGroup* p) -> bool { CSim *pSim = p->GetSim(); if (pSim) return (pSim->GetId() == id); else return false; } );
+	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLiftGroup* p) -> bool { CSim *pSim = p->GetSim(); if (pSim) return (pSim->GetId() == id); else return false; } );
 	return (i == m_groups.end()) ? NULL : (*i)->GetSim();
 }
 
@@ -81,12 +81,12 @@ std::wstring CProject::GetProjectInfo(PRJ_INFO what)
 
 void CProject::Scale(AVFLOAT fScale)
 { 
-	for each (CLftGroup *pGroup in m_groups) 
+	for each (CLiftGroup *pGroup in m_groups) 
 		pGroup->Scale(fScale); 
 }
 
 void CProject::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 { 
-	for each (CLftGroup *pGroup in m_groups) 
+	for each (CLiftGroup *pGroup in m_groups) 
 		pGroup->Move(x, y, z); 
 }

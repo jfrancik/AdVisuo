@@ -15,6 +15,6 @@ public:
 	CSimSrv *GetSim()					{ return (CSimSrv*)CLift::GetSim(); }
 
 	// IO: load from SIM File, Store to DB
-	DWORD Load(CLftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload = false, bool bCalcLoad = false);
+	DWORD Load(CLiftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload = false, bool bCalcLoad = false);
 	HRESULT Store(dbtools::CDataBase db);
 };

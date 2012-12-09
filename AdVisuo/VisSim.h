@@ -5,7 +5,7 @@
 #include "../CommonFiles/BaseSimClasses.h"
 #include "VisLift.h"
 #include "VisPassenger.h"
-#include "VisLftGroup.h"
+#include "VisLiftGroup.h"
 #include "repos.h"
 using namespace std;
 
@@ -36,7 +36,7 @@ public:
 
 	CLiftVis *GetLift(int i)			{ return (CLiftVis*)CSim::GetLift(i); }
 	CPassengerVis *GetPassenger(int i)	{ return (CPassengerVis*)CSim::GetPassenger(i); }
-	CLftGroupVis *GetLftGroup()		{ return (CLftGroupVis*)CSim::GetLftGroup(); }
+	CLiftGroupVis *GetLiftGroup()		{ return (CLiftGroupVis*)CSim::GetLiftGroup(); }
 
 	// access & initialisation
 	IScene *GetScene()				{ return m_pScene; }

@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "VisProject.h"
-#include "VisLftGroup.h"
+#include "VisLiftGroup.h"
 #include "VisSim.h"
 
 #include <fwrender.h>	// to start the renderer
@@ -14,8 +14,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CElemVis
 
-CElemVis::CElemVis(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) 
-	: CElem(pProject, (CLftGroup*)pLftGroup, pParent, nElemId, name, i, vec)
+CElemVis::CElemVis(CProject *pProject, CLiftGroup *pLiftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) 
+	: CElem(pProject, (CLiftGroup*)pLiftGroup, pParent, nElemId, name, i, vec)
 { 
 	m_pBone = NULL;
 
@@ -23,7 +23,7 @@ CElemVis::CElemVis(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVU
 	if (GetParent() && GetParent()->GetName().size())
 		SetName(GetParent()->GetName() + L" - " + GetName());
 
-	if (!GetLftGroup()) 
+	if (!GetLiftGroup()) 
 		return;
 
 	switch (nElemId)
@@ -39,7 +39,7 @@ CElemVis::CElemVis(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVU
 		break;
 
 	default:
-		GetLftGroup()->GetScene()->NewObject((AVSTRING)GetName().c_str(), (ISceneObject**)&m_pBone);
+		GetLiftGroup()->GetScene()->NewObject((AVSTRING)GetName().c_str(), (ISceneObject**)&m_pBone);
 		Move(vec);
 		break;
 	}
@@ -87,7 +87,7 @@ void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX b
 	block.BuildWall();
 	block.BuildRearSection();
 
-	block.SetMaterial(GetLftGroup()->GetMaterial(nWallId, LOWORD(nIndex)));
+	block.SetMaterial(GetLiftGroup()->GetMaterial(nWallId, LOWORD(nIndex)));
 	
 	pNewBone->Release();
 
@@ -106,7 +106,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 //	BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
 	
 	if (!GetBone()) return;
-	AVFLOAT fScale = GetLftGroup()->GetScale();
+	AVFLOAT fScale = GetLiftGroup()->GetScale();
 	float f;
 	AVVECTOR centre = box.CentreLower();
 
@@ -141,10 +141,10 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 
 	IMaterial *pMaterial = NULL;
 	ITexture *pTexture = NULL;
-	GetLftGroup()->GetRenderer()->CreateTexture(&pTexture);
+	GetLiftGroup()->GetRenderer()->CreateTexture(&pTexture);
 	pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"dafoldil.jpg"));
 	pTexture->SetUVTile(1, 1);
-	GetLftGroup()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	GetLiftGroup()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
 	pMaterial->SetTexture(0, pTexture);
 	IKineChild *pChild = NULL;
 	m_pBone->GetChild(L"main", &pChild);
@@ -160,15 +160,15 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 
 		break;
 	case MODEL_OVERSPEED:
-		f = (GetLftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
 		box.Move(0, f*60, 0);
 		centre = box.CentreLower();
 		BuildWall(WALL_BEAM, strName, nIndex, __helper(centre, 7, f*30, 30));
 		break;
 	//case MODEL_CONTROL:
-	//	i = GetLftGroup()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
-	//	centre.x += p->Width() * (nIndex - GetLftGroup()->GetShaftBegin(i) - (AVFLOAT)(GetLftGroup()->GetShaftCount(i) - 1) / 2.0f);
+	//	i = GetLiftGroup()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
+	//	centre.x += p->Width() * (nIndex - GetLiftGroup()->GetShaftBegin(i) - (AVFLOAT)(GetLiftGroup()->GetShaftCount(i) - 1) / 2.0f);
 	//	if (i == 0)
 	//		centre.y -= p->Depth()/2;
 	//	else
@@ -179,7 +179,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	//	p->build(this, nModelId, strName, nIndex, centre, fRot);
 	//	break;
 	case MODEL_CWT:
-		f = (GetLftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		box.SetDepth(-box.Depth());
 		box.Move(0, -f*2, 0);
 		BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
@@ -194,7 +194,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 //		BuildWall(WALL_BEAM, strName, nIndex, box);
 		break;
 	case MODEL_PULLEY:
-		f = (GetLftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
 		box.Move(0, f*60, 0);
 		centre = box.CentreLower();
@@ -358,9 +358,9 @@ void CElemVis::Render(IRenderer *pRenderer)
 //////////////////////////////////////////////////////////////////////////////////
 // CProjectVis Implementation
 
-CLftGroup *CProjectVis::CreateLftGroup(AVULONG iIndex)
+CLiftGroup *CProjectVis::CreateLiftGroup(AVULONG iIndex)
 { 
-	return new CLftGroupVis(this, iIndex); 
+	return new CLiftGroupVis(this, iIndex); 
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -368,19 +368,19 @@ CLftGroup *CProjectVis::CreateLftGroup(AVULONG iIndex)
 
 void CProjectVis::SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped)	
 { 
-	for each (CLftGroupVis *pGroup in m_groups)
+	for each (CLiftGroupVis *pGroup in m_groups)
 		pGroup->GetSim()->SetScene(pScene, pMaterial, pBiped); 
 }
 
 void CProjectVis::SetRenderer(IRenderer *pRenderer)	
 { 
-	for each (CLftGroupVis *pGroup in m_groups)
+	for each (CLiftGroupVis *pGroup in m_groups)
 		pGroup->SetRenderer(pRenderer); 
 }
 
 void CProjectVis::StoreConfig()
 { 
-	for each (CLftGroupVis *pGroup in m_groups)
+	for each (CLiftGroupVis *pGroup in m_groups)
 		pGroup->StoreConfig();
 }
 
@@ -420,33 +420,33 @@ void CProjectVis::Load(xmltools::CXmlReader reader)
 		else
 		if (reader.getName() == L"AVLiftGroup")
 		{
-			CLftGroupVis *pGroup = AddLftGroup();
+			CLiftGroupVis *pGroup = AddLiftGroup();
 			reader >> *pGroup ;
 			pGroup ->ResolveMe();
 		}
 		else
 		if (reader.getName() == L"AVFloor")
 		{
-			AVULONG nLftGroupId = reader[L"LiftGroupId"];
-			CLftGroupVis *pGroup = FindLftGroup(nLftGroupId);
+			AVULONG nLiftGroupId = reader[L"LiftGroupId"];
+			CLiftGroupVis *pGroup = FindLiftGroup(nLiftGroupId);
 			if (!pGroup || pGroup->GetSim()) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			CLftGroup::STOREY *pStorey = pGroup->AddStorey();
+			CLiftGroup::STOREY *pStorey = pGroup->AddStorey();
 			reader >> *pStorey;
 		}
 		else
 		if (reader.getName() == L"AVShaft")
 		{
-			AVULONG nLftGroupId = reader[L"LiftGroupId"];
-			CLftGroupVis *pGroup = FindLftGroup(nLftGroupId);
+			AVULONG nLiftGroupId = reader[L"LiftGroupId"];
+			CLiftGroupVis *pGroup = FindLiftGroup(nLiftGroupId);
 			if (!pGroup || pGroup->GetSim()) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			CLftGroup::SHAFT *pShaft = pGroup->AddShaft();
+			CLiftGroup::SHAFT *pShaft = pGroup->AddShaft();
 			reader >> *pShaft;
 		}
 		else
 		if (reader.getName() == L"AVSim")
 		{
-			AVULONG nLftGroupId = reader[L"LiftGroupId"];
-			CLftGroupVis *pGroup = FindLftGroup(nLftGroupId);
+			AVULONG nLiftGroupId = reader[L"LiftGroupId"];
+			CLiftGroupVis *pGroup = FindLiftGroup(nLiftGroupId);
 			if (!pGroup || pGroup->GetSim()) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
 
 			pGroup->AddExtras();
@@ -466,9 +466,9 @@ void CProjectVis::Load(xmltools::CXmlReader reader)
 		{
 			AVULONG nSimId = reader[L"SimID"];
 			CSimVis *pSim = FindSim(nSimId);
-			if (!pSim || !pSim->GetLftGroup()) 
+			if (!pSim || !pSim->GetLiftGroup()) 
 				throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			CLftGroupVis *pGroup = pSim->GetLftGroup();
+			CLiftGroupVis *pGroup = pSim->GetLiftGroup();
 
 			JOURNEY journey;
 			AVULONG nLiftID = reader[L"LiftID"];
@@ -492,7 +492,7 @@ void CProjectVis::Load(xmltools::CXmlReader reader)
 		{
 			AVULONG nSimId = reader[L"SimID"];
 			CSimVis *pSim = FindSim(nSimId);
-			CLftGroupVis *pGroup = pSim->GetLftGroup();
+			CLiftGroupVis *pGroup = pSim->GetLiftGroup();
 
 			CPassengerVis *pPassenger = (CPassengerVis*)pSim->CreatePassenger(0);
 			reader >> *pPassenger;
@@ -522,19 +522,19 @@ void CProjectVis::Store(xmltools::CXmlWriter writer)
 	writer.write(L"AVProject", *this);
 	for (AVULONG i = 0; i < GetLiftGroupsCount(); i++)
 	{
-		writer.write(L"AVLiftGroup", *GetLftGroup(i));
+		writer.write(L"AVLiftGroup", *GetLiftGroup(i));
 	
-		for (ULONG i = 0; i < GetLftGroup(i)->GetShaftCount(); i++)
-			writer.write(L"AVShaft", *GetLftGroup(i)->GetShaft(i));
+		for (ULONG i = 0; i < GetLiftGroup(i)->GetShaftCount(); i++)
+			writer.write(L"AVShaft", *GetLiftGroup(i)->GetShaft(i));
 
-		for (ULONG i = 0; i < GetLftGroup(i)->GetStoreyCount(); i++)
-			writer.write(L"AVFloor", *GetLftGroup(i)->GetStorey(i));
+		for (ULONG i = 0; i < GetLiftGroup(i)->GetStoreyCount(); i++)
+			writer.write(L"AVFloor", *GetLiftGroup(i)->GetStorey(i));
 
-		for (ULONG i = 0; i < GetLftGroup(i)->GetSim()->GetLiftCount(); i++)
-			for (ULONG j = 0; j < GetLftGroup(i)->GetSim()->GetLift(i)->GetJourneyCount(); j++)
+		for (ULONG i = 0; i < GetLiftGroup(i)->GetSim()->GetLiftCount(); i++)
+			for (ULONG j = 0; j < GetLiftGroup(i)->GetSim()->GetLift(i)->GetJourneyCount(); j++)
 			{
-				JOURNEY *pJ = GetLftGroup(i)->GetSim()->GetLift(i)->GetJourney(j);
-				writer[L"LiftID"] = GetLftGroup(i)->GetSim()->GetLift(i)->GetId();
+				JOURNEY *pJ = GetLiftGroup(i)->GetSim()->GetLift(i)->GetJourney(j);
+				writer[L"LiftID"] = GetLiftGroup(i)->GetSim()->GetLift(i)->GetId();
 				writer[L"ShaftFrom"] = pJ->m_shaftFrom;
 				writer[L"ShaftTo"] = pJ->m_shaftTo;
 				writer[L"FloorFrom"] = pJ->m_floorFrom;
@@ -545,7 +545,7 @@ void CProjectVis::Store(xmltools::CXmlWriter writer)
 				writer.write(L"AVJourney");
 			}
 
-		for (ULONG i = 0; i < GetLftGroup(i)->GetSim()->GetPassengerCount(); i++)
-			writer.write(L"AVPassenger", *GetLftGroup(i)->GetSim()->GetPassenger(i));
+		for (ULONG i = 0; i < GetLiftGroup(i)->GetSim()->GetPassengerCount(); i++)
+			writer.write(L"AVPassenger", *GetLiftGroup(i)->GetSim()->GetPassenger(i));
 	}
 }

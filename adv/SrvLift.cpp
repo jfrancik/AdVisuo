@@ -11,7 +11,7 @@ CLiftSrv::CLiftSrv(CSimSrv *pSim, AVULONG nLift, AVULONG nDecks) : CLift(pSim, n
 {
 }
 
-DWORD CLiftSrv::Load(CLftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcLoad)
+DWORD CLiftSrv::Load(CLiftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcLoad)
 {
 	SetId(nId);
 

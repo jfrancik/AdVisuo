@@ -27,7 +27,7 @@ CLiftVis::~CLiftVis()
 
 void CLiftVis::MoveTo(AVVECTOR &v)
 {
-	IKineNode *pBone = GetSim()->GetLftGroup()->GetLiftElement(GetId())->GetBone();
+	IKineNode *pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
 	ITransform *p = NULL;
 	pBone->GetLocalTransformRef(&p);
 	p->FromTranslationVector((FWVECTOR*)&v);
@@ -39,26 +39,26 @@ void CLiftVis::MoveToInitialPosition()
 {
 	JOURNEY *pJourney = GetJourney(0);
 	if (!pJourney) return;
-	MoveTo(GetSim()->GetLftGroup()->GetCarPos(pJourney->m_shaftFrom, pJourney->m_floorFrom));
+	MoveTo(GetSim()->GetLiftGroup()->GetCarPos(pJourney->m_shaftFrom, pJourney->m_floorFrom));
 }
 
 void CLiftVis::AnimateToInitialPosition(AVULONG nShaftFrom, AVULONG nStoreyFrom, AVULONG timeStart)
 {
-	IKineNode *pBone = GetSim()->GetLftGroup()->GetLiftElement(GetId())->GetBone();
-	AVVECTOR vFrom = GetSim()->GetLftGroup()->GetCarPos(nShaftFrom, nStoreyFrom);
+	IKineNode *pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
+	AVVECTOR vFrom = GetSim()->GetLiftGroup()->GetCarPos(nShaftFrom, nStoreyFrom);
 	IAction *pAction = NULL;
 	pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"MoveTo", m_pActionTick, timeStart-1, 0, pBone, vFrom.x, vFrom.y, vFrom.z);
 }
 
 void CLiftVis::AnimateDoor(AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG timeStart, AVULONG timeDuration)
 {
-	AVFLOAT nDist = GetSim()->GetLftGroup()->GetShaft(nShaft)->GetBoxDoor().Width() / 2.0f - 0.1f;
+	AVFLOAT nDist = GetSim()->GetLiftGroup()->GetShaft(nShaft)->GetBoxDoor().Width() / 2.0f - 0.1f;
 	if (!bOpen) nDist = -nDist;
 
-	IKineNode *pDoorLI = GetSim()->GetLftGroup()->GetLiftDoor(GetId(), 0)->GetBone();
-	IKineNode *pDoorRI = GetSim()->GetLftGroup()->GetLiftDoor(GetId(), 1)->GetBone();
-	IKineNode *pDoorLX = GetSim()->GetLftGroup()->GetShaftDoor(nStorey, nShaft, 0)->GetBone();
-	IKineNode *pDoorRX = GetSim()->GetLftGroup()->GetShaftDoor(nStorey, nShaft, 1)->GetBone();
+	IKineNode *pDoorLI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 0)->GetBone();
+	IKineNode *pDoorRI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 1)->GetBone();
+	IKineNode *pDoorLX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 0)->GetBone();
+	IKineNode *pDoorRX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 1)->GetBone();
 
 	if (pDoorLI) FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Move", m_pActionTick, timeStart, timeDuration, pDoorLI, -nDist, 0, 0);
 	if (pDoorRI) FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Move", m_pActionTick, timeStart, timeDuration, pDoorRI, nDist, 0, 0);
@@ -68,8 +68,8 @@ void CLiftVis::AnimateDoor(AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG 
 
 void CLiftVis::AnimateJourney(AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeStart, AVULONG timeDuration)
 {
-	IKineNode *pBone = GetSim()->GetLftGroup()->GetLiftElement(GetId())->GetBone();
-	AVVECTOR vTo   = GetSim()->GetLftGroup()->GetCarPos(nShaftTo, nStoreyTo);
+	IKineNode *pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
+	AVVECTOR vTo   = GetSim()->GetLiftGroup()->GetCarPos(nShaftTo, nStoreyTo);
 	IAction *pAction = NULL;
 	pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"MoveTo", m_pActionTick, timeStart, timeDuration, pBone, vTo.x, vTo.y, vTo.z);
 	pAction->SetParabolicEnvelopeT(2000, 2000);

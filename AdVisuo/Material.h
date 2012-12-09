@@ -2,7 +2,7 @@
 
 #pragma once
 
-class CLftGroupVis;
+class CLiftGroupVis;
 using namespace std;
 
 enum MATERIALS
@@ -25,17 +25,17 @@ struct MATERIAL
 	LPCOLESTR GetLabel();
 	void Set(COLORREF color, AVFLOAT alpha = 1.0f)									{ m_bSolid = true; m_color = color; m_alpha = alpha; }
 	void Set(LPCOLESTR fname, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT alpha = 1.0f)	{ m_bSolid = false; m_fname = fname; m_fUTile = fUTile; m_fVTile = fVTile; m_alpha = alpha; }
-	void SetupBackground(CLftGroupVis *pLftGroup);
-	void Setup(CLftGroupVis *pLftGroup, AVULONG nItem, AVULONG i = 0);
-	void Setup(CLftGroupVis *pLftGroup);
+	void SetupBackground(CLiftGroupVis *pLiftGroup);
+	void Setup(CLiftGroupVis *pLiftGroup, AVULONG nItem, AVULONG i = 0);
+	void Setup(CLiftGroupVis *pLiftGroup);
 };
 
 class CMaterialManager
 {
-	CLftGroupVis *m_pLftGroup;
+	CLiftGroupVis *m_pLiftGroup;
 	MATERIAL m_materials[MAT_NUM];
 public:
-	CMaterialManager(CLftGroupVis *pLftGroup);
+	CMaterialManager(CLiftGroupVis *pLiftGroup);
 
 	MATERIAL &operator[](int i)		{ return m_materials[i]; }
 	LPCOLESTR GetLabel(int i)		{ return m_materials[i].GetLabel(); }

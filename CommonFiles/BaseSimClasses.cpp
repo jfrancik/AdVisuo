@@ -11,9 +11,9 @@
 
 CSim::CSim()
 {
-	m_pLftGroup = NULL;
+	m_pLiftGroup = NULL;
 	m_nIndex = 0;
-	m_nLftGroupId = 0;
+	m_nLiftGroupId = 0;
 	m_nSIMVersionId = 0;
 	m_nSimulationTime = 0;
 	m_nTimeSaved = 0;
@@ -52,7 +52,7 @@ void CSim::ResolveMe()
 {
 	m_nId = ME[L"ID"];
 	SetIndex(ME[L"LiftGroupIndex"]);
-	SetLftGroupId(ME[L"LiftGroupId"]);
+	SetLiftGroupId(ME[L"LiftGroupId"]);
 	SetSIMVersionId(ME[L"SIMVersionId"]);
 	m_nSimulationTime = ME[L"SimulationTime"];
 	m_nTimeSaved = ME[L"TimeSaved"];

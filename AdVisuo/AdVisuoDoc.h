@@ -2,7 +2,7 @@
 // interface of the CAdVisuoDoc class
 //
 
-#include "VisLftGroup.h"
+#include "VisLiftGroup.h"
 #include "VisProject.h"
 #include "VisSim.h"
 #include "VisLift.h"
@@ -39,11 +39,11 @@ public:
 
 	bool IsSimReady()						{ return m_h == S_OK; }
 	bool IsSIMDataReady()					{ return m_http.ready(); }
-	bool IsDownloadComplete(int i = 0)		{ return m_timeLoaded >= GetProject()->GetLftGroup(i)->GetSim()->GetTimeSaved(); }
+	bool IsDownloadComplete(int i = 0)		{ return m_timeLoaded >= GetProject()->GetSim(i)->GetTimeSaved(); }
 
 	AVULONG GetLoadedTime()					{ return m_timeLoaded; }
-	AVULONG GetSimulationTime(int i)		{ return GetProject()->GetLftGroup(i)->GetSim()->GetSimulationTime(); }
-	AVLONG GetTimeLowerBound(int i)			{ return GetProject()->GetLftGroup(i)->GetSim()->GetTimeLowerBound(); }
+	AVULONG GetSimulationTime(int i)		{ return GetProject()->GetSim(i)->GetSimulationTime(); }
+	AVLONG GetTimeLowerBound(int i)			{ return GetProject()->GetSim(i)->GetTimeLowerBound(); }
 
 	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
 

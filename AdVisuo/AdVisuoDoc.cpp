@@ -85,7 +85,7 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 			GetProject()->LoadFromFile(lpszPathName);	// throws _prj_error and _com_error
 
 			SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
-			m_timeLoaded = GetProject()->GetLftGroup(0)->GetSim()->GetSimulationTime();
+			m_timeLoaded = GetProject()->GetSim(0)->GetSimulationTime();
 
 			m_h = S_OK;
 			Debug(L"File successfully loaded.");
@@ -205,7 +205,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		GetProject()->LoadFromBuf(m_http.response().c_str());
 
 		// load lift groups
-		for each (CLftGroupVis *pGroup in GetProject()->GetLiftGroups())
+		for each (CLiftGroupVis *pGroup in GetProject()->GetLiftGroups())
 		{
 			m_http.AVFloors(pGroup->GetId());
 			GetProject()->LoadFromBuf(m_http.response().c_str());
@@ -267,7 +267,7 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded(IAction *pActionTick)
 		GetProject()->LoadFromBuf(m_http.response().c_str());
 
 		if (pActionTick)
-			for (int i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+			for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 				GetProject()->GetSim(i)->Play(pActionTick, m_timeLoaded);
 		
 		m_timeLoaded += 60000;

@@ -5,9 +5,9 @@
 
 #include "../CommonFiles/Box.h"
 #include "VisProject.h"
-#include "VisLftGroup.h"
+#include "VisLiftGroup.h"
 
-class CLftGroupVis;
+class CLiftGroupVis;
 interface IKineNode;
 interface ISceneCamera;
 interface IAction;
@@ -44,14 +44,14 @@ struct CAMPARAMS
 	AVFLOAT fClipFar;		// clip far value
 
 	// Camera Eye-Reference object - Weak Reference (no need for Release)
-	IKineNode *EyeRef(CLftGroupVis *pLftGroup)	{ return camloc == CAMLOC_LIFT ? pLftGroup->GetLiftElement(nId)->GetBone() : pLftGroup->GetStoreyElement(nId)->GetBone(); }
-	AVFLOAT FOV()								{ return max(fHFOV, fVFOV) + fZoom; }
+	IKineNode *EyeRef(CLiftGroupVis *pLiftGroup)	{ return camloc == CAMLOC_LIFT ? pLiftGroup->GetLiftElement(nId)->GetBone() : pLiftGroup->GetStoreyElement(nId)->GetBone(); }
+	AVFLOAT FOV()									{ return max(fHFOV, fVFOV) + fZoom; }
 };
 
 class CCamera
 {
 	// Lift Group information
-	CLftGroupVis *m_pLftGroup;		// the lift group
+	CLiftGroupVis *m_pLiftGroup;	// the lift group
 	AVULONG m_nId;					// id
 	BOX m_box;						// the lobby box (no height)
 	AVFLOAT m_nTripodHeight;		// reference height (max tripod height, equal to lift door height)
@@ -82,11 +82,11 @@ class CCamera
 	wchar_t m_buf[256];
 
 public:
-	CCamera(CLftGroupVis *pLftGroup, AVULONG nId);
+	CCamera(CLiftGroupVis *pLiftGroup, AVULONG nId);
 	~CCamera();
 
-	CLftGroupVis *GetLftGroup()								{ return m_pLftGroup; }
-	void SetLftGroup(CLftGroupVis *pLftGroup);				// sets lift group and the lobby box
+	CLiftGroupVis *GetLiftGroup()							{ return m_pLiftGroup; }
+	void SetLiftGroup(CLiftGroupVis *pLiftGroup);			// sets lift group and the lobby box
 	AVULONG GetId()											{ return m_nId; }
 	void SetId(AVULONG nId)									{ m_nId = nId; }
 

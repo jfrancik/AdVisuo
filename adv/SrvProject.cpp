@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "SrvProject.h"
-#include "SrvLftGroup.h"
+#include "SrvLiftGroup.h"
 #include "SrvSim.h"
 
 #pragma warning (disable:4995)
@@ -14,9 +14,9 @@ CProjectSrv::CProjectSrv() : CProjectConstr()
 {
 }
 
-CLftGroup *CProjectSrv::CreateLftGroup(AVULONG nIndex)
+CLiftGroup *CProjectSrv::CreateLiftGroup(AVULONG nIndex)
 { 
-	return new CLftGroupSrv(this, nIndex); 
+	return new CLiftGroupSrv(this, nIndex); 
 }
 
 HRESULT CProjectSrv::FindProjectID(CDataBase db, ULONG nSimulationId, ULONG &nProjectID)
@@ -57,7 +57,7 @@ HRESULT CProjectSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	sel = db.select(L"SELECT LiftGroupId FROM LiftGroups WHERE SimulationId=%d", nSimulationId);
 	while (sel)
 	{
-		CLftGroupSrv *pGroup = AddLftGroup();
+		CLiftGroupSrv *pGroup = AddLiftGroup();
 		pGroup->LoadFromConsole(db, sel[L"LiftGroupId"]);
 		sel++;
 	}
@@ -79,7 +79,7 @@ HRESULT CProjectSrv::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 	sel = db.select(L"SELECT * FROM AVLiftGroups WHERE ProjectId=%d", nProjectID);
 	while (sel)
 	{
-		CLftGroupSrv *pGroup = AddLftGroup();
+		CLiftGroupSrv *pGroup = AddLiftGroup();
 		pGroup->LoadFromVisualisation(db, sel[L"ID"]);
 		sel++;
 	}
@@ -110,7 +110,7 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	SetId(sel[(short)0]);
 
 	// Save LiftGroups & Sims
-	for each (CLftGroupSrv *pGroup in m_groups)
+	for each (CLiftGroupSrv *pGroup in m_groups)
 	{
 		pGroup->SetProjectId(GetId());
 		HRESULT h = pGroup->Store(db);
@@ -121,7 +121,7 @@ HRESULT CProjectSrv::Store(CDataBase db)
 
 HRESULT CProjectSrv::Update(dbtools::CDataBase db, AVLONG nTime)
 {
-	for each (CLftGroupSrv *pGroup in m_groups)
+	for each (CLiftGroupSrv *pGroup in m_groups)
 	{
 		HRESULT h = pGroup->GetSim()->Update(db, nTime);
 		if FAILED(h) return h;
@@ -131,7 +131,7 @@ HRESULT CProjectSrv::Update(dbtools::CDataBase db, AVLONG nTime)
 
 HRESULT CProjectSrv::LoadSim(dbtools::CDataBase db, AVULONG nSimulationId)
 {
-	for each (CLftGroupSrv *pGroup in m_groups)
+	for each (CLiftGroupSrv *pGroup in m_groups)
 	{
 		HRESULT h = pGroup->GetSim()->LoadSim(db, nSimulationId);
 		if FAILED(h) return h;
@@ -180,6 +180,6 @@ HRESULT CProjectSrv::DropTables(CDataBase db)
 
 void CProjectSrv::Play()
 { 
-	for each (CLftGroupSrv *pGroup in m_groups) 
+	for each (CLiftGroupSrv *pGroup in m_groups) 
 		pGroup->GetSim()->Play(); 
 }

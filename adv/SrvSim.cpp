@@ -17,28 +17,28 @@ HRESULT CSimSrv::LoadSim(CDataBase db, AVULONG nSimulationId)
 {
 	AVULONG nnSimulationId = ME[L"SimulationId"];
 
-	if (!GetLftGroup())
+	if (!GetLiftGroup())
 		return Log(ERROR_INTERNAL, L"SIM file loading without the building set.");
 
 	// load!
 	CSimLoader loader;
 
-	int nRes = loader.Load(GetLftGroup(), db, nSimulationId);
+	int nRes = loader.Load(GetLiftGroup(), db, nSimulationId);
 	// int nRes = loader.Load(GetSIMFileName().c_str());
-	//int nRes = loader.Load(GetLftGroup(), L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
+	//int nRes = loader.Load(GetLiftGroup(), L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
 
 	// detect errors...
 	if FAILED(nRes)
 		return Logf(nRes, GetSIMFileName().c_str());
 	
-	// if ((ULONG)loader.nLifts != GetLftGroup()->GetLiftCount())
+	// if ((ULONG)loader.nLifts != GetLiftGroup()->GetLiftCount())
 	//	return Log(ERROR_FILE_INCONSISTENT_LIFTS);		// inconsistent number of floors
-	// if ((ULONG)loader.nFloors != GetLftGroup()->GetStoreyCount())
+	// if ((ULONG)loader.nFloors != GetLiftGroup()->GetStoreyCount())
 	//	return Log(ERROR_FILE_INCONSISTENT_FLOORS);		// inconsistent number of lifts
 	// check single/double decker consistency
 	// for (AVULONG i = 0; i < (ULONG)loader.nLifts;i++)
-	//	if ((loader.pLifts[i].nDecks == 1 && GetLftGroup()->GetLift(i)->GetShaft()->GetDeck() == CLftGroup::DECK_DOUBLE)
-	//	|| (loader.pLifts[i].nDecks > 1 && GetLftGroup()->GetLift(i)->GetShaft()->GetDeck() == CLftGroup::DECK_SINGLE))
+	//	if ((loader.pLifts[i].nDecks == 1 && GetLiftGroup()->GetLift(i)->GetShaft()->GetDeck() == CLiftGroup::DECK_DOUBLE)
+	//	|| (loader.pLifts[i].nDecks > 1 && GetLiftGroup()->GetLift(i)->GetShaft()->GetDeck() == CLiftGroup::DECK_SINGLE))
 	//		return Log(ERROR_FILE_INCONSISTENT_DECKS);
 
 	SetSIMVersionId(loader.nVersion);
@@ -55,10 +55,10 @@ HRESULT CSimSrv::LoadSim(CDataBase db, AVULONG nSimulationId)
 	}
 
 	// load, analyse and consolidate simulation data
-	for (AVULONG i = 0; i < GetLftGroup()->GetLiftCount(); i++)
+	for (AVULONG i = 0; i < GetLiftGroup()->GetLiftCount(); i++)
 	{
 		CLiftSrv *pLift = (CLiftSrv*)CreateLift(i);
-		HRESULT h = pLift->Load(GetLftGroup()->GetLift(i), loader, i, true, true);
+		HRESULT h = pLift->Load(GetLiftGroup()->GetLift(i), loader, i, true, true);
 		if FAILED(h) return h;
 		if (h != S_OK) bWarning = true;
 		AddLift(pLift);
@@ -76,13 +76,13 @@ void CSimSrv::Play()
 	}
 }
 
-HRESULT CSimSrv::LoadFromVisualisation(CDataBase db, ULONG nLftGroupId)
+HRESULT CSimSrv::LoadFromVisualisation(CDataBase db, ULONG nLiftGroupId)
 {
 	if (!db) throw db;
 
 	// Query for Project Data (for project id)
 	CDataBase::SELECT sel;
-	sel = db.select(L"SELECT * FROM AVSims WHERE LiftGroupId=%d AND LiftGroupIndex=%d", nLftGroupId, GetIndex());
+	sel = db.select(L"SELECT * FROM AVSims WHERE LiftGroupId=%d AND LiftGroupIndex=%d", nLiftGroupId, GetIndex());
 	if (!sel) throw ERROR_DATA_NOT_FOUND;
 	sel >> ME;
 
@@ -98,12 +98,12 @@ HRESULT CSimSrv::Store(CDataBase db)
 	CDataBase::INSERT ins = db.insert(L"AVSims");
 
 	ins << ME;
-	ins[L"LiftGroupId"] = GetLftGroupId();
+	ins[L"LiftGroupId"] = GetLiftGroupId();
 	ins[L"SIMVersionId"] = GetSIMVersionId();
 	ins[L"LiftGroupIndex"] = GetIndex();
-	ins[L"Floors"] = GetLftGroup()->GetStoreyCount();
-	ins[L"Shafts"] = GetLftGroup()->GetShaftCount();
-	ins[L"Lifts"] = GetLftGroup()->GetLiftCount();
+	ins[L"Floors"] = GetLiftGroup()->GetStoreyCount();
+	ins[L"Shafts"] = GetLiftGroup()->GetShaftCount();
+	ins[L"Lifts"] = GetLiftGroup()->GetLiftCount();
 	ins[L"Passengers"] = (ULONG)0;
 	ins[L"SimulationTime"] = (ULONG)0;
 	ins[L"JourneysSaved"] = (ULONG)0;
@@ -127,7 +127,7 @@ HRESULT CSimSrv::Store(CDataBase db)
 HRESULT CSimSrv::Update(CDataBase db, AVLONG nTime)
 {
 	if (!db) throw db;
-	if (GetLftGroupId() == 0)
+	if (GetLiftGroupId() == 0)
 		throw (Log(ERROR_INTERNAL, L"Project update run with ID=0"), ERROR_GENERIC);
 
 	// Store the Journeys
@@ -148,9 +148,9 @@ HRESULT CSimSrv::Update(CDataBase db, AVLONG nTime)
 
 	CDataBase::UPDATE upd = db.update(L"AVSims", L"WHERE ID=%d", GetId());
 	upd[L"SIMVersionId"] = GetSIMVersionId();
-	upd[L"Floors"] = GetLftGroup()->GetStoreyCount();
-	upd[L"Shafts"] = GetLftGroup()->GetShaftCount();
-	upd[L"Lifts"] = GetLftGroup()->GetLiftCount();
+	upd[L"Floors"] = GetLiftGroup()->GetStoreyCount();
+	upd[L"Shafts"] = GetLiftGroup()->GetShaftCount();
+	upd[L"Lifts"] = GetLiftGroup()->GetLiftCount();
 	upd[L"Passengers"] = GetPassengerCount();
 	upd[L"SimulationTime"] = GetSimulationTime();
 	upd[L"JourneysSaved"] = GetJourneyTotalCount();

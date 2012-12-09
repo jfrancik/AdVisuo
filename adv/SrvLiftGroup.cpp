@@ -1,15 +1,15 @@
-// SrvLftGroup.cpp - a part of the AdVisuo Server Module
+// SrvLiftGroup.cpp - a part of the AdVisuo Server Module
 
 #include "StdAfx.h"
-#include "SrvLftGroup.h"
+#include "SrvLiftGroup.h"
 #include "SrvSim.h"
 
 using namespace dbtools;
 
 //////////////////////////////////////////////////////////////////////////////////
-// CLftGroupSrv implementation
+// CLiftGroupSrv implementation
 
-CSim *CLftGroupSrv::CreateSim()
+CSim *CLiftGroupSrv::CreateSim()
 {
 	return new CSimSrv();
 }
@@ -17,7 +17,7 @@ CSim *CLftGroupSrv::CreateSim()
 //////////////////////////////////////////////////////////////////////////////////
 // Database Store
 
-HRESULT CLftGroupSrv::Store(CDataBase db)
+HRESULT CLiftGroupSrv::Store(CDataBase db)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
@@ -58,7 +58,7 @@ HRESULT CLftGroupSrv::Store(CDataBase db)
 	}
 
 	// store Sim
-	GetSim()->SetLftGroupId(GetId());
+	GetSim()->SetLiftGroupId(GetId());
 	HRESULT h = GetSim()->Store(db);
 	if FAILED(h) return h;
 
@@ -68,7 +68,7 @@ HRESULT CLftGroupSrv::Store(CDataBase db)
 //////////////////////////////////////////////////////////////////////////////////
 // Database Load
 
-HRESULT CLftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
+HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel, sel1;
@@ -138,18 +138,18 @@ HRESULT CLftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 	return S_OK;
 }
 
-HRESULT CLftGroupSrv::LoadFromVisualisation(CDataBase db, ULONG nLftGroupID)
+HRESULT CLiftGroupSrv::LoadFromVisualisation(CDataBase db, ULONG nLiftGroupID)
 {
 	if (!db) throw db;
 	CDataBase::SELECT sel;
 
 	// Query for Lobby Data
-	sel = db.select(L"SELECT * FROM AVLiftGroups WHERE ID=%d", nLftGroupID);
+	sel = db.select(L"SELECT * FROM AVLiftGroups WHERE ID=%d", nLiftGroupID);
 	if (!sel) throw ERROR_DATA_NOT_FOUND;
 	sel >> *this;
 
 	// Query for Shaft Data and add /load shafts
-	sel = db.select(L"SELECT * FROM AVShafts WHERE LiftGroupId=%d ORDER BY ShaftID", nLftGroupID);
+	sel = db.select(L"SELECT * FROM AVShafts WHERE LiftGroupId=%d ORDER BY ShaftID", nLiftGroupID);
 	while (sel)
 	{
 		SHAFT *pShaft = AddShaft();
@@ -158,7 +158,7 @@ HRESULT CLftGroupSrv::LoadFromVisualisation(CDataBase db, ULONG nLftGroupID)
 	}
 
 	// Query for Storey Data and add/load storeys
-	sel = db.select(L"SELECT * FROM AVFloors WHERE LiftGroupId=%d ORDER BY FloorId", nLftGroupID);
+	sel = db.select(L"SELECT * FROM AVFloors WHERE LiftGroupId=%d ORDER BY FloorId", nLiftGroupID);
 	while (sel)
 	{
 		STOREY *pStorey = AddStorey();
@@ -175,7 +175,7 @@ HRESULT CLftGroupSrv::LoadFromVisualisation(CDataBase db, ULONG nLftGroupID)
 	if (!IsValid())
 		throw ERROR_DATA_NOT_FOUND;
 
-	HRESULT h = GetSim()->LoadFromVisualisation(db, nLftGroupID);
+	HRESULT h = GetSim()->LoadFromVisualisation(db, nLiftGroupID);
 	if FAILED(h) return h;
 
 	return S_OK;

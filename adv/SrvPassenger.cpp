@@ -20,22 +20,22 @@ void CPassengerSrv::Play()
 {
 	// Calculate Spatial Points
 
-	CLftGroupSrv::SHAFT *pSHAFT = GetSim()->GetLftGroup()->GetShaft(GetShaftId());
+	CLiftGroupSrv::SHAFT *pSHAFT = GetSim()->GetLiftGroup()->GetShaft(GetShaftId());
 	ASSERT(pSHAFT);
 
 	// initial parameters: which side to enter?
 	enum { FRONT, LEFT, RIGHT } flagEnter = FRONT;
-	switch (GetSim()->GetLftGroup()->GetLobbyArrangement())
+	switch (GetSim()->GetLiftGroup()->GetLobbyArrangement())
 	{
-	case CLftGroupSrv::LOBBY_OPENPLAN: flagEnter = FRONT; break;
-	case CLftGroupSrv::LOBBY_DEADEND_RIGHT: flagEnter = LEFT; break;
-	case CLftGroupSrv::LOBBY_DEADEND_LEFT: flagEnter = RIGHT; break;
-	case CLftGroupSrv::LOBBY_THROUGH: if (rand() % 2 == 1) flagEnter = LEFT; else flagEnter = RIGHT; break;
+	case CLiftGroupSrv::LOBBY_OPENPLAN: flagEnter = FRONT; break;
+	case CLiftGroupSrv::LOBBY_DEADEND_RIGHT: flagEnter = LEFT; break;
+	case CLiftGroupSrv::LOBBY_DEADEND_LEFT: flagEnter = RIGHT; break;
+	case CLiftGroupSrv::LOBBY_THROUGH: if (rand() % 2 == 1) flagEnter = LEFT; else flagEnter = RIGHT; break;
 	}
 	
 	// initial parameters: which likft line (0 for inline arrangement, 1 or 2)
 	int nLine = 0;
-	if (GetSim()->GetLftGroup()->GetLiftShaftArrang() != CLftGroupSrv::SHAFT_INLINE)
+	if (GetSim()->GetLiftGroup()->GetLiftShaftArrang() != CLiftGroupSrv::SHAFT_INLINE)
 		nLine = pSHAFT->GetShaftLine() + 1;
 
 	// passengers behaviour
@@ -43,8 +43,8 @@ void CPassengerSrv::Play()
 	if (!pSHAFT) flagBehaviour = NATURAL;
 
 
-	AVFLOAT WLobby = abs(GetSim()->GetLftGroup()->GetBox().Width());
-	AVFLOAT DLobby = abs(GetSim()->GetLftGroup()->GetBox().Depth());
+	AVFLOAT WLobby = abs(GetSim()->GetLiftGroup()->GetBox().Width());
+	AVFLOAT DLobby = abs(GetSim()->GetLiftGroup()->GetBox().Depth());
 
 	AVFLOAT XLobby = 0;
 	AVFLOAT YOutOfView = -DLobby/2 - 20;
@@ -97,17 +97,17 @@ void CPassengerSrv::Play()
 
 	if (pSHAFT)
 	{
-		AVFLOAT WShaft = abs(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_SHAFT).Width());
-		AVFLOAT WLift = abs(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_CAR).Width());
-		AVFLOAT DLift = abs(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_CAR).Depth());
-		AVFLOAT WDoor = abs(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_DOOR).Width());
+		AVFLOAT WShaft = abs(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_SHAFT).Width());
+		AVFLOAT WLift = abs(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_CAR).Width());
+		AVFLOAT DLift = abs(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_CAR).Depth());
+		AVFLOAT WDoor = abs(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_DOOR).Width());
 		AVFLOAT WOpt = (WShaft + WLift) / 2;	// more optimal zone (should be even overlapping?) - 8/8/11
 	
 		AVFLOAT YLiftFront = DLobby * 0.4f;											// 8/8/11: DLobby/3  ==>  DLobby * 0.4
-		AVFLOAT YLiftDoor = -pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_DOOR).Front();
+		AVFLOAT YLiftDoor = -pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_DOOR).Front();
 	
-		AVFLOAT XLift  = (pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_DOOR).Left()+pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_DOOR).Right())/2;
-		AVFLOAT YLift = -(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_CAR).Front()+pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_CAR).Rear())/2;
+		AVFLOAT XLift  = (pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_DOOR).Left()+pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_DOOR).Right())/2;
+		AVFLOAT YLift = -(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_CAR).Front()+pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_CAR).Rear())/2;
 		AVFLOAT XLiftDoor = XLift;
 
 		switch (flagBehaviour)
@@ -189,8 +189,8 @@ DWORD CPassengerSrv::Load(AVULONG nId, CSimLoader::Passenger &P)
 {
 	SetId(nId);
 	SetArrivalTime((AVULONG)(P.ArrivalTime * 1000));
-	SetArrivalFloor(P.ArrivalFloor + GetSim()->GetLftGroup()->GetBasementStoreyCount());
-	SetDestFloor(P.DestinationFloor + GetSim()->GetLftGroup()->GetBasementStoreyCount());
+	SetArrivalFloor(P.ArrivalFloor + GetSim()->GetLiftGroup()->GetBasementStoreyCount());
+	SetDestFloor(P.DestinationFloor + GetSim()->GetLiftGroup()->GetBasementStoreyCount());
 	SetLiftId(P.CarID);
 	SetShaftId(P.CarID);	// provisionary setting
 	SetDeck(0);				// provisionary setting

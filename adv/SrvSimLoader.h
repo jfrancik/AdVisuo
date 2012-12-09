@@ -6,7 +6,7 @@
 #include <fstream>
 #include <vector>
 #include "../CommonFiles/BaseSimClasses.h"
-#include "SrvLftGroup.h"
+#include "SrvLiftGroup.h"
 
 #pragma pack(1)
 
@@ -15,7 +15,7 @@
 // Passenger and floor data are straightforward.
 // Use CSimJourneyResolver to export data to CLift objects.
 
-class CLftGroupSrv;
+class CLiftGroupSrv;
 
 class CSimLoader
 {
@@ -98,8 +98,8 @@ public:
 	CSimLoader();
 	~CSimLoader();
 
-	DWORD Load(CLftGroupSrv *pLftGroup, dbtools::CDataBase db, ULONG nSimulationId);	// returns S_OK if successful
-	DWORD Load(CLftGroupSrv *pLftGroup, LPCOLESTR pName);		// returns S_OK if successful
+	DWORD Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG nSimulationId);	// returns S_OK if successful
+	DWORD Load(CLiftGroupSrv *pLiftGroup, LPCOLESTR pName);		// returns S_OK if successful
 	void Print();
 
 private:
@@ -129,7 +129,7 @@ class CSimJourneyResolver
 
 public:
 	CSimJourneyResolver(std::vector<JOURNEY>&);
-	void Run(CLftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nLiftId);
+	void Run(CLiftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nLiftId);
 
 private:
 	void Record(CSimLoader::LiftLog &liftlog, bool bDB, bool bDoubleDeck, AVULONG timeToOpen, AVULONG timeToClose);

@@ -6,7 +6,7 @@
 
 class CPassengerSrv;
 class CLiftSrv;
-class CLftGroupSrv;
+class CLiftGroupSrv;
 
 class CSimSrv : public CSim
 {
@@ -14,13 +14,13 @@ public:
 	CSimSrv()												{ }
 	CLiftSrv *GetLift(int i)								{ return (CLiftSrv*)CSim::GetLift(i); }
 	CPassengerSrv *GetPassenger(int i)						{ return (CPassengerSrv*)CSim::GetPassenger(i); }
-	CLftGroupSrv *GetLftGroup()								{ return (CLftGroupSrv*)CSim::GetLftGroup(); }
+	CLiftGroupSrv *GetLiftGroup()							{ return (CLiftGroupSrv*)CSim::GetLiftGroup(); }
 
 	HRESULT LoadSim(dbtools::CDataBase db, AVULONG nSimulationId);
 	void Play();
 
 	// Database operations
-	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nLftGroupId);
+	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nLiftGroupId);
 	HRESULT Store(dbtools::CDataBase db);
 	HRESULT Update(dbtools::CDataBase db, AVLONG nTime = -1);
 
