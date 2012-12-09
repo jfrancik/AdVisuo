@@ -24,12 +24,6 @@
     <ClCompile Include="AdVisuoView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\CommonFiles\BaseBuilding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CommonFiles\BaseClasses.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Block.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -46,9 +40,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CommonFiles\BaseData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xmlrequest.cpp">
@@ -84,22 +75,31 @@
     <ClCompile Include="VisLift.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VisBuilding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VisProject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VisSim.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\CommonFiles\ConstrBuilding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AdVisuoRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VisLftGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseLftGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\ConstrLftGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseProject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseSimClasses.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -111,15 +111,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AdVisuoView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonFiles\BaseBuilding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonFiles\BaseClasses.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonFiles\BaseData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\CommonFiles\Box.h">
@@ -188,16 +179,25 @@
     <ClInclude Include="VisPassenger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VisBuilding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonFiles\ConstrBuilding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\CommonFiles\ConstrProject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AdVisuoRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VisLftGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseLftGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\ConstrLftGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseProject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseSimClasses.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -257,6 +257,17 @@
 #define ERROR_PROJECT                    0x80000015L
 
 //
+// MessageId: ERROR_SIM_MISSING
+//
+// MessageText:
+//
+// Missing simulation data.
+// This error most probably occurs because the simulation has not been performed for this project.
+// This error concerns the Advisuo_Reports database.
+//
+#define ERROR_SIM_MISSING                0x80000016L
+
+//
 // MessageId: ERROR_BUILDING
 //
 // MessageText:
@@ -267,7 +278,7 @@
 // as well as lack of lift shafts or storeys defined in the building.
 // This error concerns the Advisuo_Console database.
 //
-#define ERROR_BUILDING                   0x80000016L
+#define ERROR_BUILDING                   0x80000017L
 
 //
 // MessageId: ERROR_DATA_NOT_FOUND
@@ -280,7 +291,7 @@
 // or may be a consequence of prior errors.
 // This error concerns the Advisuo_Visualisation database.
 //
-#define ERROR_DATA_NOT_FOUND             0x80000017L
+#define ERROR_DATA_NOT_FOUND             0x80000018L
 
 //
 // MessageId: ERROR_UNRECOGNISED_STRING
@@ -289,7 +300,7 @@
 //
 // Unrecognised %1: %2.
 //
-#define ERROR_UNRECOGNISED_STRING        0x80000018L
+#define ERROR_UNRECOGNISED_STRING        0x80000019L
 
 //
 // MessageId: ERROR_DBCONN
@@ -299,7 +310,7 @@
 // Database connection problem.%n
 // Connection string: %1
 //
-#define ERROR_DBCONN                     0x80000019L
+#define ERROR_DBCONN                     0x8000001AL
 
 //
 // MessageId: ERROR_DB
@@ -311,7 +322,7 @@
 // Source: %3%n
 // Description: %4
 //
-#define ERROR_DB                         0x8000001AL
+#define ERROR_DB                         0x8000001BL
 
 //
 // MessageId: ERROR_FILE_INCONSISTENT_FLOORS
@@ -320,7 +331,7 @@
 //
 // SIM file data inconsistent with the stored building structure: number or parameters of floors vary
 //
-#define ERROR_FILE_INCONSISTENT_FLOORS   0x8000001BL
+#define ERROR_FILE_INCONSISTENT_FLOORS   0x8000001CL
 
 //
 // MessageId: ERROR_FILE_INCONSISTENT_LIFTS
@@ -329,7 +340,7 @@
 //
 // SIM file data inconsistent with the stored building structure: number or parameters of lifts vary
 //
-#define ERROR_FILE_INCONSISTENT_LIFTS    0x8000001CL
+#define ERROR_FILE_INCONSISTENT_LIFTS    0x8000001DL
 
 //
 // MessageId: ERROR_FILE_INCONSISTENT_DECKS
@@ -338,7 +349,7 @@
 //
 // SIM file data inconsistent with the stored building structure: number lift decks vary
 //
-#define ERROR_FILE_INCONSISTENT_DECKS    0x8000001DL
+#define ERROR_FILE_INCONSISTENT_DECKS    0x8000001EL
 
 //
 // MessageId: WARNING_PASSENGER_FLOOR
@@ -352,7 +363,7 @@
 // Lift: %5%n
 // Deck: %6
 //
-#define WARNING_PASSENGER_FLOOR          0x4000001EL
+#define WARNING_PASSENGER_FLOOR          0x4000001FL
 
 //
 // MessageId: ERROR_PASSENGER_FLOOR
@@ -366,7 +377,7 @@
 // Lift: %5%n
 // This event would impose non existing deck number: %6
 //
-#define ERROR_PASSENGER_FLOOR            0x8000001FL
+#define ERROR_PASSENGER_FLOOR            0x80000020L
 
 //
 // MessageId: ERROR_IFC_PRJ
@@ -375,7 +386,7 @@
 //
 // Error creating IFC file: cannot build a %1.
 //
-#define ERROR_IFC_PRJ                    0x80000020L
+#define ERROR_IFC_PRJ                    0x80000021L
 
 //
 // MessageId: WARNING_PASSENGER_1
@@ -389,7 +400,7 @@
 // Lift: %5%n
 // Deck: %6
 //
-#define WARNING_PASSENGER_1              0x40000021L
+#define WARNING_PASSENGER_1              0x40000022L
 
 //
 // MessageId: WARNING_PASSENGER_2
@@ -403,7 +414,7 @@
 // Lift: %5%n
 // Deck: %6
 //
-#define WARNING_PASSENGER_2              0x40000022L
+#define WARNING_PASSENGER_2              0x40000023L
 
 //
 // MessageId: WARNING_PASSENGER_3
@@ -417,7 +428,7 @@
 // Lift: %5%n
 // Deck: %6
 //
-#define WARNING_PASSENGER_3              0x40000023L
+#define WARNING_PASSENGER_3              0x40000024L
 
 //
 // MessageId: WARNING_PASSENGER_4
@@ -431,7 +442,7 @@
 // Lift: %5%n
 // Deck: %6
 //
-#define WARNING_PASSENGER_4              0x40000024L
+#define WARNING_PASSENGER_4              0x40000025L
 
 //
 // MessageId: ERROR_CONVERSION
@@ -440,7 +451,7 @@
 //
 // Bad data conversion.
 //
-#define ERROR_CONVERSION                 0x80000025L
+#define ERROR_CONVERSION                 0x80000026L
 
 
 #endif  //__MESSAGES_H__

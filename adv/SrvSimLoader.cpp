@@ -1,9 +1,8 @@
 // SimLoader.cpp - a part of the AdVisuo Server Module
 
 #include "StdAfx.h"
-#include "../CommonFiles/BaseData.h"
 #include "SrvSimLoader.h"
-#include "SrvBuilding.h"
+#include "SrvLftGroup.h"
 
 using namespace std;
 
@@ -59,26 +58,26 @@ int CSimLoader::Load(std::ifstream &stream, size_t nSize)
 	return bytes;
 }
 
-DWORD CSimLoader::Load(CBuildingSrv *pBuilding, dbtools::CDataBase db, ULONG nSimulationId)
+DWORD CSimLoader::Load(CLftGroupSrv *pLftGroup, dbtools::CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
 	dbtools::CDataBase::SELECT sel;
 
 	bDB = true;
 
-	// analyse the building's lifts
-	nLifts = pBuilding->GetLiftCount();
+	// analyse the lifts in the lift group
+	nLifts = pLftGroup->GetLiftCount();
 
 	sel = db.select(L"SELECT * FROM SimulationLogs WHERE SimulationId=%d", nSimulationId);
-	if (!sel) return ERROR_BUILDING;
+	if (!sel) return ERROR_SIM_MISSING;
 	nVersion = (int)((float)sel[L"AdSimuloVersion"] * 10 + 100.5);
 
 	// count passengers - on the lift by lift basis
 	nPassengers = 0;
 	for (int iLift = 0; iLift < nLifts; iLift++)
 	{
-		sel = db.select(L"SELECT COUNT(HallCallId) As NumPassengers FROM HallCalls WHERE LiftId = %d AND SimulationId=%d", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
-		if (!sel) return ERROR_BUILDING;
+		sel = db.select(L"SELECT COUNT(HallCallId) As NumPassengers FROM HallCalls WHERE LiftId = %d AND SimulationId=%d", pLftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		if (!sel) return ERROR_SIM_MISSING;
 		nPassengers += (int)sel[L"NumPassengers"];
 	}
 	pPassengers = new Passenger[nPassengers];
@@ -87,7 +86,7 @@ DWORD CSimLoader::Load(CBuildingSrv *pBuilding, dbtools::CDataBase db, ULONG nSi
 	int iPassenger = 0;
 	for (int iLift = 0; iLift < nLifts; iLift++)
 	{
-		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND SimulationId=%d", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND SimulationId=%d", pLftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
 		for ( ; sel; sel++, iPassenger++)
 		{
 			pPassengers[iPassenger].ArrivalFloor = (int)sel[L"ArrivalFloor"];
@@ -122,19 +121,19 @@ DWORD CSimLoader::Load(CBuildingSrv *pBuilding, dbtools::CDataBase db, ULONG nSi
 		// Lift Logs
 
 		// number of logs
-		sel = db.select(L"SELECT COUNT(LiftLogId) As NumLiftLogs FROM LiftLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
-		if (!sel) return ERROR_BUILDING;
+		sel = db.select(L"SELECT COUNT(LiftLogId) As NumLiftLogs FROM LiftLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d", pLftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		if (!sel) return ERROR_SIM_MISSING;
 		pnLiftLogs[iLift] = (int)sel[L"NumLiftLogs"];
 
 		// allocate
 		ppLiftLogs[iLift] = new LiftLog[pnLiftLogs[iLift]];
 		memset(ppLiftLogs[iLift], 0, pnLiftLogs[iLift] * sizeof(LiftLog));
 		
-		sel = db.select(L"SELECT * FROM LiftLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d ORDER BY [Time]", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		sel = db.select(L"SELECT * FROM LiftLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d ORDER BY [Time]", pLftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
 		for (int iIter = 0; sel; sel++, iIter++)
 		{
 			ppLiftLogs[iLift][iIter].Time = (float)sel[L"Time"];
-			ppLiftLogs[iLift][iIter].curShaft = iLift;	//pBuilding->GetLift(iLift)->GetShaftId();
+			ppLiftLogs[iLift][iIter].curShaft = iLift;	//pLftGroup->GetLift(iLift)->GetShaftId();
 			ppLiftLogs[iLift][iIter].curFloor = (int)sel[L"CurrentFloor"];
 			ppLiftLogs[iLift][iIter].destFloor = (int)sel[L"DestinationFloor"];
 			ppLiftLogs[iLift][iIter].carState = (int)sel[L"LiftStateId"];
@@ -143,8 +142,8 @@ DWORD CSimLoader::Load(CBuildingSrv *pBuilding, dbtools::CDataBase db, ULONG nSi
 		// Deck Logs
 		
 		// number of deck logs
-		sel = db.select(L"SELECT COUNT(DeckLogId) As NumDeckLogs FROM DeckLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
-		if (!sel) return ERROR_BUILDING;
+		sel = db.select(L"SELECT COUNT(DeckLogId) As NumDeckLogs FROM DeckLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d", pLftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		if (!sel) return ERROR_SIM_MISSING;
 		pnDeckLogs[iLift] = (int)sel[L"NumDeckLogs"];
 
 		if (pnDeckLogs[iLift] == 0) continue;
@@ -153,7 +152,7 @@ DWORD CSimLoader::Load(CBuildingSrv *pBuilding, dbtools::CDataBase db, ULONG nSi
 		ppDeckLogs[iLift] = new DeckLog[pnDeckLogs[iLift]];
 		memset(ppDeckLogs[iLift], 0, pnDeckLogs[iLift] * sizeof(DeckLog));
 		
-		sel = db.select(L"SELECT * FROM DeckLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d ORDER BY [Time]", pBuilding->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+		sel = db.select(L"SELECT * FROM DeckLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d ORDER BY [Time]", pLftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
 		for (int iIter = 0; sel; sel++, iIter++)
 		{
 			ppDeckLogs[iLift][iIter].Time = (float)sel[L"Time"];
@@ -165,13 +164,13 @@ DWORD CSimLoader::Load(CBuildingSrv *pBuilding, dbtools::CDataBase db, ULONG nSi
 	return 0;
 }
 
-DWORD CSimLoader::Load(CBuildingSrv *pBuilding, LPCOLESTR pName)
+DWORD CSimLoader::Load(CLftGroupSrv *pLftGroup, LPCOLESTR pName)
 {
 	ifstream myFile (pName, ios::in | ios::binary);
 	if (!myFile) return ERROR_FILE_NOTFOUND;
 
 	bDB = false;
-	nLifts = pBuilding->GetLiftCount();
+	nLifts = pLftGroup->GetLiftCount();
 
 	try
 	{
@@ -219,7 +218,7 @@ DWORD CSimLoader::Load(CBuildingSrv *pBuilding, LPCOLESTR pName)
 			if (pnLiftLogs[i] == 0) continue;
 
 			// read data
-			int nDeckCount = pBuilding->GetLift(i)->GetShaft()->GetDeckCount();
+			int nDeckCount = pLftGroup->GetLift(i)->GetShaft()->GetDeckCount();
 			if (nDeckCount < 1 || nDeckCount > 2) throw ERROR_FILE_DECKS;
 			size_t nSize = sizeof(LiftLog_Base) + nDeckCount * sizeof(LiftLog::Deck);
 			BYTE *pData = new BYTE[pnLiftLogs[i] * nSize];
@@ -310,7 +309,7 @@ CSimJourneyResolver::CSimJourneyResolver(std::vector<JOURNEY> &J) : journeys(J),
 {
 }
 
-void CSimJourneyResolver::Run(CBuildingSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nLiftId)
+void CSimJourneyResolver::Run(CLftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nLiftId)
 {
 	stCar = CAR_STOP;
 

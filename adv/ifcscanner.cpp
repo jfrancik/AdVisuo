@@ -1,4 +1,4 @@
-// Building.cpp - a part of the AdVisuo Server Module
+// IfcScanner.cpp - a part of the AdVisuo Server Module
 
 #include "StdAfx.h"
 #include "IFCScanner.h"

@@ -5,9 +5,9 @@
 
 #include "../CommonFiles/Box.h"
 #include "VisProject.h"
-#include "VisBuilding.h"
+#include "VisLftGroup.h"
 
-class CBuildingVis;
+class CLftGroupVis;
 interface IKineNode;
 interface ISceneCamera;
 interface IAction;
@@ -44,14 +44,14 @@ struct CAMPARAMS
 	AVFLOAT fClipFar;		// clip far value
 
 	// Camera Eye-Reference object - Weak Reference (no need for Release)
-	IKineNode *EyeRef(CBuildingVis *pBuilding)	{ return camloc == CAMLOC_LIFT ? pBuilding->GetLiftElement(nId)->GetBone() : pBuilding->GetStoreyElement(nId)->GetBone(); }
+	IKineNode *EyeRef(CLftGroupVis *pLftGroup)	{ return camloc == CAMLOC_LIFT ? pLftGroup->GetLiftElement(nId)->GetBone() : pLftGroup->GetStoreyElement(nId)->GetBone(); }
 	AVFLOAT FOV()								{ return max(fHFOV, fVFOV) + fZoom; }
 };
 
 class CCamera
 {
-	// Building information
-	CBuildingVis *m_pBuilding;		// the building
+	// Lift Group information
+	CLftGroupVis *m_pLftGroup;		// the lift group
 	AVULONG m_nId;					// id
 	BOX m_box;						// the lobby box (no height)
 	AVFLOAT m_nTripodHeight;		// reference height (max tripod height, equal to lift door height)
@@ -70,7 +70,7 @@ class CCamera
 	bool m_bMoved, m_bRotated, m_bZoomed;	// all clear if the camera is as descibed in m_cp; set when moved, rotated or zoomed
 
 	// FreeWill objects
-	IKineNode *m_pBaseBone;			// base bone (a part of the building on which the camera is mounted)
+	IKineNode *m_pBaseBone;			// base bone (a part of the construction on which the camera is mounted)
 	IKineNode *m_pHandleBone;		// camera handle, used to move and pan
 	ISceneCamera *m_pCamera;		// camera, autonomically tilts but makes no other transformations
 
@@ -82,11 +82,11 @@ class CCamera
 	wchar_t m_buf[256];
 
 public:
-	CCamera(CBuildingVis *pBuilding, AVULONG nId);
+	CCamera(CLftGroupVis *pLftGroup, AVULONG nId);
 	~CCamera();
 
-	CBuildingVis *GetBuilding()								{ return m_pBuilding; }
-	void SetBuilding(CBuildingVis *pBuilding);				// sets building and the lobby box
+	CLftGroupVis *GetLftGroup()								{ return m_pLftGroup; }
+	void SetLftGroup(CLftGroupVis *pLftGroup);				// sets lift group and the lobby box
 	AVULONG GetId()											{ return m_nId; }
 	void SetId(AVULONG nId)									{ m_nId = nId; }
 

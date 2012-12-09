@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "../CommonFiles/BaseClasses.h"
-#include "../CommonFiles/DBTools.h"
+#include "../CommonFiles/BaseSimClasses.h"
 #include "SrvSimLoader.h"
 
 class CSimSrv;

@@ -82,11 +82,10 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		std::wstringstream err;
 		try
 		{
-			//m_sim.SetBuilding(&m_building);
-			GetProject()->LoadFromFile(lpszPathName, 0);	// throws _prj_error and _com_error
+			GetProject()->LoadFromFile(lpszPathName);	// throws _prj_error and _com_error
 
 			SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
-			m_timeLoaded = GetProject()->GetSim()->GetSimulationTime();
+			m_timeLoaded = GetProject()->GetLftGroup(0)->GetSim()->GetSimulationTime();
 
 			m_h = S_OK;
 			Debug(L"File successfully loaded.");
@@ -197,32 +196,30 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		m_http.setURL((LPCTSTR)strUrl);
 
 		m_http.AVProject(nId);
-		m_http.wait(); 
-		if (!m_http.ok()) m_http.throw_exceptions();
-		GetProject()->LoadFromBuf(m_http.response().c_str(), -1);
+		GetProject()->LoadFromBuf(m_http.response().c_str());
 
 		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
 		m_strPathName = GetTitle();
 
-		m_http.AVSim(GetProject()->GetId());
-		m_http.wait(); 
-		if (!m_http.ok()) m_http.throw_exceptions();
-		GetProject()->LoadFromBuf(m_http.response().c_str(), 0);
+		m_http.AVLiftGroups(GetProject()->GetId());
+		GetProject()->LoadFromBuf(m_http.response().c_str());
 
-		// load building for all existing lift groups
-		for (AVULONG iGroup = 0; iGroup < GetProject()->GetLiftGroupsCount(); iGroup++)
+		// load lift groups
+		for each (CLftGroupVis *pGroup in GetProject()->GetLiftGroups())
 		{
-			m_http.AVBuilding(GetProject()->GetSim(iGroup)->GetId());
-			m_http.wait(); 
-			if (!m_http.ok()) m_http.throw_exceptions();
-			GetProject()->LoadFromBuf(m_http.response().c_str(), iGroup);
+			m_http.AVFloors(pGroup->GetId());
+			GetProject()->LoadFromBuf(m_http.response().c_str());
+
+			m_http.AVShafts(pGroup->GetId());
+			GetProject()->LoadFromBuf(m_http.response().c_str());
+
+			m_http.AVSim(pGroup->GetId());
+			GetProject()->LoadFromBuf(m_http.response().c_str());
 		}
 
 		// first SIM data chunk
 		m_timeLoaded = 0;
-		m_groupLoaded = 0;
-		m_http.AVSimData(GetProject()->GetSim(m_groupLoaded)->GetId(), m_timeLoaded, m_timeLoaded + 60000);
-		m_http.wait(); 
+		m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
 		OnSIMDataLoaded(NULL);
 
 		m_h = S_OK;
@@ -267,23 +264,18 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded(IAction *pActionTick)
 	{
 		// Process the most recently loaded data
 		if (!m_http.ok()) m_http.throw_exceptions();
-		GetProject()->LoadFromBuf(m_http.response().c_str(), m_groupLoaded);
+		GetProject()->LoadFromBuf(m_http.response().c_str());
 
 		if (pActionTick)
-			GetProject()->GetSim(m_groupLoaded)->Play(pActionTick, m_timeLoaded);
+			for (int i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+				GetProject()->GetSim(i)->Play(pActionTick, m_timeLoaded);
 		
-		m_groupLoaded++;
-
-		if (m_groupLoaded == GetProject()->GetLiftGroupsCount())
-		{
-			m_groupLoaded = 0;
-			m_timeLoaded += 60000;
-		}
+		m_timeLoaded += 60000;
 
 		if (!IsDownloadComplete())
 		{
 			str << L"Simulation data download continued in background (" << m_timeLoaded << L").";
-			m_http.AVSimData(GetProject()->GetSim(m_groupLoaded)->GetId(), m_timeLoaded, m_timeLoaded + 60000);
+			m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000, false);
 		}
 		else
 			m_http.reset();

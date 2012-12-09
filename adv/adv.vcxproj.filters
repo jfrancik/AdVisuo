@@ -24,12 +24,6 @@
     <ClCompile Include="adv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\CommonFiles\BaseBuilding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CommonFiles\BaseClasses.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,9 +31,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="log.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CommonFiles\BaseData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ifc\baseIfc.cpp">
@@ -63,9 +54,6 @@
     <ClCompile Include="..\CommonFiles\DBTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SrvBuilding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SrvLift.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,12 +69,6 @@
     <ClCompile Include="SrvSimLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IfcBuilding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CommonFiles\ConstrBuilding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -99,18 +81,27 @@
     <ClCompile Include="IfcBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\CommonFiles\ConstrLftGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseLftGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IfcLftGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SrvLftGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseProject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseSimClasses.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="adv.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonFiles\BaseBuilding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonFiles\BaseClasses.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonFiles\BaseData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\CommonFiles\Box.h">
@@ -155,9 +146,6 @@
     <ClInclude Include="..\CommonFiles\DBTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SrvBuilding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SrvLift.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -173,12 +161,6 @@
     <ClInclude Include="SrvSimLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IfcBuilding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonFiles\ConstrBuilding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\CommonFiles\ConstrProject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -189,6 +171,24 @@
       <Filter>Header Files\IFC</Filter>
     </ClInclude>
     <ClInclude Include="IfcBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseLftGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\ConstrLftGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SrvLftGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IfcLftGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseProject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseSimClasses.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

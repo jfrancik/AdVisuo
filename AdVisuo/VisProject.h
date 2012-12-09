@@ -4,6 +4,7 @@
 
 #include "../CommonFiles/ConstrProject.h"
 #include "../CommonFiles/XMLTools.h"
+#include <vector>
 
 interface IMesh;
 interface IKineNode;
@@ -15,7 +16,7 @@ interface IMaterial;
 interface IKineChild;
 
 class CProjectVis;
-class CBuildingVis;
+class CLftGroupVis;
 class CSimVis;
 
 using namespace std;
@@ -24,11 +25,11 @@ class CElemVis : public CElem
 {
 	IKineNode *m_pBone;
 public:
-	CElemVis(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
+	CElemVis(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 	virtual ~CElemVis();
 
 	CProjectVis *GetProject()				{ return (CProjectVis*)CElem::GetProject(); }
-	CBuildingVis *GetBuilding()				{ return (CBuildingVis*)CElem::GetBuilding(); }
+	CLftGroupVis *GetLftGroup()				{ return (CLftGroupVis*)CElem::GetLftGroup(); }
 	CElemVis *GetParent()					{ return (CElemVis*)CElem::GetParent(); }
 	IKineNode *GetBone()					{ return m_pBone; }
 	ISceneObject *GetObject();
@@ -70,25 +71,21 @@ private:
 
 class CProjectVis : public CProjectConstr
 {
-	// Loading Phase
-	enum PHASE { PHASE_NONE, PHASE_PRJ, PHASE_SIM, PHASE_BLD, PHASE_STRUCT, PHASE_SIMDATA };
-
-	std::vector<PHASE> m_phases;
-
 public:
 	CProjectVis()							{ }
 	virtual ~CProjectVis()					{ }
 
-	virtual CBuilding *CreateBuilding(AVULONG iIndex);
-	virtual CSim *CreateSim(CBuilding *pBuilding, AVULONG iIndex);
+	virtual CLftGroup *CreateLftGroup(AVULONG iIndex);
 
-	CSimVis *GetSim()						{ return (CSimVis*)CProjectConstr::GetSim(); }
-	CBuildingVis *GetBuilding()				{ return (CBuildingVis*)CProjectConstr::GetBuilding(); }
+	CLftGroupVis *GetLftGroup(int i)		{ return (CLftGroupVis*)CProjectConstr::GetLftGroup(i); }
+	CLftGroupVis *FindLftGroup(int id)		{ return (CLftGroupVis*)CProjectConstr::FindLftGroup(id); }
+	CLftGroupVis *AddLftGroup()				{ return (CLftGroupVis*)CProjectConstr::AddLftGroup(); }
+
 	CSimVis *GetSim(int i)					{ return (CSimVis*)CProjectConstr::GetSim(i); }
-	CBuildingVis *GetBuilding(int i)		{ return (CBuildingVis*)CProjectConstr::GetBuilding(i); }
+	CSimVis *FindSim(int id)				{ return (CSimVis*)CProjectConstr::FindSim(id); }
 	
-	virtual CElem *CreateElement(CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)			
-											{ return new CElemVis(this, pBuilding, pParent, nElemId, name, i, vec); }
+	virtual CElem *CreateElement(CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)			
+											{ return new CElemVis(this, pLftGroup, pParent, nElemId, name, i, vec); }
 
 	// FreeWill specific
 	void SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped);
@@ -96,9 +93,9 @@ public:
 	void StoreConfig();
 
 	// XML Load/Store/Parse/Feed --- throw _com_error or _sim_errror
-	void LoadFromBuf(LPCOLESTR pBuf, AVLONG nLiftGroup)						{ Load(pBuf, nLiftGroup); }
-	void LoadFromFile(LPCOLESTR pFileName, AVLONG nLiftGroup)				{ Load((std::wstring)pFileName, nLiftGroup); }
-	void Load(xmltools::CXmlReader reader, AVLONG nLiftGroup);
+	void LoadFromBuf(LPCOLESTR pBuf)										{ Load(pBuf); }
+	void LoadFromFile(LPCOLESTR pFileName)									{ Load((std::wstring)pFileName); }
+	void Load(xmltools::CXmlReader reader);
 
 	void StoreToFile(LPCOLESTR pFileName)									{ Store((std::wstring)pFileName); }
 	void StoreToBuf(LPOLESTR pBuffer, size_t nSize)							{ ASSERT(FALSE); } // not implemented at the moment

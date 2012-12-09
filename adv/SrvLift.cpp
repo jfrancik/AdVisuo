@@ -2,6 +2,7 @@
 
 #include "StdAfx.h"
 #include "SrvLift.h"
+#include "SrvPassenger.h"
 #include "SrvSim.h"
 
 using namespace dbtools;
@@ -10,7 +11,7 @@ CLiftSrv::CLiftSrv(CSimSrv *pSim, AVULONG nLift, AVULONG nDecks) : CLift(pSim, n
 {
 }
 
-DWORD CLiftSrv::Load(CBuildingSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcLoad)
+DWORD CLiftSrv::Load(CLftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcLoad)
 {
 	SetId(nId);
 

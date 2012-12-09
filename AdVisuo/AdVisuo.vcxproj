@@ -126,8 +126,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\CommonFiles\BaseData.cpp" />
-    <ClCompile Include="..\CommonFiles\ConstrBuilding.cpp" />
+    <ClCompile Include="..\CommonFiles\BaseLftGroup.cpp" />
+    <ClCompile Include="..\CommonFiles\BaseProject.cpp" />
+    <ClCompile Include="..\CommonFiles\BaseSimClasses.cpp" />
+    <ClCompile Include="..\CommonFiles\ConstrLftGroup.cpp" />
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp" />
     <ClCompile Include="..\CommonFiles\DBTools.cpp" />
     <ClCompile Include="..\CommonFiles\XMLTools.cpp" />
@@ -135,10 +137,8 @@
     <ClCompile Include="AdVisuoDoc.cpp" />
     <ClCompile Include="AdVisuoRenderer.cpp" />
     <ClCompile Include="AdVisuoView.cpp" />
-    <ClCompile Include="..\CommonFiles\BaseBuilding.cpp" />
-    <ClCompile Include="..\CommonFiles\BaseClasses.cpp" />
     <ClCompile Include="Block.cpp" />
-    <ClCompile Include="VisBuilding.cpp" />
+    <ClCompile Include="VisLftGroup.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
     <ClCompile Include="Dialogs.cpp" />
@@ -160,7 +160,10 @@
     <ClCompile Include="xmlrequest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\CommonFiles\ConstrBuilding.h" />
+    <ClInclude Include="..\CommonFiles\BaseLftGroup.h" />
+    <ClInclude Include="..\CommonFiles\BaseProject.h" />
+    <ClInclude Include="..\CommonFiles\BaseSimClasses.h" />
+    <ClInclude Include="..\CommonFiles\ConstrLftGroup.h" />
     <ClInclude Include="..\CommonFiles\ConstrProject.h" />
     <ClInclude Include="..\CommonFiles\DBTools.h" />
     <ClInclude Include="..\CommonFiles\XMLTools.h" />
@@ -168,11 +171,8 @@
     <ClInclude Include="AdVisuoDoc.h" />
     <ClInclude Include="AdVisuoRenderer.h" />
     <ClInclude Include="AdVisuoView.h" />
-    <ClInclude Include="..\CommonFiles\BaseBuilding.h" />
-    <ClInclude Include="..\CommonFiles\BaseClasses.h" />
-    <ClInclude Include="..\CommonFiles\BaseData.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
-    <ClInclude Include="VisBuilding.h" />
+    <ClInclude Include="VisLftGroup.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ChildFrm.h" />
     <ClInclude Include="Dialogs.h" />

@@ -3,19 +3,20 @@
 #pragma once
 
 #include "SrvProject.h"
-#include "IfcBuilding.h"
+#include "ifc/baseIfcElement.h"
 
 class CProjectIfc;
+class CLftGroupIfc;
 
 class CElemIfc : public CElem
 {
 	CIFCRoot *m_pBone;
 public:
-	CElemIfc(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
+	CElemIfc(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 	virtual ~CElemIfc();
 	
 	CProjectIfc *GetProject()				{ return (CProjectIfc*)CElem::GetProject(); }
-	CBuildingIfc *GetBuilding()				{ return (CBuildingIfc*)CElem::GetBuilding(); }
+	CLftGroupIfc *GetLftGroup()				{ return (CLftGroupIfc*)CElem::GetLftGroup(); }
 	CElemIfc *GetParent()					{ return (CElemIfc*)CElem::GetParent(); }
 	CIFCRoot *GetBone()						{ if (m_pBone) return m_pBone; if (GetParent()) return GetParent()->GetBone(); return NULL; }
 
@@ -30,19 +31,20 @@ class CProjectIfc : public CProjectSrv
 public:
 	CProjectIfc();
 
-	virtual CElem *CreateElement(CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)
-															{ return new CElemIfc(this, pBuilding, pParent, nElemId, name, i, vec); }
+	virtual CElem *CreateElement(CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)
+															{ return new CElemIfc(this, pLftGroup, pParent, nElemId, name, i, vec); }
 
 	HRESULT SaveAsIFC(LPCOLESTR pFileName, bool bBrep = true, bool bPresentation = false);
 
 	CElemIfc *GetElement()									{ return (CElemIfc*)CProjectSrv::GetElement(); }
 	CElemIfc *GetSiteElement()								{ return (CElemIfc*)CProjectSrv::GetSiteElement(); }
 
-	CBuildingIfc *GetBuilding()								{ return (CBuildingIfc*)CProjectSrv::GetBuilding(); }
-	CBuildingIfc *GetBuilding(int i)						{ return (CBuildingIfc*)CProjectSrv::GetBuilding(i); }
+	CLftGroupIfc *GetLftGroup(int i)						{ return (CLftGroupIfc*)CProjectSrv::GetLftGroup(i); }
+	CLftGroupIfc *FindLftGroup(int id)						{ return (CLftGroupIfc*)CProjectSrv::FindLftGroup(id); }
+	CLftGroupIfc *AddLftGroup()								{ return (CLftGroupIfc*)CProjectSrv::AddLftGroup(); }
 
 	void Construct();
 
 protected:
-	virtual CBuilding *CreateBuilding(AVULONG nIndex)		{ return new CBuildingIfc(this, nIndex); }
+	virtual CLftGroup *CreateLftGroup(AVULONG nIndex);
 };

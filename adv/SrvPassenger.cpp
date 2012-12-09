@@ -20,22 +20,22 @@ void CPassengerSrv::Play()
 {
 	// Calculate Spatial Points
 
-	CBuildingSrv::SHAFT *pSHAFT = GetSim()->GetBuilding()->GetShaft(GetShaftId());
+	CLftGroupSrv::SHAFT *pSHAFT = GetSim()->GetLftGroup()->GetShaft(GetShaftId());
 	ASSERT(pSHAFT);
 
 	// initial parameters: which side to enter?
 	enum { FRONT, LEFT, RIGHT } flagEnter = FRONT;
-	switch (GetSim()->GetBuilding()->GetLobbyArrangement())
+	switch (GetSim()->GetLftGroup()->GetLobbyArrangement())
 	{
-	case CBuildingSrv::LOBBY_OPENPLAN: flagEnter = FRONT; break;
-	case CBuildingSrv::LOBBY_DEADEND_RIGHT: flagEnter = LEFT; break;
-	case CBuildingSrv::LOBBY_DEADEND_LEFT: flagEnter = RIGHT; break;
-	case CBuildingSrv::LOBBY_THROUGH: if (rand() % 2 == 1) flagEnter = LEFT; else flagEnter = RIGHT; break;
+	case CLftGroupSrv::LOBBY_OPENPLAN: flagEnter = FRONT; break;
+	case CLftGroupSrv::LOBBY_DEADEND_RIGHT: flagEnter = LEFT; break;
+	case CLftGroupSrv::LOBBY_DEADEND_LEFT: flagEnter = RIGHT; break;
+	case CLftGroupSrv::LOBBY_THROUGH: if (rand() % 2 == 1) flagEnter = LEFT; else flagEnter = RIGHT; break;
 	}
 	
 	// initial parameters: which likft line (0 for inline arrangement, 1 or 2)
 	int nLine = 0;
-	if (GetSim()->GetBuilding()->GetLiftShaftArrang() != CBuildingSrv::SHAFT_INLINE)
+	if (GetSim()->GetLftGroup()->GetLiftShaftArrang() != CLftGroupSrv::SHAFT_INLINE)
 		nLine = pSHAFT->GetShaftLine() + 1;
 
 	// passengers behaviour
@@ -43,8 +43,8 @@ void CPassengerSrv::Play()
 	if (!pSHAFT) flagBehaviour = NATURAL;
 
 
-	AVFLOAT WLobby = abs(GetSim()->GetBuilding()->GetBox().Width());
-	AVFLOAT DLobby = abs(GetSim()->GetBuilding()->GetBox().Depth());
+	AVFLOAT WLobby = abs(GetSim()->GetLftGroup()->GetBox().Width());
+	AVFLOAT DLobby = abs(GetSim()->GetLftGroup()->GetBox().Depth());
 
 	AVFLOAT XLobby = 0;
 	AVFLOAT YOutOfView = -DLobby/2 - 20;
@@ -97,17 +97,17 @@ void CPassengerSrv::Play()
 
 	if (pSHAFT)
 	{
-		AVFLOAT WShaft = abs(pSHAFT->GetBox(CBuildingSrv::SHAFT::BOX_SHAFT).Width());
-		AVFLOAT WLift = abs(pSHAFT->GetBox(CBuildingSrv::SHAFT::BOX_CAR).Width());
-		AVFLOAT DLift = abs(pSHAFT->GetBox(CBuildingSrv::SHAFT::BOX_CAR).Depth());
-		AVFLOAT WDoor = abs(pSHAFT->GetBox(CBuildingSrv::SHAFT::BOX_DOOR).Width());
+		AVFLOAT WShaft = abs(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_SHAFT).Width());
+		AVFLOAT WLift = abs(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_CAR).Width());
+		AVFLOAT DLift = abs(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_CAR).Depth());
+		AVFLOAT WDoor = abs(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_DOOR).Width());
 		AVFLOAT WOpt = (WShaft + WLift) / 2;	// more optimal zone (should be even overlapping?) - 8/8/11
 	
 		AVFLOAT YLiftFront = DLobby * 0.4f;											// 8/8/11: DLobby/3  ==>  DLobby * 0.4
-		AVFLOAT YLiftDoor = -pSHAFT->GetBox(CBuildingSrv::SHAFT::BOX_DOOR).Front();
+		AVFLOAT YLiftDoor = -pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_DOOR).Front();
 	
-		AVFLOAT XLift  = (pSHAFT->GetBox(CBuildingSrv::SHAFT::BOX_DOOR).Left()+pSHAFT->GetBox(CBuildingSrv::SHAFT::BOX_DOOR).Right())/2;
-		AVFLOAT YLift = -(pSHAFT->GetBox(CBuildingSrv::SHAFT::BOX_CAR).Front()+pSHAFT->GetBox(CBuildingSrv::SHAFT::BOX_CAR).Rear())/2;
+		AVFLOAT XLift  = (pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_DOOR).Left()+pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_DOOR).Right())/2;
+		AVFLOAT YLift = -(pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_CAR).Front()+pSHAFT->GetBox(CLftGroupSrv::SHAFT::BOX_CAR).Rear())/2;
 		AVFLOAT XLiftDoor = XLift;
 
 		switch (flagBehaviour)
@@ -189,8 +189,8 @@ DWORD CPassengerSrv::Load(AVULONG nId, CSimLoader::Passenger &P)
 {
 	SetId(nId);
 	SetArrivalTime((AVULONG)(P.ArrivalTime * 1000));
-	SetArrivalFloor(P.ArrivalFloor + GetSim()->GetBuilding()->GetBasementStoreyCount());
-	SetDestFloor(P.DestinationFloor + GetSim()->GetBuilding()->GetBasementStoreyCount());
+	SetArrivalFloor(P.ArrivalFloor + GetSim()->GetLftGroup()->GetBasementStoreyCount());
+	SetDestFloor(P.DestinationFloor + GetSim()->GetLftGroup()->GetBasementStoreyCount());
 	SetLiftId(P.CarID);
 	SetShaftId(P.CarID);	// provisionary setting
 	SetDeck(0);				// provisionary setting

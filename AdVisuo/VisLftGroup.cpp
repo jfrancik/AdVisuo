@@ -1,8 +1,9 @@
-// Building.cpp - a part of the AdVisuo Client Software
+// VisLiftGroup.cpp - a part of the AdVisuo Client Software
 
 #include "StdAfx.h"
-#include "VisBuilding.h"
+#include "VisLftGroup.h"
 #include "VisProject.h"
+#include "VisSim.h"
 
 #include <freewill.h>
 #include <fwrender.h>
@@ -13,21 +14,26 @@
 #pragma warning (disable:4996)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CBuildingVis
+// CLftGroupVis
 
-CBuildingVis::CBuildingVis(CProject *pProject, AVULONG iIndex) : CBuildingConstr(pProject, iIndex), m_materials(this), m_pRenderer(NULL), m_pScene(NULL)
+CLftGroupVis::CLftGroupVis(CProject *pProject, AVULONG iIndex) : CLftGroupConstr(pProject, iIndex), m_materials(this), m_pRenderer(NULL), m_pScene(NULL)
 {
 	memset(m_pMaterials, 0, sizeof(m_pMaterials));
 }
 
-CBuildingVis::~CBuildingVis()
+CLftGroupVis::~CLftGroupVis()
 {
 	DeconstructMaterials();
 	if (m_pRenderer) m_pRenderer->Release();
 	if (m_pScene) m_pScene->Release();
 }
 
-AVVECTOR CBuildingVis::GetLiftPos(int nLift)
+CSim *CLftGroupVis::CreateSim()
+{
+	return new CSimVis();
+}
+
+AVVECTOR CLftGroupVis::GetLiftPos(int nLift)
 {
 	AVVECTOR vec = { 0, 0, 0 };
 	if (GetLiftElement(nLift)->GetBone())
@@ -35,14 +41,14 @@ AVVECTOR CBuildingVis::GetLiftPos(int nLift)
 	return vec;
 }
 
-void CBuildingVis::SetRenderer(IRenderer *pRenderer)
+void CLftGroupVis::SetRenderer(IRenderer *pRenderer)
 {
 	if (m_pRenderer) m_pRenderer->Release(); 
 	m_pRenderer = pRenderer; 
 	if (m_pRenderer) m_pRenderer->AddRef(); 
 }
 
-void CBuildingVis::SetScene(IScene *pScene)
+void CLftGroupVis::SetScene(IScene *pScene)
 {
 	if (m_pScene) m_pScene->Release(); 
 	m_pScene = pScene; 
@@ -63,7 +69,7 @@ void CBuildingVis::SetScene(IScene *pScene)
 		}
 	}
 
-IMaterial *CBuildingVis::GetMaterial(AVULONG nWallId, AVLONG i)
+IMaterial *CLftGroupVis::GetMaterial(AVULONG nWallId, AVLONG i)
 {
 	_helperConvMatInd(nWallId, (AVULONG&)i);
 	IMaterial *p = m_pMaterials[nWallId + i];
@@ -71,7 +77,7 @@ IMaterial *CBuildingVis::GetMaterial(AVULONG nWallId, AVLONG i)
 	return p;
 }
 
-void CBuildingVis::SetMaterial(AVULONG nWallId, AVLONG i, IMaterial *pMaterial)
+void CLftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, IMaterial *pMaterial)
 {
 	_helperConvMatInd(nWallId, (AVULONG&)i);
 	if (nWallId + i > sizeof(m_pMaterials) / sizeof(IMaterial*)) return;
@@ -80,7 +86,7 @@ void CBuildingVis::SetMaterial(AVULONG nWallId, AVLONG i, IMaterial *pMaterial)
 	if (m_pMaterials[nWallId + i]) m_pMaterials[nWallId + i]->AddRef();
 }
 
-void CBuildingVis::SetMaterial(AVULONG nWallId, AVLONG i, AVFLOAT r, AVFLOAT g, AVFLOAT b, AVFLOAT a)
+void CLftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, AVFLOAT r, AVFLOAT g, AVFLOAT b, AVFLOAT a)
 {
 	FWCOLOR diff = { r, g, b, a };
 	IMaterial *pMaterial = NULL;
@@ -96,7 +102,7 @@ void CBuildingVis::SetMaterial(AVULONG nWallId, AVLONG i, AVFLOAT r, AVFLOAT g, 
 	pMaterial->Release();
 }
 
-void CBuildingVis::SetMaterial(AVULONG nWallId, AVLONG i, LPCOLESTR szFileName, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT fAlpha)
+void CLftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, LPCOLESTR szFileName, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT fAlpha)
 {
 	ITexture *pTexture = NULL;
 	m_pRenderer->CreateTexture(&pTexture);
@@ -118,7 +124,7 @@ void CBuildingVis::SetMaterial(AVULONG nWallId, AVLONG i, LPCOLESTR szFileName, 
 	pTexture->Release();
 }
 
-void CBuildingVis::SetMaterial(AVULONG nWallId, AVLONG i, BYTE* pData, AVULONG nDataSize, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT fAlpha)
+void CLftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, BYTE* pData, AVULONG nDataSize, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT fAlpha)
 {
 	ITexture *pTexture = NULL;
 	m_pRenderer->CreateTexture(&pTexture);
@@ -139,7 +145,7 @@ void CBuildingVis::SetMaterial(AVULONG nWallId, AVLONG i, BYTE* pData, AVULONG n
 	pTexture->Release();
 }
 
-void CBuildingVis::SetMaterialLiftPlate(AVULONG nWallId, AVLONG i, AVULONG nLift)
+void CLftGroupVis::SetMaterialLiftPlate(AVULONG nWallId, AVLONG i, AVULONG nLift)
 {
 	ITexture *pTexture = NULL;
 	m_pRenderer->CreateTexture(&pTexture);
@@ -183,7 +189,7 @@ void CBuildingVis::SetMaterialLiftPlate(AVULONG nWallId, AVLONG i, AVULONG nLift
 	pTexture->Release();
 }
 
-void CBuildingVis::SetMaterialFloorPlate(AVULONG nWallId, AVLONG i, AVULONG nFloor)
+void CLftGroupVis::SetMaterialFloorPlate(AVULONG nWallId, AVLONG i, AVULONG nFloor)
 {
 	ITexture *pTexture = NULL;
 	m_pRenderer->CreateTexture(&pTexture);
@@ -228,7 +234,7 @@ void CBuildingVis::SetMaterialFloorPlate(AVULONG nWallId, AVLONG i, AVULONG nFlo
 	pTexture->Release();
 }
 
-void CBuildingVis::DeconstructMaterials()
+void CLftGroupVis::DeconstructMaterials()
 {
 	for (AVULONG i = 0; i < sizeof(m_pMaterials) / sizeof(IMaterial*); i++)
 	{
@@ -237,7 +243,7 @@ void CBuildingVis::DeconstructMaterials()
 	}
 }
 
-void CBuildingVis::Construct(AVVECTOR vec)
+void CLftGroupVis::Construct(AVVECTOR vec)
 {
 //	ASSERT(GetRenderer() && GetScene());
 //	if (!GetRenderer() || !GetScene()) return;
@@ -268,10 +274,10 @@ void CBuildingVis::Construct(AVVECTOR vec)
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
 		SetMaterialLiftPlate(CElem::WALL_LIFT_NUMBER_PLATE, i, i);
 
-	CBuildingConstr::Construct(vec);
+	CLftGroupConstr::Construct(vec);
 }
 
-void CBuildingVis::StoreConfig()
+void CLftGroupVis::StoreConfig()
 {
 	for (FWULONG i = 0; i < GetLiftCount(); i++)
 	{
@@ -286,7 +292,7 @@ void CBuildingVis::StoreConfig()
 					GetShaftDoor(i, j, k)->PushState();
 }
 
-void CBuildingVis::RestoreConfig()
+void CLftGroupVis::RestoreConfig()
 {
 	for (FWULONG i = 0; i < GetLiftCount(); i++)
 	{

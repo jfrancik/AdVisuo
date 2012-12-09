@@ -2,7 +2,7 @@
 // interface of the CAdVisuoDoc class
 //
 
-#include "VisBuilding.h"
+#include "VisLftGroup.h"
 #include "VisProject.h"
 #include "VisSim.h"
 #include "VisLift.h"
@@ -18,8 +18,6 @@ class CAdVisuoDoc : public CDocument
 // Attributes
 
 	CProjectVis m_prj;		// The Project
-//	CSimVis m_sim;			// The Simulation Engine
-//	CBuildingVis m_building;// The Building
 	HRESULT m_h;			// The result of m_sim.Load
 
 	CXMLRequest m_http;		// XML HTTP Request object
@@ -27,7 +25,6 @@ class CAdVisuoDoc : public CDocument
 	CString m_strResponse;	// response from the internet connection
 
 	AVULONG m_timeLoaded;	// streamed loading: time loaded
-	AVULONG m_groupLoaded;	// streamed loading: group loaded
 
 protected: // create from serialization only
 	CAdVisuoDoc();
@@ -42,11 +39,11 @@ public:
 
 	bool IsSimReady()						{ return m_h == S_OK; }
 	bool IsSIMDataReady()					{ return m_http.ready(); }
-	bool IsDownloadComplete()				{ return m_timeLoaded >= GetProject()->GetSim()->GetTimeSaved(); }
+	bool IsDownloadComplete(int i = 0)		{ return m_timeLoaded >= GetProject()->GetLftGroup(i)->GetSim()->GetTimeSaved(); }
 
 	AVULONG GetLoadedTime()					{ return m_timeLoaded; }
-	AVULONG GetSimulationTime()				{ return GetProject()->GetSim()->GetSimulationTime(); }
-	AVLONG GetTimeLowerBound()				{ return GetProject()->GetSim()->GetTimeLowerBound(); }
+	AVULONG GetSimulationTime(int i)		{ return GetProject()->GetLftGroup(i)->GetSim()->GetSimulationTime(); }
+	AVLONG GetTimeLowerBound(int i)			{ return GetProject()->GetLftGroup(i)->GetSim()->GetTimeLowerBound(); }
 
 	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
 

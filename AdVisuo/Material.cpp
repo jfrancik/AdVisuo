@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "Material.h"
-#include "VisBuilding.h"
+#include "VisLftGroup.h"
 
 #include <freewill.h>
 #include <fwaction.h>
@@ -40,7 +40,7 @@ LPCOLESTR MATERIAL::GetLabel()
 	return labels[m_index]; 
 }
  
-void MATERIAL::SetupBackground(CBuildingVis *pBuilding)
+void MATERIAL::SetupBackground(CLftGroupVis *pLftGroup)
 {
 	if (!m_bSolid) return;
 	FWCOLOR color;
@@ -49,10 +49,10 @@ void MATERIAL::SetupBackground(CBuildingVis *pBuilding)
 	color.b = (AVFLOAT)GetBValue(m_color) / 255.0f;
 	color.a = 1;
 
-	pBuilding->GetRenderer()->PutBackColor(color);
+	pLftGroup->GetRenderer()->PutBackColor(color);
 }
 
-void MATERIAL::Setup(CBuildingVis *pBuilding, AVULONG nItem, AVULONG i)
+void MATERIAL::Setup(CLftGroupVis *pLftGroup, AVULONG nItem, AVULONG i)
 {
 	if (m_bSolid)
 	{
@@ -62,7 +62,7 @@ void MATERIAL::Setup(CBuildingVis *pBuilding, AVULONG nItem, AVULONG i)
 		color.b = (AVFLOAT)GetBValue(m_color) / 255.0f;
 		color.a = m_alpha;
 		
-		IMaterial *pMaterial = pBuilding->GetMaterial(nItem, i);
+		IMaterial *pMaterial = pLftGroup->GetMaterial(nItem, i);
 		if (pMaterial)
 		{
 			pMaterial->SetDiffuseColor(color);
@@ -70,93 +70,93 @@ void MATERIAL::Setup(CBuildingVis *pBuilding, AVULONG nItem, AVULONG i)
 			pMaterial->SetSpecularColor(color);
 		}
 		else
-			pBuilding->SetMaterial(nItem, i, color.r, color.g, color.b, m_alpha);
+			pLftGroup->SetMaterial(nItem, i, color.r, color.g, color.b, m_alpha);
 	}
 	else
-		pBuilding->SetMaterial(nItem, i, (AVSTRING)m_fname.c_str(), m_fUTile, m_fVTile, m_alpha);
+		pLftGroup->SetMaterial(nItem, i, (AVSTRING)m_fname.c_str(), m_fUTile, m_fVTile, m_alpha);
 }
 
-void MATERIAL::Setup(CBuildingVis *pBuilding)
+void MATERIAL::Setup(CLftGroupVis *pLftGroup)
 {
 	switch (m_index)
 	{
 	case MAT_BACKGROUND:	// Background
-		SetupBackground(pBuilding);
+		SetupBackground(pLftGroup);
 		break;
 	case MAT_LOBBY_0:		// Lobby walls 0
-		Setup(pBuilding, CElem::WALL_FRONT, 0);
-		Setup(pBuilding, CElem::WALL_REAR, 0);
-		Setup(pBuilding, CElem::WALL_SIDE, 0);
+		Setup(pLftGroup, CElem::WALL_FRONT, 0);
+		Setup(pLftGroup, CElem::WALL_REAR, 0);
+		Setup(pLftGroup, CElem::WALL_SIDE, 0);
 		break;
 	case MAT_LOBBY_1:		// Lobby walls 1
-		Setup(pBuilding, CElem::WALL_FRONT, 1);
-		Setup(pBuilding, CElem::WALL_REAR, 1);
-		Setup(pBuilding, CElem::WALL_SIDE, 1);
+		Setup(pLftGroup, CElem::WALL_FRONT, 1);
+		Setup(pLftGroup, CElem::WALL_REAR, 1);
+		Setup(pLftGroup, CElem::WALL_SIDE, 1);
 		break;
 	case MAT_LOBBY_2:		// Lobby walls 2
-		Setup(pBuilding, CElem::WALL_FRONT, 2);
-		Setup(pBuilding, CElem::WALL_REAR, 2);
-		Setup(pBuilding, CElem::WALL_SIDE, 2);
+		Setup(pLftGroup, CElem::WALL_FRONT, 2);
+		Setup(pLftGroup, CElem::WALL_REAR, 2);
+		Setup(pLftGroup, CElem::WALL_SIDE, 2);
 		break;
 	case MAT_LOBBY_3:		// Lobby walls 3
-		Setup(pBuilding, CElem::WALL_FRONT, 3);
-		Setup(pBuilding, CElem::WALL_REAR, 3);
-		Setup(pBuilding, CElem::WALL_SIDE, 3);
+		Setup(pLftGroup, CElem::WALL_FRONT, 3);
+		Setup(pLftGroup, CElem::WALL_REAR, 3);
+		Setup(pLftGroup, CElem::WALL_SIDE, 3);
 		break;
 	case MAT_LOBBY_4:		// Lobby walls 4
-		Setup(pBuilding, CElem::WALL_FRONT, 4);
-		Setup(pBuilding, CElem::WALL_REAR, 4);
-		Setup(pBuilding, CElem::WALL_SIDE, 4);
+		Setup(pLftGroup, CElem::WALL_FRONT, 4);
+		Setup(pLftGroup, CElem::WALL_REAR, 4);
+		Setup(pLftGroup, CElem::WALL_SIDE, 4);
 		break;
 	case MAT_LOBBY_5:		// Lobby walls 5
-		Setup(pBuilding, CElem::WALL_FRONT, 5);
-		Setup(pBuilding, CElem::WALL_REAR, 5);
-		Setup(pBuilding, CElem::WALL_SIDE, 5);
+		Setup(pLftGroup, CElem::WALL_FRONT, 5);
+		Setup(pLftGroup, CElem::WALL_REAR, 5);
+		Setup(pLftGroup, CElem::WALL_SIDE, 5);
 		break;
 	case MAT_LOBBY_6:		// Lobby walls 6
-		Setup(pBuilding, CElem::WALL_FRONT, 6);
-		Setup(pBuilding, CElem::WALL_REAR, 6);
-		Setup(pBuilding, CElem::WALL_SIDE, 6);
+		Setup(pLftGroup, CElem::WALL_FRONT, 6);
+		Setup(pLftGroup, CElem::WALL_REAR, 6);
+		Setup(pLftGroup, CElem::WALL_SIDE, 6);
 		break;
 	case MAT_LOBBY_7:		// Lobby walls 7
-		Setup(pBuilding, CElem::WALL_FRONT, 7);
-		Setup(pBuilding, CElem::WALL_REAR, 7);
-		Setup(pBuilding, CElem::WALL_SIDE, 7);
+		Setup(pLftGroup, CElem::WALL_FRONT, 7);
+		Setup(pLftGroup, CElem::WALL_REAR, 7);
+		Setup(pLftGroup, CElem::WALL_SIDE, 7);
 		break;
 	case MAT_FLOOR:			// Lobby floors
-		Setup(pBuilding, CElem::WALL_FLOOR);
+		Setup(pLftGroup, CElem::WALL_FLOOR);
 		break;
 	case MAT_CEILING:		// Lobby ceilings
-		Setup(pBuilding, CElem::WALL_CEILING);
+		Setup(pLftGroup, CElem::WALL_CEILING);
 		break;
 	case MAT_DOOR:			// Shaft doors
-		Setup(pBuilding, CElem::WALL_DOOR);
+		Setup(pLftGroup, CElem::WALL_DOOR);
 		break;
 	case MAT_LIFT_DOOR:		// Lift doors
-		Setup(pBuilding, CElem::WALL_LIFT_DOOR);
+		Setup(pLftGroup, CElem::WALL_LIFT_DOOR);
 		break;
 	case MAT_OPENING:		// Openings
-		Setup(pBuilding, CElem::WALL_OPENING);
+		Setup(pLftGroup, CElem::WALL_OPENING);
 		break;
 	case MAT_LIFT:			// Lift walls
-		Setup(pBuilding, CElem::WALL_LIFT);
+		Setup(pLftGroup, CElem::WALL_LIFT);
 		break;
 	case MAT_LIFT_FLOOR:	// Lift floors
-		Setup(pBuilding, CElem::WALL_LIFT_FLOOR);
+		Setup(pLftGroup, CElem::WALL_LIFT_FLOOR);
 		break;
 	case MAT_LIFT_CEILING:	// Lift ceiling
-		Setup(pBuilding, CElem::WALL_LIFT_CEILING);
+		Setup(pLftGroup, CElem::WALL_LIFT_CEILING);
 		break;
 	case MAT_SHAFT:			// Shaft Walls
-		Setup(pBuilding, CElem::WALL_SHAFT);
+		Setup(pLftGroup, CElem::WALL_SHAFT);
 		break;
 	case MAT_BEAM:			// Shaft Walls
-		Setup(pBuilding, CElem::WALL_BEAM);
+		Setup(pLftGroup, CElem::WALL_BEAM);
 		break;
 	}
 }
 
-CMaterialManager::CMaterialManager(CBuildingVis *pBuilding) : m_pBuilding(pBuilding)
+CMaterialManager::CMaterialManager(CLftGroupVis *pLftGroup) : m_pLftGroup(pLftGroup)
 {
 	for (int i = 0; i < MAT_NUM; i++)
 		m_materials[i].m_index = i;
@@ -165,16 +165,16 @@ CMaterialManager::CMaterialManager(CBuildingVis *pBuilding) : m_pBuilding(pBuild
 void CMaterialManager::Set(MATERIALS nMat, COLORREF color, AVFLOAT alpha)
 {
 	m_materials[nMat].Set(color, alpha);
-	m_materials[nMat].Setup(m_pBuilding);
+	m_materials[nMat].Setup(m_pLftGroup);
 }
 
 void CMaterialManager::Set(MATERIALS nMat, LPCOLESTR fname, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT alpha)
 {
 	m_materials[nMat].Set(fname, fUTile, fVTile, alpha);
-	m_materials[nMat].Setup(m_pBuilding);
+	m_materials[nMat].Setup(m_pLftGroup);
 }
 
 void CMaterialManager::Setup(MATERIALS nMat)
 {
-	m_materials[nMat].Setup(m_pBuilding);
+	m_materials[nMat].Setup(m_pLftGroup);
 }

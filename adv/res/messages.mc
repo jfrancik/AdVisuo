@@ -188,6 +188,15 @@ or by database version mismatch. This error concerns the Advisuo_Console databas
 .
 
 MessageId       = +1
+SymbolicName    = ERROR_SIM_MISSING
+Severity		= Error
+Language        = English
+Missing simulation data.
+This error most probably occurs because the simulation has not been performed for this project.
+This error concerns the Advisuo_Reports database.
+.
+
+MessageId       = +1
 SymbolicName    = ERROR_BUILDING
 Severity		= Error
 Language        = English

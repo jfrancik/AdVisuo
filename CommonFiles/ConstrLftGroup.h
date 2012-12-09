@@ -1,26 +1,29 @@
-// BaseBuilding.h - AdVisuo Common Source File
+// ConstrLftGroup.h - AdVisuo Common Source File
 
 #pragma once
 
-#include "ConstrProject.h"
+#include "BaseLftGroup.h"
+
+class CElem;
+class CProjectConstr;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CBuildingConstr
+// CLftGroupConstr
 
-class CBuildingConstr : public CBuilding
+class CLftGroupConstr : public CLftGroup
 {
 public:
 
-	struct STOREY : public CBuilding::STOREY
+	struct STOREY : public CLftGroup::STOREY
 	{
 		CElem *m_pElem;
 
 	public:
-		STOREY(CBuildingConstr *pBuilding, AVULONG nId) : 	CBuilding::STOREY(pBuilding, nId), m_pElem(NULL)	{ }
+		STOREY(CLftGroupConstr *pLftGroup, AVULONG nId) : 	CLftGroup::STOREY(pLftGroup, nId), m_pElem(NULL)	{ }
 		~STOREY()								{ }
 
-		CBuildingConstr *GetBuilding()			{ return (CBuildingConstr*)CBuilding::STOREY::GetBuilding(); }
-		CProjectConstr *GetProject()			{ return (CProjectConstr*)CBuilding::STOREY::GetProject(); }
+		CLftGroupConstr *GetLftGroup()			{ return (CLftGroupConstr*)CLftGroup::STOREY::GetLftGroup(); }
+		CProjectConstr *GetProject()			{ return (CProjectConstr*)CLftGroup::STOREY::GetProject(); }
 
 		CElem *GetElement()						{ return m_pElem; }
 
@@ -28,15 +31,15 @@ public:
 		virtual void Deconstruct();
 	};
 
-	struct MACHINEROOM : public CBuilding::MACHINEROOM
+	struct MACHINEROOM : public CLftGroup::MACHINEROOM
 	{
 		CElem *m_pElem;
 	public:
-		MACHINEROOM(CBuildingConstr *pBuilding) : CBuilding::MACHINEROOM(pBuilding), m_pElem(NULL)	{ }
+		MACHINEROOM(CLftGroupConstr *pLftGroup) : CLftGroup::MACHINEROOM(pLftGroup), m_pElem(NULL)	{ }
 		~MACHINEROOM()							{ }
 
-		CBuildingConstr *GetBuilding()			{ return (CBuildingConstr*)CBuilding::STOREY::GetBuilding(); }
-		CProjectConstr *GetProject()			{ return (CProjectConstr*)CBuilding::STOREY::GetProject(); }
+		CLftGroupConstr *GetLftGroup()			{ return (CLftGroupConstr*)CLftGroup::STOREY::GetLftGroup(); }
+		CProjectConstr *GetProject()			{ return (CProjectConstr*)CLftGroup::STOREY::GetProject(); }
 
 		CElem *GetElement()						{ return m_pElem; }
 
@@ -44,15 +47,15 @@ public:
 		virtual void Deconstruct();
 	};
 
-	struct PIT : public CBuilding::PIT
+	struct PIT : public CLftGroup::PIT
 	{
 		CElem *m_pElem;
 	public:
-		PIT(CBuildingConstr *pBuilding) : CBuilding::PIT(pBuilding), m_pElem(NULL)	{ }
+		PIT(CLftGroupConstr *pLftGroup) : CLftGroup::PIT(pLftGroup), m_pElem(NULL)	{ }
 		~PIT()									{ }
 
-		CBuildingConstr *GetBuilding()			{ return (CBuildingConstr*)CBuilding::STOREY::GetBuilding(); }
-		CProjectConstr *GetProject()			{ return (CProjectConstr*)CBuilding::STOREY::GetProject(); }
+		CLftGroupConstr *GetLftGroup()			{ return (CLftGroupConstr*)CLftGroup::STOREY::GetLftGroup(); }
+		CProjectConstr *GetProject()			{ return (CProjectConstr*)CLftGroup::STOREY::GetProject(); }
 
 		CElem *GetElement()						{ return m_pElem; }
 
@@ -60,7 +63,7 @@ public:
 		virtual void Deconstruct();
 	};
 
-	struct SHAFT : public CBuilding::SHAFT
+	struct SHAFT : public CLftGroup::SHAFT
 	{
 		// storey structures
 		struct BONES
@@ -78,11 +81,11 @@ public:
 		BONES m_PitBones;			// lift pit bones
 
 	public:
-		SHAFT(CBuildingConstr *pBuilding, AVULONG nId) : CBuilding::SHAFT(pBuilding, nId), m_pStoreyBones(NULL), m_pElemMachine(NULL)		{ }
+		SHAFT(CLftGroupConstr *pLftGroup, AVULONG nId) : CLftGroup::SHAFT(pLftGroup, nId), m_pStoreyBones(NULL), m_pElemMachine(NULL)		{ }
 		~SHAFT()											{ }
 
-		CBuildingConstr *GetBuilding()						{ return (CBuildingConstr*)CBuilding::SHAFT::GetBuilding(); }
-		CProjectConstr *GetProject()						{ return (CProjectConstr*)CBuilding::SHAFT::GetProject(); }
+		CLftGroupConstr *GetLftGroup()						{ return (CLftGroupConstr*)CLftGroup::SHAFT::GetLftGroup(); }
+		CProjectConstr *GetProject()						{ return (CProjectConstr*)CLftGroup::SHAFT::GetProject(); }
 
 		CElem *GetElement(AVULONG nStorey)					{ return m_pStoreyBones[nStorey].m_pElem; }
 		CElem *GetElementLobbySide(AVULONG nStorey)			{ return m_pStoreyBones[nStorey].m_pElemLobbySide; }
@@ -105,7 +108,7 @@ public:
 		virtual void Deconstruct();
 	};
 
-	struct LIFT : public CBuilding::LIFT
+	struct LIFT : public CLftGroup::LIFT
 	{
 		// lift structure
 		CElem *m_pElem;
@@ -113,7 +116,7 @@ public:
 		CElem *m_ppDoors[MAX_DOORS];
 
 	public:
-		LIFT(CBuildingConstr *pBuilding, AVULONG nId) : CBuilding::LIFT(pBuilding, nId)
+		LIFT(CLftGroupConstr *pLftGroup, AVULONG nId) : CLftGroup::LIFT(pLftGroup, nId)
 		{
 			m_pElem = NULL;
 			memset(m_ppDecks, 0, sizeof(m_ppDecks));
@@ -121,8 +124,8 @@ public:
 		}
 		~LIFT()												{ }
 
-		CBuildingConstr *GetBuilding()						{ return (CBuildingConstr*)CBuilding::LIFT::GetBuilding(); }
-		CProjectConstr *GetProject()						{ return (CProjectConstr*)CBuilding::LIFT::GetProject(); }
+		CLftGroupConstr *GetLftGroup()						{ return (CLftGroupConstr*)CLftGroup::LIFT::GetLftGroup(); }
+		CProjectConstr *GetProject()						{ return (CProjectConstr*)CLftGroup::LIFT::GetProject(); }
 
 		CElem *GetElement()									{ return m_pElem; }
 		CElem *GetDeck(AVULONG nDeck)						{ return m_ppDecks[nDeck]; }
@@ -134,26 +137,29 @@ public:
 
 // Main Implementation
 private:
-	bool bFastLoad;	// press Shift+Esc to stop building most of the building structures
+	bool bFastLoad;	// press Shift+Esc to stop constructing most of the structures
 	CElem *m_pElem;
 
 public:
-	CBuildingConstr(CProject *pProject, AVULONG nIndex);
-	virtual ~CBuildingConstr();
+	CLftGroupConstr(CProject *pProject, AVULONG nIndex);
+	virtual ~CLftGroupConstr();
 
-	CProjectConstr *GetProject()			{ return (CProjectConstr*)CBuilding::GetProject(); }
-
+protected:
 	virtual STOREY *CreateStorey(AVULONG nId){ return new STOREY(this, nId); }
 	virtual SHAFT *CreateShaft(AVULONG nId)	{ return new SHAFT(this, nId); }
 	virtual LIFT *CreateLift(AVULONG nId)	{ return new LIFT(this, nId); }
 	virtual MACHINEROOM *CreateMachineRoom(){ return new MACHINEROOM(this); }
 	virtual PIT *CreatePit()				{ return new PIT(this); }
-	STOREY *GetStorey(AVULONG i)			{ return (STOREY*)CBuilding::GetStorey(i); }
-	STOREY *GetGroundStorey(AVULONG i = 0)	{ return (STOREY*)CBuilding::GetGroundStorey(i); }
-	SHAFT *GetShaft(AVULONG i)				{ return (SHAFT*)CBuilding::GetShaft(i); }
-	LIFT *GetLift(AVULONG i)				{ return (LIFT*)CBuilding::GetLift(i); }
-	MACHINEROOM *GetMachineRoom()			{ return (MACHINEROOM*)CBuilding::GetMachineRoom(); }
-	PIT *GetPit()							{ return (PIT*)CBuilding::GetPit(); }
+
+public:
+	CProjectConstr *GetProject()			{ return (CProjectConstr*)CLftGroup::GetProject(); }
+
+	STOREY *GetStorey(AVULONG i)			{ return (STOREY*)CLftGroup::GetStorey(i); }
+	STOREY *GetGroundStorey(AVULONG i = 0)	{ return (STOREY*)CLftGroup::GetGroundStorey(i); }
+	SHAFT *GetShaft(AVULONG i)				{ return (SHAFT*)CLftGroup::GetShaft(i); }
+	LIFT *GetLift(AVULONG i)				{ return (LIFT*)CLftGroup::GetLift(i); }
+	MACHINEROOM *GetMachineRoom()			{ return (MACHINEROOM*)CLftGroup::GetMachineRoom(); }
+	PIT *GetPit()							{ return (PIT*)CLftGroup::GetPit(); }
 
 
 	CElem *GetElement()																{ return m_pElem; }

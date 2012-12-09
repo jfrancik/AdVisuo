@@ -92,16 +92,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\CommonFiles\BaseData.cpp" />
-    <ClCompile Include="..\CommonFiles\ConstrBuilding.cpp" />
+    <ClCompile Include="..\CommonFiles\BaseLftGroup.cpp" />
+    <ClCompile Include="..\CommonFiles\BaseProject.cpp" />
+    <ClCompile Include="..\CommonFiles\ConstrLftGroup.cpp" />
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp" />
     <ClCompile Include="..\CommonFiles\DBTools.cpp" />
     <ClCompile Include="adv.cpp" />
-    <ClCompile Include="..\CommonFiles\BaseBuilding.cpp" />
-    <ClCompile Include="..\CommonFiles\BaseClasses.cpp" />
+    <ClCompile Include="..\CommonFiles\BaseSimClasses.cpp" />
     <ClCompile Include="IfcBuilder.cpp" />
     <ClCompile Include="IfcProject.cpp" />
-    <ClCompile Include="SrvBuilding.cpp" />
+    <ClCompile Include="SrvLftGroup.cpp" />
     <ClCompile Include="dllmain.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
@@ -110,7 +110,7 @@
       </PrecompiledHeader>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
     </ClCompile>
-    <ClCompile Include="IfcBuilding.cpp" />
+    <ClCompile Include="IfcLftGroup.cpp" />
     <ClCompile Include="ifcscanner.cpp" />
     <ClCompile Include="ifc\baseIfc.cpp" />
     <ClCompile Include="ifc\baseIfcElement.cpp" />
@@ -130,18 +130,18 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\CommonFiles\ConstrBuilding.h" />
+    <ClInclude Include="..\CommonFiles\BaseLftGroup.h" />
+    <ClInclude Include="..\CommonFiles\BaseProject.h" />
+    <ClInclude Include="..\CommonFiles\ConstrLftGroup.h" />
     <ClInclude Include="..\CommonFiles\ConstrProject.h" />
     <ClInclude Include="..\CommonFiles\DBTools.h" />
     <ClInclude Include="adv.h" />
-    <ClInclude Include="..\CommonFiles\BaseBuilding.h" />
-    <ClInclude Include="..\CommonFiles\BaseClasses.h" />
-    <ClInclude Include="..\CommonFiles\BaseData.h" />
+    <ClInclude Include="..\CommonFiles\BaseSimClasses.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
     <ClInclude Include="IfcBuilder.h" />
-    <ClInclude Include="IfcBuilding.h" />
+    <ClInclude Include="IfcLftGroup.h" />
     <ClInclude Include="IfcProject.h" />
-    <ClInclude Include="SrvBuilding.h" />
+    <ClInclude Include="SrvLftGroup.h" />
     <ClInclude Include="ifcscanner.h" />
     <ClInclude Include="ifc\baseIfc.h" />
     <ClInclude Include="ifc\baseIfcElement.h" />

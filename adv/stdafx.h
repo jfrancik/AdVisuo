@@ -63,6 +63,9 @@ struct AVVECTOR
 //#include <stdarg.h>
 //#include <windows.h>
 
+/////////////////////////////////////////////////////////////
+// Debug & Trace
+
 #ifdef _DEBUG
 inline void _trace(LPCWSTR fmt, ...)
 {
@@ -95,6 +98,21 @@ inline void _trace(LPCTSTR fmt, ...) { }
 inline void Debug(LPCTSTR fmt, ...) { }
 #define TRACE  1 ? (void)0 : _trace
 #endif
+
+/////////////////////////////////////////////////////////////
+// Max Number of Lift Decks and Doors
+
+#define DECK_NUM	2
+#define MAX_DOORS	6
+
+/////////////////////////////////////////////////////////////
+// AdVisuo specific includes
+
+#include "../CommonFiles/Vector.h"
+#include "../CommonFiles/Box.h"
+
+
+
 
 #include <assert.h>
 

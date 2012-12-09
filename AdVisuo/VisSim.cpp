@@ -13,8 +13,7 @@
 
 using namespace std;
 
-CSimVis::CSimVis(CBuilding *pBuilding, AVULONG iIndex)
-	: CSim(pBuilding, iIndex), 
+CSimVis::CSimVis() : CSim(), 
 	  m_pScene(NULL), m_pBiped(NULL), m_pMaterial(NULL), m_pBipedBuf(NULL), m_nBipedBufCount(0), m_nColouringMode(0), m_nTime(0), m_nTimeLowerBound(0)
 {
 }
@@ -44,8 +43,8 @@ void CSimVis::SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped)
 		m_pBiped->StoreState(m_nBipedBufCount, m_pBipedBuf, NULL);
 	}
 
-	if (GetBuilding())
-		GetBuilding()->SetScene(m_pScene);
+	if (GetLftGroup())
+		GetLftGroup()->SetScene(m_pScene);
 }
 
 IBody *CSimVis::GetBody()

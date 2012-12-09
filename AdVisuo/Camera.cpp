@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "Camera.h"
-#include "VisBuilding.h"
+#include "VisLftGroup.h"
 
 #include <freewill.h>
 #include <fwaction.h>
@@ -16,13 +16,13 @@
  
 #define NOBONE ((IKineNode*)NULL)
 
-CCamera::CCamera(CBuildingVis *pBuilding, AVULONG nId)
+CCamera::CCamera(CLftGroupVis *pLftGroup, AVULONG nId)
 {
 	m_pBaseBone = NULL;
 	m_pHandleBone = NULL;
 	m_pCamera = NULL;
 
-	SetBuilding(pBuilding);
+	SetLftGroup(pLftGroup);
 	SetId(nId);
 	SetStorey(0, false);
 	m_nLift = 0;
@@ -39,24 +39,24 @@ CCamera::~CCamera()
 	Destroy();
 }
 
-void CCamera::SetBuilding(CBuildingVis *pBuilding)
+void CCamera::SetLftGroup(CLftGroupVis *pLftGroup)
 {
-	m_pBuilding = pBuilding;
-	if (!m_pBuilding) return;
+	m_pLftGroup = pLftGroup;
+	if (!m_pLftGroup) return;
 
-	m_box = m_pBuilding->GetBox();
+	m_box = m_pLftGroup->GetBox();
 
 	AVFLOAT nLWall = 0, nRWall = 0;
-	if (m_pBuilding->GetLobbyArrangement() == CBuildingVis::LOBBY_DEADEND_LEFT)  nLWall = m_pBuilding->GetBox().LeftThickness();
-	if (m_pBuilding->GetLobbyArrangement() == CBuildingVis::LOBBY_DEADEND_RIGHT) nRWall = m_pBuilding->GetBox().RightThickness();
+	if (m_pLftGroup->GetLobbyArrangement() == CLftGroupVis::LOBBY_DEADEND_LEFT)  nLWall = m_pLftGroup->GetBox().LeftThickness();
+	if (m_pLftGroup->GetLobbyArrangement() == CLftGroupVis::LOBBY_DEADEND_RIGHT) nRWall = m_pLftGroup->GetBox().RightThickness();
 
 	m_box = BOX(
-		m_pBuilding->GetBox().Left() + 2 + nLWall,
-		m_pBuilding->GetBox().Front() + 10,
-		m_pBuilding->GetBox().Width() - 4 - nLWall - nRWall, 
-		m_pBuilding->GetBox().Depth() - 20);
+		m_pLftGroup->GetBox().Left() + 2 + nLWall,
+		m_pLftGroup->GetBox().Front() + 10,
+		m_pLftGroup->GetBox().Width() - 4 - nLWall - nRWall, 
+		m_pLftGroup->GetBox().Depth() - 20);
 
-	m_nTripodHeight = m_pBuilding->GetShaft(0)->GetBoxDoor().Height();
+	m_nTripodHeight = m_pLftGroup->GetShaft(0)->GetBoxDoor().Height();
 }
 
 void CCamera::SetBaseBone(IKineNode *pNode, bool bKeepCoord)
@@ -96,36 +96,36 @@ void CCamera::SetBaseBone(IKineNode *pNode, bool bKeepCoord)
 
 void CCamera::SetStorey(AVLONG nStorey, bool bKeepCoord)
 {
-	ASSERT (nStorey >= 0 && (ULONG)nStorey < GetBuilding()->GetStoreyCount());
-	if (nStorey < 0 || (ULONG)nStorey >= GetBuilding()->GetStoreyCount())
+	ASSERT (nStorey >= 0 && (ULONG)nStorey < GetLftGroup()->GetStoreyCount());
+	if (nStorey < 0 || (ULONG)nStorey >= GetLftGroup()->GetStoreyCount())
 		return;
 
 	// storey parameters
 	m_nStorey = nStorey;
 
 	// new base bone
-	SetBaseBone(m_pBuilding->GetStoreyElement(m_nStorey)->GetBone(), bKeepCoord);
+	SetBaseBone(m_pLftGroup->GetStoreyElement(m_nStorey)->GetBone(), bKeepCoord);
 }
 
 void CCamera::SetLift(AVLONG nLift, bool bKeepCoord)
 {
-	ASSERT (nLift >= 0 && (ULONG)nLift < GetBuilding()->GetLiftCount());
-	if (nLift < 0 || (ULONG)nLift >= GetBuilding()->GetLiftCount())
+	ASSERT (nLift >= 0 && (ULONG)nLift < GetLftGroup()->GetLiftCount());
+	if (nLift < 0 || (ULONG)nLift >= GetLftGroup()->GetLiftCount())
 		return;
 
 	// shaft/lift parameters
 	m_nLift = nLift;
-	m_nShaft = GetBuilding()->GetLift(nLift)->GetShaftId();
+	m_nShaft = GetLftGroup()->GetLift(nLift)->GetShaftId();
 
 	// new base bone
-	SetBaseBone(m_pBuilding->GetLiftElement(m_nLift)->GetBone(), bKeepCoord);
+	SetBaseBone(m_pLftGroup->GetLiftElement(m_nLift)->GetBone(), bKeepCoord);
 }
 
 bool CCamera::Create()
 {
 	ASSERT(m_pHandleBone == NULL && m_pCamera == NULL);
 
-	if (!m_pBuilding || !m_pBuilding->IsValid() || !m_pBaseBone)
+	if (!m_pLftGroup || !m_pLftGroup->IsValid() || !m_pBaseBone)
 		return false;
 
 	OLECHAR buf[257];
@@ -159,7 +159,7 @@ bool CCamera::Destroy()
 	m_pBaseBone = NULL;
 	m_pHandleBone = NULL;
 	m_pCamera = NULL;
-	m_pBuilding = NULL;
+	m_pLftGroup = NULL;
 	return true;
 }
 
@@ -227,16 +227,16 @@ CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLOAT fAspec
 		if (cp.eye.z <= m_nTripodHeight * 1.1)
 		{
 			// camera mounted on a tripod
-			if (cp.eye.z > GetBuilding()->GetStorey(nId)->GetHeight())
-				cp.eye.z = GetBuilding()->GetStorey(nId)->GetHeight();
+			if (cp.eye.z > GetLftGroup()->GetStorey(nId)->GetHeight())
+				cp.eye.z = GetLftGroup()->GetStorey(nId)->GetHeight();
 		}
 		else
 		{
 			// if camera mounted below the ceiling (above the standard tripod height)
-			cp.eye.z = GetBuilding()->GetStorey(nId)->GetHeight() - GetBuilding()->GetStorey(GetStorey())->GetHeight() + cp.eye.z;
+			cp.eye.z = GetLftGroup()->GetStorey(nId)->GetHeight() - GetLftGroup()->GetStorey(GetStorey())->GetHeight() + cp.eye.z;
 
-			if (cp.eye.z > GetBuilding()->GetStorey(nId)->GetHeight())
-				cp.eye.z = GetBuilding()->GetStorey(nId)->GetHeight();
+			if (cp.eye.z > GetLftGroup()->GetStorey(nId)->GetHeight())
+				cp.eye.z = GetLftGroup()->GetStorey(nId)->GetHeight();
 			if (cp.eye.z < m_nTripodHeight)
 				cp.eye.z = m_nTripodHeight;
 		}
@@ -251,7 +251,7 @@ CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLOAT fAspec
 
 		if (nId > 7) nId = 0;
 
-		AVFLOAT nStoreyHeight = min(m_pBuilding->GetStorey(GetStorey())->GetBox().Height(), 2 * m_nTripodHeight);
+		AVFLOAT nStoreyHeight = min(m_pLftGroup->GetStorey(GetStorey())->GetBox().Height(), 2 * m_nTripodHeight);
 		AVFLOAT fEyeHeight = min(nStoreyHeight - 20, m_nTripodHeight);
 
 		// eye position
@@ -331,7 +331,7 @@ CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLOAT fAspec
 		AVFLOAT fEyeHeight2 = 1.10f * m_box.Width() / fAspect / 2 / tan(cp.fHFOV/2);
 		AVFLOAT fEyeHeight = max(fEyeHeight1, fEyeHeight2);
 		cp.eye = Vector(m_box.CentreX(), m_box.CentreY(), fEyeHeight);
-		AVFLOAT nStoreyHeight = m_pBuilding->GetStorey(GetStorey())->GetBox().Height();
+		AVFLOAT nStoreyHeight = m_pLftGroup->GetStorey(GetStorey())->GetBox().Height();
 		cp.fClipNear = fEyeHeight - nStoreyHeight + 20;
 		if (cp.fClipNear < 10) cp.fClipNear = 10;
 
@@ -346,13 +346,13 @@ CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLOAT fAspec
 		cp.camloc = camloc;
 		cp.nId = nId;
 
-		BOX box = m_pBuilding->GetLift(nId)->GetShaft()->GetBoxCar();
+		BOX box = m_pLftGroup->GetLift(nId)->GetShaft()->GetBoxCar();
 		AVFLOAT nCarHeight = box.Height();
 		AVFLOAT fEyeHeight = min(nCarHeight - 20, m_nTripodHeight);
 		AVFLOAT fTargetDist = box.Depth();					// distance to the point the camera is looking at
 		AVFLOAT nTargetHeight = m_nTripodHeight * 2 / 4;	// height of the point the camera is looking at
 
-		AVFLOAT fLine = (m_pBuilding->GetLift(nId)->GetShaft()->GetShaftLine() == 0) ? 1.0f : -1.0f;
+		AVFLOAT fLine = (m_pLftGroup->GetLift(nId)->GetShaft()->GetShaftLine() == 0) ? 1.0f : -1.0f;
 	
 		cp.eye = Vector(box.Width()/2, box.Depth()+fLine*10, fEyeHeight);
 		cp.fHFOV = 0;
@@ -368,11 +368,11 @@ CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLOAT fAspec
 		cp.nId = 0;
 		cp.fAspectRatio = fAspect;
 
-		BOX lbox = m_pBuilding->GetShaft(0)->GetBoxCar();
+		BOX lbox = m_pLftGroup->GetShaft(0)->GetBoxCar();
 
-		AVFLOAT yFront = (m_pBuilding->GetShaftLinesCount() == 1) ? m_box.Rear() : m_pBuilding->GetShaft(m_pBuilding->GetShaftCount(0))->GetBox().RearExt();
-		AVFLOAT yRear  = m_pBuilding->GetShaft(0)->GetBox().RearExt();
-		AVFLOAT nHeight = m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->GetLevel() + m_pBuilding->GetStorey(m_pBuilding->GetStoreyCount() - 1)->GetHeight();
+		AVFLOAT yFront = (m_pLftGroup->GetShaftLinesCount() == 1) ? m_box.Rear() : m_pLftGroup->GetShaft(m_pLftGroup->GetShaftCount(0))->GetBox().RearExt();
+		AVFLOAT yRear  = m_pLftGroup->GetShaft(0)->GetBox().RearExt();
+		AVFLOAT nHeight = m_pLftGroup->GetStorey(m_pLftGroup->GetStoreyCount() - 1)->GetLevel() + m_pLftGroup->GetStorey(m_pLftGroup->GetStoreyCount() - 1)->GetHeight();
 
 		switch (nId)
 		{
@@ -428,7 +428,7 @@ void CCamera::MoveTo(CAMPARAMS &cp)
 	m_cp = cp;
 
 	Reset();
-	Move(cp.eye.x, cp.eye.y, cp.eye.z, cp.EyeRef(GetBuilding()));
+	Move(cp.eye.x, cp.eye.y, cp.eye.z, cp.EyeRef(GetLftGroup()));
 	Pan((AVFLOAT)M_PI + cp.fPan);
 	Tilt(cp.fTilt);
 	m_pCamera->PutPerspective(cp.FOV(), cp.fClipNear, cp.fClipFar, 0);
@@ -471,11 +471,11 @@ void CCamera::AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime)
 
 	if (cp.camloc == CAMLOC_OVERHEAD) 
 	{
-		AVVECTOR eye1 = { cp.eye.x, cp.eye.y, m_pBuilding->GetStorey(cp.nId)->GetLevel() + m_pBuilding->GetStorey(cp.nId)->GetBox().Height() };
+		AVVECTOR eye1 = { cp.eye.x, cp.eye.y, m_pLftGroup->GetStorey(cp.nId)->GetLevel() + m_pLftGroup->GetStorey(cp.nId)->GetBox().Height() };
 		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, nTime * 6 / 10, GetHandle(), *(FWVECTOR*)&eye1, NULL);
 	}
 	else
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, nTime * 6 / 10, GetHandle(), *(FWVECTOR*)&cp.eye, cp.EyeRef(GetBuilding()));
+		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, nTime * 6 / 10, GetHandle(), *(FWVECTOR*)&cp.eye, cp.EyeRef(GetLftGroup()));
 	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
 
 	ITransform *pT = NULL;
@@ -492,7 +492,7 @@ void CCamera::AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime)
 	if (cp.camloc == CAMLOC_OVERHEAD) 
 	{
 		// second stage: move up, change the fClipNear
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, nTime, nTime, GetHandle(), *(FWVECTOR*)&cp.eye, cp.EyeRef(GetBuilding()));
+		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, nTime, nTime, GetHandle(), *(FWVECTOR*)&cp.eye, cp.EyeRef(GetLftGroup()));
 		m_pCamera->GetPerspective(&m_fFOV, &m_fClipNear, NULL, NULL); 
 		pAction->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback_fun_oh, 0, this);
 		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
@@ -600,8 +600,8 @@ void CCamera::CheckLocation()
 	m_pHandleBone->LtoG((FWVECTOR*)&pos);
 
 	// camera azimouth and zone
-	m_camAzim = ((AVLONG)((m_pBuilding->GetBox().InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
-	if (m_pBuilding->GetBox().InBoxSection(pos, 3, 3, m_camXZone, m_camYZone))
+	m_camAzim = ((AVLONG)((m_pLftGroup->GetBox().InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
+	if (m_pLftGroup->GetBox().InBoxSection(pos, 3, 3, m_camXZone, m_camYZone))
 		m_camZone = m_camXZone + 3 * m_camYZone;
 	else
 		m_camZone = 9;
@@ -609,35 +609,35 @@ void CCamera::CheckLocation()
 	// camera position against the shafts
 	for (AVLONG iRow = 0; iRow < 2; iRow++)
 	{
-		m_nShaftPos[iRow] = GetBuilding()->GetShaftBegin(iRow);
-		while (m_nShaftPos[iRow] < (AVLONG)GetBuilding()->GetShaftEnd(iRow) && !GetBuilding()->GetShaft(m_nShaftPos[iRow])->InWidth(pos.x))
+		m_nShaftPos[iRow] = GetLftGroup()->GetShaftBegin(iRow);
+		while (m_nShaftPos[iRow] < (AVLONG)GetLftGroup()->GetShaftEnd(iRow) && !GetLftGroup()->GetShaft(m_nShaftPos[iRow])->InWidth(pos.x))
 			m_nShaftPos[iRow]++;
-		if (m_nShaftPos[iRow] == (AVLONG)GetBuilding()->GetShaftEnd(iRow))
+		if (m_nShaftPos[iRow] == (AVLONG)GetLftGroup()->GetShaftEnd(iRow))
 			if (iRow == 0 && pos.x < 0 || iRow == 1 && pos.x > 0)
-				m_nShaftPos[iRow] = (AVLONG)GetBuilding()->GetShaftBegin(iRow) - 1;
+				m_nShaftPos[iRow] = (AVLONG)GetLftGroup()->GetShaftBegin(iRow) - 1;
 	}
 
-	if (pos.z < GetBuilding()->GetStorey(0)->GetLevel())
+	if (pos.z < GetLftGroup()->GetStorey(0)->GetLevel())
 	{
 		camloc = CAMLOC_BELOW;
 		nStorey = 0;
 		nShaft = nLift = -1;
 	}
-	else if (pos.z >= GetBuilding()->GetStorey(GetBuilding()->GetStoreyCount() - 1)->GetRoofLevel())
+	else if (pos.z >= GetLftGroup()->GetStorey(GetLftGroup()->GetStoreyCount() - 1)->GetRoofLevel())
 	{
 		camloc = CAMLOC_ABOVE;
-		nStorey = GetBuilding()->GetStoreyCount() - 1;
+		nStorey = GetLftGroup()->GetStoreyCount() - 1;
 		nShaft = nLift = -1;
 	}
 	else
 	{
-		// within the height of the building; it may be outside, lobby, shaft or lift
+		// within the height of the lift group; it may be outside, lobby, shaft or lift
 		// first, find the storey...
-		while (nStorey < (AVLONG)GetBuilding()->GetStoreyCount() && !GetBuilding()->GetStorey(nStorey)->Within(pos))
+		while (nStorey < (AVLONG)GetLftGroup()->GetStoreyCount() && !GetLftGroup()->GetStorey(nStorey)->Within(pos))
 			nStorey++;
-		ASSERT (nStorey < (AVLONG)GetBuilding()->GetStoreyCount());
+		ASSERT (nStorey < (AVLONG)GetLftGroup()->GetStoreyCount());
 		
-		if (m_pBuilding->GetBox().InBox(pos))
+		if (m_pLftGroup->GetBox().InBox(pos))
 		{
 			camloc = CAMLOC_LOBBY;
 			nShaft = nLift = -1;
@@ -645,15 +645,15 @@ void CCamera::CheckLocation()
 		else
 		{
 			nShaft = 0;
-			while (nShaft < (AVLONG)GetBuilding()->GetShaftCount() && !GetBuilding()->GetShaft(nShaft)->InBox(pos))
+			while (nShaft < (AVLONG)GetLftGroup()->GetShaftCount() && !GetLftGroup()->GetShaft(nShaft)->InBox(pos))
 				nShaft++;
-			if (nShaft < (AVLONG)GetBuilding()->GetShaftCount())
+			if (nShaft < (AVLONG)GetLftGroup()->GetShaftCount())
 			{
 				// we're in a shaft - check for the lifts
 				nLift = 0;
-				while (nLift < (AVLONG)GetBuilding()->GetLiftCount() && !GetBuilding()->GetLift(nLift)->Within(pos, GetBuilding()->GetLiftPos(nLift)))
+				while (nLift < (AVLONG)GetLftGroup()->GetLiftCount() && !GetLftGroup()->GetLift(nLift)->Within(pos, GetLftGroup()->GetLiftPos(nLift)))
 					nLift++;
-				if (nLift < (AVLONG)GetBuilding()->GetLiftCount())
+				if (nLift < (AVLONG)GetLftGroup()->GetLiftCount())
 				{
 					camloc = CAMLOC_LIFT;
 					nLiftStorey = nStorey;
@@ -693,7 +693,7 @@ CAMLOC CCamera::GetDescription(CAMDESC *pDesc)
 	AVLONG AZIM[] = { 1, 7, 5, 3 };
 	AVLONG AZIMb[] = { 1, 2, 0, 3 };
 
-	pDesc->floor = GetStorey() - GetBuilding()->GetBasementStoreyCount();
+	pDesc->floor = GetStorey() - GetLftGroup()->GetBasementStoreyCount();
 	pDesc->camloc = m_camloc;
 	pDesc->index = -1;
 	pDesc->bExact = !m_bMoved;
@@ -706,7 +706,7 @@ CAMLOC CCamera::GetDescription(CAMDESC *pDesc)
 			pDesc->index = AZIM[m_camAzim];
 		break;
 	case CAMLOC_LIFT:
-		pDesc->floor = m_nLiftStorey - GetBuilding()->GetBasementStoreyCount();
+		pDesc->floor = m_nLiftStorey - GetLftGroup()->GetBasementStoreyCount();
 		pDesc->index = GetLift() + 1;
 		break;
 	case CAMLOC_SHAFT:
@@ -732,7 +732,7 @@ LPTSTR CCamera::GetTextDescription()
 	AVULONG nId = GetId() + 1;
 	AVULONG nSize = 256;
 
-	CString pFloorName = GetBuilding()->GetStorey(desc.floor + GetBuilding()->GetBasementStoreyCount())->GetName().c_str();
+	CString pFloorName = GetLftGroup()->GetStorey(desc.floor + GetLftGroup()->GetBasementStoreyCount())->GetName().c_str();
 	pFloorName.Trim();
 
 	switch (desc.camloc)
@@ -779,7 +779,7 @@ LPTSTR CCamera::GetShortTextDescription()
 	AVULONG nId = GetId() + 1;
 	AVULONG nSize = 256;
 
-	CString pFloorName = GetBuilding()->GetStorey(desc.floor + GetBuilding()->GetBasementStoreyCount())->GetName().c_str();
+	CString pFloorName = GetLftGroup()->GetStorey(desc.floor + GetLftGroup()->GetBasementStoreyCount())->GetName().c_str();
 	pFloorName.Trim();
 
 	static wchar_t buf[256];

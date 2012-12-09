@@ -15,12 +15,12 @@ To execute any SQL command
 SQL SELECT:
 
 	CDataBase::SELECT sel;
-	sel = db.select(("SELECT * FROM AVBuildings WHERE ProjectID=%d", nProjectID);
-	bldName = sel[L"BuildingName"];
+	sel = db.select(("SELECT * FROM AVLftGroups WHERE ProjectID=%d", nProjectID);
+	bldName = sel[L"LftGroupName"];
 
 All objects are reusable - and there is no need to close explicitly:
 
-	sel = db.select("SELECT * FROM AVShafts WHERE BuildingID=%d ORDER BY ShaftID", nBuildingID);
+	sel = db.select("SELECT * FROM AVShafts WHERE LiftGroupId=%d ORDER BY ShaftID", nLiftGroupId);
 
 to read entire table:
 
@@ -32,8 +32,8 @@ to read entire table:
 
 SQL INSERT
 
-	CDataBase::INSERT ins = db.insert("AVBuildings")
-	ins["BuildingName"] = "Front Tower";
+	CDataBase::INSERT ins = db.insert("AVLftGroups")
+	ins["LftGroupName"] = "Front Tower";
 	ins["LobbyWidth"] = 2500;
 	ins["TimeStamp"] = "CURRENT_TIMESTAMP";
 	ins["TimeStamp"].esc();					//	to remove quotation marks
@@ -41,8 +41,8 @@ SQL INSERT
 
 SQL UPADTE
 
-	CDataBase::UPDATE upd = db.insert("AVBuildings", "WHERE BuildingId=%d", id)
-	upd["BuildingName"] = "Front Tower";
+	CDataBase::UPDATE upd = db.insert("AVLftGroups", "WHERE LiftGrpId=%d", id)
+	upd["LftGroupName"] = "Front Tower";
 	upd["LobbyWidth"] = 2500;
 	upd.execute();
 

@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "../CommonFiles/BaseClasses.h"
-#include <Vector>
+#include "../CommonFiles/BaseSimClasses.h"
 
 interface IAction;
 class CSimVis;

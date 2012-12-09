@@ -1,22 +1,17 @@
-// BaseBuilding.h - AdVisuo Common Source File
+// BaseGroup.h - AdVisuo Common Source File
 
 #pragma once
 
 #include "Box.h"
 #include "DBTools.h"
 
-/////////////////////////////////////////////////////////////
-// Max Number of Lift Decks and Doors
-
-#define DECK_NUM	2
-#define MAX_DOORS	6
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CBuilding
+// CLftGroup
 
 class CProject;
+class CSim;
 
-class CBuilding : public dbtools::CCollection
+class CLftGroup : public dbtools::CCollection
 {
 // enum & struct definitions
 public:
@@ -34,20 +29,20 @@ public:
 	{
 	protected:
 		AVULONG m_nId;							// Storey Id
-		CBuilding *m_pBuilding;					// main building
+		CLftGroup *m_pLftGroup;					// lift group
 		std::wstring m_strName;					// storey name
 
 		AVFLOAT m_fLevel;						// lobby floor level
-		BOX m_box;								// lobby floor plan (the same as building, but includes storey height - from floor to ceiling
+		BOX m_box;								// lobby floor plan (the same as lift group's, but includes storey height - from floor to ceiling
 		
 	public:
-		STOREY(CBuilding *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), m_fLevel(0)	{ }
+		STOREY(CLftGroup *pLftGroup, AVULONG nId) : m_pLftGroup(pLftGroup), m_nId(nId), m_fLevel(0)	{ }
 		virtual ~STOREY()						{ }
 
 		// Attributes
 		AVULONG GetId()							{ return m_nId; }
-		CBuilding *GetBuilding()				{ return m_pBuilding; }
-		CProject *GetProject()					{ return GetBuilding()->GetProject(); }
+		CLftGroup *GetLftGroup()				{ return m_pLftGroup; }
+		CProject *GetProject()					{ return GetLftGroup()->GetProject(); }
 		std::wstring GetName()					{ return m_strName; }
 
 		AVFLOAT GetLevel()						{ return m_fLevel; }
@@ -59,14 +54,14 @@ public:
 		void SetName(std::wstring strName)		{ m_strName = strName; }
 		void SetLevel(AVFLOAT fLevel)			{ m_fLevel = fLevel; }
 
-		AVVECTOR GetLiftPos(AVULONG nShaft)		{ return GetBuilding()->GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetLevel()); }
+		AVVECTOR GetLiftPos(AVULONG nShaft)		{ return GetLftGroup()->GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetLevel()); }
 
 		BOX &GetBox()							{ return m_box; }
 		bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
 		bool Within(AVVECTOR &pos)				{ return pos.z >= GetLevel() && pos.z < GetLevel() + GetHeight(); }
 
-		bool IsStoreyServed()					{ for (AVULONG i = 0; i < GetBuilding()->GetShaftCount(); i++) if (GetBuilding()->GetShaft(i)->IsStoreyServed(GetId())) return true; return false; }
-		bool IsStoreyServed(AVULONG nShaft)		{ return GetBuilding()->GetShaft(nShaft)->IsStoreyServed(GetId()); }
+		bool IsStoreyServed()					{ for (AVULONG i = 0; i < GetLftGroup()->GetShaftCount(); i++) if (GetLftGroup()->GetShaft(i)->IsStoreyServed(GetId())) return true; return false; }
+		bool IsStoreyServed(AVULONG nShaft)		{ return GetLftGroup()->GetShaft(nShaft)->IsStoreyServed(GetId()); }
 
 		// Operations:
 		void ConsoleCreate(AVULONG nId, AVFLOAT fLevel);
@@ -78,7 +73,7 @@ public:
 	class MACHINEROOM : public STOREY
 	{
 	public:
-		MACHINEROOM(CBuilding *pBuilding) : STOREY(pBuilding, 9999)	{ }
+		MACHINEROOM(CLftGroup *pLftGroup) : STOREY(pLftGroup, 9999)	{ }
 		virtual ~MACHINEROOM()										{ }
 		void ConsoleCreate();
 		void Create();
@@ -87,7 +82,7 @@ public:
 	class PIT : public STOREY
 	{
 	public:
-		PIT(CBuilding *pBuilding) : STOREY(pBuilding, 9998)	{ }
+		PIT(CLftGroup *pLftGroup) : STOREY(pLftGroup, 9998)		{ }
 		virtual ~PIT()											{ }
 		void ConsoleCreate();
 		void Create();
@@ -97,7 +92,7 @@ public:
 	class SHAFT : public dbtools::CCollection
 	{
 		AVULONG m_nId;							// Shaft Id
-		CBuilding *m_pBuilding;					// main building
+		CLftGroup *m_pLftGroup;					// lift group
 		AVULONG m_nShaftLine;					// 0 for SHAFT_INLINE and 0 or 1 for SHAFT_OPPOSITE
 
 		TYPE_OF_LIFT m_type;					// type of lift (conventional/MRL)
@@ -136,14 +131,14 @@ public:
 
 	public:
 
-		SHAFT(CBuilding *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), 
+		SHAFT(CLftGroup *pLftGroup, AVULONG nId) : m_pLftGroup(pLftGroup), m_nId(nId), 
 			m_nShaftLine(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_nLiftCount(1), m_fWallLtStart(0), m_fWallRtStart(0), m_fBeamLtHeight(0), m_fBeamRtHeight(0)	{ }
 		virtual ~SHAFT()						{ }
 
 		// Attributes:
 		AVULONG GetId()							{ return m_nId; }
-		CBuilding *GetBuilding()				{ return m_pBuilding; }
-		CProject *GetProject()					{ return GetBuilding()->GetProject(); }
+		CLftGroup *GetLftGroup()				{ return m_pLftGroup; }
+		CProject *GetProject()					{ return GetLftGroup()->GetProject(); }
 		AVULONG GetShaftLine()					{ return m_nShaftLine; }
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
@@ -191,7 +186,7 @@ public:
 		AVULONG GetDoorType()					{ return (m_nDoorType - 1) % 3; }		// 0 = center; 1 = left; 2 = right
 		AVULONG GetDoorPanelsCount()			{ return (m_nDoorType - 1) / 3 + 1; }	// 1, 2, or 3 (no zero!)
 
-		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetBuilding()->GetStorey(nStorey)->GetLevel()); }
+		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetLftGroup()->GetStorey(nStorey)->GetLevel()); }
 
 		// raw data functions
 		AVFLOAT GetRawWidth()					{ return (*this)[L"ShaftWidth"]; }
@@ -219,18 +214,18 @@ public:
 	{
 		AVULONG m_nId;							// Lift Id
 		AVULONG m_nShaftId;						// Shaft Id - will be different if many lifts per shaft
-		CBuilding *m_pBuilding;					// main building
+		CLftGroup *m_pLftGroup;					// lift group
 
 	public:
-		LIFT(CBuilding *pBuilding, AVULONG nId) : m_pBuilding(pBuilding), m_nId(nId), m_nShaftId(0)	{ }
+		LIFT(CLftGroup *pLftGroup, AVULONG nId) : m_pLftGroup(pLftGroup), m_nId(nId), m_nShaftId(0)	{ }
 		virtual ~LIFT()							{ }
 
 		AVULONG GetId()							{ return m_nId; }
 		AVULONG GetShaftId()					{ return m_nShaftId; }
 		void SetShaftId(AVULONG nShaftId)		{ m_nShaftId = nShaftId; }
-		SHAFT *GetShaft()						{ return m_pBuilding->GetShaft(GetShaftId() >= 0 ? GetShaftId() : 0); }
-		CBuilding *GetBuilding()				{ return m_pBuilding; }
-		CProject *GetProject()					{ return GetBuilding()->GetProject(); }
+		SHAFT *GetShaft()						{ return m_pLftGroup->GetShaft(GetShaftId() >= 0 ? GetShaftId() : 0); }
+		CLftGroup *GetLftGroup()				{ return m_pLftGroup; }
+		CProject *GetProject()					{ return GetLftGroup()->GetProject(); }
 
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
@@ -245,21 +240,17 @@ public:
 
 private:
 
-	CProject *m_pProject;				// The Project Object
-	std::wstring m_strName;				// Lift Group name
-
-	AVULONG m_nId;						// Building ID
-	AVULONG m_nSimId;					// Sim ID
-
+	AVULONG m_nId;						// Lift Group ID
+	AVULONG m_nProjectId;				// Project ID
 	AVULONG m_nIndex;					// index in multi-group structures
 
-	AVFLOAT m_fScale;
+	CProject *m_pProject;				// The Project Object
+	std::wstring m_strName;				// Lift Group name
+	CSim *m_pSim;						// Sim object
 
-	AVULONG m_nStoreyCount;				// Counters (floors/shafts/lifts)
-	AVULONG m_nShaftCount;
-	AVULONG m_nLiftCount;
+	AVFLOAT m_fScale;					// scale factor (applied to all dimensions)
 
-	AVULONG m_nBasementStoreyCount;
+	AVULONG m_nBasementStoreyCount;		// basement storey count
 	AVULONG m_pnShaftCount[2];			// counter of lifts per line
 
 	SHAFT_ARRANGEMENT m_LiftShaftArrang;// Lift shaft arrangements
@@ -275,15 +266,17 @@ private:
 	BOX m_boxPit;						// scaled floor plan and level for the pit level
 	AVFLOAT m_fPitLevel;
 
-	STOREY **m_ppStoreys;
-	SHAFT **m_ppShafts;
-	LIFT **m_ppLifts;
+protected:
+	std::vector<STOREY*> m_storeys;
+	std::vector<SHAFT*>  m_shafts;
+	std::vector<LIFT*>   m_lifts;
+	
 	MACHINEROOM *m_pMachineRoom;
 	PIT *m_pPit;
 
 public:
-	CBuilding(CProject *pProject, AVULONG nIndex);
-	virtual ~CBuilding();
+	CLftGroup(CProject *pProject, AVULONG nIndex);
+	virtual ~CLftGroup();
 
 	CProject *GetProject()					{ return m_pProject; }
 	void SetProject(CProject *pProject)		{ m_pProject = pProject; }
@@ -293,13 +286,11 @@ public:
 	AVULONG GetId()							{ return m_nId; }
 	void SetId(AVULONG nId)					{ m_nId = nId; }
 
-	AVULONG GetSimId()						{ return m_nSimId; }
-	void SetSimId(AVULONG nId)				{ m_nSimId = nId; }
+	AVULONG GetProjectId()					{ return m_nProjectId; }
+	void SetProjectId(AVULONG nId)			{ m_nProjectId = nId; }
 
 	AVULONG GetIndex()						{ return m_nIndex; }
 	void SetIndex(AVULONG n)				{ m_nIndex = n; }
-
-	AVLONG GetNativeId()					{ return ME[L"LiftGroupId"]; }
 
 	BOX &GetBox()							{ return m_box; }
 	bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
@@ -318,14 +309,15 @@ public:
 
 	// Storeys
 	void CreateStoreys(AVULONG nStoreyCount, AVULONG nBasementStoreyCount = 0);
+	STOREY *AddStorey();
 	void DeleteStoreys();
-	AVULONG GetStoreyCount()				{ return m_nStoreyCount; }
+	AVULONG GetStoreyCount()				{ return m_storeys.size(); }
 	AVULONG GetBasementStoreyCount()		{ return m_nBasementStoreyCount; }
-	STOREY *GetStorey(AVULONG i)			{ return i < GetStoreyCount() ? m_ppStoreys[i] : NULL; }
+	STOREY *GetStorey(AVULONG i)			{ return i < GetStoreyCount() ? m_storeys[i] : NULL; }
 	STOREY *GetGroundStorey(AVULONG i = 0)	{ return GetStorey(i + GetBasementStoreyCount()); }
 
 	// Extras: Machine Room & Pit
-	void CreateExtras();
+	void AddExtras();
 	void DeleteExtras();
 
 	MACHINEROOM *GetMachineRoom()			{ return m_pMachineRoom; }
@@ -344,11 +336,11 @@ public:
 	AVFLOAT GetPitLadderUpperBracket()		{ if (IsPitLadder()) return (GetPitLadderHeight() - 600) * GetScale(); else return 0; }
 
 	// Shafts
-	void CreateShafts(AVULONG nShaftCount);
+	SHAFT *AddShaft();
 	void DeleteShafts();
-	SHAFT *GetShaft(AVULONG i)				{ return i < GetShaftCount() ? m_ppShafts[i] : NULL; }
+	SHAFT *GetShaft(AVULONG i)				{ return i < GetShaftCount() ? m_shafts[i] : NULL; }
 
-	AVULONG GetShaftCount()					{ return m_nShaftCount; }
+	AVULONG GetShaftCount()					{ return m_shafts.size(); }
 	AVULONG GetShaftBegin(AVULONG nLine)	{ return nLine == 0 ? 0 : m_pnShaftCount[0]; }
 	AVULONG GetShaftCount(AVULONG nLine)	{ return m_pnShaftCount[nLine]; }
 	AVULONG GetShaftEnd(AVULONG nLine)		{ return GetShaftBegin(nLine) + GetShaftCount(nLine); }
@@ -359,17 +351,23 @@ public:
 	AVVECTOR GetCarPos(AVULONG nShaft, AVULONG nStorey)	{ return GetShaft(nShaft)->GetLiftPos(nStorey); }
 
 	// Lifts
-	void CreateLifts(AVULONG nLiftCount);
+	LIFT *AddLift();
 	void DeleteLifts();
-	LIFT *GetLift(AVULONG i)				{ return i < GetLiftCount() ? m_ppLifts[i] : NULL; }
+	LIFT *GetLift(AVULONG i)				{ return i < GetLiftCount() ? m_lifts[i] : NULL; }
 
-	AVULONG GetLiftCount()					{ return m_nLiftCount; }
+	AVULONG GetLiftCount()					{ return m_lifts.size(); }
 
 	// Storeys Served
 	bool IsStoreyServed(AVULONG nStorey)	{ return GetStorey(nStorey)->IsStoreyServed(); }
 	bool IsStoreyServed(AVULONG nStorey, AVULONG nShaft)	{ return GetShaft(nShaft)->IsStoreyServed(nStorey); }
 	AVULONG GetHighestStoreyServed()		{ AVLONG N = 0; for (AVULONG i = 0; i < GetShaftCount(); i++) { AVLONG n = GetShaft(i)->GetHighestStoreyServed(); if (n > N) N = n; } return N; }
 	AVULONG GetLowestStoreyServed()			{ AVLONG N = 32767; for (AVULONG i = 0; i < GetShaftCount(); i++) { AVLONG n = GetShaft(i)->GetLowestStoreyServed(); if (n < N) N = n; } return N; }
+
+	// The Sim
+	CSim *AddSim();
+	void DeleteSim();
+	CSim *GetSim()							{ return m_pSim; }
+
 
 
 	// Various
@@ -379,13 +377,10 @@ public:
 
 
 	// Status
-	bool IsValid()							{ return m_nShaftCount && GetStoreyCount() && m_ppShafts && m_ppStoreys && GetShaftCount(0); }
+	bool IsValid()							{ return GetStoreyCount() && GetShaftCount() && GetShaftCount(0); }
 
 	// Calculations!
-	virtual void ResolveMe(AVLONG nId = -1);// initialises id and basic structure of storeys & shafts - uses DB info only, may be called before actual creation
-											// ATTENTION: Lifts structure should be created separately, after all lifts are loaded from the DB - see InitLifts below
-
-	virtual void ResolveMore();				// initialises basic structure of lifts - uses SHAFT DB info, call after Shafts are loaded but may be called before actual creation
+	virtual void ResolveMe();				// initialises id and basic variables
 	
 	virtual void ConsoleCreate();
 	virtual void Create();
@@ -399,5 +394,7 @@ protected:
 	virtual LIFT *CreateLift(AVULONG nId) = 0;
 	virtual MACHINEROOM *CreateMachineRoom() = 0;
 	virtual PIT *CreatePit() = 0;
+
+	virtual CSim *CreateSim() = 0;
 };
 

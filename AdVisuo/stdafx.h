@@ -102,5 +102,17 @@ struct AVVECTOR
 #endif
 #endif
 
+/////////////////////////////////////////////////////////////
+// Max Number of Lift Decks and Doors
+
+#define DECK_NUM	2
+#define MAX_DOORS	6
+
+/////////////////////////////////////////////////////////////
+// AdVisuo specific includes
+
+#include "../CommonFiles/Vector.h"
+#include "../CommonFiles/Box.h"
+
 
 #pragma warning (disable:4800)

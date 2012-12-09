@@ -3,19 +3,19 @@
 #pragma once
 
 interface IRenderer;
-class CBuildingVis;
+class CLftGroupVis;
 class CCamera;
 
 class CAdVisuoRenderer
 {
-	CBuildingVis *m_pBuilding;
+	CLftGroupVis *m_pLftGroup;
 	IRenderer *m_pRenderer;
 	CCamera *m_pCamera;
 public:
-	CAdVisuoRenderer(CBuildingVis *pBuilding, IRenderer *pRenderer, CCamera *pCamera = NULL)
-		: m_pBuilding(pBuilding), m_pRenderer(pRenderer), m_pCamera(pCamera)	{ }
+	CAdVisuoRenderer(CLftGroupVis *pLftGroup, IRenderer *pRenderer, CCamera *pCamera = NULL)
+		: m_pLftGroup(pLftGroup), m_pRenderer(pRenderer), m_pCamera(pCamera)	{ }
 
-	void SetBuilding(CBuildingVis *pBuilding)	{ m_pBuilding = pBuilding; }
+	void SetLftGroup(CLftGroupVis *pLftGroup)	{ m_pLftGroup = pLftGroup; }
 
 	bool SetupCamera(CCamera *pCamera);
 

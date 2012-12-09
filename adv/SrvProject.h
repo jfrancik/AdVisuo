@@ -3,21 +3,24 @@
 #pragma once
 
 #include "../CommonFiles/ConstrProject.h"
-#include "SrvBuilding.h"
-#include "SrvSim.h"
+
+class CLftGroupSrv;
+class CSimSrv;
 
 class CProjectSrv : public CProjectConstr
 {
 public:
 	CProjectSrv();
 
-	virtual CElem *CreateElement(CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)
+	virtual CElem *CreateElement(CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)
 											{ return NULL; }
 
-	CSimSrv *GetSim()						{ return (CSimSrv*)CProjectConstr::GetSim(); }
-	CBuildingSrv *GetBuilding()				{ return (CBuildingSrv*)CProjectConstr::GetBuilding(); }
+	CLftGroupSrv *GetLftGroup(int i)		{ return (CLftGroupSrv*)CProjectConstr::GetLftGroup(i); }
+	CLftGroupSrv *FindLftGroup(int id)		{ return (CLftGroupSrv*)CProjectConstr::FindLftGroup(id); }
+	CLftGroupSrv *AddLftGroup()				{ return (CLftGroupSrv*)CProjectConstr::AddLftGroup(); }
+
 	CSimSrv *GetSim(int i)					{ return (CSimSrv*)CProjectConstr::GetSim(i); }
-	CBuildingSrv *GetBuilding(int i)		{ return (CBuildingSrv*)CProjectConstr::GetBuilding(i); }
+	CSimSrv *FindSim(int id)				{ return (CSimSrv*)CProjectConstr::FindSim(id); }
 
 	// Database operations
 	HRESULT FindProjectID(dbtools::CDataBase db, ULONG nSimulationId, ULONG &nProjectID);
@@ -32,9 +35,8 @@ public:
 
 	HRESULT LoadSim(dbtools::CDataBase db, AVULONG nSimulationId);
 	
-	void Play()										{ for each (CSimSrv *pSim in m_sims) pSim->Play(); }
+	void Play();
 
 protected:
-	virtual CBuilding *CreateBuilding(AVULONG nIndex)					{ return new CBuildingSrv(this, nIndex); }
-	virtual CSim *CreateSim(CBuilding *pBuilding, AVULONG nIndex)		{ return new CSimSrv(pBuilding, nIndex); }
+	virtual CLftGroup *CreateLftGroup(AVULONG nIndex);
 };

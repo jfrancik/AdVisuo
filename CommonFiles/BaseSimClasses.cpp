@@ -1,68 +1,19 @@
 // BaseClasses.cpp - AdVisuo Common Source File
 
 #include "StdAfx.h"
-#include "BaseClasses.h"
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-// CProject
-
-CProject::CProject()
-{
-	m_nId = 0;
-	m_nSimulationId = 0;
-	m_nAVVersionId = 0;
-	m_nLiftGroupsCount = 0;
-	m_nDefault = -1;
-}
-
-CProject::~CProject()
-{
-	for each (CSim *pSim in m_sims)
-		delete pSim;
-}
-
-void CProject::ResolveMe()
-{
-	m_nId = ME[L"ID"];
-	m_nSimulationId = ME[L"SimulationId"];
-	m_nAVVersionId = ME[L"AVVersionId"];
-	m_nLiftGroupsCount = ME[L"LiftGroupsCount"];
-}
-
-void CProject::ResolveLiftGroups()
-{
-	for (AVULONG i = 0; i < GetLiftGroupsCount(); i++)
-		m_sims.push_back(CreateSim(CreateBuilding(i), i));
-	m_nDefault = 0;
-}
-
-std::wstring CProject::GetProjectInfo(PRJ_INFO what)
-{
-	switch (what)
-	{
-		case PRJ_PROJECT_NAME: return ME[L"ProjectName"];
-		case PRJ_BUILDING_NAME: return ME[L"BuildingName"];
-		case PRJ_LANGUAGE: return ME[L"Language"];
-		case PRJ_UNITS: return ME[L"MeasurementUnits"];
-		case PRJ_COMPANY: return ME[L"ClientCompany"];
-		case PRJ_CITY: return ME[L"City"];
-		case PRJ_LB_RGN: return ME[L"LBRegionDistrict"];
-		case PRJ_COUNTY: return ME[L"County"];
-		case PRJ_DESIGNER: return ME[L"LiftDesigner"];
-		case PRJ_COUNTRY: return ME[L"Country"];
-		case PRJ_CHECKED_BY: return ME[L"CheckedBy"];
-		case PRJ_POST_CODE: return ME[L"PostalZipCode"];
-		default: return L"(unknown)";
-	}
-}
-
+#include "BaseSimClasses.h"
+#include "dbtools.h"
+#include <string>
+#include <sstream>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSim
 
-CSim::CSim(CBuilding *pBuilding, AVULONG nIndex) : m_pBuilding(pBuilding), m_nIndex(nIndex)
+CSim::CSim()
 {
-	m_nProjectId = 0;
+	m_pLftGroup = NULL;
+	m_nIndex = 0;
+	m_nLftGroupId = 0;
 	m_nSIMVersionId = 0;
 	m_nSimulationTime = 0;
 	m_nTimeSaved = 0;
@@ -71,7 +22,6 @@ CSim::CSim(CBuilding *pBuilding, AVULONG nIndex) : m_pBuilding(pBuilding), m_nIn
 
 CSim::~CSim()
 {
-	if (m_pBuilding) delete m_pBuilding;
 	DeleteLifts();
 	DeletePassengers();
 }
@@ -102,12 +52,52 @@ void CSim::ResolveMe()
 {
 	m_nId = ME[L"ID"];
 	SetIndex(ME[L"LiftGroupIndex"]);
-	SetProjectId(ME[L"ProjectId"]);
+	SetLftGroupId(ME[L"LiftGroupId"]);
 	SetSIMVersionId(ME[L"SIMVersionId"]);
 	m_nSimulationTime = ME[L"SimulationTime"];
 	m_nTimeSaved = ME[L"TimeSaved"];
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// JOURNEY
+
+std::wstringstream &operator << (std::wstringstream &s, JOURNEY::DOOR &d)
+{
+	s << d.m_timeOpen << L" " << d.m_durationOpen << L" " << d.m_timeClose << L" " << d.m_durationClose << L" ";
+	return s;
+}
+
+std::wstringstream &operator >> (std::wstringstream &s, JOURNEY::DOOR &d)
+{
+	s >> d.m_timeOpen >> d.m_durationOpen >> d.m_timeClose >> d.m_durationClose;
+	return s;
+}
+
+std::wstring JOURNEY::StringifyDoorCycles()
+{
+	std::wstringstream s;
+	for (AVULONG iDeck = 0; iDeck < DECK_NUM; iDeck++)
+	{
+		s << m_doorcycles[iDeck].size() << L" ";
+		for (AVULONG iCycle = 0; iCycle < m_doorcycles[iDeck].size(); iCycle++)
+			s << m_doorcycles[iDeck][iCycle];
+	}
+	return s.str();
+}
+
+void JOURNEY::ParseDoorCycles(std::wstring dc)
+{
+	std::wstringstream s(dc);
+	for (AVULONG iDeck = 0; iDeck < DECK_NUM; iDeck++)
+	{
+		AVULONG n;
+		s >> n;
+		m_doorcycles[iDeck].resize(n);
+		for (AVULONG iCycle = 0; iCycle < n; iCycle++)
+			s >> m_doorcycles[iDeck][iCycle];
+	}
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CLift
@@ -118,6 +108,66 @@ CLift::CLift(CSim *pSim, AVULONG nLiftId, AVULONG nDecks) : m_pSim(pSim), m_nId(
 
 CLift::~CLift()
 {
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// WAYPOINT
+
+std::wstringstream &operator << (std::wstringstream &s, WAYPOINT &w)
+{
+	s << w.nAction << L" ";
+	switch (w.nAction)
+	{
+	case MOVE:
+		s << w.vector.x << L" " << w.vector.y << L" ";
+		break;
+	case WAIT:
+		s << w.nTime << L" ";
+		break;
+	case WALK:
+		s << w.vector.x << L" " << w.vector.y << L" ";
+		break;
+	case TURN:
+		break;
+	case ENTER_ARR_FLOOR:
+	case ENTER_LIFT:
+	case ENTER_DEST_FLOOR:
+		break;
+	}
+
+	if (!w.wstrStyle.empty())
+		s << w.wstrStyle << L" ";
+	else
+		s << L"(null)" << L" ";
+	
+	return s;
+}
+
+std::wstringstream &operator >> (std::wstringstream &s, WAYPOINT &w)
+{
+	s >> (ULONG&)w.nAction;
+	switch (w.nAction)
+	{
+	case MOVE:
+		s >> w.vector.x >> w.vector.y;
+		break;
+	case WAIT:
+		s >> w.nTime;
+		break;
+	case WALK:
+		s >> w.vector.x >> w.vector.y;
+		break;
+	case TURN:
+		break;
+	case ENTER_ARR_FLOOR:
+	case ENTER_LIFT:
+	case ENTER_DEST_FLOOR:
+		break;
+	}
+
+	s >> w.wstrStyle;
+
+	return s;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -49,17 +49,23 @@ public:
 	std::wstring response()	{ return ok() ? m_strResponse : L""; }
 
 	// call
-	HRESULT call(std::wstring strFunction, std::wstring strRequest);
-	HRESULT call(std::wstring strFunction, std::wstring strParam, AVULONG val);
-	HRESULT call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2);
-	HRESULT call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2, std::wstring strParam3, AVULONG val3);
+	HRESULT call(std::wstring strFunction, std::wstring strRequest, bool bWait = true);
+	HRESULT call(std::wstring strFunction, std::wstring strParam, AVULONG val, bool bWait = true);
+	HRESULT call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2, bool bWait = true);
+	HRESULT call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2, std::wstring strParam3, AVULONG val3, bool bWait = true);
 
-	HRESULT AVIndex()							{ return call(L"AVIndex", L""); }
-	HRESULT AVProject(AVULONG nSimulationId)	{ return call(L"AVProject", L"nSimulationId", nSimulationId); }
-	HRESULT AVSim(AVULONG nProjectId)			{ return call(L"AVSim", L"nProjectId", nProjectId); }
-	HRESULT AVBuilding(AVULONG nSimId)			{ return call(L"AVBuilding", L"nSimId", nSimId); }
-	HRESULT AVSimData(AVULONG nSimId, AVULONG timeFrom, AVULONG timeTo)
-												{ return call(L"AVSimData", L"nSimId", nSimId, L"timeFrom", timeFrom, L"timeTo", timeTo); }
+	HRESULT AVVersion(bool bWait = true)						{ return call(L"AVVersion", L"", bWait); }
+	HRESULT AVIndex(bool bWait = true)							{ return call(L"AVIndex", L"", bWait); }
+	HRESULT AVProject(AVULONG nSimulationId, bool bWait = true)	{ return call(L"AVProject", L"nSimulationId", nSimulationId, bWait); }
+	HRESULT AVLiftGroups(AVULONG nProjectId, bool bWait = true)	{ return call(L"AVLiftGroups", L"nProjectId", nProjectId, bWait); }
+	HRESULT AVFloors(AVULONG nLiftGroupId, bool bWait = true)	{ return call(L"AVFloors", L"nLiftGroupId", nLiftGroupId, bWait); }
+	HRESULT AVShafts(AVULONG nLiftGroupId, bool bWait = true)	{ return call(L"AVShafts", L"nLiftGroupId", nLiftGroupId, bWait); }
+	HRESULT AVSim(AVULONG nLiftGroupId, bool bWait = true)		{ return call(L"AVSim", L"nLiftGroupId", nLiftGroupId, bWait); }
+	HRESULT AVSimData(AVULONG nSimId, AVULONG timeFrom, AVULONG timeTo, bool bWait = true)
+												{ return call(L"AVSimData", L"nSimId", nSimId, L"timeFrom", timeFrom, L"timeTo", timeTo, bWait); }
+	HRESULT AVPrjData(AVULONG nProjectId, AVULONG timeFrom, AVULONG timeTo, bool bWait = true)
+												{ return call(L"AVPrjData", L"nProjectId", nProjectId, L"timeFrom", timeFrom, L"timeTo", timeTo, bWait); }
+
 	// wait
 	HRESULT wait(DWORD dwTimeout = INFINITE);
 

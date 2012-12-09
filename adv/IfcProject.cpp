@@ -4,6 +4,14 @@
 #include "IfcProject.h"
 #include "IfcBuilder.h"
 #include "ifcscanner.h"
+#include "IfcLftGroup.h"
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CLftGroup *CProjectIfc::CreateLftGroup(AVULONG nIndex)
+{ 
+	return new CLftGroupIfc(this, nIndex); 
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // helpers
@@ -15,8 +23,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CElemIfc
 
-CElemIfc::CElemIfc(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) 
-	: CElem(pProject, pBuilding, pParent, nElemId, name, i, vec)
+CElemIfc::CElemIfc(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) 
+	: CElem(pProject, pLftGroup, pParent, nElemId, name, i, vec)
 {
 	USES_CONVERSION;
 	char *pName = OLE2A((LPOLESTR)GetName().c_str());
@@ -36,7 +44,7 @@ CElemIfc::CElemIfc(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVU
 	{
 	case ELEM_PROJECT:	m_pBone = new CIFCProject("c:\\ifc\\IFC2X3_TC1.exp", "MILLI"); break;
 	case ELEM_SITE:		m_pBone = new CIFCSite((CIFCProject*)pParentBone, &matrix); break;
-	case ELEM_BUILDING:	m_pBone = new CIFCBuilding((CIFCSite*)pParentBone, &matrix); break;
+	case ELEM_LFTGROUP:	m_pBone = new CIFCBuilding((CIFCSite*)pParentBone, &matrix); break;
 	case ELEM_STOREY:	m_pBone = new CIFCStorey((CIFCBuilding*)pParentBone, &matrix); break;
 	case ELEM_SHAFT:	matrix._41 = matrix._42 = matrix._43 = 0; m_pBone = new CIFCSpace((CIFCBuilding*)pParentBone, &matrix); break;
 	case ELEM_DECK:
@@ -127,7 +135,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 {
 	if (!GetBone()) return;
 	CIfcBuilder *p = NULL, *q = NULL;
-	AVFLOAT fScale = GetBuilding()->GetScale();
+	AVFLOAT fScale = GetLftGroup()->GetScale();
 	AVVECTOR centre = box.CentreLower();
 	AVULONG i;
 	bool b;
@@ -174,8 +182,8 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		p = new CIfcBuilder("c:\\IFC\\control.ifc");	// control panel
 		q = new CIfcBuilder("c:\\IFC\\control.ifc");	// drive panel (missing file, control.ifc taken instead)
 		if (!p || !q) return;
-		i = GetBuilding()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
-		centre.x += (p->Width() + q->Width()) * (nIndex - GetBuilding()->GetShaftBegin(i) - (AVFLOAT)(GetBuilding()->GetShaftCount(i) - 1) / 2.0f);
+		i = GetLftGroup()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
+		centre.x += (p->Width() + q->Width()) * (nIndex - GetLftGroup()->GetShaftBegin(i) - (AVFLOAT)(GetLftGroup()->GetShaftCount(i) - 1) / 2.0f);
 		if (i == 0)
 			centre.y -= p->Depth()/2;
 		else
@@ -188,8 +196,8 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		p = new CIfcBuilder("c:\\IFC\\control.ifc");	// control panel
 		q = new CIfcBuilder("c:\\IFC\\control.ifc");	// drive panel (missing file, control.ifc taken instead)
 		if (!p || !q) return;
-		i = GetBuilding()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
-		centre.x += (p->Width() + q->Width()) * (nIndex - GetBuilding()->GetShaftBegin(i) - (AVFLOAT)(GetBuilding()->GetShaftCount(i) - 1) / 2.0f) + p->Width();
+		i = GetLftGroup()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
+		centre.x += (p->Width() + q->Width()) * (nIndex - GetLftGroup()->GetShaftBegin(i) - (AVFLOAT)(GetLftGroup()->GetShaftCount(i) - 1) / 2.0f) + p->Width();
 		if (i == 0)
 			centre.y -= p->Depth()/2;
 		else

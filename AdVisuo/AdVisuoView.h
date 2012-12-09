@@ -62,6 +62,9 @@ class CAdVisuoView : public CView
 	// Screen Configuration Object
 	CScreen2x2 m_screen;
 
+	// Temporary: current Lift Group
+	AVULONG m_nCurLiftGroup;
+
 	// Script
 	CScript m_script;
 	CScriptEvent m_instRec;
@@ -87,9 +90,6 @@ class CAdVisuoView : public CView
 	DWORD m_nKeyScanTime;						// used internally by OnScanKey
 	bool m_bMaximised;							// used to keep the state of the main app window while full screen mode
 
-	// Temporary - Active Group Number
-	AVULONG m_nTmpGroup;
-	
 	// UI - specific
 	AVLONG m_nAspectImageIndex;					// image index for the ID_VIEW_ASPECT button
 	CMFCRibbonBaseElement *m_pbutFloor;			// last generated "Change Floor" button
@@ -108,6 +108,9 @@ public:
 	CAdVisuoDoc *GetDocument() const			{ return reinterpret_cast<CAdVisuoDoc*>(m_pDocument); }
 	bool IsEngineReady()						{ return m_pBody != NULL; }
 
+	AVULONG GetCurLiftGroup()					{ return m_nCurLiftGroup; }
+	void SetCurLiftGroup(AVULONG n)				{ m_nCurLiftGroup = n; }
+
 	CString GetDiagnosticMessage();
 
 	// Initialisation and Life-Cycle
@@ -124,7 +127,7 @@ public:
 	// FreeWill Initialisation
 	bool CreateFreeWill(HWND m_hWnd);
 
-	void CreateCamera(int i)					{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = new CCamera(GetDocument()->GetProject()->GetBuilding(0), i); m_pCamera[i]->Create(); }
+	void CreateCamera(int i)					{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = new CCamera(GetDocument()->GetProject()->GetLftGroup(0), i); m_pCamera[i]->Create(); }
 	void DeleteCamera(int i)					{ if (i >= N_CAMERAS) return; if (m_pCamera[i]) delete m_pCamera[i]; m_pCamera[i] = NULL; }
 	CCamera *GetCamera(int i)					{ return i < N_CAMERAS ? m_pCamera[i] : NULL; }
 	void SetCamera(int i, CCamera *pCamera)		{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = pCamera; }

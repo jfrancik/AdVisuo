@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "../CommonFiles/BaseClasses.h"
+#include "../CommonFiles/BaseSimClasses.h"
 #include "VisLift.h"
 #include "VisPassenger.h"
-#include "VisBuilding.h"
+#include "VisLftGroup.h"
 #include "repos.h"
 using namespace std;
 
@@ -31,12 +31,12 @@ class CSimVis : public CSim, protected CRepos<IBody>
 	AVULONG m_nBipedBufCount;
 
 public:
-	CSimVis(CBuilding *pBuilding, AVULONG iIndex);
+	CSimVis();
 	virtual ~CSimVis();
 
 	CLiftVis *GetLift(int i)			{ return (CLiftVis*)CSim::GetLift(i); }
 	CPassengerVis *GetPassenger(int i)	{ return (CPassengerVis*)CSim::GetPassenger(i); }
-	CBuildingVis *GetBuilding()		{ return (CBuildingVis*)CSim::GetBuilding(); }
+	CLftGroupVis *GetLftGroup()		{ return (CLftGroupVis*)CSim::GetLftGroup(); }
 
 	// access & initialisation
 	IScene *GetScene()				{ return m_pScene; }

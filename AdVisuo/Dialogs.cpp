@@ -690,9 +690,6 @@ void CDlgDownload::OnBnClickedRefresh()
 	{
 		http.setURL((LPCTSTR)url);
 		http.AVIndex();
-		http.wait(); 
-		if (!http.ok()) 
-			http.throw_exceptions();
 
 		std::wstring response = http.response();
 		CProjectVis::LoadIndexFromBuf(http.response().c_str(), m_prjs);
@@ -786,7 +783,7 @@ void CDlgDownload::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 		L"Client: %s%s%s%s%s"
 		, 
 		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME), L"<untitled project>"),
-		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME), L"main building"), pPrj->GetLiftGroupsCount(),
+		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME), L"lift group name"), pPrj->GetLiftGroupsCount(),
 		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COMPANY), L"<unknown>"), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_CITY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_POST_CODE)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTRY))
 		);
 
@@ -1178,9 +1175,6 @@ void CDlgReportBug::Report(int nReason, CString message)
 	{
 		http.setURL(url);
 		http.call(function, request);
-		http.wait(); 
-		if (!http.ok()) 
-			http.throw_exceptions();
 		std::wstring response = http.response();
 	}
 	catch(...)
@@ -1230,9 +1224,6 @@ void CDlgReportBug::OnOK()
 	{
 		http.setURL(url);
 		http.call(function, request);
-		http.wait(); 
-		if (!http.ok()) 
-			http.throw_exceptions();
 		std::wstring response = http.response();
 	}
 	catch (_com_error ce)
@@ -1592,7 +1583,7 @@ void CDlgScriptProperties::DoDataExchange(CDataExchange* pDX)
 	DDX_DateTimeCtrl(pDX, IDC_DATETIMEPICKER2, m_timeFF);
 	DDX_Text(pDX, IDC_EDIT1, m_desc);
 	DDX_Text(pDX, IDC_EDIT2, m_fAccel);
-	DDV_MinMaxFloat(pDX, m_fAccel, 0.1, 10);
+	DDV_MinMaxFloat(pDX, m_fAccel, 0.1f, 10);
 }
 
 

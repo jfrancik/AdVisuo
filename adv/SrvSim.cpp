@@ -1,44 +1,44 @@
 // Sim.cpp - a part of the AdVisuo Server Module
 
 #include "StdAfx.h"
-#include "../CommonFiles/DBTools.h"
 #include "SrvSim.h"
+#include "SrvLift.h"
+#include "SrvPassenger.h"
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
 
 using namespace dbtools;
 
-CSimSrv::CSimSrv(CBuilding *pBuilding, AVULONG nIndex) : CSim(pBuilding, nIndex)
-{
-}
+CPassenger *CSimSrv::CreatePassenger(AVULONG nId)		{ return new CPassengerSrv(this, nId); }
+CLift *CSimSrv::CreateLift(AVULONG nId)					{ return new CLiftSrv(this, nId); }
 
 HRESULT CSimSrv::LoadSim(CDataBase db, AVULONG nSimulationId)
 {
 	AVULONG nnSimulationId = ME[L"SimulationId"];
 
-	if (!GetBuilding())
+	if (!GetLftGroup())
 		return Log(ERROR_INTERNAL, L"SIM file loading without the building set.");
 
 	// load!
 	CSimLoader loader;
 
-	int nRes = loader.Load(GetBuilding(), db, nSimulationId);
+	int nRes = loader.Load(GetLftGroup(), db, nSimulationId);
 	// int nRes = loader.Load(GetSIMFileName().c_str());
-	//int nRes = loader.Load(GetBuilding(), L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
+	//int nRes = loader.Load(GetLftGroup(), L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
 
 	// detect errors...
 	if FAILED(nRes)
 		return Logf(nRes, GetSIMFileName().c_str());
 	
-	// if ((ULONG)loader.nLifts != GetBuilding()->GetLiftCount())
+	// if ((ULONG)loader.nLifts != GetLftGroup()->GetLiftCount())
 	//	return Log(ERROR_FILE_INCONSISTENT_LIFTS);		// inconsistent number of floors
-	// if ((ULONG)loader.nFloors != GetBuilding()->GetStoreyCount())
+	// if ((ULONG)loader.nFloors != GetLftGroup()->GetStoreyCount())
 	//	return Log(ERROR_FILE_INCONSISTENT_FLOORS);		// inconsistent number of lifts
 	// check single/double decker consistency
 	// for (AVULONG i = 0; i < (ULONG)loader.nLifts;i++)
-	//	if ((loader.pLifts[i].nDecks == 1 && GetBuilding()->GetLift(i)->GetShaft()->GetDeck() == CBuilding::DECK_DOUBLE)
-	//	|| (loader.pLifts[i].nDecks > 1 && GetBuilding()->GetLift(i)->GetShaft()->GetDeck() == CBuilding::DECK_SINGLE))
+	//	if ((loader.pLifts[i].nDecks == 1 && GetLftGroup()->GetLift(i)->GetShaft()->GetDeck() == CLftGroup::DECK_DOUBLE)
+	//	|| (loader.pLifts[i].nDecks > 1 && GetLftGroup()->GetLift(i)->GetShaft()->GetDeck() == CLftGroup::DECK_SINGLE))
 	//		return Log(ERROR_FILE_INCONSISTENT_DECKS);
 
 	SetSIMVersionId(loader.nVersion);
@@ -55,10 +55,10 @@ HRESULT CSimSrv::LoadSim(CDataBase db, AVULONG nSimulationId)
 	}
 
 	// load, analyse and consolidate simulation data
-	for (AVULONG i = 0; i < GetBuilding()->GetLiftCount(); i++)
+	for (AVULONG i = 0; i < GetLftGroup()->GetLiftCount(); i++)
 	{
 		CLiftSrv *pLift = (CLiftSrv*)CreateLift(i);
-		HRESULT h = pLift->Load(GetBuilding()->GetLift(i), loader, i, true, true);
+		HRESULT h = pLift->Load(GetLftGroup()->GetLift(i), loader, i, true, true);
 		if FAILED(h) return h;
 		if (h != S_OK) bWarning = true;
 		AddLift(pLift);
@@ -76,26 +76,13 @@ void CSimSrv::Play()
 	}
 }
 
-HRESULT CSimSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
-{
-	if (!db) throw db;
-	CDataBase::SELECT sel;
-
-	// Query for Simulations
-//	sel = db.select(L"SELECT * FROM Simulations s, Projects p WHERE p.ProjectId = s.ProjectId AND SimulationId=%d", nSimulationId);
-//	if (!sel) throw ERROR_PROJECT;
-//	sel >> ME;
-
-	return S_OK;
-}
-
-HRESULT CSimSrv::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
+HRESULT CSimSrv::LoadFromVisualisation(CDataBase db, ULONG nLftGroupId)
 {
 	if (!db) throw db;
 
 	// Query for Project Data (for project id)
 	CDataBase::SELECT sel;
-	sel = db.select(L"SELECT * FROM AVSims WHERE ProjectId=%d AND LiftGroupIndex=%d", nProjectID, GetIndex());
+	sel = db.select(L"SELECT * FROM AVSims WHERE LiftGroupId=%d AND LiftGroupIndex=%d", nLftGroupId, GetIndex());
 	if (!sel) throw ERROR_DATA_NOT_FOUND;
 	sel >> ME;
 
@@ -107,18 +94,16 @@ HRESULT CSimSrv::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 HRESULT CSimSrv::Store(CDataBase db)
 {
 	if (!db) throw db;
-//	if (!GetBuilding())
-//		throw (Log(ERROR_INTERNAL, L"Project stored without the building set."), ERROR_GENERIC);
 
 	CDataBase::INSERT ins = db.insert(L"AVSims");
 
 	ins << ME;
-	ins[L"ProjectId"] = GetProjectId();
+	ins[L"LiftGroupId"] = GetLftGroupId();
 	ins[L"SIMVersionId"] = GetSIMVersionId();
 	ins[L"LiftGroupIndex"] = GetIndex();
-	ins[L"Floors"] = GetBuilding()->GetStoreyCount();
-	ins[L"Shafts"] = GetBuilding()->GetShaftCount();
-	ins[L"Lifts"] = GetBuilding()->GetLiftCount();
+	ins[L"Floors"] = GetLftGroup()->GetStoreyCount();
+	ins[L"Shafts"] = GetLftGroup()->GetShaftCount();
+	ins[L"Lifts"] = GetLftGroup()->GetLiftCount();
 	ins[L"Passengers"] = (ULONG)0;
 	ins[L"SimulationTime"] = (ULONG)0;
 	ins[L"JourneysSaved"] = (ULONG)0;
@@ -136,21 +121,13 @@ HRESULT CSimSrv::Store(CDataBase db)
 	sel = db.select(L"SELECT SCOPE_IDENTITY()");
 	SetId(sel[(short)0]);
 
-	// Store the Building
-//	if (GetBuilding())
-//		GetBuilding()->Store(db, GetProjectId());
-//
-//	Update(db, 0);
-
 	return S_OK;
 }
 
 HRESULT CSimSrv::Update(CDataBase db, AVLONG nTime)
 {
 	if (!db) throw db;
-	if (!GetBuilding())
-		throw (Log(ERROR_INTERNAL, L"Project stored without the building set."), ERROR_GENERIC);
-	if (GetProjectId() == 0)
+	if (GetLftGroupId() == 0)
 		throw (Log(ERROR_INTERNAL, L"Project update run with ID=0"), ERROR_GENERIC);
 
 	// Store the Journeys
@@ -171,9 +148,9 @@ HRESULT CSimSrv::Update(CDataBase db, AVLONG nTime)
 
 	CDataBase::UPDATE upd = db.update(L"AVSims", L"WHERE ID=%d", GetId());
 	upd[L"SIMVersionId"] = GetSIMVersionId();
-	upd[L"Floors"] = GetBuilding()->GetStoreyCount();
-	upd[L"Shafts"] = GetBuilding()->GetShaftCount();
-	upd[L"Lifts"] = GetBuilding()->GetLiftCount();
+	upd[L"Floors"] = GetLftGroup()->GetStoreyCount();
+	upd[L"Shafts"] = GetLftGroup()->GetShaftCount();
+	upd[L"Lifts"] = GetLftGroup()->GetLiftCount();
 	upd[L"Passengers"] = GetPassengerCount();
 	upd[L"SimulationTime"] = GetSimulationTime();
 	upd[L"JourneysSaved"] = GetJourneyTotalCount();

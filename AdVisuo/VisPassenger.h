@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../CommonFiles/BaseClasses.h"
+#include "../CommonFiles/BaseSimClasses.h"
 #include "../CommonFiles/XMLTools.h"
 #include <list>
 

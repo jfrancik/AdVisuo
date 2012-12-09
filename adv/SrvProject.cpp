@@ -1,8 +1,9 @@
 // Project.cpp - a part of the AdVisuo Server Module
 
 #include "StdAfx.h"
-#include "../CommonFiles/DBTools.h"
 #include "SrvProject.h"
+#include "SrvLftGroup.h"
+#include "SrvSim.h"
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
@@ -11,6 +12,11 @@ using namespace dbtools;
 
 CProjectSrv::CProjectSrv() : CProjectConstr()
 {
+}
+
+CLftGroup *CProjectSrv::CreateLftGroup(AVULONG nIndex)
+{ 
+	return new CLftGroupSrv(this, nIndex); 
 }
 
 HRESULT CProjectSrv::FindProjectID(CDataBase db, ULONG nSimulationId, ULONG &nProjectID)
@@ -40,29 +46,23 @@ HRESULT CProjectSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	if (!db) throw db;
 	CDataBase::SELECT sel;
 
+	SetSimulationId(nSimulationId);
+	SetAVVersionId(GetAVNativeVersionId());
+
 	// Query for Simulations
 	sel = db.select(L"SELECT * FROM Simulations s, Projects p WHERE p.ProjectId = s.ProjectId AND SimulationId=%d", nSimulationId);
 	if (!sel) throw ERROR_PROJECT;
 	sel >> ME;
 
-	sel = db.select(L"SELECT COUNT(LiftGroupId) As LiftGroupsCount FROM LiftGroups WHERE SimulationId=%d", nSimulationId);
-	sel >> ME;
-
-	SetSimulationId(nSimulationId);
-	SetAVVersionId(GetAVNativeVersionId());
-	SetLiftGroupsCount(ME[L"LiftGroupsCount"]);
-
-	ResolveLiftGroups();
-
-	HRESULT h = S_OK;
-	for each (CSimSrv *pSim in m_sims)
+	sel = db.select(L"SELECT LiftGroupId FROM LiftGroups WHERE SimulationId=%d", nSimulationId);
+	while (sel)
 	{
-		HRESULT hh;
-		hh = pSim->GetBuilding()->LoadFromConsole(db, nSimulationId);	h = max(h, hh);
-		HRESULT h2 = pSim->LoadFromConsole(db, nSimulationId);			h = max(h, hh);
+		CLftGroupSrv *pGroup = AddLftGroup();
+		pGroup->LoadFromConsole(db, sel[L"LiftGroupId"]);
+		sel++;
 	}
 
-	return h;
+	return S_OK;
 }
 
 HRESULT CProjectSrv::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
@@ -75,16 +75,16 @@ HRESULT CProjectSrv::LoadFromVisualisation(CDataBase db, ULONG nProjectID)
 	if (!sel) throw ERROR_DATA_NOT_FOUND;
 	sel >> ME;
 
-	ResolveMe();
-	ResolveLiftGroups();
-
-	HRESULT h = S_OK;
-	for each (CSimSrv *pSim in m_sims)
+	// Query for Lift Groups
+	sel = db.select(L"SELECT * FROM AVLiftGroups WHERE ProjectId=%d", nProjectID);
+	while (sel)
 	{
-		HRESULT hh;
-		hh = pSim->LoadFromVisualisation(db, GetId());
-		h = pSim->GetBuilding()->LoadFromVisualisation(db, pSim->GetId());
+		CLftGroupSrv *pGroup = AddLftGroup();
+		pGroup->LoadFromVisualisation(db, sel[L"ID"]);
+		sel++;
 	}
+
+	ResolveMe();
 
 	return S_OK;
 }
@@ -109,54 +109,46 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	sel = db.select(L"SELECT SCOPE_IDENTITY()");
 	SetId(sel[(short)0]);
 
-
 	// Save LiftGroups & Sims
-	HRESULT h = S_OK;
-	for each (CSimSrv *pSim in m_sims)
+	for each (CLftGroupSrv *pGroup in m_groups)
 	{
-		HRESULT hh;
-		pSim->SetProjectId(GetId());
-		hh = pSim->Store(db);			h = max(h, hh);
-		CBuildingSrv *pBuilding = pSim->GetBuilding();
-		pBuilding->SetSimId(pSim->GetId());
-		hh = pBuilding->Store(db);		h = max(h, hh);
+		pGroup->SetProjectId(GetId());
+		HRESULT h = pGroup->Store(db);
+		if FAILED(h) return h;
 	}
 	return S_OK;
 }
 
 HRESULT CProjectSrv::Update(dbtools::CDataBase db, AVLONG nTime)
 {
-	HRESULT h = S_OK;
-	for each (CSimSrv *pSim in m_sims)
+	for each (CLftGroupSrv *pGroup in m_groups)
 	{
-		HRESULT hh;
-		hh = pSim->Update(db, nTime);	h = max(h, hh);
+		HRESULT h = pGroup->GetSim()->Update(db, nTime);
+		if FAILED(h) return h;
 	}
 	return S_OK;
 }
 
 HRESULT CProjectSrv::LoadSim(dbtools::CDataBase db, AVULONG nSimulationId)
 {
-	HRESULT h = S_OK;
-	for each (CSimSrv *pSim in m_sims)
+	for each (CLftGroupSrv *pGroup in m_groups)
 	{
-		HRESULT h1 = S_OK;
-		h1 = pSim->LoadSim(db, nSimulationId);
-		if (h1 != S_OK) h = h1;
+		HRESULT h = pGroup->GetSim()->LoadSim(db, nSimulationId);
+		if FAILED(h) return h;
 	}
-	return h;
+	return S_OK;
 }
 
 HRESULT CProjectSrv::CleanUp(CDataBase db, ULONG nSimulationId)
 {
 	if (!db) throw db;
-	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVPassengers WHERE SimID IN (SELECT S.ID FROM AVSims S, AVProjects V WHERE S.ProjectId = V.ID AND V.SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVJourneys     WHERE SimID IN (SELECT S.ID FROM AVSims S, AVProjects V WHERE S.ProjectId = V.ID AND V.SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVFloors WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVSims S, AVProjects P WHERE B.SimID = S.ID AND S.ProjectId = P.ID AND P.SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL AND OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVShafts WHERE BuildingID IN (SELECT B.ID FROM AVBuildings B, AVSims S, AVProjects P WHERE B.SimID = S.ID AND S.ProjectId = P.ID AND P.SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL AND OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVBuildings WHERE SimID IN (SELECT S.ID FROM AVSims S, AVProjects V WHERE S.ProjectId = V.ID AND V.SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVSims','U') IS NOT NULL DELETE FROM AVSims WHERE ProjectId IN (SELECT ID FROM AvProjects WHERE SimulationId=%d)", nSimulationId);
-	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVProjects WHERE SimulationId=%d", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL DELETE FROM AVPassengers WHERE SimID IN (SELECT S.ID FROM AVSims S, AVLiftGroups G, AVProjects V WHERE S.LiftGroupId = G.ID AND G.ProjectId = V.ID AND V.SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U')   IS NOT NULL DELETE FROM AVJourneys   WHERE SimID IN (SELECT S.ID FROM AVSims S, AVLiftGroups G, AVProjects V WHERE S.LiftGroupId = G.ID AND G.ProjectId = V.ID AND V.SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U')     IS NOT NULL DELETE FROM AVFloors     WHERE LiftGroupId IN (SELECT G.ID FROM AVLiftGroups G, AVProjects P WHERE G.ProjectId = P.ID AND P.SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U')     IS NOT NULL DELETE FROM AVShafts     WHERE LiftGroupId IN (SELECT G.ID FROM AVLiftGroups G, AVProjects P WHERE G.ProjectId = P.ID AND P.SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVSims','U')       IS NOT NULL DELETE FROM AVSims       WHERE LiftGroupId  IN (SELECT G.ID FROM AVLiftGroups G, AVProjects P WHERE G.ProjectId = P.ID AND P.SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVLiftGroups','U') IS NOT NULL DELETE FROM AVLiftGroups WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationId=%d)", nSimulationId);
+	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U')   IS NOT NULL DELETE FROM AVProjects WHERE SimulationId=%d", nSimulationId);
 	return S_OK;
 }
 
@@ -167,8 +159,9 @@ HRESULT CProjectSrv::CleanUpAll(CDataBase db)
 	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U') IS NOT NULL DELETE FROM AVJourneys");
 	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL DELETE FROM AVFloors");
 	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL DELETE FROM AVShafts");
+	db.execute(L"IF OBJECT_ID('dbo.AVSims','U') IS NOT NULL DELETE FROM AVSims");
+	db.execute(L"IF OBJECT_ID('dbo.AVLiftGroups','U') IS NOT NULL DELETE FROM AVLiftGroups");
 	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DELETE FROM AVProjects");
-	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DELETE FROM AVBuildings");
 	return S_OK;
 }
 
@@ -180,8 +173,13 @@ HRESULT CProjectSrv::DropTables(CDataBase db)
 	db.execute(L"IF OBJECT_ID('dbo.AVFloors','U') IS NOT NULL DROP TABLE AVFloors");
 	db.execute(L"IF OBJECT_ID('dbo.AVShafts','U') IS NOT NULL DROP TABLE AVShafts");
 	db.execute(L"IF OBJECT_ID('dbo.AVSims','U') IS NOT NULL DROP TABLE AVSims");
-	db.execute(L"IF OBJECT_ID('dbo.AVBuildings','U') IS NOT NULL DROP TABLE AVBuildings");
+	db.execute(L"IF OBJECT_ID('dbo.AVLiftGroups','U') IS NOT NULL DROP TABLE AVLiftGroups");
 	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U') IS NOT NULL DROP TABLE AVProjects");
 	return S_OK;
 }
 
+void CProjectSrv::Play()
+{ 
+	for each (CLftGroupSrv *pGroup in m_groups) 
+		pGroup->GetSim()->Play(); 
+}

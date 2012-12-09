@@ -2,13 +2,14 @@
 
 #include "StdAfx.h"
 #include "ConstrProject.h"
-#include "ConstrBuilding.h"
+#include "ConstrLftGroup.h"
+#include "BaseSimClasses.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CBone / CElem
 
-CElem::CElem(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)	
-	: m_pProject(pProject), m_pBuilding(pBuilding), m_pParent(pParent)
+CElem::CElem(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)	
+	: m_pProject(pProject), m_pLftGroup(pLftGroup), m_pParent(pParent)
 {
 	OLECHAR _name[257];
 	_snwprintf_s(_name, 256, name, LOWORD(i), HIWORD(i));
@@ -29,21 +30,20 @@ void CProjectConstr::Construct()
 
 	if (!m_pElem) return;
 
-	BOX _box = GetBuilding()->GetTotalAreaBox();
+	BOX _box = GetLftGroup(0)->GetTotalAreaBox();
 
-	float y = GetBuilding()->GetTotalAreaBox().RearExt();
-	for each (CSim *pSim in m_sims)
+	float y = GetLftGroup(0)->GetTotalAreaBox().RearExt();
+	for each (CLftGroupConstr *pLftGroup in m_groups)
 	{
-		CBuildingConstr *pBuilding = (CBuildingConstr*)pSim->GetBuilding();
-		
-		float x = -(GetBuilding()->GetBox().WidthExt() - pBuilding->GetBox().WidthExt()) / 2;
-		y -= pBuilding->GetTotalAreaBox().RearExt();
+		float x = -(GetLftGroup(0)->GetBox().WidthExt() - pLftGroup->GetBox().WidthExt()) / 2;
+		y -= pLftGroup->GetTotalAreaBox().RearExt();
 
-		pBuilding->Deconstruct();
-		pBuilding->Construct(Vector(x, y, 0));
+		pLftGroup->Deconstruct();
+		pLftGroup->Construct(Vector(x, y, 0));
 
-		pSim->SetOffsetVector(Vector(x, y, 0));
-		y = pBuilding->GetTotalAreaBox().FrontExt();
+		if (pLftGroup->GetSim())
+			pLftGroup->GetSim()->SetOffsetVector(Vector(x, y, 0));
+		y = pLftGroup->GetTotalAreaBox().FrontExt();
 	}
 }
 

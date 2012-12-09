@@ -2,29 +2,29 @@
 
 #pragma once
 
-#include "../CommonFiles/BaseClasses.h"
-#include "SrvLift.h"
-#include "SrvPassenger.h"
-#include "SrvBuilding.h"
+#include "../CommonFiles/BaseSimClasses.h"
+
+class CPassengerSrv;
+class CLiftSrv;
+class CLftGroupSrv;
 
 class CSimSrv : public CSim
 {
 public:
-	CSimSrv(CBuilding *pBuilding, AVULONG nIndex);
+	CSimSrv()												{ }
 	CLiftSrv *GetLift(int i)								{ return (CLiftSrv*)CSim::GetLift(i); }
 	CPassengerSrv *GetPassenger(int i)						{ return (CPassengerSrv*)CSim::GetPassenger(i); }
-	CBuildingSrv *GetBuilding()								{ return (CBuildingSrv*)CSim::GetBuilding(); }
+	CLftGroupSrv *GetLftGroup()								{ return (CLftGroupSrv*)CSim::GetLftGroup(); }
 
 	HRESULT LoadSim(dbtools::CDataBase db, AVULONG nSimulationId);
 	void Play();
 
 	// Database operations
-	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);
-	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectId);
+	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nLftGroupId);
 	HRESULT Store(dbtools::CDataBase db);
 	HRESULT Update(dbtools::CDataBase db, AVLONG nTime = -1);
 
 protected:
-	virtual CPassenger *CreatePassenger(AVULONG nId)		{ return new CPassengerSrv(this, nId); }
-	virtual CLift *CreateLift(AVULONG nId)					{ return new CLiftSrv(this, nId); }
+	virtual CPassenger *CreatePassenger(AVULONG nId);
+	virtual CLift *CreateLift(AVULONG nId);
 };

@@ -11,7 +11,7 @@ UINT __cdecl WorkerThread(void *p)
 	return 0;
 }
 
-HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strRequest)
+HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strRequest, bool bWait)
 {
 	if (m_strUrl.empty()) return (m_h = E_INVALIDARG);
 
@@ -22,28 +22,35 @@ HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strRequest)
 
 	AfxBeginThread(WorkerThread, this);
 
+	if (bWait)
+	{
+		wait(); 
+		if (!ok())
+			throw_exceptions();
+	}
+
 	return S_OK;
 }
 
-HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strParam, AVULONG val)
+HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strParam, AVULONG val, bool bWait)
 {
 	std::wstringstream s;
 	s << strParam << L"=" << val;
-	return call(strFunction, s.str());
+	return call(strFunction, s.str(), bWait);
 }
 
-HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2)
+HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2, bool bWait)
 {
 	std::wstringstream s;
 	s << strParam1 << L"=" << val1 << L"&" << strParam2 << L"=" << val2;
-	return call(strFunction, s.str());
+	return call(strFunction, s.str(), bWait);
 }
 
-HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2, std::wstring strParam3, AVULONG val3)
+HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strParam1, AVULONG val1, std::wstring strParam2, AVULONG val2, std::wstring strParam3, AVULONG val3, bool bWait)
 {
 	std::wstringstream s;
 	s << strParam1 << L"=" << val1 << L"&" << strParam2 << L"=" << val2 << L"&" << strParam3 << L"=" << val3;
-	return call(strFunction, s.str());
+	return call(strFunction, s.str(), bWait);
 }
 
 HRESULT CXMLRequest::wait(DWORD dwTimeout)

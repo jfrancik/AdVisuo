@@ -5,8 +5,8 @@
 #include "stdafx.h"
 #include "../CommonFiles/DBTools.h"
 #include "adv.h"
-#include "SrvBuilding.h"
-#include "IfcBuilding.h"
+#include "SrvLftGroup.h"
+#include "IfcLftGroup.h"
 #include "SrvSim.h"
 #include "SrvProject.h"
 #include "IfcProject.h"
@@ -270,7 +270,8 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		h = prj.Update(pVisConn); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		nProjectID = prj.GetSim()->GetProjectId();
+		ASSERT(prj.GetId() == prj.GetLftGroup(0)->GetProjectId());
+		nProjectID = prj.GetId();
 
 		lt.Log(L"AVInit");
 		return Logf(dwStatus, L"AVInit(%d)", nSimulationId);

@@ -2,10 +2,8 @@
 
 #pragma once
 
-#include "../CommonFiles/BaseClasses.h"
-#include "../CommonFiles/DBTools.h"
+#include "../CommonFiles/BaseSimClasses.h"
 #include "SrvSimLoader.h"
-#include "SrvBuilding.h"
 
 class CSimSrv;
 
@@ -17,6 +15,6 @@ public:
 	CSimSrv *GetSim()					{ return (CSimSrv*)CLift::GetSim(); }
 
 	// IO: load from SIM File, Store to DB
-	DWORD Load(CBuildingSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload = false, bool bCalcLoad = false);
+	DWORD Load(CLftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload = false, bool bCalcLoad = false);
 	HRESULT Store(dbtools::CDataBase db);
 };

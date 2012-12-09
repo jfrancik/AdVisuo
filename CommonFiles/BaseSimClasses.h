@@ -2,35 +2,43 @@
 
 #pragma once
 
-#include "BaseData.h"
+#include "dbtools.h"
 #include <functional>
 
 class CSim;
 class CLift;
 class CPassenger;
 
+class CLftGroup;
+
+/////////////////////////////////////////////////////////////
+// Simulation Class - encapsulates all sim data
+
 class CSim : public dbtools::CCollection
 {
-	// project information
+	// basic information
 	AVULONG m_nId;					// sim id
-	AVULONG m_nProjectId;			// project id
+	AVULONG m_nLftGroupId;			// lift group id
 	AVULONG m_nSIMVersionId;		// SIM version id
 	AVULONG m_nIndex;				// index in multi-group structures
 	AVLONG m_nSimulationTime;
 	AVULONG m_nTimeSaved;
 	
-	CBuilding *m_pBuilding;
+	CLftGroup *m_pLftGroup;
 	AVVECTOR m_vecOffset;
 
 	std::vector<CLift*> m_lifts;
 	std::vector<CPassenger*> m_passengers;
 
 public:
-	CSim(CBuilding *pBuilding, AVULONG nIndex);
+	CSim();
 	virtual ~CSim();
 
-	CBuilding *GetBuilding()					{ return m_pBuilding;}
-	void SetBuilding(CBuilding *pBuilding)		{ m_pBuilding = pBuilding; }
+	CLftGroup *GetLftGroup()					{ return m_pLftGroup;}
+	void SetLftGroup(CLftGroup *pLftGroup)		{ m_pLftGroup = pLftGroup; }
+
+	AVULONG GetIndex()							{ return m_nIndex; }
+	void SetIndex(AVULONG n)					{ m_nIndex = n; }
 
 	std::wstring GetSIMFileName()				{ return ME[L"SIMFileName"]; }
 	std::wstring GetIFCFileName()				{ return ME[L"IFCFileName"]; }
@@ -41,14 +49,12 @@ public:
 	ALGORITHM GetAlgorithm()					{ return (ALGORITHM)(ULONG)ME[L"Algorithm"]; }
 
 	AVULONG GetId()								{ return m_nId; }
-	AVULONG GetProjectId()						{ return m_nProjectId; }
+	AVULONG GetLftGroupId()						{ return m_nLftGroupId; }
 	AVULONG GetSIMVersionId()					{ return m_nSIMVersionId; }
-	AVULONG GetIndex()							{ return m_nIndex; }
 
 	void SetId(AVULONG n)						{ m_nId = n; }
-	void SetProjectId(AVULONG n)				{ m_nProjectId = n; }
+	void SetLftGroupId(AVULONG n)				{ m_nLftGroupId = n; }
 	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionId = n; }
-	void SetIndex(AVULONG n)					{ m_nIndex = n; }
 
 	AVLONG GetSimulationTime()					{ return m_nSimulationTime; }
 	void ReportSimulationTime(AVLONG n)			{ if (n > m_nSimulationTime) m_nSimulationTime = n; }
@@ -81,53 +87,53 @@ protected:
 	virtual CLift *CreateLift(AVULONG nId) = 0;
 };
 
-class CProject : public dbtools::CCollection
+/////////////////////////////////////////////////////////////
+// Lift journey definition - directly used by CLift(Base) objects
+
+// Unddefined Value
+enum { UNDEF = 0xffffffff };
+
+struct JOURNEY
 {
-	AVULONG m_nSimulationId;		// original (console) simulation id
+	struct DOOR
+	{
+		AVULONG m_timeOpen, m_durationOpen;
+		AVULONG m_timeClose, m_durationClose;
+		DOOR()					{ reset(); }
 
-	AVULONG m_nId;					// project id
-	AVULONG m_nAVVersionId;			// AV Version id
-	AVULONG m_nLiftGroupsCount;		// number of lift groups
+		void reset()			{ m_timeOpen = m_timeClose = UNDEF; m_durationOpen = m_durationClose = 1000; }
 
-protected:
-	std::vector<CSim*> m_sims;
-//	int m_nDefault;
+		AVULONG timeOpened()	{ return m_timeOpen + m_durationOpen; }
+		AVULONG timeClosed()	{ return m_timeClose + m_durationClose; }
 
-public:
-	CProject();
-	virtual ~CProject();
+		friend std::wstringstream &operator << (std::wstringstream &s, DOOR &d);
+		friend std::wstringstream &operator >> (std::wstringstream &s, DOOR &d);
+	};
 
-	AVULONG GetSimulationId()					{ return m_nSimulationId; }
-	AVULONG GetId()								{ return m_nId; }
-	AVULONG GetAVVersionId()					{ return m_nAVVersionId; }
-	static AVULONG GetAVNativeVersionId()		{ return 10900; }
-	AVULONG GetLiftGroupsCount()				{ return m_nLiftGroupsCount; }
-	
-	void SetSimulationId(AVULONG n)				{ m_nSimulationId = n; }
-	void SetId(AVULONG n)						{ m_nId = n; }
-	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
-	void SetLiftGroupsCount(AVULONG n)			{ m_nLiftGroupsCount = n; }
+	std::vector<DOOR> m_doorcycles[DECK_NUM];
 
-	CSim *GetSim(int i)							{ return m_sims[i]; }
-	CSim *GetSim()								{ return GetSim(GetDefault()); }
-	CBuilding *GetBuilding(int i)				{ return GetSim(i)->GetBuilding(); }
-	CBuilding *GetBuilding()					{ return GetSim()->GetBuilding(); }
-	int GetDefault()							{ return m_nDefault; }
-	void SetDefault(int n)						{ m_nDefault = n; }
+	AVULONG		m_shaftFrom, m_shaftTo;		// shaft id
+	AVULONG		m_floorFrom, m_floorTo;		// journey floors
+	AVULONG		m_timeGo, m_timeDest;		// journey time
 
-	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
-	std::wstring GetProjectInfo(PRJ_INFO what);
+	AVULONG FirstOpenTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? UNDEF : m_doorcycles[iDeck][0].m_timeOpen; }
+	AVULONG FirstOpenedTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? UNDEF : m_doorcycles[iDeck][0].timeOpened(); }
+	AVULONG LastCloseTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? 0     : m_doorcycles[iDeck][N-1].m_timeClose; }
+	AVULONG LastClosedTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? 0     : m_doorcycles[iDeck][N-1].timeClosed(); }
 
-	void ResolveMe();
-	void ResolveLiftGroups();
+	AVULONG FirstOpenTime()					{ AVULONG n = UNDEF; for (AVULONG i = 0; i < DECK_NUM; i++) n = min(n, FirstOpenTime(i)); return n; }
+	AVULONG FirstOpenedTime()				{ AVULONG n = UNDEF; for (AVULONG i = 0; i < DECK_NUM; i++) n = min(n, FirstOpenedTime(i)); return n; }
+	AVULONG LastCloseTime()					{ AVULONG n = 0; for (AVULONG i = 0; i < DECK_NUM; i++) n = max(n, LastCloseTime(i)); return n; }
+	AVULONG LastClosedTime()				{ AVULONG n = 0; for (AVULONG i = 0; i < DECK_NUM; i++) n = max(n, LastClosedTime(i)); return n; }
 
-	void Scale(AVFLOAT fScale)						{ for each (CSim *pSim in m_sims) pSim->GetBuilding()->Scale(fScale); }
-	void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)		{ for each (CSim *pSim in m_sims) pSim->GetBuilding()->Move(x, y, z); }
+	std::wstring StringifyDoorCycles();
+	void ParseDoorCycles(std::wstring);
 
-protected:
-	virtual CBuilding *CreateBuilding(AVULONG iIndex) = 0;
-	virtual CSim *CreateSim(CBuilding *pBuilding, AVULONG iIndex) = 0;
+	JOURNEY()								{ m_shaftFrom = m_shaftTo = 0; m_floorFrom = m_floorTo = m_timeGo = m_timeDest = UNDEF; }
 };
+
+/////////////////////////////////////////////////////////////
+// Lift Representation in the Simulation Data
 
 class CLift : public dbtools::CCollection
 {
@@ -161,6 +167,24 @@ public:
 	JOURNEY *GetJourney(AVULONG i)	{ return i < GetJourneyCount() ? &m_journeys[i] : NULL; }
 	void AddJourney(JOURNEY &j)		{ m_journeys.push_back(j); }
 };
+
+/////////////////////////////////////////////////////////////
+// Passenger Waypoint definition - directly used by CPassenger(Base) objects
+
+enum ENUM_ACTION { MOVE, WAIT, WALK, TURN, ENTER_ARR_FLOOR, ENTER_LIFT, ENTER_DEST_FLOOR };
+struct WAYPOINT
+{
+	ENUM_ACTION nAction;
+	AVVECTOR vector;
+	AVLONG nTime;
+	std::wstring wstrStyle;
+
+	friend std::wstringstream &operator << (std::wstringstream &s, WAYPOINT &w);
+	friend std::wstringstream &operator >> (std::wstringstream &s, WAYPOINT &w);
+};
+
+/////////////////////////////////////////////////////////////
+// Passenger representation in the Simulation Data
 
 class CPassenger : public dbtools::CCollection
 {

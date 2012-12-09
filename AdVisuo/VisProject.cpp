@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "VisProject.h"
-#include "VisBuilding.h"
+#include "VisLftGroup.h"
 #include "VisSim.h"
 
 #include <fwrender.h>	// to start the renderer
@@ -14,8 +14,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CElemVis
 
-CElemVis::CElemVis(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) 
-	: CElem(pProject, (CBuilding*)pBuilding, pParent, nElemId, name, i, vec)
+CElemVis::CElemVis(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) 
+	: CElem(pProject, (CLftGroup*)pLftGroup, pParent, nElemId, name, i, vec)
 { 
 	m_pBone = NULL;
 
@@ -23,7 +23,7 @@ CElemVis::CElemVis(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVU
 	if (GetParent() && GetParent()->GetName().size())
 		SetName(GetParent()->GetName() + L" - " + GetName());
 
-	if (!GetBuilding()) 
+	if (!GetLftGroup()) 
 		return;
 
 	switch (nElemId)
@@ -39,7 +39,7 @@ CElemVis::CElemVis(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVU
 		break;
 
 	default:
-		GetBuilding()->GetScene()->NewObject((AVSTRING)GetName().c_str(), (ISceneObject**)&m_pBone);
+		GetLftGroup()->GetScene()->NewObject((AVSTRING)GetName().c_str(), (ISceneObject**)&m_pBone);
 		Move(vec);
 		break;
 	}
@@ -87,7 +87,7 @@ void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX b
 	block.BuildWall();
 	block.BuildRearSection();
 
-	block.SetMaterial(GetBuilding()->GetMaterial(nWallId, LOWORD(nIndex)));
+	block.SetMaterial(GetLftGroup()->GetMaterial(nWallId, LOWORD(nIndex)));
 	
 	pNewBone->Release();
 
@@ -106,7 +106,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 //	BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
 	
 	if (!GetBone()) return;
-	AVFLOAT fScale = GetBuilding()->GetScale();
+	AVFLOAT fScale = GetLftGroup()->GetScale();
 	float f;
 	AVVECTOR centre = box.CentreLower();
 
@@ -141,10 +141,10 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 
 	IMaterial *pMaterial = NULL;
 	ITexture *pTexture = NULL;
-	GetBuilding()->GetRenderer()->CreateTexture(&pTexture);
+	GetLftGroup()->GetRenderer()->CreateTexture(&pTexture);
 	pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"dafoldil.jpg"));
 	pTexture->SetUVTile(1, 1);
-	GetBuilding()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	GetLftGroup()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
 	pMaterial->SetTexture(0, pTexture);
 	IKineChild *pChild = NULL;
 	m_pBone->GetChild(L"main", &pChild);
@@ -160,15 +160,15 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 
 		break;
 	case MODEL_OVERSPEED:
-		f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		f = (GetLftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
 		box.Move(0, f*60, 0);
 		centre = box.CentreLower();
 		BuildWall(WALL_BEAM, strName, nIndex, __helper(centre, 7, f*30, 30));
 		break;
 	//case MODEL_CONTROL:
-	//	i = GetBuilding()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
-	//	centre.x += p->Width() * (nIndex - GetBuilding()->GetShaftBegin(i) - (AVFLOAT)(GetBuilding()->GetShaftCount(i) - 1) / 2.0f);
+	//	i = GetLftGroup()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
+	//	centre.x += p->Width() * (nIndex - GetLftGroup()->GetShaftBegin(i) - (AVFLOAT)(GetLftGroup()->GetShaftCount(i) - 1) / 2.0f);
 	//	if (i == 0)
 	//		centre.y -= p->Depth()/2;
 	//	else
@@ -179,7 +179,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	//	p->build(this, nModelId, strName, nIndex, centre, fRot);
 	//	break;
 	case MODEL_CWT:
-		f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		f = (GetLftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		box.SetDepth(-box.Depth());
 		box.Move(0, -f*2, 0);
 		BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
@@ -194,7 +194,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 //		BuildWall(WALL_BEAM, strName, nIndex, box);
 		break;
 	case MODEL_PULLEY:
-		f = (GetBuilding()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		f = (GetLftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
 		box.Move(0, f*60, 0);
 		centre = box.CentreLower();
@@ -358,15 +358,9 @@ void CElemVis::Render(IRenderer *pRenderer)
 //////////////////////////////////////////////////////////////////////////////////
 // CProjectVis Implementation
 
-CBuilding *CProjectVis::CreateBuilding(AVULONG iIndex)
+CLftGroup *CProjectVis::CreateLftGroup(AVULONG iIndex)
 { 
-	return new CBuildingVis(this, iIndex); 
-}
-
-CSim *CProjectVis::CreateSim(CBuilding *pBuilding, AVULONG iIndex)
-{ 
-	m_phases.push_back(PHASE_NONE); 
-	return new CSimVis(pBuilding, iIndex); 
+	return new CLftGroupVis(this, iIndex); 
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -374,22 +368,20 @@ CSim *CProjectVis::CreateSim(CBuilding *pBuilding, AVULONG iIndex)
 
 void CProjectVis::SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped)	
 { 
-	for each (CSimVis *pSim in m_sims)
-		pSim->SetScene(pScene, pMaterial, pBiped); 
+	for each (CLftGroupVis *pGroup in m_groups)
+		pGroup->GetSim()->SetScene(pScene, pMaterial, pBiped); 
 }
 
 void CProjectVis::SetRenderer(IRenderer *pRenderer)	
 { 
-	for each (CSimVis *pSim in m_sims)
-		if (pSim->GetBuilding())
-			pSim->GetBuilding()->SetRenderer(pRenderer); 
+	for each (CLftGroupVis *pGroup in m_groups)
+		pGroup->SetRenderer(pRenderer); 
 }
 
 void CProjectVis::StoreConfig()
 { 
-	for each (CSimVis *pSim in m_sims)
-		if (pSim->GetBuilding())
-			pSim->GetBuilding()->StoreConfig();
+	for each (CLftGroupVis *pGroup in m_groups)
+		pGroup->StoreConfig();
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -414,81 +406,69 @@ std::wstring _prj_error::ErrorMessage()
 //////////////////////////////////////////////////////////////////////////////////
 // Load from XML
 
-void CProjectVis::Load(xmltools::CXmlReader reader, AVLONG nLiftGroup)
+void CProjectVis::Load(xmltools::CXmlReader reader)
 {
-	CSimVis *pSim = nLiftGroup >= 0 ? GetSim(nLiftGroup) : NULL;
-	CBuildingVis *pBuilding = nLiftGroup >= 0 ? GetBuilding(nLiftGroup) : NULL;
 	AVULONG iShaft = 0, iStorey = 0;
 
 	while (reader.read())
 	{
 		if (reader.getName() == L"AVProject")
 		{
-			if (nLiftGroup >= 0) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
 			reader >> ME;
 			ResolveMe();
-			ResolveLiftGroups();
-			nLiftGroup = 0;
-			m_phases[nLiftGroup] = PHASE_PRJ;
 		}
 		else
-		if (reader.getName() == L"AVSim")
+		if (reader.getName() == L"AVLiftGroup")
 		{
-			if (nLiftGroup < 0) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			if (m_phases[nLiftGroup] != PHASE_PRJ && m_phases[nLiftGroup] != PHASE_SIM) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			if (m_phases[nLiftGroup] == PHASE_SIM)
-				nLiftGroup++;
-			pSim = GetSim(nLiftGroup);
-			pBuilding = GetBuilding(nLiftGroup);
-			
-			m_phases[nLiftGroup] = PHASE_SIM;
-
-			reader >> *pSim;
-			pSim->ResolveMe();
-		}
-		else
-		if (reader.getName() == L"AVBuilding")
-		{
-			if (nLiftGroup < 0) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			if (m_phases[nLiftGroup] != PHASE_SIM) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phases[nLiftGroup] = PHASE_BLD;
-
-			reader >> *pBuilding;
-			pBuilding->ResolveMe();
-		}
-		else
-		if (reader.getName() == L"AVShaft")
-		{
-			if (nLiftGroup < 0) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			if (m_phases[nLiftGroup] != PHASE_BLD && m_phases[nLiftGroup] != PHASE_STRUCT) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phases[nLiftGroup] = PHASE_STRUCT;
-			if (iShaft >= pBuilding->GetShaftCount()) throw _prj_error(_prj_error::E_PRJ_LIFTS);
-			
-			reader >> *pBuilding->GetShaft(iShaft++);
+			CLftGroupVis *pGroup = AddLftGroup();
+			reader >> *pGroup ;
+			pGroup ->ResolveMe();
 		}
 		else
 		if (reader.getName() == L"AVFloor")
 		{
-			if (nLiftGroup < 0) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			if (m_phases[nLiftGroup] != PHASE_BLD && m_phases[nLiftGroup] != PHASE_STRUCT) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phases[nLiftGroup] = PHASE_STRUCT;
-			if (iStorey >= pBuilding->GetStoreyCount()) throw _prj_error(_prj_error::E_PRJ_FLOORS);
-			
-			reader >> *pBuilding->GetStorey(iStorey++);
+			AVULONG nLftGroupId = reader[L"LiftGroupId"];
+			CLftGroupVis *pGroup = FindLftGroup(nLftGroupId);
+			if (!pGroup || pGroup->GetSim()) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			CLftGroup::STOREY *pStorey = pGroup->AddStorey();
+			reader >> *pStorey;
+		}
+		else
+		if (reader.getName() == L"AVShaft")
+		{
+			AVULONG nLftGroupId = reader[L"LiftGroupId"];
+			CLftGroupVis *pGroup = FindLftGroup(nLftGroupId);
+			if (!pGroup || pGroup->GetSim()) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			CLftGroup::SHAFT *pShaft = pGroup->AddShaft();
+			reader >> *pShaft;
+		}
+		else
+		if (reader.getName() == L"AVSim")
+		{
+			AVULONG nLftGroupId = reader[L"LiftGroupId"];
+			CLftGroupVis *pGroup = FindLftGroup(nLftGroupId);
+			if (!pGroup || pGroup->GetSim()) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+
+			pGroup->AddExtras();
+			CSimVis *pSim = pGroup->AddSim();
+			pGroup->ResolveMe();
+			pGroup->Create();
+			pGroup->Scale(0.04f);
+
+			reader >> *pSim;
+			pSim->ResolveMe();
+
+			for (AVULONG i = 0; i < pGroup->GetLiftCount(); i++)
+				pSim->AddLift(pSim->CreateLift(i));
 		}
 		else
 		if (reader.getName() == L"AVJourney")
 		{
-			if (nLiftGroup < 0) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			if (pBuilding->GetLiftCount() == 0)
-			{
-				pBuilding->ResolveMore();
-				for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)
-					pSim->AddLift(pSim->CreateLift(i));
-			}
-
-			if (m_phases[nLiftGroup] != PHASE_STRUCT && m_phases[nLiftGroup] != PHASE_SIMDATA) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phases[nLiftGroup] = PHASE_SIMDATA;
+			AVULONG nSimId = reader[L"SimID"];
+			CSimVis *pSim = FindSim(nSimId);
+			if (!pSim || !pSim->GetLftGroup()) 
+				throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			CLftGroupVis *pGroup = pSim->GetLftGroup();
 
 			JOURNEY journey;
 			AVULONG nLiftID = reader[L"LiftID"];
@@ -500,7 +480,9 @@ void CProjectVis::Load(xmltools::CXmlReader reader, AVLONG nLiftGroup)
 			journey.m_timeDest = reader[L"TimeDest"];
 			journey.ParseDoorCycles(reader[L"DC"]);
 				  
-			if (nLiftID >= pBuilding->GetLiftCount() || nLiftID >= LIFT_MAXNUM || journey.m_shaftFrom >= pBuilding->GetShaftCount() || journey.m_shaftTo >= pBuilding->GetShaftCount()) 
+			if (nLiftID >= pGroup->GetLiftCount() || nLiftID >= LIFT_MAXNUM || journey.m_shaftFrom >= pGroup->GetShaftCount() || journey.m_shaftTo >= pGroup->GetShaftCount()) 
+				throw _prj_error(_prj_error::E_PRJ_LIFTS);
+			if (nLiftID >= pSim->GetLiftCount()) 
 				throw _prj_error(_prj_error::E_PRJ_LIFTS);
 
 			pSim->GetLift(nLiftID)->AddJourney(journey);
@@ -508,9 +490,9 @@ void CProjectVis::Load(xmltools::CXmlReader reader, AVLONG nLiftGroup)
 		else
 		if (reader.getName() == L"AVPassenger")
 		{
-			if (nLiftGroup < 0) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			if (m_phases[nLiftGroup] != PHASE_STRUCT && m_phases[nLiftGroup] != PHASE_SIMDATA) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
-			m_phases[nLiftGroup] = PHASE_SIMDATA;
+			AVULONG nSimId = reader[L"SimID"];
+			CSimVis *pSim = FindSim(nSimId);
+			CLftGroupVis *pGroup = pSim->GetLftGroup();
 
 			CPassengerVis *pPassenger = (CPassengerVis*)pSim->CreatePassenger(0);
 			reader >> *pPassenger;
@@ -518,33 +500,6 @@ void CProjectVis::Load(xmltools::CXmlReader reader, AVLONG nLiftGroup)
 			pSim->AddPassenger(pPassenger);
 		}
 	}
-
-	// Init lifts when known
-	if (m_phases[nLiftGroup] >= PHASE_STRUCT && pBuilding->GetLiftCount() == 0)
-	{
-		pBuilding->ResolveMore();
-		for (AVULONG i = 0; i < pBuilding->GetLiftCount(); i++)
-			pSim->AddLift(pSim->CreateLift(i));
-	}
-
-	// Some tests
-	if (GetId() == 0)
-		throw _prj_error(_prj_error::E_PRJ_NOT_FOUND);
-	if (m_phases[nLiftGroup] == PHASE_STRUCT && iShaft != pBuilding->GetShaftCount())
-		throw _prj_error(_prj_error::E_PRJ_LIFTS);
-	if (m_phases[nLiftGroup] == PHASE_STRUCT && iStorey != pBuilding->GetStoreyCount())
-		throw _prj_error(_prj_error::E_PRJ_FLOORS);
-
-	if (m_phases[nLiftGroup] == PHASE_STRUCT) 
-		m_phases[nLiftGroup] = PHASE_SIMDATA;
-
-	if (m_phases[nLiftGroup] == PHASE_SIMDATA && !pBuilding->IsValid()) 
-	{
-		pBuilding->Create();
-		pBuilding->Scale(0.04f);
-	}
-	if (m_phases[nLiftGroup] >= PHASE_STRUCT && !pBuilding->IsValid())
-		throw _prj_error(_prj_error::E_PRJ_NO_BUILDING);
 }
 
 void CProjectVis::LoadIndex(xmltools::CXmlReader reader, vector<CProjectVis*> &prjs)
@@ -565,29 +520,32 @@ void CProjectVis::LoadIndex(xmltools::CXmlReader reader, vector<CProjectVis*> &p
 void CProjectVis::Store(xmltools::CXmlWriter writer)
 {
 	writer.write(L"AVProject", *this);
-	writer.write(L"AVBuilding", *GetBuilding());
+	for (AVULONG i = 0; i < GetLiftGroupsCount(); i++)
+	{
+		writer.write(L"AVLiftGroup", *GetLftGroup(i));
 	
-	for (ULONG i = 0; i < GetBuilding()->GetShaftCount(); i++)
-		writer.write(L"AVShaft", *GetBuilding()->GetShaft(i));
+		for (ULONG i = 0; i < GetLftGroup(i)->GetShaftCount(); i++)
+			writer.write(L"AVShaft", *GetLftGroup(i)->GetShaft(i));
 
-	for (ULONG i = 0; i < GetBuilding()->GetStoreyCount(); i++)
-		writer.write(L"AVFloor", *GetBuilding()->GetStorey(i));
+		for (ULONG i = 0; i < GetLftGroup(i)->GetStoreyCount(); i++)
+			writer.write(L"AVFloor", *GetLftGroup(i)->GetStorey(i));
 
-	for (ULONG i = 0; i < GetSim()->GetLiftCount(); i++)
-		for (ULONG j = 0; j < GetSim()->GetLift(i)->GetJourneyCount(); j++)
-		{
-			JOURNEY *pJ = GetSim()->GetLift(i)->GetJourney(j);
-			writer[L"LiftID"] = GetSim()->GetLift(i)->GetId();
-			writer[L"ShaftFrom"] = pJ->m_shaftFrom;
-			writer[L"ShaftTo"] = pJ->m_shaftTo;
-			writer[L"FloorFrom"] = pJ->m_floorFrom;
-			writer[L"FloorTo"] = pJ->m_floorTo;
-			writer[L"TimeGo"] = pJ->m_timeGo;
-			writer[L"TimeDest"] = pJ->m_timeDest;
-			writer[L"DC"] = pJ->StringifyDoorCycles();
-			writer.write(L"AVJourney");
-		}
+		for (ULONG i = 0; i < GetLftGroup(i)->GetSim()->GetLiftCount(); i++)
+			for (ULONG j = 0; j < GetLftGroup(i)->GetSim()->GetLift(i)->GetJourneyCount(); j++)
+			{
+				JOURNEY *pJ = GetLftGroup(i)->GetSim()->GetLift(i)->GetJourney(j);
+				writer[L"LiftID"] = GetLftGroup(i)->GetSim()->GetLift(i)->GetId();
+				writer[L"ShaftFrom"] = pJ->m_shaftFrom;
+				writer[L"ShaftTo"] = pJ->m_shaftTo;
+				writer[L"FloorFrom"] = pJ->m_floorFrom;
+				writer[L"FloorTo"] = pJ->m_floorTo;
+				writer[L"TimeGo"] = pJ->m_timeGo;
+				writer[L"TimeDest"] = pJ->m_timeDest;
+				writer[L"DC"] = pJ->StringifyDoorCycles();
+				writer.write(L"AVJourney");
+			}
 
-	for (ULONG i = 0; i < GetSim()->GetPassengerCount(); i++)
-		writer.write(L"AVPassenger", *GetSim()->GetPassenger(i));
+		for (ULONG i = 0; i < GetLftGroup(i)->GetSim()->GetPassengerCount(); i++)
+			writer.write(L"AVPassenger", *GetLftGroup(i)->GetSim()->GetPassenger(i));
+	}
 }

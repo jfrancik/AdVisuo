@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "BaseClasses.h"
+#include "BaseProject.h"
+#include "Box.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CElem
@@ -10,13 +11,13 @@
 class CElem
 {
 	CProject *m_pProject;
-	CBuilding *m_pBuilding;
+	CLftGroup *m_pLftGroup;
 	CElem *m_pParent;
 	std::wstring m_name;
 
 public:
 
-	enum { ELEM_PROJECT, ELEM_SITE, ELEM_BUILDING, ELEM_STOREY, ELEM_SHAFT, ELEM_EXTRA, ELEM_LIFT, ELEM_DECK, ELEM_BONE, ELEM_DOOR };
+	enum { ELEM_PROJECT, ELEM_SITE, ELEM_LFTGROUP, ELEM_STOREY, ELEM_SHAFT, ELEM_EXTRA, ELEM_LIFT, ELEM_DECK, ELEM_BONE, ELEM_DOOR };
 
 	enum { WALL_FRONT, WALL_REAR, WALL_SIDE, WALL_CEILING, WALL_FLOOR,
 		WALL_BEAM, WALL_SHAFT, WALL_OPENING, WALL_DOOR, WALL_LIFT, WALL_LIFT_FLOOR, WALL_LIFT_CEILING, WALL_LIFT_DOOR,
@@ -27,14 +28,14 @@ public:
 	enum { MODEL_MACHINE, MODEL_OVERSPEED, MODEL_CONTROL_PANEL, MODEL_DRIVE_PANEL, MODEL_ISOLATOR, MODEL_CWT, MODEL_RAIL, MODEL_BUFFER_CAR, MODEL_BUFFER_CWT, MODEL_PULLEY, MODEL_LADDER, MODEL_LIGHT,
 		   MODEL_JAMB, MODEL_JAMB_CAR, MODEL_HEADING, MODEL_HEADING_CAR, MODEL_SILL, MODEL_SILL_CAR, MODEL_HANDRAIL };
 
-	CElem(CProject *pProject, CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
+	CElem(CProject *pProject, CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 	virtual ~CElem();
 
 	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL) = 0;
 	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVULONG nParam = 0, AVFLOAT fParam1 = 0, AVFLOAT fParam2 = 0) = 0;
 	virtual void Move(AVVECTOR vec) = 0;
 
-	CBuilding *GetBuilding()			{ return m_pBuilding; }
+	CLftGroup *GetLftGroup()			{ return m_pLftGroup; }
 	CProject *GetProject()				{ return m_pProject; }
 	CElem *GetParent()					{ return m_pParent; }
 	std::wstring GetName()				{ return m_name; }
@@ -62,6 +63,6 @@ public:
 	void Deconstruct();
 
 	// Implementation
-	virtual CElem *CreateElement(CBuilding *pBuilding, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) = 0;
+	virtual CElem *CreateElement(CLftGroup *pLftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec) = 0;
 };
 
