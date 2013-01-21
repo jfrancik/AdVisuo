@@ -49,12 +49,16 @@ HRESULT CProjectSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	SetSimulationId(nSimulationId);
 	SetAVVersionId(GetAVNativeVersionId());
 
-	// Query for Simulations
+		// Query for Simulations
 	sel = db.select(L"SELECT * FROM Simulations s, Projects p WHERE p.ProjectId = s.ProjectId AND SimulationId=%d", nSimulationId);
 	if (!sel) throw ERROR_PROJECT;
 	sel >> ME;
 
+#ifdef VER200
+	sel = db.select(L"SELECT LiftGroupId FROM LiftGroups WHERE TenancyId IN (SELECT TenancyId FROM Tenancies WHERE SimulationId=%d)", nSimulationId);
+#else
 	sel = db.select(L"SELECT LiftGroupId FROM LiftGroups WHERE SimulationId=%d", nSimulationId);
+#endif
 	while (sel)
 	{
 		CLiftGroupSrv *pGroup = AddLiftGroup();

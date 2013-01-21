@@ -85,7 +85,7 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 			GetProject()->LoadFromFile(lpszPathName);	// throws _prj_error and _com_error
 
 			SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
-			m_timeLoaded = GetProject()->GetSim(0)->GetSimulationTime();
+			m_timeLoaded = GetProject()->GetSim(0)->GetMaxSimulationTime();
 
 			m_h = S_OK;
 			Debug(L"File successfully loaded.");

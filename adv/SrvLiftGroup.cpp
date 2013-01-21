@@ -75,9 +75,10 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 
 	ME[L"LiftGroupIndex"] = GetIndex();
 
-	sel = db.select(L"SELECT f.* FROM FloorDataSets f, LiftGroups g WHERE f.SimulationId=g.SimulationId AND g.LiftGroupId=%d", nLiftGroupId);
-	if (!sel) throw ERROR_BUILDING;
-	sel >> *this;
+//  original reason for this snippet is highly unclear
+//	sel = db.select(L"SELECT f.* FROM FloorDataSets f, LiftGroups g WHERE f.SimulationId=g.SimulationId AND g.LiftGroupId=%d", nLiftGroupId);
+//	if (!sel) throw ERROR_BUILDING;
+//	sel >> *this;
 
 	sel = db.select(L"SELECT * FROM LiftGroups WHERE LiftGroupId=%d", nLiftGroupId);
 	if (!sel) throw ERROR_BUILDING;
@@ -87,11 +88,19 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 
-	sel = db.select(L"SELECT COUNT(f.FloorId) AS NumberOfStoreys FROM Floors f, LiftGroups g WHERE f.SimulationId=g.SimulationId AND g.LiftGroupId=%d", nLiftGroupId);
+#ifdef VER200
+	sel = db.select(L"SELECT COUNT(FloorId) AS NumberOfStoreys FROM Floors WHERE SimulationId IN (SELECT t.SimulationId FROM LiftGroups g, Tenancies t WHERE t.TenancyId = g.TenancyId AND g.LiftGroupId=%d)", nLiftGroupId);
+#else
+	sel = db.select(L"SELECT COUNT(FloorId) AS NumberOfStoreys FROM Floors WHERE SimulationId IN (SELECT SimulationId FROM LiftGroups WHERE LiftGroupId=%d)", nLiftGroupId);
+#endif
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 
+#ifdef VER200
+	sel = db.select(L"SELECT 0 AS NumberOfBasementStoreys");	
+#else
 	sel = db.select(L"SELECT COUNT(f.FloorId) AS NumberOfBasementStoreys FROM Floors f, LiftGroups g WHERE f.SimulationId=g.SimulationId AND g.LiftGroupId=%d AND f.GroundIndex < 0", nLiftGroupId);
+#endif
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 
@@ -105,6 +114,17 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 		pShaft->erase(L"LiftGroupId");
 
 		// Queries for Stories Served
+#ifdef VER200
+		std::wstring ss((AVULONG)(*this)[L"NumberOfStoreys"], L'0');
+		sel1 = db.select(L"SELECT lf.IsServed AS IsServed, f.GroundIndex AS GroundIndex FROM LiftFloors lf, LiftGroupFloors lgf, Floors f WHERE lf.LiftId = %d AND lf.LiftGroupFloorId = lgf.LiftGroupFloorId AND lgf.FloorId = f.FloorId ORDER BY f.GroundIndex ", (AVULONG)sel[L"LiftId"]); 
+		while (sel1)
+		{
+			std::wstring is = sel1[L"IsServed"];
+			ss[(AVULONG)sel1[L"GroundIndex"] - 1] = is[0];
+			sel1++;
+		}
+		(*pShaft)[L"StoreysServed"] = ss;
+#else
 		std::wstring ss = L"";
 		sel1 = db.select(L"SELECT sf.IsServed AS IsServed, f.GroundIndex FROM ServedFloors sf, Floors f WHERE sf.FloorId = f.FloorId and sf.LiftId = %d ORDER BY f.GroundIndex ", (AVULONG)sel[L"LiftId"]); 
 		while (sel1)
@@ -113,12 +133,17 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 			sel1++;
 		}
 		(*pShaft)[L"StoreysServed"] = ss;
+#endif
 
 		sel++;
 	}
 
 	// Query for Storey Data and add/load storeys
-	sel = db.select(L"SELECT f.* FROM Floors f, LiftGroups g WHERE f.SimulationId=g.SimulationId AND g.LiftGroupId=%d ORDER BY f.GroundIndex", nLiftGroupId);
+#ifdef VER200
+	sel = db.select(L"SELECT * FROM Floors WHERE SimulationId IN (SELECT t.SimulationId FROM LiftGroups g, Tenancies t WHERE t.TenancyId = g.TenancyId AND g.LiftGroupId=%d) ORDER BY GroundIndex", nLiftGroupId);
+#else
+	sel = db.select(L"SELECT * FROM Floors WHERE SimulationId IN (SELECT SimulationId FROM LiftGroups WHERE LiftGroupId=%d) ORDER BY GroundIndex", nLiftGroupId);
+#endif
 	while (sel)
 	{
 		STOREY *pStorey = AddStorey();

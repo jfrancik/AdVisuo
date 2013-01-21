@@ -38,7 +38,7 @@ void CPassengerVis::Play(IAction *pActionTick)
 	if (m_pActionTick) m_pActionTick->AddRef();
 
 	// Plan giving a birth
-	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Generic", m_pActionTick, GetBornTime() - GetSim()->GetTimeLowerBound(), 0);
+	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Generic", m_pActionTick, GetBornTime() - GetSim()->GetMinSimulationTime(), 0);
 	pAction->SetHandleEventHook(_callback_birth, 0, (void*)this);
 }
 
@@ -70,7 +70,7 @@ void CPassengerVis::Play(IAction *pActionTick)
 void CPassengerVis::Render(IRenderer *pRenderer, AVLONG nPhase)
 {
 	// time params
-	AVLONG nAge = (AVLONG)GetSim()->GetTime() - (GetBornTime() - (AVLONG)GetSim()->GetTimeLowerBound());
+	AVLONG nAge = (AVLONG)GetSim()->GetTime() - (GetBornTime() - (AVLONG)GetSim()->GetMinSimulationTime());
 
 	if (nAge < 550 && nPhase == 0 || nAge >= 550 && nPhase == 1)
 		return;
@@ -86,12 +86,12 @@ void CPassengerVis::Render(IRenderer *pRenderer, AVLONG nPhase)
 			color.r = color.g = color.b = 1;
 			break;
 		case 1: 
-			if (GetSim()->GetTime() < GetLoadTime() - GetSim()->GetTimeLowerBound() - GetWaitSpan())
+			if (GetSim()->GetTime() < GetLoadTime() - GetSim()->GetMinSimulationTime() - GetWaitSpan())
 				time = 0;
-			else if (GetSim()->GetTime() >= (AVULONG)(GetLoadTime() - GetSim()->GetTimeLowerBound()))
+			else if (GetSim()->GetTime() >= (AVULONG)(GetLoadTime() - GetSim()->GetMinSimulationTime()))
 				time = GetWaitSpan();
 			else
-				time = GetSim()->GetTime() + GetWaitSpan() - (GetLoadTime() - GetSim()->GetTimeLowerBound());
+				time = GetSim()->GetTime() + GetWaitSpan() - (GetLoadTime() - GetSim()->GetMinSimulationTime());
 
 			color = HSV_to_RGB(2 - (((AVFLOAT)min(time, 55000) * 2) / 55000), 1, 1);
 			break;
@@ -179,10 +179,10 @@ void CPassengerVis::BeBorn()
 			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Move", m_pActionTick, pAction, 1, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, BODY_ROOT, vector.y+160.0f, vector.x, 0);
 			break;
 		case WAIT:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Wait", m_pActionTick, pAction, 0, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, wp->nTime - GetSim()->GetTimeLowerBound());
+			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Wait", m_pActionTick, pAction, 0, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, wp->nTime - GetSim()->GetMinSimulationTime());
 			break;
 		case WALK:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Walk", m_pActionTick, pAction, stepDuration, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, vector.x, -vector.y, stepLen, DEG2RAD(45));
+			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Walk", m_pActionTick, pAction, stepDuration, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, vector.x, -vector.y, stepLen, DEG2RAD(90));
 			break;
 		case TURN:
 			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Turn", m_pActionTick, pAction, turnDuration, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, DEG2RAD(180), 3);

@@ -58,7 +58,7 @@ int CSimLoader::Load(std::ifstream &stream, size_t nSize)
 	return bytes;
 }
 
-DWORD CSimLoader::Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG nSimulationId)
+DWORD CSimLoader::Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG nSimulationId, ULONG nTrafficScenarioId, ULONG nIteration)
 {
 	if (!db) throw db;
 	dbtools::CDataBase::SELECT sel;
@@ -70,13 +70,18 @@ DWORD CSimLoader::Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG n
 
 	sel = db.select(L"SELECT * FROM SimulationLogs WHERE SimulationId=%d", nSimulationId);
 	if (!sel) return ERROR_SIM_MISSING;
-	nVersion = (int)((float)sel[L"AdSimuloVersion"] * 10 + 100.5);
+//	nVersion = (int)((float)sel[L"AdSimuloVersion"] * 10 + 100.5);
+// stopped to work in Version 2, besides it wasn't used
 
 	// count passengers - on the lift by lift basis
 	nPassengers = 0;
 	for (int iLift = 0; iLift < nLifts; iLift++)
 	{
-		sel = db.select(L"SELECT COUNT(HallCallId) As NumPassengers FROM HallCalls WHERE LiftId = %d AND SimulationId=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
+		sel = db.select(L"SELECT COUNT(HallCallId) As NumPassengers FROM HallCalls WHERE LiftId = %d AND SimulationId=%d AND TraffiicScenarioId=%d AND Iteration=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nTrafficScenarioId, nIteration);
+#else
+		sel = db.select(L"SELECT COUNT(HallCallId) As NumPassengers FROM HallCalls WHERE LiftId = %d AND SimulationId=%d AND Iteration=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
+#endif
 		if (!sel) return ERROR_SIM_MISSING;
 		nPassengers += (int)sel[L"NumPassengers"];
 	}
@@ -86,7 +91,11 @@ DWORD CSimLoader::Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG n
 	int iPassenger = 0;
 	for (int iLift = 0; iLift < nLifts; iLift++)
 	{
-		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND SimulationId=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
+		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND SimulationId=%d AND TraffiicScenarioId=%d AND Iteration=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nTrafficScenarioId, nIteration);
+#else
+		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND SimulationId=%d AND Iteration=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
+#endif
 		for ( ; sel; sel++, iPassenger++)
 		{
 			pPassengers[iPassenger].ArrivalFloor = (int)sel[L"ArrivalFloor"];
@@ -121,7 +130,11 @@ DWORD CSimLoader::Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG n
 		// Lift Logs
 
 		// number of logs
-		sel = db.select(L"SELECT COUNT(LiftLogId) As NumLiftLogs FROM LiftLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
+		sel = db.select(L"SELECT COUNT(LiftLogId) As NumLiftLogs FROM LiftLogs WHERE LiftId = %d AND SimulationId=%d AND TrafficScenarioId=%d AND Iteration=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nTrafficScenarioId, nIteration);
+#else
+		sel = db.select(L"SELECT COUNT(LiftLogId) As NumLiftLogs FROM LiftLogs WHERE LiftId = %d AND SimulationId=%d AND Iteration=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
+#endif
 		if (!sel) return ERROR_SIM_MISSING;
 		pnLiftLogs[iLift] = (int)sel[L"NumLiftLogs"];
 
@@ -129,7 +142,11 @@ DWORD CSimLoader::Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG n
 		ppLiftLogs[iLift] = new LiftLog[pnLiftLogs[iLift]];
 		memset(ppLiftLogs[iLift], 0, pnLiftLogs[iLift] * sizeof(LiftLog));
 		
-		sel = db.select(L"SELECT * FROM LiftLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d ORDER BY [Time]", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
+		sel = db.select(L"SELECT * FROM LiftLogs WHERE LiftId = %d AND SimulationId=%d  AND TrafficScenarioId=%d AND Iteration=%d ORDER BY [Time]", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nTrafficScenarioId, nIteration);
+#else
+		sel = db.select(L"SELECT * FROM LiftLogs WHERE LiftId = %d AND SimulationId=%d  AND Iteration=%d ORDER BY [Time]", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
+#endif
 		for (int iIter = 0; sel; sel++, iIter++)
 		{
 			ppLiftLogs[iLift][iIter].Time = (float)sel[L"Time"];
@@ -142,7 +159,11 @@ DWORD CSimLoader::Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG n
 		// Deck Logs
 		
 		// number of deck logs
-		sel = db.select(L"SELECT COUNT(DeckLogId) As NumDeckLogs FROM DeckLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
+		sel = db.select(L"SELECT COUNT(DeckLogId) As NumDeckLogs FROM DeckLogs WHERE LiftId = %d AND SimulationId=%d AND TrafficScenarioId=%d AND Iteration=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nTrafficScenarioId, nIteration);
+#else
+		sel = db.select(L"SELECT COUNT(DeckLogId) As NumDeckLogs FROM DeckLogs WHERE LiftId = %d AND SimulationId=%d AND Iteration=%d", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
+#endif
 		if (!sel) return ERROR_SIM_MISSING;
 		pnDeckLogs[iLift] = (int)sel[L"NumDeckLogs"];
 
@@ -152,7 +173,11 @@ DWORD CSimLoader::Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG n
 		ppDeckLogs[iLift] = new DeckLog[pnDeckLogs[iLift]];
 		memset(ppDeckLogs[iLift], 0, pnDeckLogs[iLift] * sizeof(DeckLog));
 		
-		sel = db.select(L"SELECT * FROM DeckLogs WHERE Iteration=0 AND LiftId = %d AND SimulationId=%d ORDER BY [Time]", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId);
+#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
+		sel = db.select(L"SELECT * FROM DeckLogs WHERE LiftId = %d AND SimulationId=%d  AND TrafficScenarioId=%d AND Iteration=%d ORDER BY [Time]", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nTrafficScenarioId, nIteration);
+#else
+		sel = db.select(L"SELECT * FROM DeckLogs WHERE LiftId = %d AND SimulationId=%d  AND Iteration=%d ORDER BY [Time]", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
+#endif
 		for (int iIter = 0; sel; sel++, iIter++)
 		{
 			ppDeckLogs[iLift][iIter].Time = (float)sel[L"Time"];

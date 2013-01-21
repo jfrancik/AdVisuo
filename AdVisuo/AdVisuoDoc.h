@@ -24,7 +24,7 @@ class CAdVisuoDoc : public CDocument
 	CString m_strStatus;	// status of internet connection
 	CString m_strResponse;	// response from the internet connection
 
-	AVULONG m_timeLoaded;	// streamed loading: time loaded
+	AVLONG m_timeLoaded;	// streamed loading: time loaded
 
 protected: // create from serialization only
 	CAdVisuoDoc();
@@ -41,9 +41,11 @@ public:
 	bool IsSIMDataReady()					{ return m_http.ready(); }
 	bool IsDownloadComplete(int i = 0)		{ return m_timeLoaded >= GetProject()->GetSim(i)->GetTimeSaved(); }
 
-	AVULONG GetLoadedTime()					{ return m_timeLoaded; }
-	AVULONG GetSimulationTime(int i)		{ return GetProject()->GetSim(i)->GetSimulationTime(); }
-	AVLONG GetTimeLowerBound(int i)			{ return GetProject()->GetSim(i)->GetTimeLowerBound(); }
+	AVLONG GetLoadedTime()					{ return m_timeLoaded; }
+	AVLONG GetMinSimulationTime(int i)		{ return GetProject()->GetSim(i)->GetMinSimulationTime(); }
+	AVLONG GetMinSimulationTime()			{ return GetProject()->GetMinSimulationTime(); }
+	AVLONG GetMaxSimulationTime(int i)		{ return GetProject()->GetSim(i)->GetMaxSimulationTime(); }
+	AVLONG GetMaxSimulationTime()			{ return GetProject()->GetMaxSimulationTime(); }
 
 	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
 

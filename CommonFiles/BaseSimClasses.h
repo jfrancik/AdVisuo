@@ -21,9 +21,12 @@ class CSim : public dbtools::CCollection
 	AVULONG m_nLiftGroupId;			// lift group id
 	AVULONG m_nSIMVersionId;		// SIM version id
 	AVULONG m_nIndex;				// index in multi-group structures
-	AVLONG m_nSimulationTime;
-	AVULONG m_nTimeSaved;
-	
+
+	AVLONG m_nMinSimulationTime;	// simulation minimum time - may be less than zero but not greater than zero
+	AVLONG m_nMaxSimulationTime;	// simulation maximum time
+	AVLONG m_nTimeSaved;			// simulation saved time
+	AVLONG m_nTime;					// the current time
+
 	CLiftGroup *m_pLiftGroup;
 	AVVECTOR m_vecOffset;
 
@@ -56,12 +59,16 @@ public:
 	void SetLiftGroupId(AVULONG n)				{ m_nLiftGroupId = n; }
 	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionId = n; }
 
-	AVLONG GetSimulationTime()					{ return m_nSimulationTime; }
-	void ReportSimulationTime(AVLONG n)			{ if (n > m_nSimulationTime) m_nSimulationTime = n; }
-
-	AVULONG GetTimeSaved()						{ return m_nTimeSaved; }
-	void ReportTimeSaved()						{ m_nTimeSaved = m_nSimulationTime; }
-
+	// Time-related functions
+	AVLONG GetMinSimulationTime()				{ return m_nMinSimulationTime; }
+	void SetMinSimulationTime(AVLONG n)			{ m_nMinSimulationTime = n; }
+	AVLONG GetMaxSimulationTime()				{ return m_nMaxSimulationTime; }
+	void ReportMaxSimulationTime(AVLONG n)		{ if (n > m_nMaxSimulationTime) m_nMaxSimulationTime = n; }
+	AVLONG GetTimeSaved()						{ return m_nTimeSaved; }
+	void ReportTimeSaved()						{ m_nTimeSaved = m_nMaxSimulationTime; }
+	AVLONG GetTime()							{ return m_nTime; }
+	void SetTime(AVLONG n)						{ m_nTime = n; }
+	
 	AVVECTOR GetOffsetVector()					{ return m_vecOffset; }
 	void SetOffsetVector(AVVECTOR v)			{ m_vecOffset = v; }
 

@@ -62,9 +62,6 @@ class CAdVisuoView : public CView
 	// Screen Configuration Object
 	CScreen2x2 m_screen;
 
-	// Temporary: current Lift Group
-	AVULONG m_nCurLiftGroup;
-
 	// Script
 	CScript m_script;
 	CScriptEvent m_instRec;
@@ -108,9 +105,6 @@ public:
 	CAdVisuoDoc *GetDocument() const			{ return reinterpret_cast<CAdVisuoDoc*>(m_pDocument); }
 	bool IsEngineReady()						{ return m_pBody != NULL; }
 
-	AVULONG GetCurLiftGroup()					{ return m_nCurLiftGroup; }
-	void SetCurLiftGroup(AVULONG n)				{ m_nCurLiftGroup = n; }
-
 	CString GetDiagnosticMessage();
 
 	// Initialisation and Life-Cycle
@@ -133,6 +127,8 @@ public:
 	void SetCamera(int i, CCamera *pCamera)		{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = pCamera; }
 
 	CCamera *GetCurCamera()						{ return GetCamera(m_screen.GetCurCamera()); }
+	AVULONG GetCurLiftGroupIndex()				{ return GetCurCamera()->GetLiftGroup()->GetIndex(); }
+
 
 	void DeleteAllCameras()						{ for (int i = 0; i < N_CAMERAS; i++) DeleteCamera(i); }
 	void CreateAllCameras()						{ for (int i = 0; i < N_CAMERAS; i++) CreateCamera(i); }

@@ -120,6 +120,8 @@ public:
 		AVULONG m_nLiftType;					// 1 = conventional, 2 = MRL
 		AVFLOAT m_fShaftOrientation;			// machine orientation (0 for line 0, M_PI for line 1)
 		AVULONG m_nMachineType;					// machine type (1 - 4)
+		AVULONG m_nPanelCtrlType, m_nPanelDrvType, m_nPanelIsoType;		// control/drive/isolator panel type
+		AVFLOAT m_fPanelCtrlWidth, m_fPanelDrvWidth, m_fPanelIsoWidth;	// control/drive/isolator panel width
 		AVFLOAT m_fMachineOrientation;			// machine orientation
 		AVFLOAT m_fRailWidth;					// guiding rail width
 		AVFLOAT m_fRailLength;					// guiding rail length
@@ -140,6 +142,7 @@ public:
 		CLiftGroup *GetLiftGroup()				{ return m_pLiftGroup; }
 		CProject *GetProject()					{ return GetLiftGroup()->GetProject(); }
 		AVULONG GetShaftLine()					{ return m_nShaftLine; }
+		AVULONG GetIndexInLine()				{ return GetId() - GetLiftGroup()->GetShaftBegin(GetShaftLine()); }
 		std::wstring GetName()					{ wchar_t buf[256]; _snwprintf_s(buf, 256, L"Lift %c", GetId() + 'A'); return buf; }
 
 		AVLONG GetNativeId()					{ return ME[L"LiftId"]; }
@@ -177,6 +180,13 @@ public:
 		AVFLOAT GetShaftOrientation()			{ return m_fShaftOrientation; }
 		AVULONG GetMachineType()				{ return m_nMachineType; }
 		AVFLOAT GetMachineOrientation()			{ return m_fMachineOrientation; }
+		AVULONG GetPanelCtrlType()				{ return m_nPanelCtrlType; }
+		AVULONG GetPanelDrvType()				{ return m_nPanelDrvType; }
+		AVULONG GetPanelIsoType()				{ return m_nPanelIsoType; }
+		AVFLOAT GetPanelCtrlWidth()				{ return m_fPanelCtrlWidth; }
+		AVFLOAT GetPanelDrvWidth()				{ return m_fPanelDrvWidth; }
+		AVFLOAT GetPanelTwoWidth()				{ return m_fPanelCtrlWidth + m_fPanelDrvWidth; }
+		AVFLOAT GetPanelIsoWidth()				{ return m_fPanelIsoWidth; }
 		AVFLOAT GetRailWidth()					{ return m_fRailWidth; }
 		AVFLOAT GetRailLength()					{ return m_fRailLength; }
 		AVULONG GetBufferNum()					{ return m_nBufferNum; }
@@ -334,17 +344,21 @@ public:
 	AVFLOAT GetPitLadderHeight()			{ if (IsPitLadder()) return (GetPitLadderRungs() + 1) * 300 * GetScale(); else return 0; }
 	AVFLOAT GetPitLadderLowerBracket()		{ if (IsPitLadder()) return 500 * GetScale(); else return 0; }
 	AVFLOAT GetPitLadderUpperBracket()		{ if (IsPitLadder()) return (GetPitLadderHeight() - 600) * GetScale(); else return 0; }
+	AVFLOAT GetPanelGrpWidth()				{ return 700.0f; }
 
 	// Shafts
 	SHAFT *AddShaft();
 	void DeleteShafts();
 	SHAFT *GetShaft(AVULONG i)				{ return i < GetShaftCount() ? m_shafts[i] : NULL; }
+	SHAFT *GetShaft(AVULONG nLine, AVULONG i)	{ return GetShaft(GetShaftBegin(nLine) + i); }
 
 	AVULONG GetShaftCount()					{ return m_shafts.size(); }
 	AVULONG GetShaftBegin(AVULONG nLine)	{ return nLine == 0 ? 0 : m_pnShaftCount[0]; }
 	AVULONG GetShaftCount(AVULONG nLine)	{ return m_pnShaftCount[nLine]; }
 	AVULONG GetShaftEnd(AVULONG nLine)		{ return GetShaftBegin(nLine) + GetShaftCount(nLine); }
 	AVULONG GetShaftLinesCount()			{ return m_pnShaftCount[1] == 0 ? 1 : 2; }
+	AVULONG GetShaftLineFor(AVULONG iShaft)		{ return iShaft < GetShaftCount(0) ? 0 : 1; }
+	AVULONG GetShaftIndexInLine(AVULONG iShaft)	{ return iShaft - GetShaftBegin(GetShaftLineFor(iShaft)); }
 
 	AVULONG GetLiftCount(AVULONG nShaft)	{ return GetShaft(nShaft)->GetLiftCount(); }
 

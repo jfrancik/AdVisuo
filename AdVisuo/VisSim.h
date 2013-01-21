@@ -20,15 +20,13 @@ class CProjectVis;
 
 class CSimVis : public CSim, protected CRepos<IBody>
 {
-	AVULONG m_nColouringMode;	// the Colouring Mode
-	AVULONG m_nTime;			// the Current Time
-	AVLONG m_nTimeLowerBound;	// Time Lower Bound (not greater than zero)
-
 	IScene *m_pScene;
 	IMaterial *m_pMaterial;
 	IKineChild *m_pBiped;
 	BYTE *m_pBipedBuf;			// Data buffer for Store/RetrieveState functions
 	AVULONG m_nBipedBufCount;
+
+	AVULONG m_nColouringMode;	// the Colouring Mode
 
 public:
 	CSimVis();
@@ -45,12 +43,6 @@ public:
 
 	AVULONG GetColouringMode()		{ return m_nColouringMode; }
 	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
-
-	AVULONG GetTime()				{ return m_nTime; }
-	void SetTime(AVULONG n)			{ m_nTime = n; }
-
-	AVLONG GetTimeLowerBound()		{ return m_nTimeLowerBound; }
-	void SetTimeLowerBound(AVLONG n){ m_nTimeLowerBound = n; }
 
 	// repository
 	IBody *GetBody();

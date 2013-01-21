@@ -14,6 +14,7 @@ interface IScene;
 
 class CElemVis;
 class CSimVis;
+class CProjectVis;
 
 class CLiftGroupVis : public CLiftGroupConstr
 {
@@ -39,6 +40,18 @@ protected:
 public:
 	CSimVis *AddSim()																	{ return (CSimVis*)CLiftGroupConstr::AddSim(); }
 	CSimVis *GetSim()																	{ return (CSimVis*)CLiftGroupConstr::GetSim(); }
+
+	SHAFT  *AddShaft()																	{ return (SHAFT *)CLiftGroupConstr::AddShaft(); }
+	STOREY *AddStorey()																	{ return (STOREY*)CLiftGroupConstr::AddStorey(); }
+	LIFT   *AddLift()																	{ return (LIFT  *)CLiftGroupConstr::AddLift(); }
+
+	CProjectVis *GetProject()															{ return (CProjectVis*)CLiftGroupConstr::GetProject(); }
+	STOREY *GetStorey(AVULONG i)														{ return (STOREY*)CLiftGroupConstr::GetStorey(i); }
+	STOREY *GetGroundStorey(AVULONG i = 0)												{ return (STOREY*)CLiftGroupConstr::GetGroundStorey(i); }
+	SHAFT *GetShaft(AVULONG i)															{ return (SHAFT*)CLiftGroupConstr::GetShaft(i); }
+	LIFT *GetLift(AVULONG i)															{ return (LIFT*)CLiftGroupConstr::GetLift(i); }
+	MACHINEROOM *GetMachineRoom()														{ return (MACHINEROOM*)CLiftGroupConstr::GetMachineRoom(); }
+	PIT *GetPit()																		{ return (PIT*)CLiftGroupConstr::GetPit(); }
 
 	CElemVis *GetElement()																{ return (CElemVis*)CLiftGroupConstr::GetElement(); }
 

@@ -15,7 +15,8 @@ CLift *CSimSrv::CreateLift(AVULONG nId)					{ return new CLiftSrv(this, nId); }
 
 HRESULT CSimSrv::LoadSim(CDataBase db, AVULONG nSimulationId)
 {
-	AVULONG nnSimulationId = ME[L"SimulationId"];
+	if (!db) throw db;
+	dbtools::CDataBase::SELECT sel;
 
 	if (!GetLiftGroup())
 		return Log(ERROR_INTERNAL, L"SIM file loading without the building set.");
@@ -23,7 +24,19 @@ HRESULT CSimSrv::LoadSim(CDataBase db, AVULONG nSimulationId)
 	// load!
 	CSimLoader loader;
 
-	int nRes = loader.Load(GetLiftGroup(), db, nSimulationId);
+	// Specify nIteration - a priori zero!
+	AVULONG nIteration = 0;
+
+	// specify scenario id (query for minimal available)
+#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
+	sel = db.select(L"SELECT MIN(TraffiicScenarioId) As MinTrafficScenarioId FROM HallCalls WHERE LiftId=%d AND SimulationId=%d AND Iteration=%d", GetLiftGroup()->GetLift(0)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
+	if (!sel) return ERROR_SIM_MISSING;
+	AVULONG nTrafficScenarioId = sel[L"MinTrafficScenarioId"];
+#else
+	AVULONG nTrafficScenarioId = 0;
+#endif
+
+	int nRes = loader.Load(GetLiftGroup(), db, nSimulationId, nTrafficScenarioId, nIteration);
 	// int nRes = loader.Load(GetSIMFileName().c_str());
 	//int nRes = loader.Load(GetLiftGroup(), L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
 

@@ -31,6 +31,10 @@ public:
 	void SetId(AVULONG n)						{ m_nId = n; }
 	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
 
+	// functions based on member groups/sims
+	AVLONG GetMinSimulationTime();
+	AVLONG GetMaxSimulationTime();
+	AVLONG GetTimeSaved();
 
 	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
 	std::wstring GetProjectInfo(PRJ_INFO what);

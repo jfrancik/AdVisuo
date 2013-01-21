@@ -102,9 +102,11 @@ public:
 		CElem *GetPitElementRight()							{ return m_PitBones.m_pElemRight; }
 		CElem *GetPitElementLeftOrRight(AVULONG n)			{ return n == 0 ? GetPitElementLeft() : GetPitElementRight(); }
 
-		virtual void Construct(AVULONG iStorey, AVULONG iShaft);
-		virtual void ConstructMachine(AVULONG iShaft);
-		virtual void ConstructPit(AVULONG iShaft);
+		virtual void Construct(AVULONG iStorey);
+		virtual void ConstructMachine();
+		virtual void ConstructPanels(AVFLOAT x);
+		virtual void ConstructIsoPanel(AVFLOAT y);
+		virtual void ConstructPitEquipment();
 		virtual void Deconstruct();
 	};
 

@@ -599,6 +599,17 @@ void CCamera::CheckLocation()
 	AVVECTOR pos = { 0, 0, 0 };
 	m_pHandleBone->LtoG((FWVECTOR*)&pos);
 
+	// first thing: determine which lift group it is!
+	CProjectVis *pProject = GetLiftGroup()->GetProject();
+	CLiftGroupVis *pGroup = pProject->GetLiftGroup(0);
+	for each (CLiftGroupVis *p in pProject->GetLiftGroups())
+	{
+		pGroup = p;
+		if (pos.y >= p->GetTotalAreaBox().FrontExt()) break;
+	}
+	if (pGroup != GetLiftGroup())
+		SetLiftGroup(pGroup);
+
 	// camera azimouth and zone
 	m_camAzim = ((AVLONG)((m_pLiftGroup->GetBox().InBoxAzimuth(pos, true) + M_PI + M_PI/4) / (M_PI/2))) % 4;
 	if (m_pLiftGroup->GetBox().InBoxSection(pos, 3, 3, m_camXZone, m_camYZone))
@@ -731,6 +742,7 @@ LPTSTR CCamera::GetTextDescription()
 
 	AVULONG nId = GetId() + 1;
 	AVULONG nSize = 256;
+	AVULONG nGrp = GetLiftGroup()->GetIndex() + 1;
 
 	CString pFloorName = GetLiftGroup()->GetStorey(desc.floor + GetLiftGroup()->GetBasementStoreyCount())->GetName().c_str();
 	pFloorName.Trim();
@@ -740,33 +752,33 @@ LPTSTR CCamera::GetTextDescription()
 	case CAMLOC_LOBBY:
 		switch (desc.index)
 		{
-		case 0: _snwprintf(m_buf, nSize, L"Camera %d: %s lobby, rear left corner", nId, pFloorName); break;
-		case 1: _snwprintf(m_buf, nSize, L"Camera %d: %s lobby, rear side", nId, pFloorName); break;
-		case 2: _snwprintf(m_buf, nSize, L"Camera %d: %s lobby, rear right corner", nId, pFloorName); break;
-		case 3: _snwprintf(m_buf, nSize, L"Camera %d: %s lobby, right side", nId, pFloorName); break;
-		case 4: _snwprintf(m_buf, nSize, L"Camera %d: %s lobby, front right corner", nId, pFloorName); break;
-		case 5: _snwprintf(m_buf, nSize, L"Camera %d: %s lobby, front side", nId, pFloorName); break;
-		case 6: _snwprintf(m_buf, nSize, L"Camera %d: %s lobby, front left corner", nId, pFloorName); break;
-		case 7: _snwprintf(m_buf, nSize, L"Camera %d: %s lobby, left side", nId, pFloorName); break;
-		default: _snwprintf(m_buf, nSize, L"Camera %d: %s lobby", nId, pFloorName); break;
+		case 0: _snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s lobby, rear left corner", nId, nGrp, pFloorName); break;
+		case 1: _snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s lobby, rear side", nId, nGrp, pFloorName); break;
+		case 2: _snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s lobby, rear right corner", nId, nGrp, pFloorName); break;
+		case 3: _snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s lobby, right side", nId, nGrp, pFloorName); break;
+		case 4: _snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s lobby, front right corner", nId, nGrp, pFloorName); break;
+		case 5: _snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s lobby, front side", nId, nGrp, pFloorName); break;
+		case 6: _snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s lobby, front left corner", nId, nGrp, pFloorName); break;
+		case 7: _snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s lobby, left side", nId, nGrp, pFloorName); break;
+		default: _snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s lobby", nId, nGrp, pFloorName); break;
 		};
 		break;
-	case CAMLOC_OVERHEAD:	_snwprintf(m_buf, nSize, L"Camera %d: %s overhead view", nId, pFloorName); break;
-	case CAMLOC_LIFT:		_snwprintf(m_buf, nSize, L"Camera %d: Lift %c at %s", nId, L'A' + desc.index - 1, pFloorName); break;
-	case CAMLOC_SHAFT:		_snwprintf(m_buf, nSize, L"Camera %d: Shaft %c at %s", nId, L'A' + desc.index - 1, pFloorName); break;
+	case CAMLOC_OVERHEAD:	_snwprintf(m_buf, nSize, L"Cam %d: Grp %d %s overhead view", nId, nGrp, pFloorName); break;
+	case CAMLOC_LIFT:		_snwprintf(m_buf, nSize, L"Cam %d: Grp %d Lift %c at %s", nId, nGrp, L'A' + desc.index - 1, pFloorName); break;
+	case CAMLOC_SHAFT:		_snwprintf(m_buf, nSize, L"Cam %d: Grp %d Shaft %c at %s", nId, nGrp, L'A' + desc.index - 1, pFloorName); break;
 	case CAMLOC_OUTSIDE:
 		switch (desc.index)
 		{
-		case 0: _snwprintf(m_buf, nSize, L"Camera %d: %s, front side of the building", nId, pFloorName); break;
-		case 1: _snwprintf(m_buf, nSize, L"Camera %d: %s, rear side of the building", nId, pFloorName); break;
-		case 2: _snwprintf(m_buf, nSize, L"Camera %d: %s, left side of the building", nId, pFloorName); break;
-		case 3: _snwprintf(m_buf, nSize, L"Camera %d: %s, right side of the building", nId, pFloorName); break;
-		default: _snwprintf(m_buf, nSize, L"Camera %d: %s, outside the building", nId, pFloorName); break;
+		case 0: _snwprintf(m_buf, nSize, L"Cam %d: %s, front side of the building", nId, pFloorName); break;
+		case 1: _snwprintf(m_buf, nSize, L"Cam %d: %s, rear side of the building", nId, pFloorName); break;
+		case 2: _snwprintf(m_buf, nSize, L"Cam %d: %s, left side of the building", nId, pFloorName); break;
+		case 3: _snwprintf(m_buf, nSize, L"Cam %d: %s, right side of the building", nId, pFloorName); break;
+		default: _snwprintf(m_buf, nSize, L"Cam %d: %s, outside the building", nId, pFloorName); break;
 		}
 		break;
-	case CAMLOC_BELOW:		_snwprintf(m_buf, nSize, L"Camera %d: Below the building", nId); break;
-	case CAMLOC_ABOVE:		_snwprintf(m_buf, nSize, L"Camera %d: Above the building", nId); break;
-	default:				_snwprintf(m_buf, nSize, L"Camera %d: Location unknown", nId); break;
+	case CAMLOC_BELOW:		_snwprintf(m_buf, nSize, L"Cam %d: Below the building", nId); break;
+	case CAMLOC_ABOVE:		_snwprintf(m_buf, nSize, L"Cam %d: Above the building", nId); break;
+	default:				_snwprintf(m_buf, nSize, L"Cam %d: Location unknown", nId); break;
 	};
 	return m_buf;
 }

@@ -560,15 +560,32 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 	if (fSpeed >= 4) cwtx = 100;
 	if (fCapacity >= 1275) slingb = 600; if (fCapacity >= 1800) slingb = 800;
 
-	m_nMachineType = 1;
-	if (fCapacity >= 1800) m_nMachineType = 2;
-	if (fSpeed >= 2.5) m_nMachineType = 3;
-	if (fSpeed >= 5) m_nMachineType = 4;
+	// determine machine & panel types
+	                          m_nMachineType = 1; m_nPanelCtrlType = 1; m_nPanelDrvType = 1; m_nPanelIsoType = 1; m_fPanelCtrlWidth = 700; m_fPanelDrvWidth = 1000; m_fPanelIsoWidth = 1000;
+	if (fCapacity >= 1800)	{ m_nMachineType = 2; m_nPanelCtrlType = 1; m_nPanelDrvType = 2; m_nPanelIsoType = 2; m_fPanelCtrlWidth = 700; m_fPanelDrvWidth = 1500; m_fPanelIsoWidth = 1250; }
+	if (fSpeed >= 2.5)		{ m_nMachineType = 3; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_fPanelCtrlWidth = 700; m_fPanelDrvWidth = 1700; m_fPanelIsoWidth = 1600; }
+	if (fSpeed >= 5)		{ m_nMachineType = 4; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_fPanelCtrlWidth = 700; m_fPanelDrvWidth = 1700; m_fPanelIsoWidth = 1600; }
 
+	// additional tuning for the isolator type: isolators are set for every fourth shaft
+	AVULONG nId4th = (GetId() / 4) * 4;	// index of the master: first in each four (0, 4, 8 ...)
+	if (GetId() != nId4th)
+	{
+		// for all but the master shaft, zero the isolator, but modify the master type (which must be the maximum in the four)
+		if (m_nPanelIsoType > GetLiftGroup()->GetShaft(nId4th)->m_nPanelIsoType)
+		{
+			GetLiftGroup()->GetShaft(nId4th)->m_nPanelIsoType = m_nPanelIsoType;
+			GetLiftGroup()->GetShaft(nId4th)->m_fPanelIsoWidth = m_fPanelIsoWidth;
+		}
+		m_nPanelIsoType = 0;
+		m_fPanelIsoWidth = 0;
+	}
+
+	// determine rails size
 	m_fRailWidth = 125; m_fRailLength = 82;
 	if (fCapacity >= 1275) { m_fRailWidth = 127; m_fRailLength = 89; }
 	if (fCapacity >= 1800) { m_fRailWidth = 140; m_fRailLength = 102; }
 
+	// determine buffer num & size
 	m_nBufferNum = 1;
 	if (fSpeed >= 3.5) m_nBufferNum = 2;
 	m_nBufferDiameter = 200; m_nBufferHeight = 540;
@@ -707,6 +724,12 @@ void CLiftGroup::SHAFT::ConsoleCreateAmend()
 	ME[L"ShaftOrientation"] = m_fShaftOrientation;
 	ME[L"MachineType"] = m_nMachineType;
 	ME[L"MachineOrientation"] = m_fMachineOrientation;
+	ME[L"PanelCtrlType"] = m_nPanelCtrlType;
+	ME[L"PanelDrvType"] = m_nPanelDrvType;
+	ME[L"PanelIsoType"] = m_nPanelIsoType;
+	ME[L"PanelCtrlWidth"] = m_fPanelCtrlWidth;
+	ME[L"PanelDrvWidth"] = m_fPanelDrvWidth;
+	ME[L"PanelIsoWidth"] = m_fPanelIsoWidth;
 	ME[L"RailWidth"] = m_fRailWidth;
 	ME[L"RailLength"] = m_fRailLength;
 	ME[L"BufferNum"] = m_nBufferNum;
@@ -825,6 +848,12 @@ void CLiftGroup::SHAFT::Create()
 	m_fShaftOrientation = ME[L"ShaftOrientation"];
 	m_nMachineType = ME[L"MachineType"];
 	m_fMachineOrientation = ME[L"MachineOrientation"];
+	m_nPanelCtrlType = ME[L"PanelCtrlType"];
+	m_nPanelDrvType = ME[L"PanelDrvType"];
+	m_nPanelIsoType = ME[L"PanelIsoType"];
+	m_fPanelCtrlWidth = ME[L"PanelCtrlWidth"];
+	m_fPanelDrvWidth = ME[L"PanelDrvWidth"];
+	m_fPanelIsoWidth = ME[L"PanelIsoWidth"];
 	m_fRailWidth = ME[L"RailWidth"];
 	m_fRailLength = ME[L"RailLength"];
 	m_nBufferNum = ME[L"BufferNum"];

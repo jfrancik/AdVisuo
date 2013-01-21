@@ -134,10 +134,9 @@ USES_CONVERSION;
 void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVULONG nParam, AVFLOAT fParam1, AVFLOAT fParam2)
 {
 	if (!GetBone()) return;
-	CIfcBuilder *p = NULL, *q = NULL;
+	CIfcBuilder *p = NULL;
 	AVFLOAT fScale = GetLiftGroup()->GetScale();
 	AVVECTOR centre = box.CentreLower();
-	AVULONG i;
 	bool b;
 
 	switch (nModelId)
@@ -145,31 +144,14 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	case MODEL_MACHINE:
 		switch (nParam)
 		{	
-		case 1: 
-			p = new CIfcBuilder("c:\\IFC\\machine138.ifc"); 
-			if (!p) return;
-			p->build(this, nModelId, L"Machine - small", 0, centre, fRot);
-			delete p;
-			break;
-		case 2: 
-			p = new CIfcBuilder("c:\\IFC\\machine30t.ifc"); 
-			if (!p) return;
-			p->build(this, nModelId, L"Machine - medium", 0, centre, /*0.25, 0.25, 0.25, */fRot);
-			delete p;
-			break;
-		case 3: 
-			p = new CIfcBuilder("c:\\IFC\\machine40t.ifc"); 
-			if (!p) return;
-			p->build(this, nModelId, L"Machine - large", 0, centre, fRot);
-			delete p;
-			break;
-		case 4: 
-			p = new CIfcBuilder("c:\\IFC\\machine70t.ifc"); 
-			if (!p) return;
-			p->build(this, nModelId, L"Machine - extra large", 0, centre, fRot);
-			delete p;
-			break;
+		case 1: p = new CIfcBuilder("c:\\IFC\\machine138.ifc"); break;
+		case 2: p = new CIfcBuilder("c:\\IFC\\machine30t.ifc"); break;
+		case 3: p = new CIfcBuilder("c:\\IFC\\machine40t.ifc"); break;
+		case 4: p = new CIfcBuilder("c:\\IFC\\machine70t.ifc"); break;
 		}
+		if (!p) return;
+		p->build(this, nModelId, strName, 0, centre, fRot);
+		delete p;
 		break;
 	case MODEL_OVERSPEED:
 		p = new CIfcBuilder("c:\\IFC\\overspeed.ifc"); 
@@ -179,39 +161,36 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		delete p;
 		break;
 	case MODEL_CONTROL_PANEL:
-		p = new CIfcBuilder("c:\\IFC\\control.ifc");	// control panel
-		q = new CIfcBuilder("c:\\IFC\\control.ifc");	// drive panel (missing file, control.ifc taken instead)
-		if (!p || !q) return;
-		i = GetLiftGroup()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
-		centre.x += (p->Width() + q->Width()) * (nIndex - GetLiftGroup()->GetShaftBegin(i) - (AVFLOAT)(GetLiftGroup()->GetShaftCount(i) - 1) / 2.0f);
-		if (i == 0)
-			centre.y -= p->Depth()/2;
-		else
-			centre.y += p->Depth()/2;
+		p = new CIfcBuilder("c:\\IFC\\panel700.ifc");	// control panel
+		if (!p) return;
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
-		delete q;
 		break;
 	case MODEL_DRIVE_PANEL:
-		p = new CIfcBuilder("c:\\IFC\\control.ifc");	// control panel
-		q = new CIfcBuilder("c:\\IFC\\control.ifc");	// drive panel (missing file, control.ifc taken instead)
-		if (!p || !q) return;
-		i = GetLiftGroup()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
-		centre.x += (p->Width() + q->Width()) * (nIndex - GetLiftGroup()->GetShaftBegin(i) - (AVFLOAT)(GetLiftGroup()->GetShaftCount(i) - 1) / 2.0f) + p->Width();
-		if (i == 0)
-			centre.y -= p->Depth()/2;
-		else
-			centre.y += p->Depth()/2;
-		q->build(this, nModelId, strName, nIndex, centre, fRot);
+		switch (nParam)
+		{	
+		case 1: p = new CIfcBuilder("c:\\IFC\\panel1000.ifc"); break;
+		case 2: p = new CIfcBuilder("c:\\IFC\\panel1500.ifc"); break;
+		case 3: p = new CIfcBuilder("c:\\IFC\\panel1700.ifc"); break;
+		}
+		if (!p) return;
+		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
-		delete q;
+		break;
+	case MODEL_GROUP_PANEL:
+		p = new CIfcBuilder("c:\\IFC\\panel700.ifc"); break;
+		if (!p) return;
+		p->build(this, nModelId, strName, nIndex, centre, fRot);
+		delete p;
 		break;
 	case MODEL_ISOLATOR:
-		p = new CIfcBuilder("c:\\IFC\\isolator.ifc"); 
+		switch (nParam)
+		{	
+		case 1: p = new CIfcBuilder("c:\\IFC\\panel1000.ifc"); break;
+		case 2: p = new CIfcBuilder("c:\\IFC\\panel1250.ifc"); break;
+		case 3: p = new CIfcBuilder("c:\\IFC\\panel1600.ifc"); break;
+		}
 		if (!p) return;
-		centre.x = box.Right() - p->Depth() + 35 * fScale;
-		centre.y = box.Rear() - p->Width() / 2 - fScale * 1950 - (nIndex / 2) * p->Width();
-		centre.z = 1000 * fScale + (nIndex % 2) * p->Height();
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
 		break;

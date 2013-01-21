@@ -98,7 +98,7 @@ public:
 	CSimLoader();
 	~CSimLoader();
 
-	DWORD Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG nSimulationId);	// returns S_OK if successful
+	DWORD Load(CLiftGroupSrv *pLiftGroup, dbtools::CDataBase db, ULONG nSimulationId, ULONG nTrafficScenarioId, ULONG nIteration);	// returns S_OK if successful
 	DWORD Load(CLiftGroupSrv *pLiftGroup, LPCOLESTR pName);		// returns S_OK if successful
 	void Print();
 

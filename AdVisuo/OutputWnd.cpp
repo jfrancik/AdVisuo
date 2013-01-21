@@ -87,7 +87,7 @@ int COutputWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Fill output tabs with some dummy text (nothing magic here)
 	OutDebugWindow(L"AdVisuo Module started (a part of AdSimulo system). Copyright (C) 2009-2012 by Lerch Bates");
-	OutDebugWindow(L"Version 2.00.20725 (Pre-Release) - 25 July 2012");
+	OutDebugWindow(L"Version 2.00.20725 (Pre-Release) - 12 December 2012");
 
 	return 0;
 }

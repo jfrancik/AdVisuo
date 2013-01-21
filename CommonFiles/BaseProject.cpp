@@ -22,6 +22,11 @@ CProject::~CProject()
 	DeleteLiftGroups();
 }
 
+AVLONG CProject::GetMinSimulationTime()	{ AVLONG t = 0; for each (CLiftGroup *pGroup in m_groups) t = min(t, pGroup->GetSim()->GetMinSimulationTime()); return t; }
+AVLONG CProject::GetMaxSimulationTime()	{ AVLONG t = 0; for each (CLiftGroup *pGroup in m_groups) t = max(t, pGroup->GetSim()->GetMaxSimulationTime()); return t; }
+AVLONG CProject::GetTimeSaved()			{ AVLONG t = 0; for each (CLiftGroup *pGroup in m_groups) t = max(t, pGroup->GetSim()->GetTimeSaved()); return t; }
+
+
 CLiftGroup *CProject::FindLiftGroup(int id)
 {
 	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLiftGroup* p) -> bool { return (p->GetId() == id); } );

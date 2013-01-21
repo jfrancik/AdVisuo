@@ -15,8 +15,10 @@ CSim::CSim()
 	m_nIndex = 0;
 	m_nLiftGroupId = 0;
 	m_nSIMVersionId = 0;
-	m_nSimulationTime = 0;
+	m_nMinSimulationTime = 0;
+	m_nMaxSimulationTime = 0;
 	m_nTimeSaved = 0;
+	m_nTime = 0;
 	m_vecOffset = Vector(0);
 }
 
@@ -54,7 +56,7 @@ void CSim::ResolveMe()
 	SetIndex(ME[L"LiftGroupIndex"]);
 	SetLiftGroupId(ME[L"LiftGroupId"]);
 	SetSIMVersionId(ME[L"SIMVersionId"]);
-	m_nSimulationTime = ME[L"SimulationTime"];
+	m_nMaxSimulationTime = ME[L"MaxSimulationTime"];
 	m_nTimeSaved = ME[L"TimeSaved"];
 }
 

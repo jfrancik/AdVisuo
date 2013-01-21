@@ -14,7 +14,7 @@
 using namespace std;
 
 CSimVis::CSimVis() : CSim(), 
-	  m_pScene(NULL), m_pBiped(NULL), m_pMaterial(NULL), m_pBipedBuf(NULL), m_nBipedBufCount(0), m_nColouringMode(0), m_nTime(0), m_nTimeLowerBound(0)
+	  m_pScene(NULL), m_pBiped(NULL), m_pMaterial(NULL), m_pBipedBuf(NULL), m_nBipedBufCount(0), m_nColouringMode(0)
 {
 }
 
@@ -68,16 +68,16 @@ void CSimVis::ReleaseBody(IBody *pBody)
 void CSimVis::PrePlay()
 {
 	// Determine Time Offset
-	AVLONG nTimeLowerBound = 0;
+	AVLONG nMinSimulationTime = 0;
 	for (FWULONG i = 0; i < GetPassengerCount(); i++)
-		nTimeLowerBound = min(nTimeLowerBound, GetPassenger(i)->GetBornTime());
-	nTimeLowerBound = min(nTimeLowerBound, -100);
-	SetTimeLowerBound(nTimeLowerBound);
+		nMinSimulationTime = min(nMinSimulationTime, GetPassenger(i)->GetBornTime());
+	nMinSimulationTime = min(nMinSimulationTime, -100);
+	SetMinSimulationTime(nMinSimulationTime);
 }
 
 void CSimVis::Play(IAction *pActionTick, AVLONG nTime)
 {
-	if (nTime == 0) nTime = GetTimeLowerBound();
+	if (nTime == 0) nTime = GetMinSimulationTime();
 
 	for (FWULONG i = 0; i < GetLiftCount(); i++)
 	{
@@ -107,7 +107,7 @@ AVLONG CSimVis::FastForward(IAction *pActionTick, AVLONG nTime)
 			AVLONG t = GetPassenger(i)->GetBornTime();
 			nEarliestTime = min(nEarliestTime, t);
 		}
-	return min(nEarliestTime, GetSimulationTime());
+	return min(nEarliestTime, GetMaxSimulationTime());
 }
 
 void CSimVis::RenderPassengers(IRenderer *pRenderer, AVLONG nPhase)
