@@ -33,7 +33,7 @@ void CProjectConstr::Construct()
 	BOX _box = GetLiftGroup(0)->GetTotalAreaBox();
 
 	float y = GetLiftGroup(0)->GetTotalAreaBox().RearExt();
-	for each (CLiftGroupConstr *pLiftGroup in m_groups)
+	for each (CLiftGroupConstr *pLiftGroup in Groups())
 	{
 		float x = -(GetLiftGroup(0)->GetBox().WidthExt() - pLiftGroup->GetBox().WidthExt()) / 2;
 		y -= pLiftGroup->GetTotalAreaBox().RearExt();

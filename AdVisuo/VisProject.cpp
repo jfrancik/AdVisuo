@@ -368,19 +368,19 @@ CLiftGroup *CProjectVis::CreateLiftGroup(AVULONG iIndex)
 
 void CProjectVis::SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped)	
 { 
-	for each (CLiftGroupVis *pGroup in m_groups)
+	for each (CLiftGroupVis *pGroup in Groups())
 		pGroup->GetSim()->SetScene(pScene, pMaterial, pBiped); 
 }
 
 void CProjectVis::SetRenderer(IRenderer *pRenderer)	
 { 
-	for each (CLiftGroupVis *pGroup in m_groups)
+	for each (CLiftGroupVis *pGroup in Groups())
 		pGroup->SetRenderer(pRenderer); 
 }
 
 void CProjectVis::StoreConfig()
 { 
-	for each (CLiftGroupVis *pGroup in m_groups)
+	for each (CLiftGroupVis *pGroup in Groups())
 		pGroup->StoreConfig();
 }
 

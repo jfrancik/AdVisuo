@@ -7,6 +7,7 @@
 
 #include <freewill.h>
 #include <fwaction.h>
+#include <fwrender.h>
 #include "freewilltools.h"
 #include "VisLiftGroup.h"
 
@@ -38,7 +39,7 @@ void CPassengerVis::Play(IAction *pActionTick)
 	if (m_pActionTick) m_pActionTick->AddRef();
 
 	// Plan giving a birth
-	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Generic", m_pActionTick, GetBornTime() - GetSim()->GetMinSimulationTime(), 0);
+	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Generic", m_pActionTick, GetBornTime() - GetProject()->GetMinSimulationTime(), 0);
 	pAction->SetHandleEventHook(_callback_birth, 0, (void*)this);
 }
 
@@ -69,8 +70,13 @@ void CPassengerVis::Play(IAction *pActionTick)
 
 void CPassengerVis::Render(IRenderer *pRenderer, AVLONG nPhase)
 {
+	// get the current playing time...
+	AVLONG nTime;
+	pRenderer->GetPlayTime((AVULONG*)&nTime);
+	nTime -= GetProject()->GetMinSimulationTime();
+
 	// time params
-	AVLONG nAge = (AVLONG)GetSim()->GetTime() - (GetBornTime() - (AVLONG)GetSim()->GetMinSimulationTime());
+	AVLONG nAge = nTime - (GetBornTime() - GetProject()->GetMinSimulationTime());
 
 	if (nAge < 550 && nPhase == 0 || nAge >= 550 && nPhase == 1)
 		return;
@@ -86,12 +92,12 @@ void CPassengerVis::Render(IRenderer *pRenderer, AVLONG nPhase)
 			color.r = color.g = color.b = 1;
 			break;
 		case 1: 
-			if (GetSim()->GetTime() < GetLoadTime() - GetSim()->GetMinSimulationTime() - GetWaitSpan())
+			if (nTime < GetLoadTime() - GetProject()->GetMinSimulationTime() - GetWaitSpan())
 				time = 0;
-			else if (GetSim()->GetTime() >= (AVULONG)(GetLoadTime() - GetSim()->GetMinSimulationTime()))
+			else if (nTime >= GetLoadTime() - GetProject()->GetMinSimulationTime())
 				time = GetWaitSpan();
 			else
-				time = GetSim()->GetTime() + GetWaitSpan() - (GetLoadTime() - GetSim()->GetMinSimulationTime());
+				time = nTime + GetWaitSpan() - (GetLoadTime() - GetProject()->GetMinSimulationTime());
 
 			color = HSV_to_RGB(2 - (((AVFLOAT)min(time, 55000) * 2) / 55000), 1, 1);
 			break;
@@ -179,7 +185,7 @@ void CPassengerVis::BeBorn()
 			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Move", m_pActionTick, pAction, 1, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, BODY_ROOT, vector.y+160.0f, vector.x, 0);
 			break;
 		case WAIT:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Wait", m_pActionTick, pAction, 0, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, wp->nTime - GetSim()->GetMinSimulationTime());
+			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Wait", m_pActionTick, pAction, 0, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, wp->nTime - GetProject()->GetMinSimulationTime());
 			break;
 		case WALK:
 			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Walk", m_pActionTick, pAction, stepDuration, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, vector.x, -vector.y, stepLen, DEG2RAD(90));

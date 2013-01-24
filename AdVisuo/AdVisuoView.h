@@ -172,7 +172,7 @@ protected:
 	bool IsPaused()					{ return IsEngineReady() && (m_pRenderer->IsPaused() == S_OK); }
 	FWFLOAT GetAccel()				{ FWFLOAT accel; m_pRenderer->GetAccel(&accel); return accel; }
 	void PutAccel(FWFLOAT accel)	{ m_pRenderer->PutAccel(accel); }
-	FWULONG GetPlayTime()			{ FWULONG nTime; if (!IsPlaying()) return 0; m_pRenderer->GetPlayTime(&nTime); return nTime; }
+	FWLONG GetPlayTime()			{ FWULONG nTime; if (!IsPlaying()) return 0; m_pRenderer->GetPlayTime(&nTime); return (FWLONG)nTime; }
 	FWULONG GetFPS();
 
 	// Auxiliary Player - used for camera animation

@@ -48,7 +48,6 @@ public:
 	IBody *GetBody();
 	void ReleaseBody(IBody*);
 
-	void PrePlay();
 	void Play(IAction *pActionTick, AVLONG nTime = 0);
 	AVLONG FastForward(IAction *pActionTick, AVLONG nTime);					// returns the earliest time that must be scanned before FF (usually < nTime)
 	void RenderPassengers(IRenderer *pRenderer, AVLONG nPhase = 0);

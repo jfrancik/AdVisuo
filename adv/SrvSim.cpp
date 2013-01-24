@@ -1,6 +1,7 @@
 // Sim.cpp - a part of the AdVisuo Server Module
 
 #include "StdAfx.h"
+#include "../CommonFiles/BaseProject.h"
 #include "SrvSim.h"
 #include "SrvLift.h"
 #include "SrvPassenger.h"
@@ -82,10 +83,12 @@ HRESULT CSimSrv::LoadSim(CDataBase db, AVULONG nSimulationId)
 
 void CSimSrv::Play()
 {
-	for (AVULONG i = 0; i < GetPassengerCount(); i++)
+	GetProject()->ReportMinSimulationTime(-100);
+	for each (CPassengerSrv *pPassenger in Passengers())
 	{
-		GetPassenger(i)->Play();
-		ReportSimulationTime(GetPassenger(i)->GetUnloadTime());
+		pPassenger->Play();
+		GetProject()->ReportMaxSimulationTime(pPassenger->GetUnloadTime());
+		GetProject()->ReportMinSimulationTime(pPassenger->GetBornTime());
 	}
 }
 
@@ -118,10 +121,8 @@ HRESULT CSimSrv::Store(CDataBase db)
 	ins[L"Shafts"] = GetLiftGroup()->GetShaftCount();
 	ins[L"Lifts"] = GetLiftGroup()->GetLiftCount();
 	ins[L"Passengers"] = (ULONG)0;
-	ins[L"SimulationTime"] = (ULONG)0;
 	ins[L"JourneysSaved"] = (ULONG)0;
 	ins[L"PassengersSaved"] = (ULONG)0;
-	ins[L"TimeSaved"] = (ULONG)0;
 	ins[L"SavedAll"] = (ULONG)0;
 
 	ins[L"TimeStamp"] = L"CURRENT_TIMESTAMP";
@@ -165,10 +166,11 @@ HRESULT CSimSrv::Update(CDataBase db, AVLONG nTime)
 	upd[L"Shafts"] = GetLiftGroup()->GetShaftCount();
 	upd[L"Lifts"] = GetLiftGroup()->GetLiftCount();
 	upd[L"Passengers"] = GetPassengerCount();
-	upd[L"SimulationTime"] = GetSimulationTime();
+//	upd[L"MinSimulationTime"] = GetMinSimulationTime();
+//	upd[L"MaxSimulationTime"] = GetMaxSimulationTime();
 	upd[L"JourneysSaved"] = GetJourneyTotalCount();
 	upd[L"PassengersSaved"] = GetPassengerCount();
-	upd[L"TimeSaved"] = GetSimulationTime();
+//	upd[L"TimeSaved"] = GetMaxSimulationTime();
 	upd[L"SavedAll"] = true;
 	upd.execute();
 

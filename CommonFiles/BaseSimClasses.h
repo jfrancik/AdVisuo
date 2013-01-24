@@ -4,12 +4,12 @@
 
 #include "dbtools.h"
 #include <functional>
+#include "BaseLiftGroup.h"
 
+class CProject;
 class CSim;
 class CLift;
 class CPassenger;
-
-class CLiftGroup;
 
 /////////////////////////////////////////////////////////////
 // Simulation Class - encapsulates all sim data
@@ -21,11 +21,6 @@ class CSim : public dbtools::CCollection
 	AVULONG m_nLiftGroupId;			// lift group id
 	AVULONG m_nSIMVersionId;		// SIM version id
 	AVULONG m_nIndex;				// index in multi-group structures
-
-	AVLONG m_nMinSimulationTime;	// simulation minimum time - may be less than zero but not greater than zero
-	AVLONG m_nMaxSimulationTime;	// simulation maximum time
-	AVLONG m_nTimeSaved;			// simulation saved time
-	AVLONG m_nTime;					// the current time
 
 	CLiftGroup *m_pLiftGroup;
 	AVVECTOR m_vecOffset;
@@ -39,6 +34,8 @@ public:
 
 	CLiftGroup *GetLiftGroup()					{ return m_pLiftGroup;}
 	void SetLiftGroup(CLiftGroup *pLiftGroup)	{ m_pLiftGroup = pLiftGroup; }
+
+	CProject *GetProject()						{ return GetLiftGroup()->GetProject(); }
 
 	AVULONG GetIndex()							{ return m_nIndex; }
 	void SetIndex(AVULONG n)					{ m_nIndex = n; }
@@ -59,16 +56,9 @@ public:
 	void SetLiftGroupId(AVULONG n)				{ m_nLiftGroupId = n; }
 	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionId = n; }
 
-	// Time-related functions
-	AVLONG GetMinSimulationTime()				{ return m_nMinSimulationTime; }
-	void SetMinSimulationTime(AVLONG n)			{ m_nMinSimulationTime = n; }
-	AVLONG GetMaxSimulationTime()				{ return m_nMaxSimulationTime; }
-	void ReportMaxSimulationTime(AVLONG n)		{ if (n > m_nMaxSimulationTime) m_nMaxSimulationTime = n; }
-	AVLONG GetTimeSaved()						{ return m_nTimeSaved; }
-	void ReportTimeSaved()						{ m_nTimeSaved = m_nMaxSimulationTime; }
-	AVLONG GetTime()							{ return m_nTime; }
-	void SetTime(AVLONG n)						{ m_nTime = n; }
-	
+	std::vector<CLift*> &Lfts()					{ return m_lifts; }
+	std::vector<CPassenger*> &Passengers()		{ return m_passengers; }
+
 	AVVECTOR GetOffsetVector()					{ return m_vecOffset; }
 	void SetOffsetVector(AVVECTOR v)			{ m_vecOffset = v; }
 
@@ -83,9 +73,6 @@ public:
 	CPassenger *GetPassenger(AVULONG i)			{ return i < GetPassengerCount() ? m_passengers[i] : NULL; }
 	void AddPassenger(CPassenger *p)			{ m_passengers.push_back(p); }
 	void DeletePassengers();
-
-	void for_each_passenger(std::function<void (CPassenger*)> f)		{ for each (CPassenger *p in m_passengers) f(p); }
-	void for_each_lift(std::function<void (CLift*)> f)					{ for each (CLift *p in m_lifts) f(p); }
 
 	void ResolveMe();
 
@@ -158,7 +145,8 @@ public:
 	CLift(CSim *pSim, AVULONG nLiftId, AVULONG nDecks = 1);
 	virtual ~CLift();
 
-	CSim *GetSim()				{ return m_pSim; }
+	CSim *GetSim()					{ return m_pSim; }
+	CProject *GetProject()			{ return m_pSim->GetProject(); }
 
 	AVULONG GetId()					{ return m_nId; }
 	void SetId(AVULONG n)			{ m_nId = n; }
@@ -213,7 +201,7 @@ class CPassenger : public dbtools::CCollection
 	AVLONG m_timeLoad;			// read from file		- load time (in the lift door)
 	AVLONG m_timeUnload;		// read from file		- unload time (in the lift door)
 
-	AVULONG m_spanWait;			// read from file or derived from lift data
+	AVLONG m_spanWait;			// read from file or derived from lift data
 
 protected:
 	// Way Points
@@ -225,6 +213,7 @@ public:
 	virtual ~CPassenger();
 
 	CSim *GetSim()					{ return m_pSim; }
+	CProject *GetProject()			{ return m_pSim->GetProject(); }
 
 	AVULONG GetId()					{ return m_nId; }
 	AVULONG GetSimId()				{ return m_nSimId; }
@@ -239,7 +228,7 @@ public:
 	AVLONG GetGoTime()				{ return m_timeGo; }
 	AVLONG GetLoadTime()			{ return m_timeLoad; }
 	AVLONG GetUnloadTime()			{ return m_timeUnload; }
-	AVULONG GetWaitSpan()			{ return m_spanWait; }
+	AVLONG GetWaitSpan()			{ return m_spanWait; }
 
 	void SetId(AVULONG n)			{ m_nId = n; }
 	void SetSimId(AVULONG nId)		{ m_nSimId = nId; }

@@ -15,17 +15,15 @@ CProject::CProject()
 	m_nId = 0;
 	m_nSimulationId = 0;
 	m_nAVVersionId = 0;
+	m_nMinSimulationTime = 0;
+	m_nMaxSimulationTime = 0;
+	m_nTimeSaved = 0;
 }
 
 CProject::~CProject()
 {
 	DeleteLiftGroups();
 }
-
-AVLONG CProject::GetMinSimulationTime()	{ AVLONG t = 0; for each (CLiftGroup *pGroup in m_groups) t = min(t, pGroup->GetSim()->GetMinSimulationTime()); return t; }
-AVLONG CProject::GetMaxSimulationTime()	{ AVLONG t = 0; for each (CLiftGroup *pGroup in m_groups) t = max(t, pGroup->GetSim()->GetMaxSimulationTime()); return t; }
-AVLONG CProject::GetTimeSaved()			{ AVLONG t = 0; for each (CLiftGroup *pGroup in m_groups) t = max(t, pGroup->GetSim()->GetTimeSaved()); return t; }
-
 
 CLiftGroup *CProject::FindLiftGroup(int id)
 {
@@ -62,6 +60,10 @@ void CProject::ResolveMe()
 	m_nId = ME[L"ID"];
 	m_nSimulationId = ME[L"SimulationId"];
 	m_nAVVersionId = ME[L"AVVersionId"];
+
+	m_nMinSimulationTime = ME[L"MinSimulationTime"];
+	m_nMaxSimulationTime = ME[L"MaxSimulationTime"];
+	m_nTimeSaved = ME[L"TimeSaved"];
 }
 
 std::wstring CProject::GetProjectInfo(PRJ_INFO what)

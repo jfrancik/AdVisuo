@@ -39,12 +39,10 @@ public:
 
 	bool IsSimReady()						{ return m_h == S_OK; }
 	bool IsSIMDataReady()					{ return m_http.ready(); }
-	bool IsDownloadComplete(int i = 0)		{ return m_timeLoaded >= GetProject()->GetSim(i)->GetTimeSaved(); }
+	bool IsDownloadComplete()				{ return m_timeLoaded >= GetProject()->GetTimeSaved(); }
 
 	AVLONG GetLoadedTime()					{ return m_timeLoaded; }
-	AVLONG GetMinSimulationTime(int i)		{ return GetProject()->GetSim(i)->GetMinSimulationTime(); }
 	AVLONG GetMinSimulationTime()			{ return GetProject()->GetMinSimulationTime(); }
-	AVLONG GetMaxSimulationTime(int i)		{ return GetProject()->GetSim(i)->GetMaxSimulationTime(); }
 	AVLONG GetMaxSimulationTime()			{ return GetProject()->GetMaxSimulationTime(); }
 
 	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }

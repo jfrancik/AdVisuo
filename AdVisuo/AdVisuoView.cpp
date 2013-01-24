@@ -271,13 +271,9 @@ void CAdVisuoView::PrepareSim()
 {
 	m_pActionTick->UnSubscribeAll();
 	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
-	{
-		GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->PrePlay();
-		GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->Play(m_pActionTick);
-		if (GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->GetMinSimulationTime() < 0)
-			for (AVLONG t = 0; t <= -GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->GetMinSimulationTime(); t += 40)
-				Proceed(t);
-	}
+		GetDocument()->GetProject()->GetSim(i)->Play(m_pActionTick);
+	for (AVLONG t = 0; t <= -GetDocument()->GetProject()->GetMinSimulationTime(); t += 40)
+		Proceed(t);	// loops un-nested on 24/1/13: Proceed was called too often!
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -868,10 +864,7 @@ bool CAdVisuoView::RenderToBitmap(LPCTSTR pFilename, enum FW_RENDER_BITMAP fmt)
 bool CAdVisuoView::Proceed(FWULONG nMSec)
 {
 	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
-	{
 		GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->SetColouringMode(((CAdVisuoApp*)AfxGetApp())->GetColouringMode());
-		GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->SetTime(nMSec);
-	}
 
 	m_pActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, 0);
 	return (m_pActionTick->AnySubscriptionsLeft() == TRUE);
@@ -911,10 +904,7 @@ void CAdVisuoView::Rewind(FWULONG nMSec)
 
 	AVLONG t;
 	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
-	{
-		GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->PrePlay();
 		t = GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->FastForward(m_pActionTick, nMSec);
-	}
 
 	// t is wrongly set for multiple lift blocks
 	t -= GetDocument()->GetMinSimulationTime();

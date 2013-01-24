@@ -14,7 +14,11 @@ class CProject : public dbtools::CCollection
 	AVULONG m_nId;					// project id
 	AVULONG m_nAVVersionId;			// AV Version id
 
-protected:
+	// simulation time
+	AVLONG m_nMinSimulationTime;	// simulation minimum time - may be less than zero but not greater than zero
+	AVLONG m_nMaxSimulationTime;	// simulation maximum time
+	AVLONG m_nTimeSaved;			// simulation saved time
+
 	std::vector<CLiftGroup*> m_groups;
 
 public:
@@ -31,10 +35,14 @@ public:
 	void SetId(AVULONG n)						{ m_nId = n; }
 	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
 
-	// functions based on member groups/sims
-	AVLONG GetMinSimulationTime();
-	AVLONG GetMaxSimulationTime();
-	AVLONG GetTimeSaved();
+	std::vector<CLiftGroup*> &Groups()			{ return m_groups; }
+
+	// Time-related functions
+	AVLONG GetMinSimulationTime()				{ return m_nMinSimulationTime; }
+	void ReportMinSimulationTime(AVLONG n)		{ if (n < m_nMinSimulationTime) m_nMinSimulationTime = n; }
+	AVLONG GetMaxSimulationTime()				{ return m_nMaxSimulationTime; }
+	void ReportMaxSimulationTime(AVLONG n)		{ if (n > m_nMaxSimulationTime) m_nMaxSimulationTime = n; }
+	AVLONG GetTimeSaved()						{ return m_nTimeSaved; }
 
 	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
 	std::wstring GetProjectInfo(PRJ_INFO what);

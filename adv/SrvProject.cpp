@@ -106,6 +106,11 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	ins[L"TimeStamp"] = L"CURRENT_TIMESTAMP";
 	ins[L"TimeStamp"].act_as_symbol();
 
+	ins[L"MinSimulationTime"] = GetMinSimulationTime();
+	ins[L"MaxSimulationTime"] = GetMaxSimulationTime();
+	ins[L"TimeSaved"] = GetMaxSimulationTime();
+	ins[L"SavedAll"] = (ULONG)0;
+
 	ins.execute();
 		
 	// retrieve the Project ID
@@ -114,7 +119,7 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	SetId(sel[(short)0]);
 
 	// Save LiftGroups & Sims
-	for each (CLiftGroupSrv *pGroup in m_groups)
+	for each (CLiftGroupSrv *pGroup in Groups())
 	{
 		pGroup->SetProjectId(GetId());
 		HRESULT h = pGroup->Store(db);
@@ -125,17 +130,27 @@ HRESULT CProjectSrv::Store(CDataBase db)
 
 HRESULT CProjectSrv::Update(dbtools::CDataBase db, AVLONG nTime)
 {
-	for each (CLiftGroupSrv *pGroup in m_groups)
+	if (!db) throw db;
+
+	for each (CLiftGroupSrv *pGroup in Groups())
 	{
 		HRESULT h = pGroup->GetSim()->Update(db, nTime);
 		if FAILED(h) return h;
 	}
+
+	CDataBase::UPDATE upd = db.update(L"AVProjects", L"WHERE ID=%d", GetId());
+	upd[L"MinSimulationTime"] = GetMinSimulationTime();
+	upd[L"MaxSimulationTime"] = GetMaxSimulationTime();
+	upd[L"TimeSaved"] = GetMaxSimulationTime();
+	upd[L"SavedAll"] = true;
+	upd.execute();
+
 	return S_OK;
 }
 
 HRESULT CProjectSrv::LoadSim(dbtools::CDataBase db, AVULONG nSimulationId)
 {
-	for each (CLiftGroupSrv *pGroup in m_groups)
+	for each (CLiftGroupSrv *pGroup in Groups())
 	{
 		HRESULT h = pGroup->GetSim()->LoadSim(db, nSimulationId);
 		if FAILED(h) return h;
@@ -184,6 +199,6 @@ HRESULT CProjectSrv::DropTables(CDataBase db)
 
 void CProjectSrv::Play()
 { 
-	for each (CLiftGroupSrv *pGroup in m_groups) 
+	for each (CLiftGroupSrv *pGroup in Groups()) 
 		pGroup->GetSim()->Play(); 
 }

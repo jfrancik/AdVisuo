@@ -65,19 +65,9 @@ void CSimVis::ReleaseBody(IBody *pBody)
 	release(pBody);
 }
 
-void CSimVis::PrePlay()
-{
-	// Determine Time Offset
-	AVLONG nMinSimulationTime = 0;
-	for (FWULONG i = 0; i < GetPassengerCount(); i++)
-		nMinSimulationTime = min(nMinSimulationTime, GetPassenger(i)->GetBornTime());
-	nMinSimulationTime = min(nMinSimulationTime, -100);
-	SetMinSimulationTime(nMinSimulationTime);
-}
-
 void CSimVis::Play(IAction *pActionTick, AVLONG nTime)
 {
-	if (nTime == 0) nTime = GetMinSimulationTime();
+	if (nTime == 0) nTime = GetProject()->GetMinSimulationTime();
 
 	for (FWULONG i = 0; i < GetLiftCount(); i++)
 	{
@@ -107,7 +97,7 @@ AVLONG CSimVis::FastForward(IAction *pActionTick, AVLONG nTime)
 			AVLONG t = GetPassenger(i)->GetBornTime();
 			nEarliestTime = min(nEarliestTime, t);
 		}
-	return min(nEarliestTime, GetMaxSimulationTime());
+	return min(nEarliestTime, GetProject()->GetMaxSimulationTime());
 }
 
 void CSimVis::RenderPassengers(IRenderer *pRenderer, AVLONG nPhase)
