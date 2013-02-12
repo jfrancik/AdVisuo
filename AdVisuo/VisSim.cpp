@@ -1,6 +1,7 @@
 // Sim.cpp - a part of the AdVisuo Client Software
 
 #include "StdAfx.h"
+#include "VisProject.h"
 #include "VisSim.h"
 #include "VisLift.h"
 #include "VisPassenger.h"
@@ -20,7 +21,7 @@ CSimVis::CSimVis() : CSim(),
 
 CSimVis::~CSimVis(void)
 {
-	SetScene();
+	SetScene(NULL, NULL, NULL);
 	remove_all();
 }
 
@@ -42,9 +43,6 @@ void CSimVis::SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped)
 		m_pBipedBuf = new BYTE[m_nBipedBufCount];
 		m_pBiped->StoreState(m_nBipedBufCount, m_pBipedBuf, NULL);
 	}
-
-	if (GetLiftGroup())
-		GetLiftGroup()->SetScene(m_pScene);
 }
 
 IBody *CSimVis::GetBody()
@@ -67,12 +65,8 @@ void CSimVis::ReleaseBody(IBody *pBody)
 
 void CSimVis::Play(IAction *pActionTick, AVLONG nTime)
 {
-	if (nTime == 0) nTime = GetProject()->GetMinSimulationTime();
-
 	for (FWULONG i = 0; i < GetLiftCount(); i++)
-	{
 		GetLift(i)->Play(pActionTick, nTime);
-	}
 
 	for (FWULONG i = 0; i < GetPassengerCount(); i++)
 		if (GetPassenger(i)->GetBornTime() >= nTime)
@@ -146,3 +140,6 @@ void CSimVis::destroy(IBody *p)
 
 	p->Release();
 }
+
+CPassenger *CSimVis::CreatePassenger(AVULONG nId)	{ return new CPassengerVis(this, nId); }
+CLift *CSimVis::CreateLift(AVULONG nId)				{ return new CLiftVis(this, nId); }

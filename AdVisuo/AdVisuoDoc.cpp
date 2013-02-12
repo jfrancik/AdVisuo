@@ -218,7 +218,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		}
 
 		// first SIM data chunk
-		m_timeLoaded = 0;
+		m_timeLoaded = GetProject()->GetMinSimulationTime();
 		m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
 		OnSIMDataLoaded(NULL);
 

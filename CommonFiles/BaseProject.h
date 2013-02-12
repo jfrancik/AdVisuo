@@ -38,21 +38,22 @@ public:
 	std::vector<CLiftGroup*> &Groups()			{ return m_groups; }
 
 	// Time-related functions
-	AVLONG GetMinSimulationTime()				{ return m_nMinSimulationTime; }
-	void ReportMinSimulationTime(AVLONG n)		{ if (n < m_nMinSimulationTime) m_nMinSimulationTime = n; }
-	AVLONG GetMaxSimulationTime()				{ return m_nMaxSimulationTime; }
-	void ReportMaxSimulationTime(AVLONG n)		{ if (n > m_nMaxSimulationTime) m_nMaxSimulationTime = n; }
-	AVLONG GetTimeSaved()						{ return m_nTimeSaved; }
+	AVLONG GetMinSimulationTime()				{ return m_nMinSimulationTime; }	// simulation minimum time - may be less than zero but not greater than zero
+	AVLONG GetMaxSimulationTime()				{ return m_nMaxSimulationTime; }	// simulation maximum time
+	AVLONG GetTimeSaved()						{ return m_nTimeSaved; }			// simulation saved time
+
+	void ReportMinSimulationTime(AVLONG n)		{ if (n < m_nMinSimulationTime) m_nMinSimulationTime = n; }		// used to collect time min info
+	void ReportMaxSimulationTime(AVLONG n)		{ if (n > m_nMaxSimulationTime) m_nMaxSimulationTime = n; }		// used to collect time max info
+
 
 	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
 	std::wstring GetProjectInfo(PRJ_INFO what);
 
 	CLiftGroup *GetLiftGroup(int i)				{ return m_groups[i]; }		// get lift group by index
-	CLiftGroup *FindLiftGroup(int i);											// find lift group by id
+	CLiftGroup *FindLiftGroup(int i);										// find lift group by id
 	std::vector<CLiftGroup*> &GetLiftGroups()	{ return m_groups; }		// get lift group collection
 
 	CLiftGroup *AddLiftGroup();
-	void DeleteLiftGroups();
 
 	CSim *GetSim(int i);													// get sim by index
 	CSim *FindSim(int id);													// find lift group by id

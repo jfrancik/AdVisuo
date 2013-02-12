@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CLiftGroupVis
 
-CLiftGroupVis::CLiftGroupVis(CProject *pProject, AVULONG iIndex) : CLiftGroupConstr(pProject, iIndex), m_materials(this), m_pRenderer(NULL), m_pScene(NULL)
+CLiftGroupVis::CLiftGroupVis(CProject *pProject, AVULONG iIndex) : CLiftGroupConstr(pProject, iIndex), m_materials(this), m_pRenderer(NULL)
 {
 	memset(m_pMaterials, 0, sizeof(m_pMaterials));
 }
@@ -25,7 +25,7 @@ CLiftGroupVis::~CLiftGroupVis()
 {
 	DeconstructMaterials();
 	if (m_pRenderer) m_pRenderer->Release();
-	if (m_pScene) m_pScene->Release();
+	m_pRenderer = NULL;
 }
 
 CSim *CLiftGroupVis::CreateSim()
@@ -46,13 +46,6 @@ void CLiftGroupVis::SetRenderer(IRenderer *pRenderer)
 	if (m_pRenderer) m_pRenderer->Release(); 
 	m_pRenderer = pRenderer; 
 	if (m_pRenderer) m_pRenderer->AddRef(); 
-}
-
-void CLiftGroupVis::SetScene(IScene *pScene)
-{
-	if (m_pScene) m_pScene->Release(); 
-	m_pScene = pScene; 
-	if (m_pScene) m_pScene->AddRef(); 
 }
 
 	static void _helperConvMatInd(AVULONG &nWallId, AVULONG &i)

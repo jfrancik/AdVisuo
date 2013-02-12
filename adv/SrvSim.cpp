@@ -166,11 +166,8 @@ HRESULT CSimSrv::Update(CDataBase db, AVLONG nTime)
 	upd[L"Shafts"] = GetLiftGroup()->GetShaftCount();
 	upd[L"Lifts"] = GetLiftGroup()->GetLiftCount();
 	upd[L"Passengers"] = GetPassengerCount();
-//	upd[L"MinSimulationTime"] = GetMinSimulationTime();
-//	upd[L"MaxSimulationTime"] = GetMaxSimulationTime();
 	upd[L"JourneysSaved"] = GetJourneyTotalCount();
 	upd[L"PassengersSaved"] = GetPassengerCount();
-//	upd[L"TimeSaved"] = GetMaxSimulationTime();
 	upd[L"SavedAll"] = true;
 	upd.execute();
 

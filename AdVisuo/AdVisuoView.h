@@ -103,6 +103,7 @@ public:
 	
 	// Attributes
 	CAdVisuoDoc *GetDocument() const			{ return reinterpret_cast<CAdVisuoDoc*>(m_pDocument); }
+	CProjectVis *GetProject() const				{ return GetDocument()->GetProject(); }
 	bool IsEngineReady()						{ return m_pBody != NULL; }
 
 	CString GetDiagnosticMessage();
@@ -150,7 +151,7 @@ public:
 protected:
 	void BeginFrame();
 	void RenderScene(bool bHUDSelection = false);
-	void RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaption, bool bHUDSelection, AVLONG nTime = 0);
+	void RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaption, bool bHUDSelection, AVLONG nTime);
 	void EndFrame();
 
 	// Snapshot and Video Rendering
@@ -160,7 +161,7 @@ protected:
 
 
 	// Proceeding the Animation
-	bool Proceed(FWULONG nMSec);	// proceed the simulation to the given time stamp; returns false if simulation is finished
+	bool Proceed(FWLONG nMSec);		// proceed the simulation to the given time stamp; returns false if simulation is finished
 	bool Proceed();					// proceed the simulation to the current play time; returns false if simulation is finished
 
 	// Play Control
@@ -172,7 +173,7 @@ protected:
 	bool IsPaused()					{ return IsEngineReady() && (m_pRenderer->IsPaused() == S_OK); }
 	FWFLOAT GetAccel()				{ FWFLOAT accel; m_pRenderer->GetAccel(&accel); return accel; }
 	void PutAccel(FWFLOAT accel)	{ m_pRenderer->PutAccel(accel); }
-	FWLONG GetPlayTime()			{ FWULONG nTime; if (!IsPlaying()) return 0; m_pRenderer->GetPlayTime(&nTime); return (FWLONG)nTime; }
+	FWLONG GetPlayTime()			{ FWLONG nTime; if (!IsPlaying()) return 0; m_pRenderer->GetPlayTime(&nTime); return nTime; }
 	FWULONG GetFPS();
 
 	// Auxiliary Player - used for camera animation

@@ -202,19 +202,19 @@ void CAdVisuoView::OnInitialUpdate()
 	m_sprite.SetRenderer(m_pRenderer);
 	m_plateCam.SetParams(_stdPathModels + L"plateNW.bmp", 0xFF0000FF, 0x80FFFFFF, 12, TRUE, FALSE, L"System", 0xFF000000, 16, false, CSize(2, 2));
 	m_hud.Initialise();
-	m_hud.SetSimulationTime(GetDocument()->GetMaxSimulationTime());
+	m_hud.SetSimulationTime(GetProject()->GetMaxSimulationTime());
 	m_hud.SetPos(CPoint(x/2 - 256, y - 64));
 	m_hud.SetAltPos(CPoint(x, y));
 
 	// initialise the simulation
 	if (GetDocument()->IsSimReady())
 	{
-		GetDocument()->GetProject()->SetRenderer(m_pRenderer);
-		GetDocument()->GetProject()->Construct();
-		GetDocument()->GetProject()->StoreConfig();
+		GetProject()->SetRenderer(m_pRenderer);
+		GetProject()->Construct();
+		GetProject()->StoreConfig();
 
 		CreateAllCameras();	
-		AVULONG nStorey = GetDocument()->GetProject()->GetLiftGroup(0)->GetBasementStoreyCount();
+		AVULONG nStorey = GetProject()->GetLiftGroup(0)->GetBasementStoreyCount();
 		GetCamera(0)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(0)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
 		GetCamera(1)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(1)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTFRONT   - ID_CAMERA - 1);
 		GetCamera(2)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(2)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTREAR     - ID_CAMERA - 1);
@@ -270,9 +270,9 @@ void CAdVisuoView::OnResetDevice()
 void CAdVisuoView::PrepareSim()
 {
 	m_pActionTick->UnSubscribeAll();
-	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
-		GetDocument()->GetProject()->GetSim(i)->Play(m_pActionTick);
-	for (AVLONG t = 0; t <= -GetDocument()->GetProject()->GetMinSimulationTime(); t += 40)
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+		GetProject()->GetSim(i)->Play(m_pActionTick, GetProject()->GetMinSimulationTime());
+	for (AVLONG t = GetProject()->GetMinSimulationTime(); t <= 0; t += 40)
 		Proceed(t);	// loops un-nested on 24/1/13: Proceed was called too often!
 }
 
@@ -426,7 +426,7 @@ bool CAdVisuoView::CreateFreeWill(HWND hWnd)
 		m_pScene->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
 		IKineChild *pBiped = NULL;
 		m_pScene->GetChild(L"Bip01", &pBiped);
-		GetDocument()->GetProject()->SetScene(m_pScene, pMaterial, pBiped);
+		GetProject()->SetScene(m_pScene, pMaterial, pBiped);
 		pMaterial->Release();
 		pBiped->Release();
 
@@ -492,7 +492,7 @@ void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 		if (!Proceed())
 			OnActionStop();
 
-	if (GetPlayTime() > GetDocument()->GetMaxSimulationTime())
+	if (GetPlayTime() > GetProject()->GetMaxSimulationTime())
 		OnActionStop();
 
 	// Push the time into Aux Ticks
@@ -573,7 +573,7 @@ void CAdVisuoView::OnDraw(CDC *pDC)
 	{
 		BeginFrame();
 		RenderScene(m_bHUDSelection);
-		RenderHUD(m_bHUDPanel, false, m_bHUDCaption, m_bHUDSelection);
+		RenderHUD(m_bHUDPanel, false, m_bHUDCaption, m_bHUDSelection, GetPlayTime());
 		EndFrame();
 	}
 }
@@ -591,7 +591,7 @@ void CAdVisuoView::EndFrame()
 
 void CAdVisuoView::RenderScene(bool bHUDSelection)
 {
-	CAdVisuoRenderer renderer(GetDocument()->GetProject()->GetLiftGroup(GetCurLiftGroupIndex()), m_pRenderer);
+	CAdVisuoRenderer renderer(GetProject()->GetLiftGroup(GetCurLiftGroupIndex()), m_pRenderer);
 
 	FWCOLOR active = { 1, 0.86f, 0.47f }, inactive = { 1, 1, 1 };
 	m_screen.Prepare(inactive, active, bHUDSelection);
@@ -610,18 +610,18 @@ void CAdVisuoView::RenderScene(bool bHUDSelection)
 		m_pLight2->Render(m_pRenderer);
 
 		// my own display list goes here... instead of m_pScene->Render(pRenderer);
-		for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
-			GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->RenderPassengers(m_pRenderer, 0);
+		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+			GetProject()->GetLiftGroup(i)->GetSim()->RenderPassengers(m_pRenderer, 0);
 
 		// for multiple lift groups
-		for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
+		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 		{
 			if (i == GetCurLiftGroupIndex())
 				continue;
-			renderer.SetLiftGroup(GetDocument()->GetProject()->GetLiftGroup(i));
+			renderer.SetLiftGroup(GetProject()->GetLiftGroup(i));
 			renderer.RenderSideOuter(i < GetCurLiftGroupIndex() ? 0 : 1);
 		}
-		renderer.SetLiftGroup(GetDocument()->GetProject()->GetLiftGroup(GetCurLiftGroupIndex()));
+		renderer.SetLiftGroup(GetProject()->GetLiftGroup(GetCurLiftGroupIndex()));
 
 		switch (pCamera->GetLoc())
 		{
@@ -651,8 +651,8 @@ void CAdVisuoView::RenderScene(bool bHUDSelection)
 			break;
 		}
 
-		for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
-			GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->RenderPassengers(m_pRenderer, 1);
+		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+			GetProject()->GetLiftGroup(i)->GetSim()->RenderPassengers(m_pRenderer, 1);
 	}
 }
 
@@ -693,8 +693,8 @@ void CAdVisuoView::RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaptio
 		// draw HUD panel
 		m_hud.SetItemStatus(CHUD::HIT_PLAY, IsPlaying() && !IsPaused() ? 2 : 0);
 		m_hud.SetItemStatus(CHUD::HIT_FULL_SCREEN, ((CMDIFrameWndEx*)::AfxGetMainWnd())->IsFullScreen() ? 2 : 0);
-		m_hud.SetTime(nTime ? nTime : GetPlayTime() + GetDocument()->GetMinSimulationTime());
-		m_hud.SetLoadedTime(GetDocument()->GetLoadedTime() + GetDocument()->GetMinSimulationTime());
+		m_hud.SetTime(nTime);
+		m_hud.SetLoadedTime(GetDocument()->GetLoadedTime());
 		if (bHUDClockOnly) m_hud.Hide();
 		m_hud.Draw(pt);
 	}
@@ -730,7 +730,7 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 		// first frame - to initialise
 		m_script.Play();
 		AVULONG t = nTimeFrom;
-		Proceed(t - GetDocument()->GetMinSimulationTime());
+		Proceed(t);
 
 		m_pRenderer->SetTargetOffScreen();
 		m_hud.SetPos(CPoint(nResX/2 - 256, nResY - 64));
@@ -760,16 +760,14 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 			}
 
 			// proceed the script - and provide for any pre-programmed fast forward
-			ULONG tt = t - GetDocument()->GetMinSimulationTime();
-			m_script.Proceed(tt, tt);
-			t = tt + GetDocument()->GetMinSimulationTime();
+			m_script.Proceed(t, t);
 
-			Proceed(t - GetDocument()->GetMinSimulationTime());
+			Proceed(t);
 
 			// push time to the auxiliary player
 			if (m_pAuxActionTick && m_pAuxActionTick->AnySubscriptionsLeft() == TRUE)
 			{
-				FWULONG nMSec = t - GetDocument()->GetMinSimulationTime() - m_nAuxTimeRef;
+				FWULONG nMSec = t - m_nAuxTimeRef;
 				m_pAuxActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, NULL);
 			}
 
@@ -798,14 +796,14 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 		m_pRenderer->SetTargetToScreen();
 		BeginFrame();
 		RenderScene();
-		RenderHUD(false, true, bShowCaptions, false);
+		RenderHUD(false, true, bShowCaptions, false, 0);
 		EndFrame();
 		for (int i = 0; i < 40; i++)
 		{
 			m_pRenderer->SetTargetOffScreen();
 			BeginFrame();
 			RenderScene();
-			RenderHUD(false, false, bShowCaptions, false);
+			RenderHUD(false, false, bShowCaptions, false, 0);
 			EndFrame();
 		}
 
@@ -820,10 +818,10 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 	}
 	m_pFWDevice->EnableErrorException(FALSE);
 	m_pRenderer->Stop();
-	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->Stop();
-		GetDocument()->GetProject()->GetLiftGroup(i)->RestoreConfig();
+		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
+		GetProject()->GetLiftGroup(i)->RestoreConfig();
 	}
 	PrepareSim();
 
@@ -861,10 +859,10 @@ bool CAdVisuoView::RenderToBitmap(LPCTSTR pFilename, enum FW_RENDER_BITMAP fmt)
 ///////////////////////////////////////////////////////////////////////////////////////
 // Proceeding the Animation
 
-bool CAdVisuoView::Proceed(FWULONG nMSec)
+bool CAdVisuoView::Proceed(FWLONG nMSec)
 {
-	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
-		GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->SetColouringMode(((CAdVisuoApp*)AfxGetApp())->GetColouringMode());
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+		GetProject()->GetLiftGroup(i)->GetSim()->SetColouringMode(((CAdVisuoApp*)AfxGetApp())->GetColouringMode());
 
 	m_pActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, 0);
 	return (m_pActionTick->AnySubscriptionsLeft() == TRUE);
@@ -872,8 +870,8 @@ bool CAdVisuoView::Proceed(FWULONG nMSec)
 
 bool CAdVisuoView::Proceed()
 {
-	AVULONG nTime = GetPlayTime();
-	m_script.Proceed(nTime);
+	AVLONG nTime = GetPlayTime();
+	m_script.Proceed((AVULONG&)nTime);
 	return Proceed(nTime);
 }
 
@@ -885,7 +883,7 @@ void CAdVisuoView::Play()
 	if (!m_pRenderer) return;
 	PutAccel(1);
 	m_pRenderer->Play();
-	m_pRenderer->PutPlayTime(-GetDocument()->GetMinSimulationTime());
+	//m_pRenderer->PutPlayTime(GetProject()->GetMinSimulationTime());
 	m_script.Play();
 }
 
@@ -894,20 +892,17 @@ void CAdVisuoView::Rewind(FWULONG nMSec)
 	CWaitCursor wait;
 
 	m_pRenderer->Stop();
-	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->Stop();
-		GetDocument()->GetProject()->GetLiftGroup(i)->RestoreConfig();
+		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
+		GetProject()->GetLiftGroup(i)->RestoreConfig();
 	}
 
 	m_pActionTick->UnSubscribeAll();
 
 	AVLONG t;
-	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
-		t = GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->FastForward(m_pActionTick, nMSec);
-
-	// t is wrongly set for multiple lift blocks
-	t -= GetDocument()->GetMinSimulationTime();
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+		t = GetProject()->GetLiftGroup(i)->GetSim()->FastForward(m_pActionTick, nMSec);
 
 	for ( ; t <= (AVLONG)nMSec; t += 40)
 		Proceed(t);
@@ -1285,8 +1280,8 @@ void CAdVisuoView::OnUpdateCamera(CCmdUI *pCmdUI)
 	case ID_CAMERA_LEFTFRONT:		pCmdUI->SetCheck(desc.camloc == CAMLOC_LOBBY && desc.index == 6); break;
 	case ID_CAMERA_LEFTSIDE:		pCmdUI->SetCheck(desc.camloc == CAMLOC_LOBBY && desc.index == 7); break;
 	case ID_CAMERA_LIFTRIGHT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() > 0);  break;
-	case ID_CAMERA_LIFTLEFT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() < (AVLONG)GetDocument()->GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->GetLiftCount() - 1); break;
-	case ID_STOREY_ONEUP:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() < (AVLONG)GetDocument()->GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->GetStoreyCount() - 1); break;
+	case ID_CAMERA_LIFTLEFT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() < (AVLONG)GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->GetLiftCount() - 1); break;
+	case ID_STOREY_ONEUP:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() < (AVLONG)GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->GetStoreyCount() - 1); break;
 	case ID_STOREY_ONEDOWN:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() > 0);break;
 
 	case ID_CAMERA_EXT_FRONT:		pCmdUI->SetCheck(desc.camloc == CAMLOC_OUTSIDE && desc.index == 0); break;
@@ -1327,7 +1322,7 @@ void CAdVisuoView::OnUpdateStoreyMenu(CCmdUI *pCmdUI)
 
 		// create the floors menu
 		pButton->RemoveAllSubItems();
-		CLiftGroupVis *pLiftGroup = GetDocument()->GetProject()->GetLiftGroup(GetCurLiftGroupIndex());
+		CLiftGroupVis *pLiftGroup = GetProject()->GetLiftGroup(GetCurLiftGroupIndex());
 		for (AVULONG i = 0; i < pLiftGroup->GetStoreyCount(); i++)
 		{
 			m_pbutFloor = new CMFCRibbonButton(ID_STOREY_MENU + 1000 + i, pLiftGroup->GetStorey(i)->GetName().c_str());
@@ -1357,7 +1352,7 @@ void CAdVisuoView::OnUpdateCameraLiftMenu(CCmdUI *pCmdUI)
 
 		// create the lifts menu
 		pButton->RemoveAllSubItems();
-		CLiftGroupVis *pLiftGroup = GetDocument()->GetProject()->GetLiftGroup(GetCurLiftGroupIndex());
+		CLiftGroupVis *pLiftGroup = GetProject()->GetLiftGroup(GetCurLiftGroupIndex());
 		for (AVULONG i = 0; i < pLiftGroup->GetLiftCount(); i++)
 		{
 			if (i == pLiftGroup->GetShaftCount(0))
@@ -1392,10 +1387,10 @@ void CAdVisuoView::OnActionPause()
 void CAdVisuoView::OnActionStop()
 {
 	m_pRenderer->Stop();
-	for (AVULONG i = 0; i < GetDocument()->GetProject()->GetLiftGroupsCount(); i++)
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetDocument()->GetProject()->GetLiftGroup(i)->GetSim()->Stop();
-		GetDocument()->GetProject()->GetLiftGroup(i)->RestoreConfig();
+		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
+		GetProject()->GetLiftGroup(i)->RestoreConfig();
 	}
 	PrepareSim();
 }
@@ -1699,7 +1694,7 @@ void CAdVisuoView::OnViewMaterials()
 {
 	if (CDlgMaterials::c_dlg == NULL)
 	{
-		CDlgMaterials *pDlg = new CDlgMaterials(&GetDocument()->GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->m_materials);
+		CDlgMaterials *pDlg = new CDlgMaterials(&GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->m_materials);
 		pDlg->Create(CDlgMaterials::IDD);
 		pDlg->CenterWindow();
 		pDlg->ShowWindow(SW_SHOW);
@@ -1752,7 +1747,7 @@ void CAdVisuoView::OnRecPlay()
 
 void CAdVisuoView::OnTmpGroup1()
 {
-	GetCurCamera()->SetLiftGroup(GetDocument()->GetProject()->GetLiftGroup(0));
+	GetCurCamera()->SetLiftGroup(GetProject()->GetLiftGroup(0));
 	if (::GetKeyState(VK_CONTROL) >= 0)
 	{
 		IAction *pAction = NULL;
@@ -1770,7 +1765,7 @@ void CAdVisuoView::OnTmpGroup1()
 
 void CAdVisuoView::OnTmpGroup2()
 {
-	GetCurCamera()->SetLiftGroup(GetDocument()->GetProject()->GetLiftGroup(1));
+	GetCurCamera()->SetLiftGroup(GetProject()->GetLiftGroup(1));
 	if (::GetKeyState(VK_CONTROL) >= 0)
 	{
 		IAction *pAction = NULL;
@@ -1788,7 +1783,7 @@ void CAdVisuoView::OnTmpGroup2()
 
 void CAdVisuoView::OnTmpGroup3()
 {
-	GetCurCamera()->SetLiftGroup(GetDocument()->GetProject()->GetLiftGroup(2));
+	GetCurCamera()->SetLiftGroup(GetProject()->GetLiftGroup(2));
 	if (::GetKeyState(VK_CONTROL) >= 0)
 	{
 		IAction *pAction = NULL;
@@ -1812,13 +1807,13 @@ void CAdVisuoView::OnUpdateTmpGroup1(CCmdUI *pCmdUI)
 
 void CAdVisuoView::OnUpdateTmpGroup2(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(GetDocument()->GetProject()->GetLiftGroupsCount() >= 2);
+	pCmdUI->Enable(GetProject()->GetLiftGroupsCount() >= 2);
 	pCmdUI->SetRadio(GetCurLiftGroupIndex() == 1);
 }
 
 
 void CAdVisuoView::OnUpdateTmpGroup3(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(GetDocument()->GetProject()->GetLiftGroupsCount() >= 3);
+	pCmdUI->Enable(GetProject()->GetLiftGroupsCount() >= 3);
 	pCmdUI->SetRadio(GetCurLiftGroupIndex() == 2);
 }

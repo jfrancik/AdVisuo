@@ -115,6 +115,7 @@ CSim *CLiftGroup::AddSim()
 void CLiftGroup::DeleteSim()
 {
 	if (m_pSim) delete m_pSim;
+	m_pSim = NULL;
 }
 
 void CLiftGroup::ResolveMe()

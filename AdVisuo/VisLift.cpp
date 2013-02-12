@@ -2,6 +2,7 @@
 
 #include "StdAfx.h"
 #include "VisProject.h"
+#include "VisLiftGroup.h"
 #include "VisLift.h"
 #include "VisPassenger.h"
 #include "VisSim.h"
@@ -80,18 +81,18 @@ void CLiftVis::AnimateJourney(AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeS
 void CLiftVis::Go(JOURNEY &j)
 {
 	if (j.m_timeGo != UNDEF && j.m_timeDest != UNDEF)
-		AnimateToInitialPosition(j.m_shaftFrom, j.m_floorFrom, j.FirstOpenedTime() - GetProject()->GetMinSimulationTime());
+		AnimateToInitialPosition(j.m_shaftFrom, j.m_floorFrom, j.FirstOpenedTime());
 
 	for (AVULONG iDeck = 0; iDeck < DECK_NUM; iDeck++)
 		for (AVULONG iCycle = 0; iCycle < j.m_doorcycles[iDeck].size(); iCycle++)
 		{
-			AnimateDoor(j.m_shaftFrom, j.m_floorFrom+iDeck, true,  j.m_doorcycles[iDeck][iCycle].m_timeOpen  - GetProject()->GetMinSimulationTime(), j.m_doorcycles[iDeck][iCycle].m_durationOpen);
-			AnimateDoor(j.m_shaftFrom, j.m_floorFrom+iDeck, false, j.m_doorcycles[iDeck][iCycle].m_timeClose - GetProject()->GetMinSimulationTime(), j.m_doorcycles[iDeck][iCycle].m_durationClose);
+			AnimateDoor(j.m_shaftFrom, j.m_floorFrom+iDeck, true,  j.m_doorcycles[iDeck][iCycle].m_timeOpen , j.m_doorcycles[iDeck][iCycle].m_durationOpen);
+			AnimateDoor(j.m_shaftFrom, j.m_floorFrom+iDeck, false, j.m_doorcycles[iDeck][iCycle].m_timeClose, j.m_doorcycles[iDeck][iCycle].m_durationClose);
 		}
 
 	// journey
 	if (j.m_timeGo != UNDEF && j.m_timeDest != UNDEF)
-		AnimateJourney(j.m_shaftTo, j.m_floorTo, j.m_timeGo - GetProject()->GetMinSimulationTime(), j.m_timeDest - j.m_timeGo);
+		AnimateJourney(j.m_shaftTo, j.m_floorTo, j.m_timeGo, j.m_timeDest - j.m_timeGo);
 }
 
 int _callback_journey(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, void *pParam);
@@ -117,7 +118,6 @@ void CLiftVis::Play(IAction *pActionTick, AVLONG nTime)
 			if (timeStart == UNDEF) timeStart = pJ->m_timeGo;
 			ASSERT(timeStart != UNDEF);
 
-			timeStart -= GetProject()->GetMinSimulationTime();
 			IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Generic", m_pActionTick, timeStart, 0);
 			pAction->SetHandleEventHook(_callback_journey, i, (void*)this);
 
@@ -150,7 +150,6 @@ AVLONG CLiftVis::FastForward(IAction *pActionTick, AVLONG nTime)
 			if (timeStart == UNDEF) timeStart = pJ->m_timeGo;
 			ASSERT(timeStart != UNDEF);
 
-			timeStart -= GetProject()->GetMinSimulationTime();
 			IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Generic", m_pActionTick, timeStart, 0);
 			pAction->SetHandleEventHook(_callback_journey, i, (void*)this);
 

@@ -4,7 +4,7 @@
 #include "HUD.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-// CTextPlate
+// CHUD
 
 CHUD::CHUD(CSprite *pSprite) : m_pSprite(pSprite), m_pFont(NULL), m_plateAlt(pSprite)
 {
@@ -76,7 +76,7 @@ void CHUD::Draw(CPoint ptMouse)
 	AVULONG nAH = GetAH() / 25;
 
 	// draw alt time plate
-	if (nAH > 0 && m_nTime > 0)
+	if (nAH > 0 /*&& m_nTime > 0*/)
 	{
 		CSize size = m_plateAlt.Calc(m_strTime);
 		m_ptAlt.y += 40 - min(nAH, 40);

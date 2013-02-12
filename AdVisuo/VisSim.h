@@ -3,11 +3,13 @@
 #pragma once
 
 #include "../CommonFiles/BaseSimClasses.h"
-#include "VisLift.h"
-#include "VisPassenger.h"
-#include "VisLiftGroup.h"
 #include "repos.h"
 using namespace std;
+
+class CProjectVis;
+class CLiftGroupVis;
+class CLiftVis;
+class CPassengerVis;
 
 interface IAction;
 interface IScene;
@@ -15,8 +17,6 @@ interface IMaterial;
 interface IKineChild;
 interface IBody;
 interface IRenderer;
-
-class CProjectVis;
 
 class CSimVis : public CSim, protected CRepos<IBody>
 {
@@ -37,18 +37,17 @@ public:
 	CLiftGroupVis *GetLiftGroup()		{ return (CLiftGroupVis*)CSim::GetLiftGroup(); }
 
 	// access & initialisation
-	IScene *GetScene()				{ return m_pScene; }
+	IScene *GetScene()					{ return m_pScene; }
 	void SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped);
-	void SetScene()					{ SetScene(NULL, NULL, NULL); }
 
-	AVULONG GetColouringMode()		{ return m_nColouringMode; }
-	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
+	AVULONG GetColouringMode()			{ return m_nColouringMode; }
+	void SetColouringMode(AVULONG n)	{ m_nColouringMode = n; }
 
 	// repository
 	IBody *GetBody();
 	void ReleaseBody(IBody*);
 
-	void Play(IAction *pActionTick, AVLONG nTime = 0);
+	void Play(IAction *pActionTick, AVLONG nTime);
 	AVLONG FastForward(IAction *pActionTick, AVLONG nTime);					// returns the earliest time that must be scanned before FF (usually < nTime)
 	void RenderPassengers(IRenderer *pRenderer, AVLONG nPhase = 0);
 	void Stop();
@@ -58,8 +57,8 @@ protected:
 	virtual IBody *create();
 	virtual void destroy(IBody*);
 
-	virtual CPassenger *CreatePassenger(AVULONG nId)	{ return new CPassengerVis(this, nId); }
-	virtual CLift *CreateLift(AVULONG nId)				{ return new CLiftVis(this, nId); }
+	virtual CPassenger *CreatePassenger(AVULONG nId);
+	virtual CLift *CreateLift(AVULONG nId);
 
 	friend class CProjectVis;
 };

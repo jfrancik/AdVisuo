@@ -4,6 +4,9 @@
 #include "VisProject.h"
 #include "VisLiftGroup.h"
 #include "VisSim.h"
+#include "VisLift.h"
+#include "VisPassenger.h"
+
 
 #include <fwrender.h>	// to start the renderer
 
@@ -39,7 +42,8 @@ CElemVis::CElemVis(CProject *pProject, CLiftGroup *pLiftGroup, CElem *pParent, A
 		break;
 
 	default:
-		GetLiftGroup()->GetScene()->NewObject((AVSTRING)GetName().c_str(), (ISceneObject**)&m_pBone);
+		if (GetLiftGroup() && GetLiftGroup()->GetSim() && GetLiftGroup()->GetSim()->GetScene())
+			GetLiftGroup()->GetSim()->GetScene()->NewObject((AVSTRING)GetName().c_str(), (ISceneObject**)&m_pBone);
 		Move(vec);
 		break;
 	}

@@ -42,8 +42,6 @@ public:
 	bool IsDownloadComplete()				{ return m_timeLoaded >= GetProject()->GetTimeSaved(); }
 
 	AVLONG GetLoadedTime()					{ return m_timeLoaded; }
-	AVLONG GetMinSimulationTime()			{ return GetProject()->GetMinSimulationTime(); }
-	AVLONG GetMaxSimulationTime()			{ return GetProject()->GetMaxSimulationTime(); }
 
 	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
 

@@ -18,7 +18,7 @@ private:
 	CPoint m_ptAlt;			// alt clock position
 	CTextPlate m_plateAlt;	// text plate - alt clock device
 
-	AVULONG m_nTime, m_nTimeLoaded, m_nTimeSim, m_nTimeSlider;				// time information - current, loaded, simulation total, HUD slider display
+	AVLONG m_nTime, m_nTimeLoaded, m_nTimeSim, m_nTimeSlider;				// time information - current, loaded, simulation total, HUD slider display
 	CString m_strTime, /*m_strTimeLoaded,*/ m_strTimeSim, m_strTimeSlider;	// time information in textual form
 
 	struct HUDITEM

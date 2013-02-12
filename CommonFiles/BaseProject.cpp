@@ -22,7 +22,8 @@ CProject::CProject()
 
 CProject::~CProject()
 {
-	DeleteLiftGroups();
+	for each (CLiftGroup *pGroup in m_groups)
+		delete pGroup;
 }
 
 CLiftGroup *CProject::FindLiftGroup(int id)
@@ -36,12 +37,6 @@ CLiftGroup *CProject::AddLiftGroup()
 	CLiftGroup *p = CreateLiftGroup(m_groups.size());
 	m_groups.push_back(p);
 	return p;
-}
-
-void CProject::DeleteLiftGroups()
-{
-	for each (CLiftGroup *pGroup in m_groups)
-		delete pGroup;
 }
 
 CSim *CProject::GetSim(int i)
