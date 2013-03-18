@@ -45,10 +45,12 @@ private:
 	CMultiDocTemplate* m_pAVDocTemplate;	// doc template
 
 public:
-	ULONG GetWalkMode()			{ return (ULONG)m_nWalkMode; }
-	ULONG GetColouringMode()	{ return (ULONG)m_nColouringMode; }
+	AVULONG GetWalkMode()			{ return (ULONG)m_nWalkMode; }
+	void SetWalkMode(AVULONG n)		{ m_nWalkMode = n; }
+	AVULONG GetColouringMode()		{ return (ULONG)m_nColouringMode; }
+	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
 
-	ULONG GetSessionId()		{ return m_nSessionId; }
+	ULONG GetSessionId()			{ return m_nSessionId; }
 
 	// SIM file paths - obsolete
 	//CString m_strSimPathName;	// simulation file pathname - if provided as a 2nd cmd line param
@@ -70,18 +72,6 @@ public:
 	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
 
-	afx_msg void OnNavigationCctv();
-	afx_msg void OnUpdateNavigationCctv(CCmdUI *pCmdUI);
-	afx_msg void OnNavigationWalk();
-	afx_msg void OnUpdateNavigationWalk(CCmdUI *pCmdUI);
-	afx_msg void OnNavigationGhost();
-	afx_msg void OnUpdateNavigationGhost(CCmdUI *pCmdUI);
-	afx_msg void OnCharacterNocolourcoding();
-	afx_msg void OnUpdateCharacterNocolourcoding(CCmdUI *pCmdUI);
-	afx_msg void OnCharacterCurrentwaitingtime();
-	afx_msg void OnUpdateCharacterCurrentwaitingtime(CCmdUI *pCmdUI);
-	afx_msg void OnCharacterExpectedwaitingtime();
-	afx_msg void OnUpdateCharacterExpectedwaitingtime(CCmdUI *pCmdUI);
 	virtual BOOL OnIdle(LONG lCount);
 	afx_msg void OnFileDownload();
 	afx_msg void OnUpdateFileDownload(CCmdUI *pCmdUI);

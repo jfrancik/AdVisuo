@@ -89,6 +89,18 @@ BEGIN_MESSAGE_MAP(CAdVisuoView, CView)
 	ON_UPDATE_COMMAND_UI(ID_REC_SCRIPT, &CAdVisuoView::OnUpdateRecScript)
 	ON_COMMAND(ID_REC_RECORD, &CAdVisuoView::OnRecRecord)
 	ON_COMMAND(ID_REC_PLAY, &CAdVisuoView::OnRecPlay)
+	ON_COMMAND(ID_NAVIGATION_CCTV, &CAdVisuoView::OnNavigationCctv)
+	ON_UPDATE_COMMAND_UI(ID_NAVIGATION_CCTV, &CAdVisuoView::OnUpdateNavigationCctv)
+	ON_COMMAND(ID_NAVIGATION_WALK, &CAdVisuoView::OnNavigationWalk)
+	ON_UPDATE_COMMAND_UI(ID_NAVIGATION_WALK, &CAdVisuoView::OnUpdateNavigationWalk)
+	ON_COMMAND(ID_NAVIGATION_GHOST, &CAdVisuoView::OnNavigationGhost)
+	ON_UPDATE_COMMAND_UI(ID_NAVIGATION_GHOST, &CAdVisuoView::OnUpdateNavigationGhost)
+	ON_COMMAND(ID_CHARACTER_NOCOLOURCODING, &CAdVisuoView::OnCharacterNocolourcoding)
+	ON_UPDATE_COMMAND_UI(ID_CHARACTER_NOCOLOURCODING, &CAdVisuoView::OnUpdateCharacterNocolourcoding)
+	ON_COMMAND(ID_CHARACTER_CURRENTWAITINGTIME, &CAdVisuoView::OnCharacterCurrentwaitingtime)
+	ON_UPDATE_COMMAND_UI(ID_CHARACTER_CURRENTWAITINGTIME, &CAdVisuoView::OnUpdateCharacterCurrentwaitingtime)
+	ON_COMMAND(ID_CHARACTER_EXPECTEDWAITINGTIME, &CAdVisuoView::OnCharacterExpectedwaitingtime)
+	ON_UPDATE_COMMAND_UI(ID_CHARACTER_EXPECTEDWAITINGTIME, &CAdVisuoView::OnUpdateCharacterExpectedwaitingtime)
 	ON_COMMAND(ID_TMP_GROUP1, &CAdVisuoView::OnTmpGroup1)
 	ON_COMMAND(ID_TMP_GROUP2, &CAdVisuoView::OnTmpGroup2)
 	ON_COMMAND(ID_TMP_GROUP3, &CAdVisuoView::OnTmpGroup3)
@@ -99,23 +111,8 @@ END_MESSAGE_MAP()
 
 // CAdVisuoView construction/destruction
 
-DWORD CAdVisuoView::c_fpsNUM = 21;
-
 CAdVisuoView::CAdVisuoView() : m_screen(NULL, 2), m_plateCam(&m_sprite), m_hud(&m_sprite), m_script(this), m_instRec(this)
 {
-	m_pFWDevice = NULL;
-	m_pRenderer = NULL;
-	m_pScene = NULL;
-	m_pBody = NULL;
-	m_pActionTick = NULL;
-	m_pAuxActionTick = NULL;
-	m_pLight1 = NULL;
-	m_pLight2 = NULL;
-
-	m_pfps = new DWORD[c_fpsNUM];
-	memset(m_pfps, 0, sizeof(DWORD) * c_fpsNUM);
-	m_nfps = 0;
-
 	m_nKeyScanTime = 0;
 	for (int i = 0; i < N_CAMERAS; i++)
 		m_pCamera[i] = NULL;
@@ -133,43 +130,12 @@ CAdVisuoView::CAdVisuoView() : m_screen(NULL, 2), m_plateCam(&m_sprite), m_hud(&
 
 CAdVisuoView::~CAdVisuoView()
 {
-	DeleteAllCameras();
-
-	if (m_pActionTick) m_pActionTick->UnSubscribeAll();
-	if (m_pScene) m_pScene->DelAll();
-
-	ULONG nRef;
-	
-	if (m_pLight2) nRef = m_pLight2->Release();
-	if (m_pLight1) nRef = m_pLight1->Release();
-	if (m_pAuxActionTick) nRef = m_pAuxActionTick->Release();
-	if (m_pActionTick) nRef = m_pActionTick->Release();
-
-	if (m_pBody) nRef = m_pBody->Release();
-	if (m_pScene) nRef = m_pScene->Release();
-	if (m_pRenderer) nRef = m_pRenderer->Release();
-	if (m_pFWDevice) nRef = m_pFWDevice->Release();
-
-	delete [] m_pfps;
-}
-
-CString CAdVisuoView::GetDiagnosticMessage()
-{
-	CString str;
-	if (IsPlaying() && !IsPaused())
-		str.Format(L"Playing now at %d", GetPlayTime());
-	else if (IsPlaying() && IsPaused())
-		str.Format(L"Paused at %d", GetPlayTime());
-	else
-		str.Format(L"Not playing");
-	return str;
+	for (int i = 0; i < N_CAMERAS; i++) 
+		DeleteCamera(i);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Initialisation and Life-Cycle
-
-static void _on_lost_device (IRndrGeneric*, FWULONG, void *pParam)	{ ((CAdVisuoView*)pParam)->OnLostDevice(); 	}
-static void _on_reset_device(IRndrGeneric*, FWULONG, void *pParam)	{ ((CAdVisuoView*)pParam)->OnResetDevice(); }
 
 BOOL CAdVisuoView::PreCreateWindow(CREATESTRUCT& cs)
 {
@@ -182,61 +148,82 @@ void CAdVisuoView::OnInitialUpdate()
 	CWaitCursor wait_cursor;
 
 	// initialise FreeWill
-	if (!IsEngineReady())
-		if (!CreateFreeWill(m_hWnd))
-		{
-			::PostQuitMessage(100);
-			return;
-		}
+	if (!m_engine.Create(m_hWnd, this) || !m_engine.IsReady() || !GetDocument()->IsSimReady())
+	{
+		::PostQuitMessage(100);
+		return;
+	}
+	Debug(L"Initialising video subsystems.");
 
-	// Setup lost device/reset callbacks
-	m_pRenderer->SetCallback(FW_CB_LOSTDEVICE, _on_lost_device, 0, this);
-	m_pRenderer->SetCallback(FW_CB_RESETDEVICE, _on_reset_device, 0, this);
+	GetProject()->SetEngine(&m_engine);
 
 	// Initialise Screen Manager
-	m_screen.SetRenderer(m_pRenderer);
+	m_screen.SetRenderer(m_engine.GetRenderer());
 
 	// Initialise HUD
-	FWULONG x, y;
-	m_pRenderer->GetViewSize(&x, &y);
-	m_sprite.SetRenderer(m_pRenderer);
+	m_sprite.SetRenderer(m_engine.GetRenderer());
 	m_plateCam.SetParams(_stdPathModels + L"plateNW.bmp", 0xFF0000FF, 0x80FFFFFF, 12, TRUE, FALSE, L"System", 0xFF000000, 16, false, CSize(2, 2));
 	m_hud.Initialise();
 	m_hud.SetSimulationTime(GetProject()->GetMaxSimulationTime());
-	m_hud.SetPos(CPoint(x/2 - 256, y - 64));
-	m_hud.SetAltPos(CPoint(x, y));
+
+	// adjust to the screen size
+	OnAdjustViewSize();
 
 	// initialise the simulation
-	if (GetDocument()->IsSimReady())
-	{
-		GetProject()->SetRenderer(m_pRenderer);
-		GetProject()->Construct();
-		GetProject()->StoreConfig();
+	Debug(L"Creating building structure...");
+	GetProject()->Construct();
+	GetProject()->StoreConfig();
 
-		CreateAllCameras();	
-		AVULONG nStorey = GetProject()->GetLiftGroup(0)->GetBasementStoreyCount();
-		GetCamera(0)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(0)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
-		GetCamera(1)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(1)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTFRONT   - ID_CAMERA - 1);
-		GetCamera(2)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(2)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTREAR     - ID_CAMERA - 1);
-		GetCamera(3)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(3)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTREAR    - ID_CAMERA - 1);
-		GetCamera(4)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(4)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_CENTRALFRONT - ID_CAMERA - 1);
-		GetCamera(5)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(5)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_CENTRALREAR  - ID_CAMERA - 1);
-		GetCamera(6)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(6)->MoveTo(CAMLOC_OUTSIDE, 0);
-		GetCamera(7)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(7)->MoveTo(CAMLOC_OUTSIDE, 1);
-		GetCamera(8)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(8)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
-		GetCamera(9)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(9)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
+	Debug(L"Initialising cameras...");
+	// initialise cameras
+	for (int i = 0; i < N_CAMERAS; i++) 
+		CreateCamera(i);
+	AVULONG nStorey = GetProject()->GetLiftGroup(0)->GetBasementStoreyCount();
+	GetCamera(0)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(0)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
+	GetCamera(1)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(1)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTFRONT   - ID_CAMERA - 1);
+	GetCamera(2)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(2)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTREAR     - ID_CAMERA - 1);
+	GetCamera(3)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(3)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTREAR    - ID_CAMERA - 1);
+	GetCamera(4)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(4)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_CENTRALFRONT - ID_CAMERA - 1);
+	GetCamera(5)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(5)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_CENTRALREAR  - ID_CAMERA - 1);
+	GetCamera(6)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(6)->MoveTo(CAMLOC_OUTSIDE, 0);
+	GetCamera(7)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(7)->MoveTo(CAMLOC_OUTSIDE, 1);
+	GetCamera(8)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(8)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
+	GetCamera(9)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(9)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
 
-		Debug(L"Building created, ready for rendering.");
+	Debug(L"Building created, ready for rendering.");
 
-		BeginFrame();
-		RenderScene();
-		EndFrame();
-		
-		PrepareSim();
-	}
+	// setup modes
+	SetWalkMode(GetAdVisuoApp()->GetWalkMode());
+	SetColouringMode(GetAdVisuoApp()->GetColouringMode());
+	
+	// first render cycle
+	m_engine.BeginFrame();
+	RenderScene();
+	m_engine.EndFrame();
+
+	// necessary to initialise:
+	Stop();
 
 	SetTimer(101, 1000 / 50, NULL);
 	m_hud.KeepReady();
+}
+
+void CAdVisuoView::OnAdjustViewSize()
+{
+	m_hud.SetPos(CPoint(m_engine.GeViewtWidth() / 2 - 256, m_engine.GetViewHeight() - 64));
+	m_hud.SetAltPos(CPoint(m_engine.GetViewSize()));
+	m_sprite.OnResize();
+	OnAdjustCameras();
+}
+
+void CAdVisuoView::OnAdjustCameras()
+{
+	for (AVULONG i = 0; i < m_screen.GetCount(); i++)
+		if (m_screen.IsEnabled(i))
+		{
+			CCamera *pCamera = GetCamera(m_screen.GetCamera(i));
+			if (pCamera) pCamera->Adjust(m_screen.GetAspectRatio(i));
+		}
 }
 
 void CAdVisuoView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/)
@@ -248,6 +235,9 @@ void CAdVisuoView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHi
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////
+// ILostDeviceObserver implementation
+
 void CAdVisuoView::OnLostDevice()
 {
 	m_sprite.OnLostDevice();
@@ -257,225 +247,80 @@ void CAdVisuoView::OnLostDevice()
 
 void CAdVisuoView::OnResetDevice()
 {
-	FWCOLOR cAmb = { 0.35f, 0.35f, 0.35f };
-	m_pRenderer->SetAmbientLight(cAmb);
 	m_sprite.OnResetDevice();
 	m_plateCam.OnResetDevice();
 	m_hud.OnResetDevice();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// Sim Initialisation
+// Mode Configuration
 
-void CAdVisuoView::PrepareSim()
+void CAdVisuoView::SetWalkMode(AVULONG n)
 {
-	m_pActionTick->UnSubscribeAll();
-	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-		GetProject()->GetSim(i)->Play(m_pActionTick, GetProject()->GetMinSimulationTime());
-	for (AVLONG t = GetProject()->GetMinSimulationTime(); t <= 0; t += 40)
-		Proceed(t);	// loops un-nested on 24/1/13: Proceed was called too often!
+	m_nWalkMode = n;
+	GetAdVisuoApp()->SetWalkMode(m_nWalkMode);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
-// FreeWill Initialisation
-
-
-	bool g_bFullScreen = false;
-	bool g_bReenter = false;
-	#define MB_CANCELTRYCONTINUE        0x00000006L
-	#define IDTRYAGAIN      10
-	#define IDCONTINUE      11
-	HRESULT __stdcall HandleErrors(struct FWERROR *p, BOOL bRaised)
-	{
-		if (!bRaised)
-		{
-			TRACE("Last error recovered\n");
-			return S_OK;
-		}
-
-		FWSTRING pLabel = NULL;
-		if (p->pSender)
-		{
-			IKineChild *pChild;
-			if (SUCCEEDED(p->pSender->QueryInterface(&pChild)) && pChild)
-			{
-				pChild->GetLabel(&pLabel);
-				pChild->Release();
-			}
-		}
-
-		CString str;
-		if (pLabel)
-			str.Format(L"%ls(%d): Error 0x%x (class %ls, object %ls), %ls\n", p->pSrcFile, p->nSrcLine, p->nCode & 0xffff, p->pClassName, pLabel, p->pMessage);
-		else
-			str.Format(L"%ls(%d): Error 0x%x (class %ls), %ls\n", p->pSrcFile, p->nSrcLine, p->nCode & 0xffff, p->pClassName, p->pMessage);
-		TRACE(L"******** ERROR ********\n** %s\n", str);
-		if (!g_bFullScreen && !g_bReenter)
-		{
-			g_bReenter = true;
-
-			int nRes = AfxMessageBox(str, MB_ABORTRETRYIGNORE | MB_DEFBUTTON3);
-
-			CDlgReportBug::Report(3, str);
-			CDlgReportBug dlg(str);
-			dlg.m_cat = 1;
-			dlg.DoModal();
-			
-			switch (nRes)
-			{
-			case IDABORT: FatalAppExit(0, L"Application stopped"); break;
-			case IDRETRY: DebugBreak(); break;
-			case IDIGNORE: break;
-			}
-			g_bReenter = false;
-		}
-		return p->nCode;
-	}
-
-bool CAdVisuoView::CreateFreeWill(HWND hWnd)
+void CAdVisuoView::SetColouringMode(AVULONG n)
 {
-	if (IsEngineReady())
-		return true;
+	m_nColouringMode = n;
+	GetAdVisuoApp()->SetColouringMode(m_nColouringMode);
 
-	enum eError { ERROR_FREEWILL, ERROR_DIRECTX, ERROR_INTERNAL };
-	try
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+		GetProject()->GetLiftGroup(i)->GetSim()->SetColouringMode(m_nColouringMode);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Play Control
+
+void CAdVisuoView::Play()
+{
+	m_engine.ResetAccel();
+	m_engine.Play();
+	m_script.Play();
+}
+
+void CAdVisuoView::Stop()
+{
+	m_engine.Stop();
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 	{
-		// #FreeWill: create the FreeWill device
-		HRESULT h;
-		h = CoCreateInstance(CLSID_FWDevice, NULL, CLSCTX_INPROC_SERVER, IID_IFWDevice, (void**)&m_pFWDevice);
-		if (FAILED(h)) throw ERROR_FREEWILL;
-		Debug(L""); Debug(L"FreeWill+ system initialised successfully.");
-
-		// #FreeWill: create & initialise the renderer
-		h = m_pFWDevice->CreateObject(L"Renderer", IID_IRenderer, (IFWUnknown**)&m_pRenderer);
-		if (FAILED(h)) throw ERROR_DIRECTX;
-		Debug(L"Renderer started successfully.");
-		h = m_pRenderer->InitDisplay(m_hWnd, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
-		if (FAILED(h)) throw ERROR_INTERNAL;
-
-	//	FWCOLOR back = { 0.0f, 0.0f, 0.0f };		// black
-	// 	FWCOLOR back = { 0.56f, 0.68f, 0.83f };		// blue
-	//	FWCOLOR back = { 0.33f, 0.33f, 0.33f };		// gray
-		FWCOLOR back = { 0.33f, 0.33f, 0.90f };		// gray
-		m_pRenderer->PutBackColor(back);
-
-		// #FreeWill: create & initialise the buffers - determine hardware factors
-		IMeshVertexBuffer *pVertexBuffer;
-		IMeshFaceBuffer *pFaceBuffer;
-		h = m_pRenderer->GetBuffers(&pVertexBuffer, &pFaceBuffer); 
-		if (FAILED(h)) throw ERROR_INTERNAL;
-		h = pVertexBuffer->Create(2000000, MESH_VERTEX_XYZ | MESH_VERTEX_NORMAL | MESH_VERTEX_BONEWEIGHT | MESH_VERTEX_TEXTURE, 4, 1);
-		if (FAILED(h)) throw ERROR_INTERNAL;
-		h = pFaceBuffer->Create(2000000); if (FAILED(h)) throw ERROR_INTERNAL;
-		pVertexBuffer->Release();
-		pFaceBuffer->Release();
-
-		// #FreeWill: create & initialise the animation scene
-		h = m_pFWDevice->CreateObject(L"Scene", IID_IScene, (IFWUnknown**)&m_pScene);
-		if (FAILED(h)) throw ERROR_INTERNAL;
-
-		// #FreeWill: create & initialise the character body
-		h = m_pFWDevice->CreateObject(L"Body", IID_IBody, (IFWUnknown**)&m_pBody);
-		if (FAILED(h)) throw ERROR_INTERNAL;
-
-		// #FreeWill: initialise the Tick Actions
-		m_pActionTick = (IAction*)FWCreateObject(m_pFWDevice, L"Action", L"Generic", (IUnknown*)NULL);
-		m_pAuxActionTick = (IAction*)FWCreateObject(m_pFWDevice, L"Action", L"Generic", (IUnknown*)NULL);
-
-		m_pScene->PutRenderer(m_pRenderer);
-
-		// #Load the Scene
-		IFileLoader *pLoader;
-		m_pFWDevice->CreateObject(L"FileLoader", IID_IFileLoader, (IFWUnknown**)&pLoader);
-		ISceneObject *pBip01 = NULL;
-		m_pScene->NewObject(L"Bip01", &pBip01);
-		pLoader->LoadObject((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"lobby.3D"), L"Bip01", pBip01);
-
-
-		IKineChild *pFootsteps = NULL;
-		pBip01->GetChild(L"Bip01.Footsteps", &pFootsteps);
-		if (pFootsteps)
-		{
-			ITransform *pT = NULL;
-			pFootsteps->GetLocalTransformRef(&pT);
-			pT->MulScale(0, 0, 0);
-			pT->Release();
-			pFootsteps->Release();
-		}
-
-
-		pBip01->Release();
-		pLoader->Release();
-		Debug(L"Biped model loaded.");
-
-		// Reset Character Position
-		IKineNode *pBody = NULL;
-		if (SUCCEEDED(m_pScene->GetChild(L"Bip01.Bip01", (IKineChild**)&pBody)) && pBody)
-		{
-			ITransform *pT = NULL;
-			pBody->GetBaseTransformRef(&pT);
-			pT->Reset(FALSE, TRUE);					// reset translation stored in file
-			pT->MulTranslationXYZ(0, 160, 37.15f);	// stand on the floor surface
-			pT->Release();
-			pBody->Invalidate();
-			pBody->Release();
-		}
-
-		// Notify the simulation engine about the scene (fully loaded now)
-		IMaterial *pMaterial = NULL;
-		m_pScene->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
-		IKineChild *pBiped = NULL;
-		m_pScene->GetChild(L"Bip01", &pBiped);
-		GetProject()->SetScene(m_pScene, pMaterial, pBiped);
-		pMaterial->Release();
-		pBiped->Release();
-
-		// Load Body Object
-		pBody = NULL;
-		if (SUCCEEDED(m_pScene->GetChild(L"Bip01", (IKineChild**)&pBody)) && pBody)
-		{
-			m_pBody->LoadBody(pBody, BODY_SCHEMA_DISCREET);
-			pBody->Release();
-		}
-
-		// setup lights
-		m_pFWDevice->CreateObject(L"DirLight", IID_ISceneLightDir, (IFWUnknown**)&m_pLight1);
-		m_pScene->AddChild(L"DirLight1", m_pLight1);
-		FWCOLOR cWhite1 = { 0.7f, 0.7f, 0.7f };
-		m_pLight1->PutDiffuseColor(cWhite1);
-		m_pLight1->Create(__FW_Vector(0.1f, -0.3f, -0.4f));
-
-		m_pFWDevice->CreateObject(L"DirLight", IID_ISceneLightDir, (IFWUnknown**)&m_pLight2);
-		m_pScene->AddChild(L"DirLight2", m_pLight2);
-		FWCOLOR cWhite2 = { 0.6f, 0.6f, 0.6f };
-		m_pLight2->PutDiffuseColor(cWhite2);
-		m_pLight2->Create(__FW_Vector(0, 1, 3));
-
-		FWCOLOR cAmb = { 0.35f, 0.35f, 0.35f };
-		m_pRenderer->SetAmbientLight(cAmb);
-	}
-	catch (eError e)
-	{
-		CString str;
-		switch (e)
-		{
-		case ERROR_FREEWILL: str = L"FreeWill Graphics system not found. Please reinstall the application."; break;
-		case ERROR_DIRECTX:  str = L"The Direct3D renderer could not be initialised. Please update or re-install DirectX."; break;
-		case ERROR_INTERNAL: str = L"FreeWill Graphics System could not be initialised. Contact the Technical Support";  break;
-		default:             str = L"Unidentified internal error occured. Contact the Technical Support";  break;
-		}
-		str += L" This is a fatal error and the application will now shut down.";
-		AfxMessageBox(str, MB_OK | MB_ICONHAND);
-		CDlgReportBug::Report(3, str);
-		CDlgReportBug dlg(str);
-		dlg.DoModal();
-		return false;
+		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
+		GetProject()->GetLiftGroup(i)->RestoreConfig();
 	}
 
-	// #FreeWill: set-up the error handler
-	m_pFWDevice->SetUserErrorHandler(HandleErrors);
+	// prepare sim...
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+		GetProject()->GetSim(i)->Play(&m_engine, GetProject()->GetMinSimulationTime());
+	for (AVLONG t = GetProject()->GetMinSimulationTime(); t <= 0; t += 40)
+		m_engine.Proceed(t);	// loops un-nested on 24/1/13: Proceed was called too often!
+}
+
+void CAdVisuoView::Pause()
+{
+	m_engine.Pause();
+}
+
+void CAdVisuoView::Rewind(FWULONG nMSec)
+{
+	CWaitCursor wait;
+
+	m_engine.Stop();
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+	{
+		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
+		GetProject()->GetLiftGroup(i)->RestoreConfig();
+	}
+
+	AVLONG t;
+	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+		t = GetProject()->GetLiftGroup(i)->GetSim()->FastForward(&m_engine, nMSec);
+
+	for ( ; t <= (AVLONG)nMSec; t += 40)
+		m_engine.Proceed(t);
 	
-	return true;
+	m_engine.ResetAccel();
+	m_engine.Play(t);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -483,27 +328,29 @@ bool CAdVisuoView::CreateFreeWill(HWND hWnd)
 
 void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 {
-	m_pfps[m_nfps] = GetTickCount();
-	m_nfps = (m_nfps + 1) % c_fpsNUM;
+	m_engine.OnTimer();
 
 	// #FreeWill: Push the time info into the engine
-	if (IsPlaying())
-	if (IsPlaying())
-		if (!Proceed())
+	if (m_engine.IsPlaying())
+	{
+		AVLONG nTime = m_engine.GetPlayTime();
+		m_script.Proceed(nTime);
+		m_engine.Proceed(nTime);
+		if (!m_engine.IsRunning())
 			OnActionStop();
-
-	if (GetPlayTime() > GetProject()->GetMaxSimulationTime())
+	}
+	m_engine.ProceedAux(GetTickCount());
+	
+	if (m_engine.GetPlayTime() > GetProject()->GetMaxSimulationTime())
 		OnActionStop();
 
-	// Push the time into Aux Ticks
-	if (m_pAuxActionTick && m_pAuxActionTick->AnySubscriptionsLeft() == TRUE)
-	{
-		FWULONG nMSec = GetTickCount() - m_nAuxTimeRef;
-		m_pAuxActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, NULL);
-	}
-
 	if (GetDocument()->IsSIMDataReady())
-		GetDocument()->OnSIMDataLoaded(m_pActionTick);
+	{
+		LONG m_timeLoaded = GetDocument()->GetLoadedTime();
+		GetDocument()->OnSIMDataLoaded();
+		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+			GetProject()->GetSim(i)->Play(&m_engine, m_timeLoaded);
+	}
 
 	GetDocument()->UpdateAllViews(NULL, 0, 0);
 
@@ -541,16 +388,8 @@ void CAdVisuoView::OnSize(UINT nType, int cx, int cy)
 {
 	CView::OnSize(nType, cx, cy);
 
-	if (cx && cy && m_pRenderer)
-	{
-		FWULONG x, y;
-		m_pRenderer->GetViewSize(&x, &y);
-		m_hud.SetPos(CPoint(x/2 - 256, y - 64));
-		m_hud.SetAltPos(CPoint(x, y));
-		m_sprite.OnResize();
-
-		OnAdjustCameras();
-	}
+	if (cx && cy && m_engine.GetRenderer())
+		OnAdjustViewSize();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -562,7 +401,7 @@ void CAdVisuoView::OnDraw(CDC *pDC)
 
 	if (m_bLock) return;
 
-	if (!GetDocument() || !IsEngineReady() || !GetDocument()->IsSimReady() || !GetCurCamera() || !GetCurCamera()->IsReady())
+	if (!GetDocument() || !m_engine.IsReady() || !GetDocument()->IsSimReady() || !GetCurCamera() || !GetCurCamera()->IsReady())
 	{
 		// if anything went wrong or is not yet ready...
 		CRect rect;
@@ -571,27 +410,16 @@ void CAdVisuoView::OnDraw(CDC *pDC)
 	}
 	else
 	{
-		BeginFrame();
+		m_engine.BeginFrame();
 		RenderScene(m_bHUDSelection);
-		RenderHUD(m_bHUDPanel, false, m_bHUDCaption, m_bHUDSelection, GetPlayTime());
-		EndFrame();
+		RenderHUD(m_bHUDPanel, false, m_bHUDCaption, m_bHUDSelection, m_engine.GetPlayTime());
+		m_engine.EndFrame();
 	}
-}
-
-void CAdVisuoView::BeginFrame()
-{
-//	if (m_hWnd) m_pRenderer->PutWindow(m_hWnd);
-	m_pRenderer->BeginFrame();
-}
-
-void CAdVisuoView::EndFrame()
-{
-	m_pRenderer->EndFrame();
 }
 
 void CAdVisuoView::RenderScene(bool bHUDSelection)
 {
-	CAdVisuoRenderer renderer(GetProject()->GetLiftGroup(GetCurLiftGroupIndex()), m_pRenderer);
+	CAdVisuoRenderer renderer(GetProject()->GetLiftGroup(GetCurLiftGroupIndex()), m_engine.GetRenderer());
 
 	FWCOLOR active = { 1, 0.86f, 0.47f }, inactive = { 1, 1, 1 };
 	m_screen.Prepare(inactive, active, bHUDSelection);
@@ -606,12 +434,11 @@ void CAdVisuoView::RenderScene(bool bHUDSelection)
 		if (!pCamera) continue;
 		renderer.SetupCamera(pCamera);
 
-		m_pLight1->Render(m_pRenderer);
-		m_pLight2->Render(m_pRenderer);
+		m_engine.RenderLights();
 
 		// my own display list goes here... instead of m_pScene->Render(pRenderer);
 		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-			GetProject()->GetLiftGroup(i)->GetSim()->RenderPassengers(m_pRenderer, 0);
+			GetProject()->GetLiftGroup(i)->GetSim()->RenderPassengers(m_engine.GetRenderer(), 0);
 
 		// for multiple lift groups
 		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
@@ -652,16 +479,13 @@ void CAdVisuoView::RenderScene(bool bHUDSelection)
 		}
 
 		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-			GetProject()->GetLiftGroup(i)->GetSim()->RenderPassengers(m_pRenderer, 1);
+			GetProject()->GetLiftGroup(i)->GetSim()->RenderPassengers(m_engine.GetRenderer(), 1);
 	}
 }
 
 void CAdVisuoView::RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaption, bool bHUDSelection, AVLONG nTime)
 {
 	m_screen.Prepare();
-
-	FWULONG x, y;
-	m_pRenderer->GetViewSize(&x, &y);
 
 	m_sprite.Begin();
 
@@ -676,7 +500,7 @@ void CAdVisuoView::RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaptio
 			LPTSTR text = pCamera->GetTextDescription();
 			
 			AVULONG x0, x1, y0, y1;
-			m_screen.Get(i, x0, x1, y0, y1, bHUDSelection);
+			m_screen.GetViewport(i, x0, x1, y0, y1, bHUDSelection);
 
 			CSize size = m_plateCam.Calc(text);
 			size.cx = min(size.cx, (LONG)x1 - (LONG)x0);
@@ -691,7 +515,7 @@ void CAdVisuoView::RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaptio
 		ScreenToClient(&pt);
 
 		// draw HUD panel
-		m_hud.SetItemStatus(CHUD::HIT_PLAY, IsPlaying() && !IsPaused() ? 2 : 0);
+		m_hud.SetItemStatus(CHUD::HIT_PLAY, m_engine.IsPlaying() && !m_engine.IsPaused() ? 2 : 0);
 		m_hud.SetItemStatus(CHUD::HIT_FULL_SCREEN, ((CMDIFrameWndEx*)::AfxGetMainWnd())->IsFullScreen() ? 2 : 0);
 		m_hud.SetTime(nTime);
 		m_hud.SetLoadedTime(GetDocument()->GetLoadedTime());
@@ -706,7 +530,7 @@ void CAdVisuoView::RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaptio
 // Snapshot and Video Rendering
 
 bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nResX, AVULONG nResY, 
-								AVULONG nTimeFrom, AVULONG nTimeTo, bool bShowCaptions, bool bShowClock, CBUpdate fn)
+								AVLONG nTimeFrom, AVLONG nTimeTo, bool bShowCaptions, bool bShowClock, CBUpdate fn)
 {
 	m_bLock = true;
 	bool bResult = true;
@@ -718,34 +542,30 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 
 	Rewind(nTimeFrom);
 
-	m_pRenderer->Stop();
-
-	m_pRenderer->InitOffScreen(nResX, nResY);
-	m_pFWDevice->EnableErrorException(TRUE);
-	
 	try
 	{
-		m_pRenderer->OpenMovieFile(lpszFilename, nFPS);
+		m_engine.Stop();
+		m_engine.InitOffScreen(CSize(nResX, nResY), lpszFilename, nFPS);
 
 		// first frame - to initialise
 		m_script.Play();
-		AVULONG t = nTimeFrom;
-		Proceed(t);
+		AVLONG t = nTimeFrom;
+		m_engine.Proceed(t);
 
-		m_pRenderer->SetTargetOffScreen();
+		m_engine.SetTargetOffScreen();
 		m_hud.SetPos(CPoint(nResX/2 - 256, nResY - 64));
 		m_hud.SetAltPos(CPoint(nResX, nResY));
 		m_sprite.OnResize();
-		BeginFrame();
+		m_engine.BeginFrame();
 		RenderScene();
 		RenderHUD(bShowClock, true, bShowCaptions, false, t);
-		EndFrame();
+		m_engine.EndFrame();
 		t += 1000 / nFPS;
 
 		AfxGetMainWnd()->SetActiveWindow();
 
 		// all other frames
-		for (t; t <= nTimeTo; t += GetAccel() * 1000 / nFPS)
+		for (t; t <= nTimeTo; t += m_engine.GetAccel() * 1000 / nFPS)
 		{
 			MSG msg;
 			while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -761,21 +581,14 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 
 			// proceed the script - and provide for any pre-programmed fast forward
 			m_script.Proceed(t, t);
+			m_engine.Proceed(t);
+			m_engine.ProceedAux(t);
 
-			Proceed(t);
-
-			// push time to the auxiliary player
-			if (m_pAuxActionTick && m_pAuxActionTick->AnySubscriptionsLeft() == TRUE)
-			{
-				FWULONG nMSec = t - m_nAuxTimeRef;
-				m_pAuxActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, NULL);
-			}
-
-			m_pRenderer->SetTargetOffScreen();
-			BeginFrame();
+			m_engine.SetTargetOffScreen();
+			m_engine.BeginFrame();
 			RenderScene();
 			RenderHUD(bShowClock, true, bShowCaptions, false, t);
-			EndFrame();
+			m_engine.EndFrame();
 
 			bool bStop = false, bPreview = false;
 			fn(L"Rendering to file...", t, bStop, bPreview);
@@ -783,57 +596,42 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 
 			if (bPreview)
 			{
-				m_pRenderer->SetTargetToScreen();
-				BeginFrame();
+				m_engine.SetTargetToScreen();
+				m_engine.BeginFrame();
 				RenderScene();
-				EndFrame();
+				m_engine.EndFrame();
 			}
 		}
 
 		bool bStop = false, bPreview = false;
 		fn(L"Finalising...", t, bStop, bPreview);
 
-		m_pRenderer->SetTargetToScreen();
-		BeginFrame();
+		m_engine.SetTargetToScreen();
+		m_engine.BeginFrame();
 		RenderScene();
 		RenderHUD(false, true, bShowCaptions, false, 0);
-		EndFrame();
+		m_engine.EndFrame();
 		for (int i = 0; i < 40; i++)
 		{
-			m_pRenderer->SetTargetOffScreen();
-			BeginFrame();
+			m_engine.SetTargetOffScreen();
+			m_engine.BeginFrame();
 			RenderScene();
 			RenderHUD(false, false, bShowCaptions, false, 0);
-			EndFrame();
+			m_engine.EndFrame();
 		}
-
-		m_pRenderer->CloseMovieFile();
-		m_pRenderer->DoneOffScreen();
+		m_engine.DoneOffScreen();
 	}
 	catch (FWERROR *) 
 	{ 
-		m_pRenderer->CloseMovieFile();
-		m_pRenderer->DoneOffScreen();
+		m_engine.DoneOffScreen();
+		m_engine.Stop();
 		bResult = false;
 	}
-	m_pFWDevice->EnableErrorException(FALSE);
-	m_pRenderer->Stop();
-	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-	{
-		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
-		GetProject()->GetLiftGroup(i)->RestoreConfig();
-	}
-	PrepareSim();
+
+	Stop();
 
 	m_screen.SetAspectRatio(fAR);
-	FWULONG x, y;
-	m_pRenderer->GetViewSize(&x, &y);
-	m_hud.SetPos(CPoint(x/2 - 256, y - 64));
-	m_hud.SetAltPos(CPoint(x, y));
-	m_sprite.OnResize();
-
-	OnAdjustCameras();
-
+	OnAdjustViewSize();
 	m_bLock = false;
 	return bResult;
 }
@@ -843,116 +641,18 @@ bool CAdVisuoView::RenderToBitmap(LPCTSTR pFilename, enum FW_RENDER_BITMAP fmt)
 	AVULONG x0, x1, y0, y1;
 	m_screen.Get(x0, x1, y0, y1);
 
-	m_pRenderer->InitOffScreen(x1 - x0, y1 - y0);
-	m_pRenderer->OpenStillFile(pFilename, fmt);
-
-	BeginFrame();
+	m_engine.InitOffScreen(CSize(x1 - x0, y1 - y0), pFilename, fmt);
+	m_engine.BeginFrame();
 	RenderScene();
-//	RenderHUD(true, true, true, false);
-	EndFrame();
-
-	m_pRenderer->DoneOffScreen();
+	// RenderHUD(true, true, true, false);
+	m_engine.EndFrame();
+	m_engine.DoneOffScreen();
 
 	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// Proceeding the Animation
-
-bool CAdVisuoView::Proceed(FWLONG nMSec)
-{
-	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-		GetProject()->GetLiftGroup(i)->GetSim()->SetColouringMode(((CAdVisuoApp*)AfxGetApp())->GetColouringMode());
-
-	m_pActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, 0);
-	return (m_pActionTick->AnySubscriptionsLeft() == TRUE);
-}
-
-bool CAdVisuoView::Proceed()
-{
-	AVLONG nTime = GetPlayTime();
-	m_script.Proceed((AVULONG&)nTime);
-	return Proceed(nTime);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// Play Control
-
-void CAdVisuoView::Play()
-{
-	if (!m_pRenderer) return;
-	PutAccel(1);
-	m_pRenderer->Play();
-	//m_pRenderer->PutPlayTime(GetProject()->GetMinSimulationTime());
-	m_script.Play();
-}
-
-void CAdVisuoView::Rewind(FWULONG nMSec)
-{
-	CWaitCursor wait;
-
-	m_pRenderer->Stop();
-	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-	{
-		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
-		GetProject()->GetLiftGroup(i)->RestoreConfig();
-	}
-
-	m_pActionTick->UnSubscribeAll();
-
-	AVLONG t;
-	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-		t = GetProject()->GetLiftGroup(i)->GetSim()->FastForward(m_pActionTick, nMSec);
-
-	for ( ; t <= (AVLONG)nMSec; t += 40)
-		Proceed(t);
-	
-	PutAccel(1);
-	m_pRenderer->Play();
-	m_pRenderer->PutPlayTime(t);
-}
-
-FWULONG CAdVisuoView::GetFPS()
-{
-	if (m_pfps[m_nfps] == 0)
-		return 0;
-	else
-		return 1000 * (c_fpsNUM-1) / (m_pfps[(m_nfps+c_fpsNUM-1)%c_fpsNUM] - m_pfps[m_nfps]);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// Auxiliary Player
-
-void CAdVisuoView::AuxPlay(IAction **pAuxAction, AVULONG nClockValue)
-{
-	if (!pAuxAction) return;
-	*pAuxAction = m_pAuxActionTick;
-	m_pAuxActionTick->AddRef();
-
-	m_pAuxActionTick->UnSubscribeAll();
-	m_nAuxTimeRef = (nClockValue == 0x7FFFFFFF) ? ::GetTickCount() : nClockValue;
-}
-
-bool CAdVisuoView::IsAuxPlaying()
-{
-	return (m_pAuxActionTick->AnySubscriptionsLeft() == TRUE);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////
 // Camera Control
-
-void CAdVisuoView::OnAdjustCameras()
-{
-//	if (::GetKeyState(VK_CONTROL) < 0)
-//		return;
-
-	for (AVULONG i = 0; i < m_screen.GetCount(); i++)
-		if (m_screen.IsEnabled(i))
-		{
-			CCamera *pCamera = GetCamera(m_screen.GetCamera(i));
-			if (pCamera) pCamera->Adjust(m_screen.GetAspectRatio(i));
-		}
-}
 
 void CAdVisuoView::OnDrag(int dx, int dy, int dz, bool bShift, bool bCtrl, bool bAlt)
 {
@@ -960,7 +660,7 @@ void CAdVisuoView::OnDrag(int dx, int dy, int dz, bool bShift, bool bCtrl, bool 
 
 	// if (bCtrl) if (abs(dx) > abs(dy)) dy = 0; else dx = 0;
 
-	switch (GetAdVisuoApp()->GetWalkMode())
+	switch (m_nWalkMode)
 	{
 	case 0:
 	case 2:
@@ -1177,7 +877,7 @@ void CAdVisuoView::OnCamera(UINT nCmd)
 	{
 		// No Control Key
 		IAction *pAction = NULL;
-		AuxPlay(&pAction); 
+		m_engine.AuxPlay(&pAction); 
 		if (pAction)
 		{
 			if (nCmd >= ID_STOREY_MENU + 1000 && nCmd < ID_STOREY_MENU + 1300)
@@ -1368,43 +1068,22 @@ void CAdVisuoView::OnUpdateCameraLiftMenu(CCmdUI *pCmdUI)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-// Action
+// Actions
 
-void CAdVisuoView::OnActionPlay()
-{
-	if (GetDocument()->IsSimReady() && !IsPlaying())
-	{
-		Play();
-		Debug(L"Visualisation started...");
-	}
-}
+void CAdVisuoView::OnActionPlay()	{ if ( m_engine.IsPlaying()) return; Play();  Debug(L"Visualisation started..."); }
+void CAdVisuoView::OnActionPause()	{ if (!m_engine.IsPlaying()) return; Pause(); Debug(m_engine.IsPaused() ? L"Visualisation paused..." : L"Visualisation resumed..."); }
+void CAdVisuoView::OnActionStop()	{ if (!m_engine.IsPlaying()) return; Stop();  Debug(L"Visualisation stopped..."); }
 
-void CAdVisuoView::OnActionPause()
-{
-	Pause();
-}
+void CAdVisuoView::OnActionSlowdown()		{ m_engine.SlowDown(); }
+void CAdVisuoView::OnActionSpeedup()		{ m_engine.SpeedUp(); }
+void CAdVisuoView::OnActionNormalpace()		{ m_engine.ResetAccel(); }
 
-void CAdVisuoView::OnActionStop()
-{
-	m_pRenderer->Stop();
-	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-	{
-		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
-		GetProject()->GetLiftGroup(i)->RestoreConfig();
-	}
-	PrepareSim();
-}
-
-void CAdVisuoView::OnActionSlowdown()		{ PutAccel(GetAccel() / 2); }
-void CAdVisuoView::OnActionSpeedup()		{ PutAccel(GetAccel() * 2); }
-void CAdVisuoView::OnActionNormalpace()		{ PutAccel(1); }
-
-void CAdVisuoView::OnUpdateActionPlay(CCmdUI *pCmdUI)		{ pCmdUI->Enable(IsEngineReady() && GetDocument()->IsSimReady() && !IsPlaying()); pCmdUI->SetCheck(IsPlaying()); }
-void CAdVisuoView::OnUpdateActionPause(CCmdUI *pCmdUI)		{ pCmdUI->Enable(IsPlaying()); pCmdUI->SetCheck(IsPaused()); }
-void CAdVisuoView::OnUpdateActionStop(CCmdUI *pCmdUI)		{ pCmdUI->Enable(IsPlaying()); }
-void CAdVisuoView::OnUpdateActionSlowdown(CCmdUI *pCmdUI)	{ pCmdUI->Enable(IsPlaying()); }
-void CAdVisuoView::OnUpdateActionSpeedup(CCmdUI *pCmdUI)	{ pCmdUI->Enable(IsPlaying()); }
-void CAdVisuoView::OnUpdateActionNormalpace(CCmdUI *pCmdUI)	{ pCmdUI->Enable(IsPlaying()); }
+void CAdVisuoView::OnUpdateActionPlay(CCmdUI *pCmdUI)		{ pCmdUI->Enable(m_engine.IsReady() && !m_engine.IsPlaying()); pCmdUI->SetCheck(m_engine.IsPlaying()); }
+void CAdVisuoView::OnUpdateActionPause(CCmdUI *pCmdUI)		{ pCmdUI->Enable(m_engine.IsPlaying()); pCmdUI->SetCheck(m_engine.IsPaused()); }
+void CAdVisuoView::OnUpdateActionStop(CCmdUI *pCmdUI)		{ pCmdUI->Enable(m_engine.IsPlaying()); }
+void CAdVisuoView::OnUpdateActionSlowdown(CCmdUI *pCmdUI)	{ pCmdUI->Enable(m_engine.IsPlaying()); }
+void CAdVisuoView::OnUpdateActionSpeedup(CCmdUI *pCmdUI)	{ pCmdUI->Enable(m_engine.IsPlaying()); }
+void CAdVisuoView::OnUpdateActionNormalpace(CCmdUI *pCmdUI)	{ pCmdUI->Enable(m_engine.IsPlaying()); }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // View
@@ -1509,16 +1188,13 @@ void CAdVisuoView::OnViewFullScreen()
 		if (pTB) pTB->GetWindowText(str);
 		if (pTB && str == L"Full Screen")
 			pTB->ShowWindow(SW_HIDE);
-//		CWnd *pTB = WindowFromPoint(CPoint(110, 110));
-//		if (pTB) pTB->ShowWindow(SW_HIDE);
 
 		CRect rect;
 		GetDesktopWindow()->GetWindowRect(rect);
-
 		pMainWnd->SetWindowPos(&wndTopMost, -13, -54, rect.Width() + 26, rect.Height() + 54 + 13, SWP_SHOWWINDOW);
 
 		g_bFullScreen = true;
-		m_pRenderer->ResetDeviceEx(NULL, 0, 0);
+		m_engine.ResetDevice(NULL);
 	}
 	else
 	{
@@ -1528,17 +1204,12 @@ void CAdVisuoView::OnViewFullScreen()
 
 		pMainWnd->SetWindowPos(&wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
-		m_pRenderer->ResetDeviceEx(m_hWnd, 0, 0);
+		m_engine.ResetDevice(m_hWnd);
 		g_bFullScreen = false;
 	}
 
-	FWULONG x, y;
-	m_pRenderer->GetViewSize(&x, &y);
-	m_hud.SetPos(CPoint(x/2 - 256, y - 64));
-	m_hud.SetAltPos(CPoint(x, y));
-	m_sprite.OnResize();
-	OnAdjustCameras();
-	
+	OnAdjustViewSize();
+
 	if (!pMainWnd->IsFullScreen()) 
 		Sleep(1500);
 }
@@ -1556,10 +1227,10 @@ void CAdVisuoView::OnUpdateViewFullScreen(CCmdUI *pCmdUI)
 
 void CAdVisuoView::OnActionPlayspecial()
 {
-	if (!IsEngineReady() || !GetDocument()->IsSimReady())
+	if (!m_engine.IsReady())
 		return;
 
-	if (!IsPlaying())
+	if (!m_engine.IsPlaying())
 		OnActionPlay();
 	else
 		OnActionPause();
@@ -1666,23 +1337,40 @@ void CAdVisuoView::OnActionSavestill()
 
 void CAdVisuoView::OnUpdateActionRender(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(GetDocument()->IsSimReady() && !IsPlaying() && !((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
-	pCmdUI->SetCheck(IsPlaying());
+	pCmdUI->Enable(!m_engine.IsPlaying() && !((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
+	pCmdUI->SetCheck(m_engine.IsPlaying());
 }
 
 void CAdVisuoView::OnUpdateActionSavestill(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(GetDocument()->IsSimReady() && !((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
+	pCmdUI->Enable(!((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
 }
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Modes
+
+void CAdVisuoView::OnNavigationCctv()									{ SetWalkMode(0); }
+void CAdVisuoView::OnUpdateNavigationCctv(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 0); pCmdUI->Enable(FALSE); }
+void CAdVisuoView::OnNavigationWalk()									{ SetWalkMode(1); }
+void CAdVisuoView::OnUpdateNavigationWalk(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 1); pCmdUI->Enable(FALSE); }
+void CAdVisuoView::OnNavigationGhost()									{ SetWalkMode(2); }
+void CAdVisuoView::OnUpdateNavigationGhost(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 2); }
+
+void CAdVisuoView::OnCharacterNocolourcoding()							{ SetColouringMode(0); }
+void CAdVisuoView::OnUpdateCharacterNocolourcoding(CCmdUI *pCmdUI)		{ pCmdUI->SetCheck(m_nColouringMode == 0); }
+void CAdVisuoView::OnCharacterCurrentwaitingtime()						{ SetColouringMode(1); }
+void CAdVisuoView::OnUpdateCharacterCurrentwaitingtime(CCmdUI *pCmdUI)	{ pCmdUI->SetCheck(m_nColouringMode == 1); }
+void CAdVisuoView::OnCharacterExpectedwaitingtime()						{ SetColouringMode(2); }
+void CAdVisuoView::OnUpdateCharacterExpectedwaitingtime(CCmdUI *pCmdUI)	{ pCmdUI->SetCheck(m_nColouringMode == 2); }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Status Bar
 
 void CAdVisuoView::OnUpdateStatusbarPane2(CCmdUI *pCmdUI)
 {
-	FWULONG nTime = GetPlayTime();
+	FWULONG nTime = m_engine.GetPlayTime();
 	CString str;
-	FWULONG fps = GetFPS();
+	FWULONG fps = m_engine.GetFPS();
 	if (fps)
 		str.Format(L"%d fps", fps);
 	else
@@ -1740,7 +1428,7 @@ void CAdVisuoView::OnRecRecord()
 
 void CAdVisuoView::OnRecPlay()
 {
-	AVULONG a = 0;
+	AVLONG a = 0;
 	m_instRec.Play(a);
 }
 
@@ -1751,7 +1439,7 @@ void CAdVisuoView::OnTmpGroup1()
 	if (::GetKeyState(VK_CONTROL) >= 0)
 	{
 		IAction *pAction = NULL;
-		AuxPlay(&pAction); 
+		m_engine.AuxPlay(&pAction); 
 		if (pAction)
 		{
 			GetCurCamera()->AnimateTo(CAMLOC_LOBBY, pAction, 6, GetViewAspectRatio());
@@ -1769,7 +1457,7 @@ void CAdVisuoView::OnTmpGroup2()
 	if (::GetKeyState(VK_CONTROL) >= 0)
 	{
 		IAction *pAction = NULL;
-		AuxPlay(&pAction); 
+		m_engine.AuxPlay(&pAction); 
 		if (pAction)
 		{
 			GetCurCamera()->AnimateTo(CAMLOC_LOBBY, pAction, 6, GetViewAspectRatio());
@@ -1787,7 +1475,7 @@ void CAdVisuoView::OnTmpGroup3()
 	if (::GetKeyState(VK_CONTROL) >= 0)
 	{
 		IAction *pAction = NULL;
-		AuxPlay(&pAction); 
+		m_engine.AuxPlay(&pAction); 
 		if (pAction)
 		{
 			GetCurCamera()->AnimateTo(CAMLOC_LOBBY, pAction, 6, GetViewAspectRatio());

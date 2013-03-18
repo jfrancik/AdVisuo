@@ -309,10 +309,12 @@ void Debug(LPCTSTR fmt, ...)
 	va_start(body, fmt);
 	vswprintf(out, 1024, fmt, body);
 	va_end(body);
-	((CMainFrame*)AfxGetMainWnd())->m_wndOutput.OutDebugWindow(out);
-	((CMainFrame*)AfxGetMainWnd())->m_wndOutput.UpdateWindow();
-
 	TRACE(out); TRACE("\n");
+	if ((CMainFrame*)AfxGetMainWnd())
+	{
+		((CMainFrame*)AfxGetMainWnd())->m_wndOutput.OutDebugWindow(out);
+		((CMainFrame*)AfxGetMainWnd())->m_wndOutput.UpdateWindow();
+	}
 }
 
 // makes min max info more relaxed in full screen mode

@@ -29,10 +29,10 @@ CString CScriptEvent::GetDesc()
 void CScriptEvent::Record()
 {
 	m_desc = m_pView->GetCamera(0)->GetShortTextDescription();
-	SetTime(m_pView->GetPlayTime());
+	SetTime(m_pView->GetEngine()->GetPlayTime());
 	SetAnimTime(1000);
 	SetFFTime(0);
-	SetAccel(m_pView->GetAccel());
+	SetAccel(m_pView->GetEngine()->GetAccel());
 
 	for (AVULONG i = 0; i < N_CAMERAS; i++)
 	{
@@ -42,14 +42,8 @@ void CScriptEvent::Record()
 	}
 }
 
-void CScriptEvent::Play(AVULONG &nTime, AVULONG nAuxClockValue)
+void CScriptEvent::Play(AVLONG &nTime, AVLONG nAuxClockValue)
 {
-	// EXCEPTIONAL!!!
-	if (m_nTime == 968000)
-		m_pView->OnTmpGroup2();
-	if (m_nTime == 0)
-		m_pView->OnTmpGroup1();
-
 	if (GetFFTime() > 0.01f)
 	{
 		nTime = GetFFTime();
@@ -57,8 +51,8 @@ void CScriptEvent::Play(AVULONG &nTime, AVULONG nAuxClockValue)
 	}
 
 	IAction *pAction = NULL;
-	m_pView->AuxPlay(&pAction, nAuxClockValue); 
-	m_pView->PutAccel(GetAccel());
+	m_pView->GetEngine()->AuxPlay(&pAction, nAuxClockValue); 
+	m_pView->GetEngine()->PutAccel(GetAccel());
 	for (AVULONG i = 0; i < N_CAMERAS; i++)
 		if (GetAnimTime() == 0)
 			m_pView->GetCamera(i)->MoveTo(m_camera[i]);
@@ -99,7 +93,7 @@ void CScript::Record()
 	Sort();
 }
 
-void CScript::Play(AVULONG i, AVULONG nAuxClockValue)
+void CScript::Play(AVULONG i, AVLONG nAuxClockValue)
 {
 	m_events[i]->Play(nAuxClockValue);
 }
@@ -115,7 +109,7 @@ void CScript::Play()
 	m_nPos = 0;
 }
 
-void CScript::Proceed(AVULONG &nTime, AVULONG nAuxClockValue)
+void CScript::Proceed(AVLONG &nTime, AVLONG nAuxClockValue)
 {
 	while (m_nPos < size() && (*this)[m_nPos]->GetTime() < nTime)
 	{

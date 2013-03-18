@@ -89,7 +89,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <Profile>false</Profile>
+      <Profile>true</Profile>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <UACUIAccess>false</UACUIAccess>
     </Link>
@@ -138,6 +138,8 @@
     <ClCompile Include="AdVisuoRenderer.cpp" />
     <ClCompile Include="AdVisuoView.cpp" />
     <ClCompile Include="Block.cpp" />
+    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="VisElem.cpp" />
     <ClCompile Include="VisLiftGroup.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ChildFrm.cpp" />
@@ -172,6 +174,8 @@
     <ClInclude Include="AdVisuoRenderer.h" />
     <ClInclude Include="AdVisuoView.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
+    <ClInclude Include="Engine.h" />
+    <ClInclude Include="VisElem.h" />
     <ClInclude Include="VisLiftGroup.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ChildFrm.h" />

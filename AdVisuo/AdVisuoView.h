@@ -25,6 +25,7 @@
 #include "HUD.h"
 #include "Script.h"
 #include "Dialogs.h"
+#include "Engine.h"
 
 #include <freewill.h>	// obligatory
 #include <fwrender.h>	// to start the renderer
@@ -34,19 +35,9 @@
 
 #define N_CAMERAS	10						// number of cameras
 
-class CAdVisuoView : public CView
+class CAdVisuoView : public CView, ILostDeviceObserver
 {
-	// FreeWill Objects
-	IFWDevice *m_pFWDevice;					// FreeWill Device
-	IRenderer *m_pRenderer;					// The Renderer
-	IScene *m_pScene;						// The Scene
-	IBody *m_pBody;							// The Body
-	ISceneLightDir *m_pLight1;				// light 1
-	ISceneLightDir *m_pLight2;				// light 2
-
-	IAction *m_pActionTick;					// The Clock Tick Action...
-	IAction *m_pAuxActionTick;				// The Clock Tick Action for Camera Animation...
-	AVULONG m_nAuxTimeRef;					// The Clock Value for m_pAuxActionTick
+	CEngine m_engine;
 
 	// HUD
 	CSprite m_sprite;							// sprite - DX object used to draw all 
@@ -73,15 +64,14 @@ class CAdVisuoView : public CView
 	bool m_bHUDCaption;							// diaplay HUD view captions
 	bool m_bHUDSelection;						// display sub-view selection
 
+	// Modes
+	AVULONG m_nWalkMode;						// Walk or CCTV mode
+	AVULONG m_nColouringMode;					// Character Colouring Mode
+
 	// Hit test auxiliaries
 	CScreen::HIT m_hit;							// hit test result - screen outside HUD
 	AVULONG m_nHitX, m_nHitY;					// aux hit indices
 	CPoint m_ptHit;								// last drag position
-
-	// Frame Rate calculation
-	static DWORD c_fpsNUM;						// Frame per Second rate calculation
-	DWORD *m_pfps;
-	int m_nfps;
 
 	// Other auxiliaries
 	DWORD m_nKeyScanTime;						// used internally by OnScanKey
@@ -104,23 +94,36 @@ public:
 	// Attributes
 	CAdVisuoDoc *GetDocument() const			{ return reinterpret_cast<CAdVisuoDoc*>(m_pDocument); }
 	CProjectVis *GetProject() const				{ return GetDocument()->GetProject(); }
-	bool IsEngineReady()						{ return m_pBody != NULL; }
-
-	CString GetDiagnosticMessage();
 
 	// Initialisation and Life-Cycle
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
 	virtual void OnInitialUpdate();
+	void OnAdjustViewSize();
+	void OnAdjustCameras();
 
-	void OnLostDevice();
-	void OnResetDevice();
+	// ILostDeviceObserver implementation
+	virtual void OnLostDevice();
+	virtual void OnResetDevice();
 
-	// Sim Initialisation
-	void PrepareSim();
+	// Mode Configuration
+	AVULONG GetWalkMode()						{ return m_nWalkMode; }
+	AVULONG GetColouringMode()					{ return m_nColouringMode; }
+	void SetWalkMode(AVULONG n);
+	void SetColouringMode(AVULONG n);
 
-	// FreeWill Initialisation
-	bool CreateFreeWill(HWND m_hWnd);
+	// Play Control
+	void Play();
+	void Stop();
+	void Pause();
+	void Rewind(FWULONG nMSec);		// rewinds the simulation to the given point
+
+
+
+
+
+
+	CEngine *GetEngine()						{ return &m_engine; }
 
 	void CreateCamera(int i)					{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = new CCamera(GetDocument()->GetProject()->GetLiftGroup(0), i); m_pCamera[i]->Create(); }
 	void DeleteCamera(int i)					{ if (i >= N_CAMERAS) return; if (m_pCamera[i]) delete m_pCamera[i]; m_pCamera[i] = NULL; }
@@ -129,10 +132,6 @@ public:
 
 	CCamera *GetCurCamera()						{ return GetCamera(m_screen.GetCurCamera()); }
 	AVULONG GetCurLiftGroupIndex()				{ return GetCurCamera()->GetLiftGroup()->GetIndex(); }
-
-
-	void DeleteAllCameras()						{ for (int i = 0; i < N_CAMERAS; i++) DeleteCamera(i); }
-	void CreateAllCameras()						{ for (int i = 0; i < N_CAMERAS; i++) CreateCamera(i); }
 
 	AVFLOAT GetScreenAspectRatio()				{ return (AVFLOAT)GetSystemMetrics(SM_CXSCREEN) / (AVFLOAT)GetSystemMetrics(SM_CYSCREEN); }
 	AVFLOAT GetWindowAspectRatio()				{ CRect rect; GetClientRect(rect); return (AVFLOAT)rect.Width() / (AVFLOAT)rect.Height(); }
@@ -149,39 +148,15 @@ public:
 	virtual void OnDraw(CDC* pDC);  // overridden to draw this view
 
 protected:
-	void BeginFrame();
 	void RenderScene(bool bHUDSelection = false);
 	void RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaption, bool bHUDSelection, AVLONG nTime);
-	void EndFrame();
 
 	// Snapshot and Video Rendering
 	typedef std::function<void(LPCTSTR strStatus, AVULONG nTime, bool &bStop, bool &bPreview)> CBUpdate;
-	bool RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nResX, AVULONG nResY, AVULONG nTimeFrom, AVULONG nTimeTo, bool bShowCaptions, bool bShowClock, CBUpdate fn);
+	bool RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nResX, AVULONG nResY, AVLONG nTimeFrom, AVLONG nTimeTo, bool bShowCaptions, bool bShowClock, CBUpdate fn);
 	bool RenderToBitmap(LPCTSTR pFilename, enum FW_RENDER_BITMAP fmt);
 
-
-	// Proceeding the Animation
-	bool Proceed(FWLONG nMSec);		// proceed the simulation to the given time stamp; returns false if simulation is finished
-	bool Proceed();					// proceed the simulation to the current play time; returns false if simulation is finished
-
-	// Play Control
-	void Play();					// starts the simulation
-	void Rewind(FWULONG nMSec);		// rewinds the simulation to the given point
-	void Pause()					{ if (IsEngineReady()) m_pRenderer->Pause(); }
-	void Stop()						{ if (IsEngineReady()) m_pRenderer->Stop(); }
-	bool IsPlaying()				{ return IsEngineReady() && (m_pRenderer->IsPlaying() == S_OK); }
-	bool IsPaused()					{ return IsEngineReady() && (m_pRenderer->IsPaused() == S_OK); }
-	FWFLOAT GetAccel()				{ FWFLOAT accel; m_pRenderer->GetAccel(&accel); return accel; }
-	void PutAccel(FWFLOAT accel)	{ m_pRenderer->PutAccel(accel); }
-	FWLONG GetPlayTime()			{ FWLONG nTime; if (!IsPlaying()) return 0; m_pRenderer->GetPlayTime(&nTime); return nTime; }
-	FWULONG GetFPS();
-
-	// Auxiliary Player - used for camera animation
-	void AuxPlay(IAction **pAuxAction, AVULONG nClockValue = 0x7FFFFFFF);
-	bool IsAuxPlaying();
-
 	// Camera Control
-	void OnAdjustCameras();
 	void OnDrag(int dx, int dy, int dz, bool bShift, bool bCtrl, bool bAlt);
 	void OnScanKey();
 
@@ -244,9 +219,23 @@ protected:
 	afx_msg void OnActionSavestill();
 	afx_msg void OnUpdateActionSavestill(CCmdUI *pCmdUI);
 
+	// Modes
+	afx_msg void OnNavigationCctv();
+	afx_msg void OnUpdateNavigationCctv(CCmdUI *pCmdUI);
+	afx_msg void OnNavigationWalk();
+	afx_msg void OnUpdateNavigationWalk(CCmdUI *pCmdUI);
+	afx_msg void OnNavigationGhost();
+	afx_msg void OnUpdateNavigationGhost(CCmdUI *pCmdUI);
+	afx_msg void OnCharacterNocolourcoding();
+	afx_msg void OnUpdateCharacterNocolourcoding(CCmdUI *pCmdUI);
+	afx_msg void OnCharacterCurrentwaitingtime();
+	afx_msg void OnUpdateCharacterCurrentwaitingtime(CCmdUI *pCmdUI);
+	afx_msg void OnCharacterExpectedwaitingtime();
+	afx_msg void OnUpdateCharacterExpectedwaitingtime(CCmdUI *pCmdUI);
+	
 	// Status Bar
 	afx_msg void OnUpdateStatusbarPane2(CCmdUI *pCmdUI);
-public:
+//public:
 	afx_msg void OnUpdateViewAspect(CCmdUI *pCmdUI);
 	afx_msg void OnViewMaterials();
 	afx_msg void OnUpdateViewMaterials(CCmdUI *pCmdUI);

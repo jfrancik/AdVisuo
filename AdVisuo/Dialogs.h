@@ -7,6 +7,7 @@
 #include "afxdtctl.h"
 #include <functional>
 
+#include "resource.h"
 
 // CDlgVideo dialog
 

@@ -4,51 +4,12 @@
 
 #include "../CommonFiles/ConstrProject.h"
 #include "../CommonFiles/XMLTools.h"
-#include <vector>
 
-interface IMesh;
-interface IKineNode;
-interface ISceneObject;
-interface IRenderer;
-
-interface IScene;
-interface IMaterial;
-interface IKineChild;
-
-class CProjectVis;
 class CLiftGroupVis;
 class CSimVis;
+class CEngine;
 
 using namespace std;
-
-class CElemVis : public CElem
-{
-	IKineNode *m_pBone;
-public:
-	CElemVis(CProject *pProject, CLiftGroup *pLiftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
-	virtual ~CElemVis();
-
-	CProjectVis *GetProject()				{ return (CProjectVis*)CElem::GetProject(); }
-	CLiftGroupVis *GetLiftGroup()			{ return (CLiftGroupVis*)CElem::GetLiftGroup(); }
-	CElemVis *GetParent()					{ return (CElemVis*)CElem::GetParent(); }
-	IKineNode *GetBone()					{ return m_pBone; }
-	ISceneObject *GetObject();
-
-	// Implemenmtation
-	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL);
-	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVULONG nParam = 0, AVFLOAT fParam1 = 0, AVFLOAT fParam2 = 0);
-	virtual void Move(AVVECTOR vec);
-
-	// implementation specific
-
-	void PushState();
-	void PopState();
-	void Invalidate();
-
-	IMesh *AddMesh(AVSTRING strName);
-	void Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale = 1.0f, AVFLOAT fTexScale = 1.0f);
-	void Render(IRenderer *pRenderer);
-};
 
 class _prj_error
 {
@@ -71,11 +32,14 @@ private:
 
 class CProjectVis : public CProjectConstr
 {
+	CEngine *m_pEngine;
 public:
 	CProjectVis()							{ }
 	virtual ~CProjectVis()					{ }
 
+	// Implementation
 	virtual CLiftGroup *CreateLiftGroup(AVULONG iIndex);
+	virtual CElem *CreateElement(CLiftGroup *pLiftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 
 	CLiftGroupVis *GetLiftGroup(int i)		{ return (CLiftGroupVis*)CProjectConstr::GetLiftGroup(i); }
 	CLiftGroupVis *FindLiftGroup(int id)	{ return (CLiftGroupVis*)CProjectConstr::FindLiftGroup(id); }
@@ -84,12 +48,9 @@ public:
 	CSimVis *GetSim(int i)					{ return (CSimVis*)CProjectConstr::GetSim(i); }
 	CSimVis *FindSim(int id)				{ return (CSimVis*)CProjectConstr::FindSim(id); }
 	
-	virtual CElem *CreateElement(CLiftGroup *pLiftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec)			
-											{ return new CElemVis(this, pLiftGroup, pParent, nElemId, name, i, vec); }
-
-	// FreeWill specific
-	void SetScene(IScene *pScene, IMaterial *pMaterial, IKineChild *pBiped);
-	void SetRenderer(IRenderer *pRenderer);
+	// Engine specific
+	void SetEngine(CEngine *pEngine)		{ m_pEngine = pEngine; }
+	CEngine *GetEngine()					{ return m_pEngine; }
 	void StoreConfig();
 
 	// XML Load/Store/Parse/Feed --- throw _com_error or _sim_errror

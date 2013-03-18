@@ -37,18 +37,6 @@ BEGIN_MESSAGE_MAP(CAdVisuoApp, CWinAppEx)
 	// Standard file based document commands
 	ON_COMMAND(ID_FILE_NEW, &CWinAppEx::OnFileNew)
 	ON_COMMAND(ID_FILE_OPEN, &CWinAppEx::OnFileOpen)
-	ON_COMMAND(ID_NAVIGATION_CCTV, &CAdVisuoApp::OnNavigationCctv)
-	ON_UPDATE_COMMAND_UI(ID_NAVIGATION_CCTV, &CAdVisuoApp::OnUpdateNavigationCctv)
-	ON_COMMAND(ID_NAVIGATION_WALK, &CAdVisuoApp::OnNavigationWalk)
-	ON_UPDATE_COMMAND_UI(ID_NAVIGATION_WALK, &CAdVisuoApp::OnUpdateNavigationWalk)
-	ON_COMMAND(ID_NAVIGATION_GHOST, &CAdVisuoApp::OnNavigationGhost)
-	ON_UPDATE_COMMAND_UI(ID_NAVIGATION_GHOST, &CAdVisuoApp::OnUpdateNavigationGhost)
-	ON_COMMAND(ID_CHARACTER_NOCOLOURCODING, &CAdVisuoApp::OnCharacterNocolourcoding)
-	ON_UPDATE_COMMAND_UI(ID_CHARACTER_NOCOLOURCODING, &CAdVisuoApp::OnUpdateCharacterNocolourcoding)
-	ON_COMMAND(ID_CHARACTER_CURRENTWAITINGTIME, &CAdVisuoApp::OnCharacterCurrentwaitingtime)
-	ON_UPDATE_COMMAND_UI(ID_CHARACTER_CURRENTWAITINGTIME, &CAdVisuoApp::OnUpdateCharacterCurrentwaitingtime)
-	ON_COMMAND(ID_CHARACTER_EXPECTEDWAITINGTIME, &CAdVisuoApp::OnCharacterExpectedwaitingtime)
-	ON_UPDATE_COMMAND_UI(ID_CHARACTER_EXPECTEDWAITINGTIME, &CAdVisuoApp::OnUpdateCharacterExpectedwaitingtime)
 	ON_COMMAND(ID_FILE_DOWNLOAD, &CAdVisuoApp::OnFileDownload)
 	ON_UPDATE_COMMAND_UI(ID_FILE_DOWNLOAD, &CAdVisuoApp::OnUpdateFileDownload)
 	ON_UPDATE_COMMAND_UI(ID_FILE_OPEN, &CAdVisuoApp::OnUpdateFileOpen)
@@ -308,81 +296,6 @@ void CAdVisuoApp::SaveCustomState()
 }
 
 // CAdVisuoApp message handlers
-
-void CAdVisuoApp::OnNavigationCctv()
-{
-	m_nWalkMode = 0;
-}
-
-void CAdVisuoApp::OnUpdateNavigationCctv(CCmdUI *pCmdUI)
-{
-	CDocument *pDoc = ((CFrameWnd*)m_pMainWnd)->GetActiveFrame()->GetActiveDocument();
-	if (!pDoc)
-		pCmdUI->Enable(FALSE);
-	else
-		pCmdUI->SetRadio(m_nWalkMode == 0);
-	pCmdUI->Enable(FALSE);
-}
-
-void CAdVisuoApp::OnNavigationWalk()
-{
-	m_nWalkMode = 1;
-}
-
-void CAdVisuoApp::OnUpdateNavigationWalk(CCmdUI *pCmdUI)
-{
-	CDocument *pDoc = ((CFrameWnd*)m_pMainWnd)->GetActiveFrame()->GetActiveDocument();
-	if (!pDoc)
-		pCmdUI->Enable(FALSE);
-	else
-		pCmdUI->SetRadio(m_nWalkMode == 1);
-	pCmdUI->Enable(FALSE);
-}
-
-void CAdVisuoApp::OnNavigationGhost()
-{
-	m_nWalkMode = 2;
-}
-
-void CAdVisuoApp::OnUpdateNavigationGhost(CCmdUI *pCmdUI)
-{
-	CDocument *pDoc = ((CFrameWnd*)m_pMainWnd)->GetActiveFrame()->GetActiveDocument();
-	if (!pDoc)
-		pCmdUI->Enable(FALSE);
-	else
-		pCmdUI->SetRadio(m_nWalkMode == 2);
-}
-
-void CAdVisuoApp::OnCharacterNocolourcoding()
-{
-	m_nColouringMode = 0;
-}
-
-void CAdVisuoApp::OnUpdateCharacterNocolourcoding(CCmdUI *pCmdUI)
-{
-	pCmdUI->SetCheck(m_nColouringMode == 0);
-}
-
-void CAdVisuoApp::OnCharacterCurrentwaitingtime()
-{
-	m_nColouringMode = 1;
-}
-
-void CAdVisuoApp::OnUpdateCharacterCurrentwaitingtime(CCmdUI *pCmdUI)
-{
-	pCmdUI->SetCheck(m_nColouringMode == 1);
-}
-
-void CAdVisuoApp::OnCharacterExpectedwaitingtime()
-{
-	m_nColouringMode = 2;
-}
-
-void CAdVisuoApp::OnUpdateCharacterExpectedwaitingtime(CCmdUI *pCmdUI)
-{
-	pCmdUI->SetCheck(m_nColouringMode == 2);
-}
-
 
 
 

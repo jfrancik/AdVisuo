@@ -13,9 +13,9 @@ class CScriptEvent
 {
 	CAdVisuoView *m_pView;
 
-	AVULONG m_nTime;
-	AVULONG m_nTimeAnim;
-	AVULONG m_nTimeFF;
+	AVLONG m_nTime;
+	AVLONG m_nTimeAnim;
+	AVLONG m_nTimeFF;
 	AVFLOAT m_fAccel;
 	CString m_desc;
 
@@ -25,18 +25,18 @@ public:
 	CScriptEvent(CAdVisuoView *pView) : m_pView(pView), m_nTime(0), m_nTimeAnim(0), m_nTimeFF(0), m_fAccel(0) { } 
 
 	CString CScriptEvent::GetDesc();
-	AVULONG GetTime()			{ return m_nTime; }
-	AVULONG GetAnimTime()		{ return m_nTimeAnim; }
-	AVULONG GetFFTime()			{ return m_nTimeFF; }
+	AVLONG GetTime()			{ return m_nTime; }
+	AVLONG GetAnimTime()		{ return m_nTimeAnim; }
+	AVLONG GetFFTime()			{ return m_nTimeFF; }
 	AVFLOAT GetAccel()			{ return m_fAccel; }
 
-	void SetTime(AVULONG n)		{ m_nTime = n; }
-	void SetAnimTime(AVULONG n)	{ m_nTime += m_nTimeAnim; m_nTimeAnim = n; if (m_nTime > m_nTimeAnim) m_nTime -= m_nTimeAnim; else m_nTime = 0; }
-	void SetFFTime(AVULONG n)	{ m_nTimeFF = n; }
+	void SetTime(AVLONG n)		{ m_nTime = n; }
+	void SetAnimTime(AVLONG n)	{ m_nTime += m_nTimeAnim; m_nTimeAnim = n; if (m_nTime > m_nTimeAnim) m_nTime -= m_nTimeAnim; else m_nTime = 0; }
+	void SetFFTime(AVLONG n)	{ m_nTimeFF = n; }
 	void SetAccel(AVFLOAT f)	{ m_fAccel = f; }
 
 	void Record();
-	void Play(AVULONG &nTime, AVULONG nAuxClockValue = 0x7FFFFFFF);
+	void Play(AVLONG &nTime, AVLONG nAuxClockValue = 0x7FFFFFFF);
 
 	void Serialize(CArchive& ar);
 };
@@ -56,11 +56,11 @@ public:
 	CScriptEvent *operator[](AVULONG i)			{ return m_events[i]; }
 
 	void Record();
-	void Play(AVULONG i, AVULONG nAuxClockValue = 0x7FFFFFFF);
+	void Play(AVULONG i, AVLONG nAuxClockValue = 0x7FFFFFFF);
 	void Delete(AVULONG i);
 
 	void Play();
-	void Proceed(AVULONG &nTime, AVULONG nAuxClockValue = 0x7FFFFFFF);
+	void Proceed(AVLONG &nTime, AVLONG nAuxClockValue = 0x7FFFFFFF);
 
 	void Sort();
 	void Reset();

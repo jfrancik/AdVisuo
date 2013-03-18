@@ -2,6 +2,7 @@
 
 #include "StdAfx.h"
 #include "Camera.h"
+#include "VisProject.h"
 #include "VisLiftGroup.h"
 
 #include <freewill.h>

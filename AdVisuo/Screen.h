@@ -93,11 +93,11 @@ public:
 	void SetCurCamera(AVULONG nCam)				{ SetCamera(GetActive(), nCam); }
 	
 	// get, for the i'th viewport, the standard absolute dimension (0,0 - 1,1, plus pixel offsets)
-	void Get(AVULONG i, AVFLOAT &x0, AVFLOAT &x1, AVFLOAT &y0, AVFLOAT &y1, AVLONG &nmx0, AVLONG &nmx1, AVLONG &nmy0, AVLONG &nmy1, bool bShowSelFrame);
+	void GetViewport(AVULONG i, AVFLOAT &x0, AVFLOAT &x1, AVFLOAT &y0, AVFLOAT &y1, AVLONG &nmx0, AVLONG &nmx1, AVLONG &nmy0, AVLONG &nmy1, bool bShowSelFrame);
 	
 	void GetSelFrame(AVULONG i, AVFLOAT &x0, AVFLOAT &x1, AVFLOAT &y0, AVFLOAT &y1, AVLONG &nmx0, AVLONG &nmx1, AVLONG &nmy0, AVLONG &nmy1);
 	// get, for the i'th viewport, the screen coordinates
-	void Get(AVULONG i, AVULONG &x0, AVULONG &x1, AVULONG &y0, AVULONG &y1, bool bShowSelFrame);
+	void GetViewport(AVULONG i, AVULONG &x0, AVULONG &x1, AVULONG &y0, AVULONG &y1, bool bShowSelFrame);
 	// get the screen coordinates for entire usable screen
 	void Get(AVULONG &x0, AVULONG &x1, AVULONG &y0, AVULONG &y1);
 

@@ -1,9 +1,10 @@
 // Passenger.cpp - a part of the AdVisuo Client Software
 
 #include "StdAfx.h"
-#include "VisProject.h"
+#include "VisElem.h"
 #include "VisPassenger.h"
 #include "VisSim.h"
+#include "Engine.h"
 
 #include <freewill.h>
 #include <fwaction.h>
@@ -17,30 +18,27 @@
 using namespace std;
 
 CPassengerVis::CPassengerVis(CSimVis *pSim, AVULONG nPassengerId) 
-	: CPassenger(pSim, nPassengerId), m_pBody(NULL), m_pObjBody(NULL), m_pActionTick(NULL)
+	: CPassenger(pSim, nPassengerId), m_pBody(NULL), m_pObjBody(NULL)
 {
+	m_pEngine = NULL;
 }
 
 CPassengerVis::~CPassengerVis(void)
 {
 	if (m_pBody) m_pBody->Release();
 	if (m_pObjBody) m_pObjBody->Release();
-	if (m_pActionTick) m_pActionTick->Release();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Playing
 
-void CPassengerVis::Play(IAction *pActionTick)
+void CPassengerVis::Play(CEngine *pEngine)
 {
-	// store the tick source
-	if (m_pActionTick) m_pActionTick->Release();
-	m_pActionTick = pActionTick;
-	if (m_pActionTick) m_pActionTick->AddRef();
+	m_pEngine = pEngine;
 
 	// Plan giving a birth
-	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pActionTick->FWDevice(), L"Action", L"Generic", m_pActionTick, GetBornTime(), 0);
-	pAction->SetHandleEventHook(_callback_birth, 0, (void*)this);
+	CEngine::ANIMATOR anim(pEngine, m_pBody, GetBornTime());
+	anim.SetCB(_callback_birth, 0, (void*)this);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +134,6 @@ int _callback_birth(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nPara
 {
 	if (pEvent->nEvent != EVENT_TICK) return S_OK;
 	((CPassengerVis*)pParam)->BeBorn();
-//	Debug(L"Passenger #%d is born!", pPassenger->GetId());
 	return S_OK;
 }
 
@@ -144,7 +141,6 @@ int _callback_death(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nPara
 {
 	if (pEvent->nEvent != EVENT_TICK) return S_OK;
 	((CPassengerVis*)pParam)->Die();
-//	Debug(L"Passenger #%d is killed!", pPassenger->GetId());
 	return S_OK;
 }
 
@@ -158,55 +154,31 @@ int _callback_embark(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nPar
 void CPassengerVis::BeBorn()
 {
 	// Get Body!
-	if (!m_pBody) m_pBody = GetSim()->GetBody();
+	if (!m_pBody) m_pBody = m_pEngine->SpawnBiped();
 	if (!m_pBody) return;
 	IKineNode *pNode = m_pBody->BodyNode(BODY_OBJECT);
 	pNode->QueryInterface(&m_pObjBody);
 	pNode->Release();
 
 	// Plan Actions!
-	IAction *pAction = NULL;
-	IFWDevice *pDev = m_pActionTick->FWDevice();
-
-	AVULONG stepDuration = 150;
-	AVULONG turnDuration = 300;
-	AVFLOAT stepLen = 15.0f;
-
+	CEngine::ANIMATOR anim(m_pEngine, m_pBody, GetBornTime());
 	Embark(ENTER_ARR_FLOOR, false);
-
-	// generic action to guarantee the timely operation from the BornTime
-	pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Generic", m_pActionTick, GetBornTime(), 0);
-
 	for (AVULONG i = 0; i < GetWaypointCount(); i++)
 	{
 		WAYPOINT *wp = GetWaypoint(i);
 		AVVECTOR vector = wp->vector + Vector(GetSim()->GetOffsetVector().x, -GetSim()->GetOffsetVector().y, GetSim()->GetOffsetVector().z);
 		switch (wp->nAction)
 		{
-		case MOVE:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Move", m_pActionTick, pAction, 1, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, BODY_ROOT, vector.y+160.0f, vector.x, 0);
-			break;
-		case WAIT:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Wait", m_pActionTick, pAction, 0, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, wp->nTime);
-			break;
-		case WALK:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Walk", m_pActionTick, pAction, stepDuration, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, vector.x, -vector.y, stepLen, DEG2RAD(90));
-			break;
-		case TURN:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Turn", m_pActionTick, pAction, turnDuration, (AVSTRING)(wp->wstrStyle.c_str()), m_pBody, DEG2RAD(180), 3);
-			break;
+		case MOVE:				anim.Move(1, vector.y+160.0f, vector.x, 0, wp->wstrStyle); break;
+		case WAIT:				anim.Wait(wp->nTime, wp->wstrStyle); break;
+		case WALK:				anim.Walk(vector.x, -vector.y, wp->wstrStyle); break;
+		case TURN:				anim.Turn(wp->wstrStyle); break;
 		case ENTER_ARR_FLOOR:
 		case ENTER_LIFT:
-		case ENTER_DEST_FLOOR:
-			pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Generic", m_pActionTick, pAction, 0);
-			pAction->SetHandleEventHook(_callback_embark, (AVULONG)wp->nAction, (void*)this);
-			break;
+		case ENTER_DEST_FLOOR:	anim.SetCB(_callback_embark, (AVULONG)wp->nAction, (void*)this); break;
 		}
 	}
-
-	// Plan Death
-	pAction = (IAction*)::FWCreateObjWeakPtr(pDev, L"Action", L"Generic", m_pActionTick, pAction, 0);
-	pAction->SetHandleEventHook(_callback_death, 0, (void*)this);
+	anim.SetCB(_callback_death, 0, (void*)this);	// Plan Death
 }
 
 void CPassengerVis::Die()
@@ -214,7 +186,7 @@ void CPassengerVis::Die()
 	if (!m_pBody) return;
 
 	Embark((IKineNode*)NULL);
-	GetSim()->ReleaseBody(m_pBody);
+	m_pEngine->KillBiped(m_pBody);
 	m_pBody = NULL;
 	if (m_pObjBody) m_pObjBody->Release();
 	m_pObjBody = NULL;

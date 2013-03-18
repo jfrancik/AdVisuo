@@ -13,13 +13,14 @@ interface IRenderer;
 interface IKineNode;
 
 class CSimVis;
+class CEngine;
 
 class CPassengerVis : public CPassenger
 {
 	// FreeWill Data
 	IBody *m_pBody;
 	ISceneObject *m_pObjBody;
-	IAction *m_pActionTick;
+	CEngine *m_pEngine;			// FreeWill engine
 
 public:
 	CPassengerVis(CSimVis *pSim, AVULONG nPassengerId);
@@ -30,7 +31,7 @@ public:
 
 // Operations
 
-	void Play(IAction *pActionTick);
+	void Play(CEngine *pEngine);
 	void Render(IRenderer *pRenderer, AVLONG nPhase = 0);
 
 	void BeBorn();

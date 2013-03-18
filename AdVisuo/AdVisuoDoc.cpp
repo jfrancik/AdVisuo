@@ -7,8 +7,6 @@
 #include "AdVisuoDoc.h"
 #include "AdVisuoView.h"
 
-#include "freewill.c"			// #FreeWill: Obligatory!
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -45,7 +43,7 @@ CString CAdVisuoDoc::GetDiagnosticMessage()
 	if (pView)
 	{
 		str += "\r\n";
-		str += pView->GetDiagnosticMessage();
+		str += pView->GetEngine()->GetDiagnosticMessage();
 	}
 	return str;
 }
@@ -220,7 +218,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		// first SIM data chunk
 		m_timeLoaded = GetProject()->GetMinSimulationTime();
 		m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
-		OnSIMDataLoaded(NULL);
+		OnSIMDataLoaded();
 
 		m_h = S_OK;
 		Debug(L"Downloading initiated successfully, more data transfered in background...");
@@ -257,7 +255,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	return false;
 }
 
-BOOL CAdVisuoDoc::OnSIMDataLoaded(IAction *pActionTick)
+BOOL CAdVisuoDoc::OnSIMDataLoaded()
 {
 	std::wstringstream str;
 	try
@@ -266,10 +264,6 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded(IAction *pActionTick)
 		if (!m_http.ok()) m_http.throw_exceptions();
 		GetProject()->LoadFromBuf(m_http.response().c_str());
 
-		if (pActionTick)
-			for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-				GetProject()->GetSim(i)->Play(pActionTick, m_timeLoaded);
-		
 		m_timeLoaded += 60000;
 
 		if (!IsDownloadComplete())

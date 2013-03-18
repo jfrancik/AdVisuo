@@ -4,13 +4,13 @@
 
 #include "../CommonFiles/BaseSimClasses.h"
 
-interface IAction;
 class CSimVis;
+class CEngine;
 
 class CLiftVis : public CLift
 {
 protected:
-	IAction *m_pActionTick;			// FreeWill action
+	CEngine *m_pEngine;			// FreeWill engine
 
 public:
 	CLiftVis(CSimVis *pSim, AVULONG nLiftId, AVULONG nDecks = 1);
@@ -23,13 +23,13 @@ public:
 	void MoveTo(AVVECTOR &v);
 	void MoveToInitialPosition();
 
-	void AnimateToInitialPosition(AVULONG nShaftFrom, AVULONG nStoreyFrom, AVULONG timeStart);
-	void AnimateDoor(AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG timeStart, AVULONG timeDuration = 1000);
-	void AnimateJourney(AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeStart, AVULONG timeDuration);
+	void AnimateToInitialPosition(CEngine *pEngine, AVULONG nShaftFrom, AVULONG nStoreyFrom, AVULONG timeStart);
+	void AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG timeStart, AVULONG timeDuration = 1000);
+	void AnimateJourney(CEngine *pEngine, AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeStart, AVULONG timeDuration);
 	
 	void Go(AVULONG i)				{ Go(*GetJourney(i)); }
 	void Go(JOURNEY &j);
 
-	void Play(IAction *pActionTick, AVLONG nTime = 0);
-	AVLONG FastForward(IAction *pActionTick, AVLONG nTime);
+	void Play(CEngine *pEngine, AVLONG nTime = 0);
+	AVLONG FastForward(CEngine *pEngine, AVLONG nTime);
 };

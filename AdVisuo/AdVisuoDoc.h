@@ -8,7 +8,6 @@
 #include "VisLift.h"
 #include "xmlrequest.h"
 
-interface IAction;
 class CAdVisuoView;
 
 #pragma once
@@ -52,7 +51,7 @@ public:
 	virtual BOOL OnSaveDocument(LPCTSTR lpszPathName);
 	virtual BOOL OnDownloadDocument(CString url);
 
-	BOOL OnSIMDataLoaded(IAction *pActionTick);
+	BOOL OnSIMDataLoaded();
 
 // Generated message map functions
 protected:

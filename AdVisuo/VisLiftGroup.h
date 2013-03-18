@@ -8,10 +8,7 @@
 
 using namespace std;
 
-interface IScene;
-interface IRenderer;
 interface IMaterial;
-interface IKineChild;
 
 class CSimVis;
 class CElemVis;
@@ -27,7 +24,6 @@ public:
 private:
 
 	// FreeWill+ elements
-	IRenderer *m_pRenderer;
 	IMaterial *m_pMaterials[CElem::WALL_LIFT_NUMBER_PLATE * 8 + 2 * 256];
 
 public:
@@ -81,9 +77,6 @@ public:
 // Main Implementation
 public:
 	AVVECTOR GetLiftPos(int nLift);							// returns position of the lift
-
-	IRenderer *GetRenderer()								{ return m_pRenderer; }
-	void SetRenderer(IRenderer *pRenderer);
 
 	IMaterial *GetMaterial(AVULONG nWallId, AVLONG i = 0);
 	void SetMaterial(AVULONG nWallId, AVLONG i, IMaterial *pMaterial);

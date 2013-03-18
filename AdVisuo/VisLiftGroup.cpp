@@ -2,13 +2,14 @@
 
 #include "StdAfx.h"
 #include "VisLiftGroup.h"
+#include "VisElem.h"
 #include "VisProject.h"
+#include "Engine.h"
 #include "VisSim.h"
 
 #include <freewill.h>
 #include <fwrender.h>
 #include <D3d9.h>
-//#include <D3dx9tex.h>
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
@@ -16,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CLiftGroupVis
 
-CLiftGroupVis::CLiftGroupVis(CProject *pProject, AVULONG iIndex) : CLiftGroupConstr(pProject, iIndex), m_materials(this), m_pRenderer(NULL)
+CLiftGroupVis::CLiftGroupVis(CProject *pProject, AVULONG iIndex) : CLiftGroupConstr(pProject, iIndex), m_materials(this)
 {
 	memset(m_pMaterials, 0, sizeof(m_pMaterials));
 }
@@ -24,8 +25,6 @@ CLiftGroupVis::CLiftGroupVis(CProject *pProject, AVULONG iIndex) : CLiftGroupCon
 CLiftGroupVis::~CLiftGroupVis()
 {
 	DeconstructMaterials();
-	if (m_pRenderer) m_pRenderer->Release();
-	m_pRenderer = NULL;
 }
 
 CSim *CLiftGroupVis::CreateSim()
@@ -39,13 +38,6 @@ AVVECTOR CLiftGroupVis::GetLiftPos(int nLift)
 	if (GetLiftElement(nLift)->GetBone())
 		GetLiftElement(nLift)->GetBone()->LtoG((FWVECTOR*)&vec);
 	return vec;
-}
-
-void CLiftGroupVis::SetRenderer(IRenderer *pRenderer)
-{
-	if (m_pRenderer) m_pRenderer->Release(); 
-	m_pRenderer = pRenderer; 
-	if (m_pRenderer) m_pRenderer->AddRef(); 
 }
 
 	static void _helperConvMatInd(AVULONG &nWallId, AVULONG &i)
@@ -83,7 +75,7 @@ void CLiftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, AVFLOAT r, AVFLOAT g,
 {
 	FWCOLOR diff = { r, g, b, a };
 	IMaterial *pMaterial = NULL;
-	m_pRenderer->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	GetProject()->GetEngine()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
 	pMaterial->SetDiffuseColor(diff);
 	pMaterial->SetAmbientColor(diff);
 	pMaterial->SetSpecularColor(diff);
@@ -98,12 +90,12 @@ void CLiftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, AVFLOAT r, AVFLOAT g,
 void CLiftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, LPCOLESTR szFileName, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT fAlpha)
 {
 	ITexture *pTexture = NULL;
-	m_pRenderer->CreateTexture(&pTexture);
+	GetProject()->GetEngine()->GetRenderer()->CreateTexture(&pTexture);
 	pTexture->LoadFromFile((LPOLESTR)szFileName);
 	pTexture->SetUVTile(fUTile, fVTile);
 
 	IMaterial *pMaterial = NULL;
-	m_pRenderer->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	GetProject()->GetEngine()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
 	pMaterial->SetTexture(0, pTexture);
 //	pMaterial->SetTextured(TRUE);
 
@@ -120,12 +112,12 @@ void CLiftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, LPCOLESTR szFileName,
 void CLiftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, BYTE* pData, AVULONG nDataSize, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT fAlpha)
 {
 	ITexture *pTexture = NULL;
-	m_pRenderer->CreateTexture(&pTexture);
+	GetProject()->GetEngine()->GetRenderer()->CreateTexture(&pTexture);
 	pTexture->LoadFromFileInMemory(pData, nDataSize);
 	pTexture->SetUVTile(fUTile, fVTile);
 
 	IMaterial *pMaterial = NULL;
-	m_pRenderer->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	GetProject()->GetEngine()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
 	pMaterial->SetTexture(0, pTexture);
 
 	pMaterial->SetSelfIlluminationOff();
@@ -141,7 +133,7 @@ void CLiftGroupVis::SetMaterial(AVULONG nWallId, AVLONG i, BYTE* pData, AVULONG 
 void CLiftGroupVis::SetMaterialLiftPlate(AVULONG nWallId, AVLONG i, AVULONG nLift)
 {
 	ITexture *pTexture = NULL;
-	m_pRenderer->CreateTexture(&pTexture);
+	GetProject()->GetEngine()->GetRenderer()->CreateTexture(&pTexture);
 	pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"plate_lift.bmp"));
 	pTexture->SetUVTile(10, 10);
 
@@ -169,7 +161,7 @@ void CLiftGroupVis::SetMaterialLiftPlate(AVULONG nWallId, AVLONG i, AVULONG nLif
 	p->Release();
 
 	IMaterial *pMaterial = NULL;
-	m_pRenderer->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	GetProject()->GetEngine()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
 	pMaterial->SetTexture(0, pTexture);
 //	pMaterial->SetTextured(TRUE);
 
@@ -185,7 +177,7 @@ void CLiftGroupVis::SetMaterialLiftPlate(AVULONG nWallId, AVLONG i, AVULONG nLif
 void CLiftGroupVis::SetMaterialFloorPlate(AVULONG nWallId, AVLONG i, AVULONG nFloor)
 {
 	ITexture *pTexture = NULL;
-	m_pRenderer->CreateTexture(&pTexture);
+	GetProject()->GetEngine()->GetRenderer()->CreateTexture(&pTexture);
 	pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"plate_floor.bmp"));
 	pTexture->SetUVTile(1.25f, 1.25f);
 
@@ -213,7 +205,7 @@ void CLiftGroupVis::SetMaterialFloorPlate(AVULONG nWallId, AVLONG i, AVULONG nFl
 	p->Release();
 
 	IMaterial *pMaterial = NULL;
-	m_pRenderer->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	GetProject()->GetEngine()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
 	pMaterial->SetTexture(0, pTexture);
 //	pMaterial->SetTextured(TRUE);
 

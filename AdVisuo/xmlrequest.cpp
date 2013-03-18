@@ -7,7 +7,9 @@
 
 UINT __cdecl WorkerThread(void *p)
 {
+	TRACE(L"Entry");
 	((CXMLRequest*)p)->ExecWorkerThread();
+	TRACE(L"Exit");
 	return 0;
 }
 
@@ -75,7 +77,6 @@ HRESULT CXMLRequest::ExecWorkerThread()
 	{
 		m_h = ptrHttpRequest.CreateInstance("Microsoft.XMLHTTP");
 		if (FAILED(m_h)) throw _com_error(m_h);
-
 		// Send Http Request
 		m_h = ptrHttpRequest->open(L"POST", (m_strUrl + L"\\" + m_strFunction).c_str(), false);
 		if (FAILED(m_h)) throw _com_error(m_h);

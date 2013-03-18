@@ -5,6 +5,8 @@
 
 #include "Camera.h"
 #include "VisSim.h"
+#include "VisProject.h"
+#include "Engine.h"
 
 #include <freewill.h>	// obligatory
 #include <fwrender.h>	// to start the renderer
@@ -24,7 +26,7 @@ bool CAdVisuoRenderer::SetupCamera(CCamera *pCamera)
 
 	pCamera->CheckLocation();
 
-	m_pLiftGroup->GetSim()->GetScene()->PutCamera(pCamera->GetCamera());
+	m_pLiftGroup->GetProject()->GetEngine()->GetScene()->PutCamera(pCamera->GetCamera());
 	pCamera->GetCamera()->Render(m_pRenderer);
 	return true;
 }

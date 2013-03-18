@@ -4,7 +4,7 @@
 
 
 #include "../CommonFiles/Box.h"
-#include "VisProject.h"
+#include "VisElem.h"
 #include "VisLiftGroup.h"
 
 class CLiftGroupVis;

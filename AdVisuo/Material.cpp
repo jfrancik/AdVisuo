@@ -3,6 +3,8 @@
 #include "StdAfx.h"
 #include "Material.h"
 #include "VisLiftGroup.h"
+#include "VisProject.h"
+#include "Engine.h"
 
 #include <freewill.h>
 #include <fwaction.h>
@@ -49,7 +51,7 @@ void MATERIAL::SetupBackground(CLiftGroupVis *pLiftGroup)
 	color.b = (AVFLOAT)GetBValue(m_color) / 255.0f;
 	color.a = 1;
 
-	pLiftGroup->GetRenderer()->PutBackColor(color);
+	pLiftGroup->GetProject()->GetEngine()->GetRenderer()->PutBackColor(color);
 }
 
 void MATERIAL::Setup(CLiftGroupVis *pLiftGroup, AVULONG nItem, AVULONG i)

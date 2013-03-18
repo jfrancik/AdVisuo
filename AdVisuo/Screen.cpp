@@ -90,7 +90,7 @@ void CScreen2x2::OnSetConfig(AVULONG n)
 			m_pVP[i].bEnabled = false;
 }
 
-void CScreen::Get(AVULONG i, AVFLOAT &x0, AVFLOAT &x1, AVFLOAT &y0, AVFLOAT &y1, AVLONG &nmx0, AVLONG &nmx1, AVLONG &nmy0, AVLONG &nmy1, bool bShowSelFrame)
+void CScreen::GetViewport(AVULONG i, AVFLOAT &x0, AVFLOAT &x1, AVFLOAT &y0, AVFLOAT &y1, AVLONG &nmx0, AVLONG &nmx1, AVLONG &nmy0, AVLONG &nmy1, bool bShowSelFrame)
 {
 	nmx0 = nmx1 = nmy0 = nmy1 = 0;
 	if (i >= m_nVP)
@@ -166,12 +166,12 @@ void CScreen::ApplyAspectRatio(AVFLOAT &x0, AVFLOAT &x1, AVFLOAT &y0, AVFLOAT &y
 	}
 }
 
-void CScreen::Get(AVULONG i, AVULONG &x0, AVULONG &x1, AVULONG &y0, AVULONG &y1, bool bShowSelFrame)
+void CScreen::GetViewport(AVULONG i, AVULONG &x0, AVULONG &x1, AVULONG &y0, AVULONG &y1, bool bShowSelFrame)
 {
 	AVFLOAT fx0, fx1, fy0, fy1;
 	AVLONG nmx0, nmx1, nmy0, nmy1;
 	AVULONG x, y;
-	Get(i, fx0, fx1, fy0, fy1, nmx0, nmx1, nmy0, nmy1, bShowSelFrame);
+	GetViewport(i, fx0, fx1, fy0, fy1, nmx0, nmx1, nmy0, nmy1, bShowSelFrame);
 	m_pRenderer->GetViewSize(&x, &y);
 	x0 = (AVULONG)(x * fx0) + nmx0;
 	x1 = (AVULONG)(x * fx1) + nmx1;
@@ -194,7 +194,7 @@ void CScreen::Get(AVULONG &x0, AVULONG &x1, AVULONG &y0, AVULONG &y1)
 AVFLOAT CScreen::GetAspectRatio(AVULONG i)
 {
 	AVULONG x0, x1, y0, y1;
-	Get(i, x0, x1, y0, y1, false);
+	GetViewport(i, x0, x1, y0, y1, false);
 	return (AVFLOAT)(x1 - x0) / (AVFLOAT)(y1 - y0);
 }
 
@@ -243,7 +243,7 @@ bool CScreen::Prepare(AVULONG i, bool bShowSelFrame)
 
 	AVFLOAT x0, x1, y0, y1;
 	AVLONG nmx0, nmx1, nmy0, nmy1;
-	Get(i, x0, x1, y0, y1, nmx0, nmx1, nmy0, nmy1, bShowSelFrame);
+	GetViewport(i, x0, x1, y0, y1, nmx0, nmx1, nmy0, nmy1, bShowSelFrame);
 
 	m_pRenderer->PutViewport(x0, y0, x1-x0, y1-y0, nmx0, nmy0, nmx1-nmx0, nmy1-nmy0);
 	m_pRenderer->Clear();
@@ -265,7 +265,7 @@ void CScreen::HitTest(CPoint &point, enum HIT &nHit, AVULONG &nIndexX, AVULONG &
 		if (!pVP->bEnabled) continue;
 
 		AVULONG x0, x1, y0, y1;
-		Get(i, x0, x1, y0, y1, false);
+		GetViewport(i, x0, x1, y0, y1, false);
 		if ((ULONG)point.x > x0 && (ULONG)point.x < x1 && (ULONG)point.y > y0 && (ULONG)point.y < y1)
 		{
 			nHit = HIT_VIEW;
