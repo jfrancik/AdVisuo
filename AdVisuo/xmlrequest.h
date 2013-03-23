@@ -2,6 +2,7 @@
 
 #pragma once
 
+
 #import "msxml3.dll"
 
 class _xmlreq_error

@@ -249,7 +249,7 @@ IMesh *CElemVis::AddMesh(AVSTRING strName)
 	IMesh *pMesh = NULL;
 	GetObject()->NewMesh(strName, &pMesh);
 	pMesh->Open(NULL, NULL);
-	pMesh->SupportNormal(0);
+	pMesh->InitAdvNormalSupport(0);
 	return pMesh;
 }
 
@@ -287,7 +287,7 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 
 			if (pFMesh)
 			{
-				pFMesh->SupportBlendWeight(0.01f, 0);
+				pFMesh->InitAdvVertexBlending(0.01f, 0);
 				for (AVULONG i = 0; i < nVertex; i++)
 					pFMesh->AddBlendWeight(i, 1.0f, strBone);
 				pFMesh->Close();
@@ -334,7 +334,7 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 	
 	if (pFMesh)
 	{
-		pFMesh->SupportBlendWeight(0.01f, 0);
+		pFMesh->InitAdvVertexBlending(0.01f, 0);
 		for (AVULONG i = 0; i < nVertex; i++)
 			pFMesh->AddBlendWeight(i, 1.0f, strBone);
 		pFMesh->Close();

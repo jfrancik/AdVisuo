@@ -359,15 +359,15 @@ void CAdVisuoDoc::SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU)
 
 void CAdVisuoDoc::OnCloseDocument()
 {
-	if (!IsDownloadComplete())
-	{
-		// finish background download cycle to avoid a crash
-		CWaitCursor cursor;
-		m_http.wait(5000);
-		m_http.reset();
-		if (IsSIMDataReady())
-			MessageBeep(-1);
-	}
+	//if (!IsDownloadComplete())
+	//{
+	//	// finish background download cycle to avoid a crash
+	//	CWaitCursor cursor;
+	//	m_http.wait(5000);
+	//	m_http.reset();
+	//	if (IsSIMDataReady())
+	//		MessageBeep(-1);
+	//}
 	CDocument::OnCloseDocument();
 }
 

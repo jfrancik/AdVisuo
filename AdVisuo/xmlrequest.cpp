@@ -5,11 +5,10 @@
 
 #include <sstream>
 
+
 UINT __cdecl WorkerThread(void *p)
 {
-	TRACE(L"Entry");
 	((CXMLRequest*)p)->ExecWorkerThread();
-	TRACE(L"Exit");
 	return 0;
 }
 

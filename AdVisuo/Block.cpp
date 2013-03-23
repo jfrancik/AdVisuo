@@ -52,7 +52,7 @@ void CBlock::Open(ISceneObject *pObject, IKineNode *pBone, FWFLOAT l, FWFLOAT h,
 	m_pMesh->PutTransform(pT);
 
 	m_pMesh->Open(NULL, NULL);
-	m_pMesh->SupportNormal(0);
+//	m_pMesh->SupportNormal(0);
 	pT->Release();
 }
 
@@ -100,7 +100,7 @@ void CBlock::Close()
 					case LT: m_pMesh->SetVertexTextureUV(nVertex, 0, plane.uBase + (FWFLOAT)j * UVJ, plane.vBase + (FWFLOAT)i * UVI); break;
 					case RT: m_pMesh->SetVertexTextureUV(nVertex, 0, plane.uBase + (FWFLOAT)(plane.nJ - j) * UVJ, plane.vBase + (FWFLOAT)i * UVI); break;
 				}
-				m_pMesh->AddNormalVector(&nVertex, __FW(vNormal)); 
+				m_pMesh->SetNormalVector(nVertex, __FW(vNormal)); 
 				nVertex++;
 			}
 
@@ -126,7 +126,16 @@ void CBlock::Close()
 	}
 	m_planes.clear();
 
-	m_pMesh->SupportBlendWeight(0.01f, 0);
+//	LPOLESTR pLabel;
+//	m_pBone->GetLabel(&pLabel);
+//	for (FWULONG i = 0; i < nVertex; i++)
+//	{
+//		m_pMesh->SetBoneName(i, 0, pLabel); 
+//		m_pMesh->SetBoneWeight(i, 0, 1.0f); 
+//	}
+
+	// old - long version
+	m_pMesh->InitAdvVertexBlending(0.01f, 0);
 	LPOLESTR pLabel;
 	m_pBone->GetLabel(&pLabel);
 	for (FWULONG i = 0; i < nVertex; i++)
