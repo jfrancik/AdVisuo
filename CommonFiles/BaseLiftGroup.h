@@ -11,6 +11,10 @@
 class CProject;
 class CSim;
 
+#define SIDE_LEFT	0
+#define SIDE_RIGHT	1
+#define SIDE_REAR	2
+
 class CLiftGroup : public dbtools::CCollection
 {
 // enum & struct definitions

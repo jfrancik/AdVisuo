@@ -45,13 +45,7 @@ LPCOLESTR MATERIAL::GetLabel()
 void MATERIAL::SetupBackground(CLiftGroupVis *pLiftGroup)
 {
 	if (!m_bSolid) return;
-	FWCOLOR color;
-	color.r = (AVFLOAT)GetRValue(m_color) / 255.0f;
-	color.g = (AVFLOAT)GetGValue(m_color) / 255.0f;
-	color.b = (AVFLOAT)GetBValue(m_color) / 255.0f;
-	color.a = 1;
-
-	pLiftGroup->GetProject()->GetEngine()->GetRenderer()->PutBackColor(color);
+	pLiftGroup->GetProject()->GetEngine()->PutBackColor(m_color);
 }
 
 void MATERIAL::Setup(CLiftGroupVis *pLiftGroup, AVULONG nItem, AVULONG i)

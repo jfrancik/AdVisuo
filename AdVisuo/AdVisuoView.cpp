@@ -4,9 +4,16 @@
 #include "AdVisuo.h"
 #include "AdVisuoView.h"
 #include "MainFrm.h"
+
+#include "VisProject.h"
+#include "VisSim.h"
+
+#include "DlgVideo.h"
+#include "DlgMat.h"
+#include "DlgScript.h"
+
 #include <math.h>
 #include "freewilltools.h"
-#include "Dialogs.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -162,7 +169,7 @@ void CAdVisuoView::OnInitialUpdate()
 
 	// Initialise HUD
 	m_sprite.SetRenderer(m_engine.GetRenderer());
-	m_plateCam.SetParams(_stdPathModels + L"plateNW.bmp", 0xFF0000FF, 0x80FFFFFF, 12, TRUE, FALSE, L"System", 0xFF000000, 16, false, CSize(2, 2));
+	m_plateCam.SetParams((_stdPathModels + L"plateNW.bmp").c_str(), 0xFF0000FF, 0x80FFFFFF, 12, TRUE, FALSE, L"System", 0xFF000000, 16, false, CSize(2, 2));
 	m_hud.Initialise();
 	m_hud.SetSimulationTime(GetProject()->GetMaxSimulationTime());
 
@@ -171,6 +178,7 @@ void CAdVisuoView::OnInitialUpdate()
 
 	// initialise the simulation
 	Debug(L"Creating building structure...");
+	m_engine.InitMats(GetProject()->GetMaxStoreyCount(), GetProject()->GetMaxBasementStoreyCount(), GetProject()->GetMaxShaftCount());
 	GetProject()->Construct();
 	GetProject()->StoreConfig();
 
@@ -204,7 +212,7 @@ void CAdVisuoView::OnInitialUpdate()
 	// necessary to initialise:
 	Stop();
 
-	SetTimer(101, 1000 / 50, NULL);
+	SetTimer(101, 1000 / 100, NULL);
 	m_hud.KeepReady();
 }
 
@@ -328,8 +336,6 @@ void CAdVisuoView::Rewind(FWULONG nMSec)
 
 void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 {
-	m_engine.OnTimer();
-
 	// #FreeWill: Push the time info into the engine
 	if (m_engine.IsPlaying())
 	{
@@ -421,7 +427,7 @@ void CAdVisuoView::RenderScene(bool bHUDSelection)
 {
 	CAdVisuoRenderer renderer(GetProject()->GetLiftGroup(GetCurLiftGroupIndex()), m_engine.GetRenderer());
 
-	FWCOLOR active = { 1, 0.86f, 0.47f }, inactive = { 1, 1, 1 };
+	AVCOLOR active = { 1, 0.86f, 0.47f }, inactive = { 1, 1, 1 };
 	m_screen.Prepare(inactive, active, bHUDSelection);
 
 	for (AVULONG i = 0; i < m_screen.GetCount(); i++)
@@ -1382,7 +1388,7 @@ void CAdVisuoView::OnViewMaterials()
 {
 	if (CDlgMaterials::c_dlg == NULL)
 	{
-		CDlgMaterials *pDlg = new CDlgMaterials(&GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->m_materials);
+		CDlgMaterials *pDlg = new CDlgMaterials(&m_engine);
 		pDlg->Create(CDlgMaterials::IDD);
 		pDlg->CenterWindow();
 		pDlg->ShowWindow(SW_SHOW);

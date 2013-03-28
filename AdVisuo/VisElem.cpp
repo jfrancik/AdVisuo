@@ -99,7 +99,7 @@ void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX b
 	block.BuildWall();
 	block.BuildRearSection();
 
-	block.SetMaterial(GetLiftGroup()->GetMaterial(nWallId, LOWORD(nIndex)));
+	block.SetMaterial(GetProject()->GetEngine()->GetMat(nWallId, LOWORD(nIndex)));
 	
 	pNewBone->Release();
 
@@ -140,7 +140,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 
 		LPOLESTR pLabel;
 		pNewBone->GetLabel(&pLabel);
-		Load((LPOLESTR)(LPCOLESTR)(_stdPathModels + "bunny.obj"), pLabel, 700, 100);
+		Load((LPOLESTR)(_stdPathModels + L"bunny.obj").c_str(), pLabel, 700, 100);
 		
 		ITransform *pT = NULL;
 		pNewBone->CreateCompatibleTransform(&pT);
@@ -154,7 +154,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	IMaterial *pMaterial = NULL;
 	ITexture *pTexture = NULL;
 	GetEngine()->GetRenderer()->CreateTexture(&pTexture);
-	pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"dafoldil.jpg"));
+	pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"dafoldil.jpg").c_str());
 	pTexture->SetUVTile(1, 1);
 	GetEngine()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
 	pMaterial->SetTexture(0, pTexture);

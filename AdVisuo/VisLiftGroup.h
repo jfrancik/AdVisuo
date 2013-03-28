@@ -3,12 +3,8 @@
 #pragma once
 
 #include "../CommonFiles/ConstrLiftGroup.h"
-#include "../CommonFiles/ConstrProject.h"
-#include "Material.h"
 
 using namespace std;
-
-interface IMaterial;
 
 class CSimVis;
 class CElemVis;
@@ -17,18 +13,8 @@ class CProjectVis;
 class CLiftGroupVis : public CLiftGroupConstr
 {
 public:
-	CMaterialManager m_materials;
-	friend class CCamera;
-
-// Attributes (FreeWill related)
-private:
-
-	// FreeWill+ elements
-	IMaterial *m_pMaterials[CElem::WALL_LIFT_NUMBER_PLATE * 8 + 2 * 256];
-
-public:
-	CLiftGroupVis(CProject *pProject, AVULONG iIndex);
-	~CLiftGroupVis();
+	CLiftGroupVis(CProject *pProject, AVULONG iIndex) : CLiftGroupConstr(pProject, iIndex)		{ }
+	~CLiftGroupVis()	{ }
 
 protected:
 	virtual CSim *CreateSim();
@@ -77,18 +63,6 @@ public:
 // Main Implementation
 public:
 	AVVECTOR GetLiftPos(int nLift);							// returns position of the lift
-
-	IMaterial *GetMaterial(AVULONG nWallId, AVLONG i = 0);
-	void SetMaterial(AVULONG nWallId, AVLONG i, IMaterial *pMaterial);
-	void SetMaterial(AVULONG nWallId, AVLONG i, AVFLOAT r, AVFLOAT g, AVFLOAT b, AVFLOAT fAlpha = 1.0f);
-	void SetMaterial(AVULONG nWallId, AVLONG i, LPCOLESTR szFileName, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT fAlpha = 1.0f);
-	void SetMaterial(AVULONG nWallId, AVLONG i, BYTE* pData, AVULONG nDataSize, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT fAlpha = 1.0f);
-	void DeconstructMaterials();
-	
-	void SetMaterialLiftPlate(AVULONG nWallId, AVLONG i, AVULONG nLift);
-	void SetMaterialFloorPlate(AVULONG nWallId, AVLONG i, AVULONG nFloor);
-
-	void Construct(AVVECTOR vec);
 
 	void StoreConfig();
 	void RestoreConfig();

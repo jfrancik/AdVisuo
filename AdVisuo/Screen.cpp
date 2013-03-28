@@ -203,13 +203,13 @@ void CScreen::Prepare()
 	m_pRenderer->PutViewport(0, 0, 1, 1, 0, 0, 0, 0);
 }
 
-void CScreen::Prepare(FWCOLOR frame, FWCOLOR active_frame, bool bShowSelFrame)
+void CScreen::Prepare(AVCOLOR frame, AVCOLOR active_frame, bool bShowSelFrame)
 {
-	FWCOLOR color;
+	AVCOLOR color;
 
 	m_pRenderer->GetBackColor(&color);
 	
-	FWCOLOR black = { 0, 0, 0 };
+	AVCOLOR black = { 0, 0, 0 };
 	m_pRenderer->PutBackColor(black);
 	m_pRenderer->PutViewport(0, 0, 1, 1, 0, 0, 0, 0);
 	m_pRenderer->Clear();

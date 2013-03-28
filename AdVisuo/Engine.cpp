@@ -2,19 +2,18 @@
 
 #include "StdAfx.h"
 #include "Engine.h"
-#include "Dialogs.h"
+#include "DlgRepBug.h"
 
 #include "freewill.c"			// #FreeWill: Obligatory!
 #include "freewilltools.h"
 
+#include <D3d9.h>
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
  
 #define DEG2RAD(d)	( (d) * (AVFLOAT)M_PI / 180.0f )
 #define RAD2DEG(r)	( 180.0f * (r) / (AVFLOAT)M_PI )
-
-DWORD CEngine::c_fpsNUM = 21;
 
 CEngine::CEngine()
 {
@@ -38,6 +37,9 @@ CEngine::CEngine()
 
 CEngine::~CEngine()
 {
+	ReleaseAllMats();
+	ReleaseFloorPlateMats();
+	ReleaseLiftPlateMats();
 	remove_all();
 	delete [] m_pfps;
 	if (m_pAuxActionTick) m_pAuxActionTick->Release();
@@ -55,9 +57,11 @@ CEngine::~CEngine()
 	if (m_pFWDevice) m_pFWDevice->Release();
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Engine Creation
+
 static void _on_lost_device (IRndrGeneric*, FWULONG, void *pParam)	{ ((ILostDeviceObserver*)pParam)->OnLostDevice(); 	}
 static void _on_reset_device(IRndrGeneric*, FWULONG, void *pParam)	{ ((ILostDeviceObserver*)pParam)->OnResetDevice(); }
-
 
 bool g_bFullScreen = false;
 bool g_bReenter = false;
@@ -132,10 +136,10 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 		h = m_pRenderer->InitDisplay(hWnd, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
 		if (FAILED(h)) throw ERROR_INTERNAL;
 
-	//	FWCOLOR back = { 0.0f, 0.0f, 0.0f };		// black
-	// 	FWCOLOR back = { 0.56f, 0.68f, 0.83f };		// blue
-	//	FWCOLOR back = { 0.33f, 0.33f, 0.33f };		// gray
-		FWCOLOR back = { 0.33f, 0.33f, 0.90f };		// gray
+	//	AVCOLOR back = { 0.0f, 0.0f, 0.0f };		// black
+	// 	AVCOLOR back = { 0.56f, 0.68f, 0.83f };		// blue
+	//	AVCOLOR back = { 0.33f, 0.33f, 0.33f };		// gray
+		AVCOLOR back = { 0.33f, 0.33f, 0.90f };		// gray
 		m_pRenderer->PutBackColor(back);
 
 		// #FreeWill: create & initialise the buffers - determine hardware factors
@@ -165,7 +169,7 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 		m_pFWDevice->CreateObject(L"FileLoader", IID_IFileLoader, (IFWUnknown**)&pLoader);
 		ISceneObject *pBip01 = NULL;
 		m_pScene->NewObject(L"Bip01", &pBip01);
-		pLoader->LoadObject((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"lobby.3D"), L"Bip01", pBip01);
+		pLoader->LoadObject((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"lobby.3D").c_str(), L"Bip01", pBip01);
 
 
 		IKineChild *pFootsteps = NULL;
@@ -208,13 +212,13 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 		// setup lights
 		m_pFWDevice->CreateObject(L"DirLight", IID_ISceneLightDir, (IFWUnknown**)&m_pLight1);
 		m_pScene->AddChild(L"DirLight1", m_pLight1);
-		FWCOLOR cWhite1 = { 0.7f, 0.7f, 0.7f };
+		AVCOLOR cWhite1 = { 0.7f, 0.7f, 0.7f };
 		m_pLight1->PutDiffuseColor(cWhite1);
 		m_pLight1->Create(__FW_Vector(0.1f, -0.3f, -0.4f));
 
 		m_pFWDevice->CreateObject(L"DirLight", IID_ISceneLightDir, (IFWUnknown**)&m_pLight2);
 		m_pScene->AddChild(L"DirLight2", m_pLight2);
-		FWCOLOR cWhite2 = { 0.6f, 0.6f, 0.6f };
+		AVCOLOR cWhite2 = { 0.6f, 0.6f, 0.6f };
 		m_pLight2->PutDiffuseColor(cWhite2);
 		m_pLight2->Create(__FW_Vector(0, 1, 3));
 
@@ -250,13 +254,266 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 	return true;
 }
 
-void CEngine::RenderLights()
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Material manager
+
+void CEngine::SetSolidMat(AVULONG i, AVCOLOR color, AVSTRING pLabel)
 {
-	FWCOLOR cAmb = { 0.35f, 0.35f, 0.35f };
-	m_pRenderer->SetAmbientLight(cAmb);
-	m_pLight1->Render(m_pRenderer);
-	m_pLight2->Render(m_pRenderer);
+	if (pLabel) m_materials[i].m_pLabel = wcsdup(pLabel);
+	m_materials[i].m_bSolid = true;
+	m_materials[i].m_color = color;
 }
+
+void CEngine::SetSolidMat(AVULONG i, FWULONG r, FWULONG g, FWULONG b, FWULONG a, AVSTRING pLabel)
+{
+	AVCOLOR color = { (FWFLOAT)r / 256.0f, (FWFLOAT)g / 256.0f, (FWFLOAT)b / 256.0f, (FWFLOAT)a / 256.0f };
+	SetSolidMat(i, color, pLabel);
+}
+
+void CEngine::SetTexturedMat(AVULONG i, AVSTRING pFName, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT alpha, AVSTRING pLabel)
+{
+	if (pLabel) m_materials[i].m_pLabel = wcsdup(pLabel);
+	m_materials[i].m_bSolid = false;
+	m_materials[i].m_pFName = wcsdup(pFName);
+	m_materials[i].m_fUTile = fUTile;
+	m_materials[i].m_fVTile = fVTile;
+}
+
+void CEngine::CreateMat(AVULONG i)
+{
+	if (i == MAT_BACKGROUND)
+		return;		// reserved for the background, no actual material needed
+
+	IMaterial *pMaterial = NULL;
+	if (m_materials[i].m_pMaterial)
+		pMaterial = m_materials[i].m_pMaterial;
+	else
+		m_pFWDevice->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+
+	if (m_materials[i].m_bSolid)
+	{
+		pMaterial->SetDiffuseColor(m_materials[i].m_color);
+		pMaterial->SetAmbientColor(m_materials[i].m_color);
+		pMaterial->SetSpecularColor(m_materials[i].m_color);
+		pMaterial->SetSelfIlluminationOff();
+		pMaterial->SetTwoSided(TRUE);
+		pMaterial->SetAlphaMode(m_materials[i].m_color.a < 0.99 ? MAT_ALPHA_MATERIAL : MAT_ALPHA_DISABLE);
+		pMaterial->SetCullingMode(m_materials[i].m_color.a < 0.99 ? MAT_CULLING_CCW_CW : MAT_CULLING_DISABLE);
+	}
+	else
+	{
+		if (!m_materials[i].m_pFName) return;
+		ITexture *pTexture = NULL;
+		m_pRenderer->CreateTexture(&pTexture);
+		pTexture->LoadFromFile(m_materials[i].m_pFName);
+		pTexture->SetUVTile(m_materials[i].m_fUTile, m_materials[i].m_fVTile);
+		pMaterial->SetTexture(0, pTexture);
+		pMaterial->SetSelfIlluminationOff();
+		pMaterial->SetTwoSided(FALSE);
+		if (m_materials[i].m_color.a) pMaterial->SetAlpha(m_materials[i].m_color.a);
+		pMaterial->SetCullingMode(m_materials[i].m_color.a < 0.99 ? MAT_CULLING_CCW_CW : MAT_CULLING_DISABLE);
+		pTexture->Release();
+	}
+	m_materials[i].m_pMaterial = pMaterial;
+}
+
+void CEngine::ReleaseMat(AVULONG i)
+{
+	if (m_materials[i].m_pMaterial) 
+		m_materials[i].m_pMaterial->Release();
+	m_materials[i].m_pMaterial = NULL;
+}
+
+void CEngine::CreateFloorPlateMats(AVULONG nStoreys, AVULONG nBasementStoreys)
+{
+	for (AVULONG i = 0; i < nStoreys; i++)
+	{
+		ITexture *pTexture = NULL;
+		m_pRenderer->CreateTexture(&pTexture);
+		pTexture->LoadFromFile(STD_PATH(L"plate_floor.bmp"));
+		pTexture->SetUVTile(1.25f, 1.25f);
+
+		HRESULT h;
+		IDirect3DTexture9 *p = NULL;
+		IID iid;
+		h = pTexture->GetContextObject(0, &iid, (void**)&p);
+		IDirect3DSurface9 *pSurface;
+		h = p->GetSurfaceLevel(0, &pSurface);
+		HDC hDC = NULL;
+		h = pSurface->GetDC(&hDC);
+
+		CString str;
+		str.Format(L"%d", i - nBasementStoreys);
+		CRect r(0, 0, 128, 128);
+		HFONT hFont = ::CreateFont(64, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, ANSI_CHARSET,OUT_OUTLINE_PRECIS, CLIP_STROKE_PRECIS, PROOF_QUALITY, DEFAULT_PITCH, L"Arial");
+		HFONT hOldFont = (HFONT)::SelectObject(hDC, hFont);
+		CRect rect(0, 0, 127, 63);
+		::SetBkMode(hDC, TRANSPARENT);
+		::DrawText(hDC, str, -1, rect, DT_CENTER);
+		::SelectObject(hDC, hOldFont);
+
+		pSurface->ReleaseDC(hDC);
+		pSurface->Release();
+		p->Release();
+
+		IMaterial *pMaterial = NULL;
+		m_pFWDevice->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+		pMaterial->SetTexture(0, pTexture);
+		pTexture->Release();
+
+		pMaterial->SetSelfIlluminationOff();
+		pMaterial->SetTwoSided(FALSE);
+	//	pMaterial->SetAlphaMode(MAT_ALPHA_TEXTURE);
+	//	if (fAlpha < 0.99) pMaterial->SetAlpha(fAlpha);
+
+		m_matFloorPlates.push_back(pMaterial);
+	}
+}
+
+void CEngine::CreateLiftPlateMats(AVULONG nShafts)
+{
+	for (AVULONG i = 0; i < nShafts; i++)
+	{
+		ITexture *pTexture = NULL;
+		m_pRenderer->CreateTexture(&pTexture);
+		pTexture->LoadFromFile(STD_PATH(L"plate_lift.bmp"));
+		pTexture->SetUVTile(10, 10);
+
+		HRESULT h;
+		IDirect3DTexture9 *p = NULL;
+		IID iid;
+		h = pTexture->GetContextObject(0, &iid, (void**)&p);
+		IDirect3DSurface9 *pSurface;
+		h = p->GetSurfaceLevel(0, &pSurface);
+		HDC hDC = NULL;
+		h = pSurface->GetDC(&hDC);
+
+		CString str;
+		str.Format(L"%c", 'A' + i);
+		CRect r(0, 0, 128, 128);
+		HFONT hFont = ::CreateFont(64, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE, ANSI_CHARSET,OUT_OUTLINE_PRECIS, CLIP_STROKE_PRECIS, PROOF_QUALITY, DEFAULT_PITCH, L"Arial");
+		HFONT hOldFont = (HFONT)::SelectObject(hDC, hFont);
+		CRect rect(0, 0, 63, 63);
+		::SetBkMode(hDC, TRANSPARENT);
+		::DrawText(hDC, str, -1, rect, DT_CENTER);
+		::SelectObject(hDC, hOldFont);
+
+		pSurface->ReleaseDC(hDC);
+		pSurface->Release();
+		p->Release();
+
+		IMaterial *pMaterial = NULL;
+		m_pFWDevice->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+		pMaterial->SetTexture(0, pTexture);
+		pTexture->Release();
+
+		pMaterial->SetSelfIlluminationOff();
+		pMaterial->SetTwoSided(FALSE);
+	//	if (fAlpha < 0.99) pMaterial->SetAlpha(fAlpha);
+
+		m_matLiftPlates.push_back(pMaterial);
+	}
+}
+
+IMaterial *CEngine::GetMat(AVULONG nWallId, AVLONG i)
+{
+	AVULONG LookUp[] = 
+	{ MAT_LOBBY_0, MAT_LOBBY_0, MAT_LOBBY_0, MAT_CEILING, MAT_FLOOR,
+		MAT_BEAM, MAT_SHAFT, MAT_OPENING, MAT_DOOR, MAT_LIFT, MAT_LIFT_FLOOR, MAT_LIFT_CEILING, MAT_LIFT_DOOR,
+		MAT_PLATE_LIFT, MAT_PLATE_FLOOR, MAT_BEAM
+	};
+
+	AVULONG iMat = LookUp[nWallId];
+	if (iMat == MAT_LOBBY_0)
+		return m_materials[iMat + i % 8].m_pMaterial;
+	else if (iMat == MAT_PLATE_LIFT)
+		return i < (AVLONG)m_matLiftPlates.size() ? m_matLiftPlates[i] : m_materials[MAT_BACKGROUND].m_pMaterial;
+	else if (iMat == MAT_PLATE_FLOOR)
+		return i < (AVLONG)m_matFloorPlates.size() ? m_matFloorPlates[i] : m_materials[MAT_BACKGROUND].m_pMaterial;
+	else
+		return m_materials[iMat].m_pMaterial;
+}
+
+void CEngine::InitMats(AVULONG nStoreys, AVULONG nBasementStoreys, AVULONG nShafts)
+{
+	SetSolidMat(MAT_BACKGROUND,			80, 80, 80,	100,							L"Background");
+	SetSolidMat(MAT_LOBBY_0,			0, 255, 0, 76,								L"Lobby walls 0");
+	SetSolidMat(MAT_LOBBY_1,			255, 0, 0, 76,								L"Lobby walls 1");
+	SetSolidMat(MAT_LOBBY_2,			255, 255, 0, 76,							L"Lobby walls 2");
+	SetSolidMat(MAT_LOBBY_3,			0, 255, 255, 76,							L"Lobby walls 3");
+	SetSolidMat(MAT_LOBBY_4,			255, 180, 0, 76,							L"Lobby walls 4");
+	SetSolidMat(MAT_LOBBY_5,			203, 0, 255, 76,							L"Lobby walls 5");
+	SetSolidMat(MAT_LOBBY_6,			255, 255, 154, 76,							L"Lobby walls 6");
+	SetSolidMat(MAT_LOBBY_7,			0, 76, 255, 76,								L"Lobby walls 7");
+	SetTexturedMat(MAT_FLOOR,			STD_PATH(L"floor3.jpg"),  1.0f, 1.0f, 1.0f,	L"Lobby floors");
+	SetTexturedMat(MAT_CEILING,			STD_PATH(L"ceiling.jpg"), 2.0f, 2.0f, 1.0f,	L"Lobby ceilings");
+	SetSolidMat(MAT_DOOR,				102, 76, 76, 128,							L"Shaft doors");
+	SetSolidMat(MAT_LIFT_DOOR,			102, 76, 76, 128,							L"Lift doors");
+	SetSolidMat(MAT_OPENING,			128, 128, 128, 255,							L"Openings");
+	SetSolidMat(MAT_LIFT,				76, 80, 90, 76,								L"Lift walls");
+	SetTexturedMat(MAT_LIFT_FLOOR,		STD_PATH(L"marble.jpg"), 3.0f, 3.0f, 1.0f,	L"Lift floors");
+	SetTexturedMat(MAT_LIFT_CEILING,	STD_PATH(L"metal3.jpg"), 2.0f, 2.0f, 1.0f,	L"Lift ceilings");
+	SetSolidMat(MAT_SHAFT,				102, 51, 0, 76,								L"Shaft walls");
+	SetSolidMat(MAT_BEAM,				128, 128, 76, 100,							L"Division beams");
+
+	CreateAllMats();
+	CreateFloorPlateMats(nStoreys, nBasementStoreys);
+	CreateLiftPlateMats(nShafts);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Status
+
+CString CEngine::GetDiagnosticMessage()
+{
+	CString str;
+	if (IsPlaying() && !IsPaused())
+		str.Format(L"Playing now at %d", GetPlayTime());
+	else if (IsPlaying() && IsPaused())
+		str.Format(L"Paused at %d", GetPlayTime());
+	else
+		str.Format(L"Not playing");
+	return str;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Rendering cycle
+
+void CEngine::BeginFrame()
+{ 
+	m_pRenderer->PutBackColor(GetMatColor(MAT_BACKGROUND));
+	m_pRenderer->BeginFrame(); 
+}
+
+void CEngine::EndFrame()
+{ 
+	m_pRenderer->EndFrame(); 
+	m_pfps[m_nfps] = GetTickCount();
+	m_nfps = (m_nfps + 1) % c_fpsNUM;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Auxiliary Player
+
+void CEngine::AuxPlay(IAction **pAuxAction, AVULONG nClockValue)
+{
+	if (!pAuxAction) return;
+	*pAuxAction = m_pAuxActionTick;
+	m_pAuxActionTick->AddRef();
+
+	m_pAuxActionTick->UnSubscribeAll();
+	m_nAuxTimeRef = (nClockValue == 0x7FFFFFFF) ? ::GetTickCount() : nClockValue;
+}
+
+void CEngine::ProceedAux(FWLONG nMSec)
+{
+	if (m_pAuxActionTick && m_pAuxActionTick->AnySubscriptionsLeft() == TRUE)
+		m_pAuxActionTick->RaiseEvent(nMSec - m_nAuxTimeRef, EVENT_TICK, nMSec - m_nAuxTimeRef, NULL);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Device Reset and off screen modes
 
 void CEngine::InitOffScreen(CSize sz, LPCTSTR pAviFile, FWULONG nFPS)
 {
@@ -279,38 +536,19 @@ void CEngine::DoneOffScreen()
 	m_pFWDevice->EnableErrorException(FALSE);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Other rendering functions
 
+void CEngine::RenderLights()
+{
+	AVCOLOR cAmb = { 0.35f, 0.35f, 0.35f };
+	m_pRenderer->SetAmbientLight(cAmb);
+	m_pLight1->Render(m_pRenderer);
+	m_pLight2->Render(m_pRenderer);
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
-// Auxiliary Player
-
-void CEngine::AuxPlay(IAction **pAuxAction, AVULONG nClockValue)
-{
-	if (!pAuxAction) return;
-	*pAuxAction = m_pAuxActionTick;
-	m_pAuxActionTick->AddRef();
-
-	m_pAuxActionTick->UnSubscribeAll();
-	m_nAuxTimeRef = (nClockValue == 0x7FFFFFFF) ? ::GetTickCount() : nClockValue;
-}
-
-void CEngine::ProceedAux(FWLONG nMSec)
-{
-	if (m_pAuxActionTick && m_pAuxActionTick->AnySubscriptionsLeft() == TRUE)
-		m_pAuxActionTick->RaiseEvent(nMSec - m_nAuxTimeRef, EVENT_TICK, nMSec - m_nAuxTimeRef, NULL);
-}
-
-
-
-
-
-
-void CEngine::OnTimer()
-{
-	m_pfps[m_nfps] = GetTickCount();
-	m_nfps = (m_nfps + 1) % c_fpsNUM;
-}
-
+// Repository Utilities
 
 IBody *CEngine::SpawnBiped()
 {
@@ -330,116 +568,8 @@ void CEngine::KillBiped(IBody *pBody)
 	release(pBody);
 }
 
-
-
-
-CEngine::ANIMATOR::ANIMATOR(CEngine *pEngine, LONG nTime) : m_pEngine(pEngine), m_pBody(NULL), m_pBone(NULL)
-{
-	SetAt(nTime);
-}
-
-CEngine::ANIMATOR::ANIMATOR(CEngine *pEngine, IBody *pBody, LONG nTime) : m_pEngine(pEngine), m_pBody(pBody), m_pBone(NULL)
-{
-	if (m_pBody) m_pBody->AddRef();
-	SetAt(nTime);
-}
-
-CEngine::ANIMATOR::ANIMATOR(CEngine *pEngine, IKineNode *pBone, LONG nTime) : m_pEngine(pEngine), m_pBody(NULL), m_pBone(pBone)
-{
-	if (m_pBone) m_pBone->AddRef();
-	SetAt(nTime);
-}
-
-CEngine::ANIMATOR::~ANIMATOR()
-{
-	if (m_pBody) m_pBody->Release();
-	if (m_pBone) m_pBone->Release();
-}
-
-void CEngine::ANIMATOR::SetAt(LONG nTime)
-{
-	m_pAction = (IAction*)FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"Generic", m_pEngine->m_pActionTick, nTime, 0);
-}
-
-void CEngine::ANIMATOR::SetCB(CB_HANDLE fn, AVULONG nParam, void *pParam)
-{
-	m_pAction = (IAction*)FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"Generic", m_pEngine->m_pActionTick, m_pAction, 0);
-	m_pAction->SetHandleEventHook(fn, nParam, pParam);
-}
-
-void CEngine::ANIMATOR::Generic()
-{
-	m_pAction = (IAction*)FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"Generic", m_pEngine->m_pActionTick, m_pAction, 0);
-}
-
-void CEngine::ANIMATOR::Move(AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
-{
-	if (m_pBody)
-		m_pAction = (IAction*)::FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"Move", m_pEngine->m_pActionTick, m_pAction, nDuration, (AVSTRING)(wstrStyle.c_str()), m_pBody, BODY_ROOT, x, y, z);
-	else if (m_pBone)
-		m_pAction = (IAction*)::FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"Move", m_pEngine->m_pActionTick, m_pAction, nDuration, (AVSTRING)(wstrStyle.c_str()), m_pBone, x, y, z);
-}
-
-void CEngine::ANIMATOR::MoveTo(AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
-{
-	if (m_pBody)
-		m_pAction = (IAction*)::FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"MoveTo", m_pEngine->m_pActionTick, m_pAction, nDuration, (AVSTRING)(wstrStyle.c_str()), m_pBody, BODY_ROOT, x, y, z);
-	else if (m_pBone)
-		m_pAction = (IAction*)::FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"MoveTo", m_pEngine->m_pActionTick, m_pAction, nDuration, (AVSTRING)(wstrStyle.c_str()), m_pBone, x, y, z);
-}
-
-void CEngine::ANIMATOR::Wait(LONG nTimeUntil, std::wstring wstrStyle)
-{
-	if (!m_pBody) return;
-	m_pAction = (IAction*)::FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"Wait", m_pEngine->m_pActionTick, m_pAction, 0, (AVSTRING)(wstrStyle.c_str()), m_pBody, nTimeUntil);
-}
-
-void CEngine::ANIMATOR::Walk(AVFLOAT x, AVFLOAT y, std::wstring wstrStyle)
-{
-	if (!m_pBody) return;
-	AVFLOAT stepLen = 15.0f;
-	AVULONG stepDuration = 150;
-	m_pAction = (IAction*)::FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"Walk", m_pEngine->m_pActionTick, m_pAction, stepDuration, (AVSTRING)(wstrStyle.c_str()), m_pBody, x, y, stepLen, DEG2RAD(90));
-}
-
-void CEngine::ANIMATOR::Turn(std::wstring wstrStyle)
-{
-	if (!m_pBody) return;
-	AVULONG turnDuration = 300;
-	m_pAction = (IAction*)::FWCreateObjWeakPtr(m_pEngine->m_pFWDevice, L"Action", L"Turn", m_pEngine->m_pActionTick, m_pAction, turnDuration, (AVSTRING)(wstrStyle.c_str()), m_pBody, DEG2RAD(180), 3);
-}
-
-void CEngine::ANIMATOR::SetParabolicEnvelopeT(AVFLOAT fEaseIn, AVFLOAT fEaseOut)
-{
-	m_pAction->SetParabolicEnvelopeT(fEaseIn, fEaseOut);
-}
-
-
-
-
-
-
-
-
-CString CEngine::GetDiagnosticMessage()
-{
-	CString str;
-	if (IsPlaying() && !IsPaused())
-		str.Format(L"Playing now at %d", GetPlayTime());
-	else if (IsPlaying() && IsPaused())
-		str.Format(L"Paused at %d", GetPlayTime());
-	else
-		str.Format(L"Not playing");
-	return str;
-}
-
-FWULONG CEngine::GetFPS()
-{
-	if (m_pfps[m_nfps] == 0)
-		return 0;
-	else
-		return 1000 * (c_fpsNUM-1) / (m_pfps[(m_nfps+c_fpsNUM-1)%c_fpsNUM] - m_pfps[m_nfps]);
-}
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// CRepos<IBody> implementation
 
 IBody *CEngine::create()
 {
@@ -473,4 +603,65 @@ void CEngine::destroy(IBody *p)
 	static int nCount = 0;
 
 	p->Release();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Animators
+
+ANIM_HANDLE CEngine::StartAnimation(LONG nTime)
+{
+	return (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Generic", m_pActionTick, nTime, 0);
+}
+
+ANIM_HANDLE CEngine::SetAnimationCB(ANIM_HANDLE aHandle, CB_HANDLE fn, AVULONG nParam, void *pParam)
+{
+	aHandle = (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Generic", m_pActionTick, aHandle, 0);
+	aHandle->SetHandleEventHook(fn, nParam, pParam);
+	return aHandle;
+}
+
+ANIM_HANDLE CEngine::DoNothing(ANIM_HANDLE aHandle)
+{
+	return (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Generic", m_pActionTick, aHandle, 0);
+}
+
+ANIM_HANDLE CEngine::Move(ANIM_HANDLE aHandle, IBody *pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
+{
+	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Move", m_pActionTick, aHandle, nDuration, (AVSTRING)(wstrStyle.c_str()), pBody, BODY_ROOT, x, y, z);
+}
+
+ANIM_HANDLE CEngine::Move(ANIM_HANDLE aHandle, IKineNode *pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
+{
+	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Move", m_pActionTick, aHandle, nDuration, (AVSTRING)(wstrStyle.c_str()), pBone, x, y, z);
+}
+
+ANIM_HANDLE CEngine::MoveTo(ANIM_HANDLE aHandle, IBody *pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
+{
+	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"MoveTo", m_pActionTick, aHandle, nDuration, (AVSTRING)(wstrStyle.c_str()), pBody, BODY_ROOT, x, y, z);
+}
+
+ANIM_HANDLE CEngine::MoveTo(ANIM_HANDLE aHandle, IKineNode *pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
+{
+	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"MoveTo", m_pActionTick, aHandle, nDuration, (AVSTRING)(wstrStyle.c_str()), pBone, x, y, z);
+}
+
+ANIM_HANDLE CEngine::Wait(ANIM_HANDLE aHandle, IBody *pBody, LONG nTimeUntil, std::wstring wstrStyle)
+{
+	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Wait", m_pActionTick, aHandle, 0, (AVSTRING)(wstrStyle.c_str()), pBody, nTimeUntil);
+}
+
+ANIM_HANDLE CEngine::Walk(ANIM_HANDLE aHandle, IBody *pBody, AVFLOAT x, AVFLOAT y, std::wstring wstrStyle)
+{
+	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Walk", m_pActionTick, aHandle, c_nStepDuration, (AVSTRING)(wstrStyle.c_str()), pBody, x, y, (AVFLOAT)c_nStepLen, DEG2RAD(90));
+}
+
+ANIM_HANDLE CEngine::Turn(ANIM_HANDLE aHandle, IBody *pBody, std::wstring wstrStyle)
+{
+	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Turn", m_pActionTick, aHandle, c_nTurnDuration, (AVSTRING)(wstrStyle.c_str()), pBody, DEG2RAD(180), 3);
+}
+
+ANIM_HANDLE CEngine::SetParabolicEnvelopeT(ANIM_HANDLE aHandle, AVFLOAT fEaseIn, AVFLOAT fEaseOut)
+{
+	aHandle->SetParabolicEnvelopeT(fEaseIn, fEaseOut);
+	return aHandle;
 }

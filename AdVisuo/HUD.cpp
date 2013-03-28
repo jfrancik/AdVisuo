@@ -57,11 +57,11 @@ CHUD::~CHUD()
 
 void CHUD::Initialise()
 {
-	m_plateAlt.SetParams(_stdPathModels + L"plateSE.bmp", 0xFF0000FF, 0x80FFFFFF, 12, TRUE, FALSE, L"System", 0xFF000000, 16, true, CSize(2, 2));
+	m_plateAlt.SetParams((_stdPathModels + L"plateSE.bmp").c_str(), 0xFF0000FF, 0x80FFFFFF, 12, TRUE, FALSE, L"System", 0xFF000000, 16, true, CSize(2, 2));
 	for (AVULONG i = 0; i < TEX_MAX; i++)
 		if (*m_pFilenames[i])
 		{
-			m_pTextures[i] = m_pSprite->LoadTexture(_stdPathModels + m_pFilenames[i], 0xFF0000FF);
+			m_pTextures[i] = m_pSprite->LoadTexture((_stdPathModels + m_pFilenames[i]).c_str(), 0xFF0000FF);
 			m_pTextures[i]->SetColor(0x80FFFFFF);
 		}
 	m_pFont = m_pSprite->CreateFont(12, TRUE, FALSE, L"System");

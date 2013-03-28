@@ -1,5 +1,5 @@
 git init
-git remote add origin git@github.com:jfrancik/freewill.git
+git remote add origin git@github.com:jfrancik/FreeWill.git
 
 git add .
 git commit -m "message"

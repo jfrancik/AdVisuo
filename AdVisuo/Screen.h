@@ -7,9 +7,9 @@ interface IRenderer;
 
 // All AVFLOAT type coordinates are 0..1 and are scaled to the current window/screen size
 
-#define RATIO_16_9		16.0f / 9.0f
-#define RATIO_16_10		16.0f / 10.0f
-#define RATIO_4_3		4.0f / 3.0f
+#define RATIO_16_9			(16.0f / 9.0f)
+#define RATIO_16_10			(16.0f / 10.0f)
+#define RATIO_4_3			(4.0f / 3.0f)
 
 class CScreen
 {
@@ -108,7 +108,7 @@ public:
 	AVFLOAT GetCurAspectRatio()					{ return GetAspectRatio(GetActive()); }
 	
 	void Prepare();
-	void Prepare(FWCOLOR frame, FWCOLOR active_frame, bool bShowSelFrame);
+	void Prepare(AVCOLOR frame, AVCOLOR active_frame, bool bShowSelFrame);
 	bool Prepare(AVULONG i, bool bShowSelFrame);
 
 	AVULONG GetActive()							{ return m_nActiveVP; }

@@ -37,14 +37,14 @@ void CPassengerVis::Play(CEngine *pEngine)
 	m_pEngine = pEngine;
 
 	// Plan giving a birth
-	CEngine::ANIMATOR anim(pEngine, m_pBody, GetBornTime());
-	anim.SetCB(_callback_birth, 0, (void*)this);
+	ANIM_HANDLE a = pEngine->StartAnimation(GetBornTime());
+	a = pEngine->SetAnimationCB(a, _callback_birth, 0, (void*)this);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Rendering
 
-	static FWCOLOR HSV_to_RGB(AVFLOAT h, AVFLOAT s, AVFLOAT v)
+	static AVCOLOR HSV_to_RGB(AVFLOAT h, AVFLOAT s, AVFLOAT v)
 	{
 		// H is given on [0, 6]. S and V are given on [0, 1].
 		float f = h - (int)h;
@@ -52,7 +52,7 @@ void CPassengerVis::Play(CEngine *pEngine)
 		float m = v * (1 - s);
 		float n = v * (1 - s * f);
 
-		FWCOLOR RGB;
+		AVCOLOR RGB;
 		switch ((int)h) 
 		{
 			case 6:
@@ -82,7 +82,7 @@ void CPassengerVis::Render(IRenderer *pRenderer, AVLONG nPhase)
 	{
 		// Set Temperature
 		AVULONG time;
-		FWCOLOR color;
+		AVCOLOR color;
 		switch (GetSim()->GetColouringMode())
 		{
 		case 0: 
@@ -161,7 +161,7 @@ void CPassengerVis::BeBorn()
 	pNode->Release();
 
 	// Plan Actions!
-	CEngine::ANIMATOR anim(m_pEngine, m_pBody, GetBornTime());
+	ANIM_HANDLE a = m_pEngine->StartAnimation(GetBornTime());
 	Embark(ENTER_ARR_FLOOR, false);
 	for (AVULONG i = 0; i < GetWaypointCount(); i++)
 	{
@@ -169,16 +169,16 @@ void CPassengerVis::BeBorn()
 		AVVECTOR vector = wp->vector + Vector(GetSim()->GetOffsetVector().x, -GetSim()->GetOffsetVector().y, GetSim()->GetOffsetVector().z);
 		switch (wp->nAction)
 		{
-		case MOVE:				anim.Move(1, vector.y+160.0f, vector.x, 0, wp->wstrStyle); break;
-		case WAIT:				anim.Wait(wp->nTime, wp->wstrStyle); break;
-		case WALK:				anim.Walk(vector.x, -vector.y, wp->wstrStyle); break;
-		case TURN:				anim.Turn(wp->wstrStyle); break;
+		case MOVE:				a = m_pEngine->Move(a, m_pBody, 1, vector.y+160.0f, vector.x, 0, wp->wstrStyle); break;
+		case WAIT:				a = m_pEngine->Wait(a, m_pBody, wp->nTime, wp->wstrStyle); break;
+		case WALK:				a = m_pEngine->Walk(a, m_pBody, vector.x, -vector.y, wp->wstrStyle); break;
+		case TURN:				a = m_pEngine->Turn(a, m_pBody, wp->wstrStyle); break;
 		case ENTER_ARR_FLOOR:
 		case ENTER_LIFT:
-		case ENTER_DEST_FLOOR:	anim.SetCB(_callback_embark, (AVULONG)wp->nAction, (void*)this); break;
+		case ENTER_DEST_FLOOR:	a = m_pEngine->SetAnimationCB(a, _callback_embark, (AVULONG)wp->nAction, (void*)this); break;
 		}
 	}
-	anim.SetCB(_callback_death, 0, (void*)this);	// Plan Death
+	a = m_pEngine->SetAnimationCB(a, _callback_death, 0, (void*)this);	// Plan Death
 }
 
 void CPassengerVis::Die()

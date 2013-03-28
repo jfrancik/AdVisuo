@@ -68,14 +68,11 @@
 // Debug Output Function
 void Debug(LPCTSTR fmt, ...);
 
-// Standard Models Path
-extern CString _stdPathModels;
-
 #define AVULONG ULONG
 #define AVLONG LONG
 #define AVFLOAT FLOAT
 #define AVSTRING LPOLESTR
-
+#define AVCOLOR FWCOLOR
 struct AVVECTOR
 {
 	AVFLOAT x;
@@ -83,9 +80,12 @@ struct AVVECTOR
 	AVFLOAT z;
 };
 
-#define SIDE_LEFT	0
-#define SIDE_RIGHT	1
-#define SIDE_REAR	2
+// Colours
+#define AVCOLOR2COLORREF(c)	RGB((unsigned)((c).r*255.0f), (unsigned)((c).g*255.0f), (unsigned)((c).b*255.0f))
+
+// Standard Models Path
+extern std::wstring _stdPathModels;
+#define STD_PATH(str)	((AVSTRING)(_stdPathModels + (str)).c_str())
 
 // Max Number of Lifts
 #define LIFT_MAXNUM	100

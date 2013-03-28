@@ -24,7 +24,7 @@
 #include "Sprite.h"
 #include "HUD.h"
 #include "Script.h"
-#include "Dialogs.h"
+//#include "Dialogs.h"
 #include "Engine.h"
 
 #include <freewill.h>	// obligatory

@@ -23,7 +23,8 @@
 #include "AdVisuoDoc.h"
 #include "AdVisuoView.h"
 
-#include "Dialogs.h"
+#include "DlgRepBug.h"
+#include "DlgDownload.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -61,7 +62,7 @@ CAdVisuoApp theApp;
 
 // CAdVisuoApp initialization
 
-CString _stdPathModels;
+std::wstring _stdPathModels;
 
 BOOL CAdVisuoApp::InitInstance()
 {

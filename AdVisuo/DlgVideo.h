@@ -1,12 +1,7 @@
 // Dialogs.h - a part of the AdVisuo Client Software
 
 #pragma once
-#include "afxwin.h"
-#include "afxcmn.h"
-#include "afxeditbrowsectrl.h"
-#include "afxdtctl.h"
 #include <functional>
-
 #include "resource.h"
 
 // CDlgVideo dialog
@@ -119,59 +114,6 @@ public:
 	BOOL m_bShowCaptions;
 	BOOL m_bShowClock;
 };
-#pragma once
-
-
-// CDlgDownload dialog
-
-class CProjectVis;
-
-class CDlgDownload : public CDialog
-{
-	DECLARE_DYNAMIC(CDlgDownload)
-private:
-	CString m_servers;
-	CString m_url;
-
-public:
-	CDlgDownload(CWnd* pParent = NULL);   // standard constructor
-	virtual ~CDlgDownload();
-
-// Dialog Data
-	enum { IDD = IDD_ADV_DOWNLOAD };
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-	DECLARE_MESSAGE_MAP()
-public:
-	void SetServers(CString servers)		{ m_servers = servers; }
-	CString GetServers()					{ return m_servers; }
-	CString GetURL()						{ return m_url; }
-
-	CString m_server;
-	CComboBox m_combo;
-	int m_nSort;			// sorting info
-	bool m_bAscending[3];
-
-	std::vector<CProjectVis*> m_prjs;	// sims
-
-	virtual BOOL OnInitDialog();
-	afx_msg void OnBnClickedOk();
-	afx_msg void OnBnClickedRefresh();
-	CListCtrl m_list;
-	afx_msg void OnSelchangeCombo();
-	afx_msg void OnColumnclickList(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnClickList(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDblclkList(NMHDR *pNMHDR, LRESULT *pResult);
-	CString m_details;
-	afx_msg void OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnGetinfotipList(NMHDR *pNMHDR, LRESULT *pResult);
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-	afx_msg void OnDestroy();
-};
-#pragma once
-
 
 // CDlgVideoCtrl dialog
 
@@ -202,7 +144,6 @@ public:
 	void SetTime(ULONG nTime);
 	CButton m_wndPreview;
 };
-#pragma once
 
 
 // CDlgAspectRatio dialog
@@ -252,155 +193,5 @@ public:
 	afx_msg void OnEnChangeEdit();
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };
+
 #pragma once
-
-
-// CDlgReportBug dialog
-
-class CDlgReportBug : public CDialogEx
-{
-	DECLARE_DYNAMIC(CDlgReportBug)
-
-public:
-	CDlgReportBug(CString msg = L"", CWnd* pParent = NULL);   // standard constructor
-	virtual ~CDlgReportBug();
-
-	static void Report(int nReason, CString message = L"");
-
-// Dialog Data
-	enum { IDD = IDD_ADV_REPORT_BUG };
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-	DECLARE_MESSAGE_MAP()
-public:
-	CString m_msg;
-	CString m_name;
-	CString m_email;
-	int m_cat;
-	CString m_desc;
-	virtual BOOL OnInitDialog();
-	virtual void OnOK();
-	CComboBox m_combo;
-	CString m_system;
-};
-#pragma once
-
-
-// CDlgMaterials dialog
-#include "material.h"
-#include "afxcolorbutton.h"
-
-class CDlgMaterials : public CDialogEx
-{
-	DECLARE_DYNAMIC(CDlgMaterials)
-
-	CMaterialManager *m_pMat;
-
-public:
-	CDlgMaterials(CMaterialManager *m_pMat, CWnd* pParent = NULL);   // standard constructor
-	virtual ~CDlgMaterials();
-
-// Dialog Data
-	enum { IDD = IDD_ADV_MATERIALS };
-	static CDlgMaterials *c_dlg;
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-	void UpdateControls(int i);
-	void SetupMaterial(int i);
-
-	DECLARE_MESSAGE_MAP()
-public:
-	virtual BOOL OnInitDialog();
-	CListBox m_list;
-	BOOL m_bSolid;
-	CMFCColorButton m_ctrlColor;
-	CString m_strFName;
-	COLORREF m_color;
-	int m_nAlpha;
-	int m_nAlpha2;
-	afx_msg void OnLbnSelchangeList1();
-	afx_msg void OnBnClickedMfccolorbutton1();
-	afx_msg void OnEnChangeEdit2();
-	afx_msg void OnNMCustomdrawSlider1(NMHDR *pNMHDR, LRESULT *pResult);
-	virtual void PostNcDestroy();
-	afx_msg void OnBnClickedCancel();
-	CSpinButtonCtrl m_spinAlpha;
-};
-#pragma once
-
-
-// CDlgScript dialog
-
-#include "script.h"
-#include "atltime.h"
-
-class CDlgScript : public CDialogEx
-{
-	DECLARE_DYNAMIC(CDlgScript)
-
-	CScript *m_pScript;
-
-public:
-	CDlgScript(CScript *pScript, CWnd* pParent = NULL);   // standard constructor
-	virtual ~CDlgScript();
-
-// Dialog Data
-	enum { IDD = IDD_ADV_SCRIPT };
-	static CDlgScript *c_dlg;
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	void PopulateList();
-
-	DECLARE_MESSAGE_MAP()
-public:
-	virtual BOOL OnInitDialog();
-	virtual void PostNcDestroy();
-	afx_msg void OnBnClickedAddEvent();
-	CListBox m_list;
-	afx_msg void OnLbnSelchangeList2();
-	afx_msg void OnBnClickedPlayEvent();
-	afx_msg void OnBnClickedRemoveEvent();
-	afx_msg void OnBnClickedCancel();
-	afx_msg void OnBnClickedProperties();
-	afx_msg void OnBnClickedLoad();
-	afx_msg void OnBnClickedSave();
-};
-#pragma once
-
-
-// CDlgScriptProperties dialog
-
-class CDlgScriptProperties : public CDialogEx
-{
-	DECLARE_DYNAMIC(CDlgScriptProperties)
-
-	CScriptEvent *m_pEvent;
-
-public:
-	CDlgScriptProperties(CScriptEvent *pEvent, CWnd* pParent = NULL);   // standard constructor
-	virtual ~CDlgScriptProperties();
-
-// Dialog Data
-	enum { IDD = IDD_ADV_SCRIPT_PROPERTIES };
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-	DECLARE_MESSAGE_MAP()
-public:
-	CDateTimeCtrl m_ctrlTime;
-	CTime m_time;
-	int m_nAnim;
-	BOOL m_bFF;
-	CDateTimeCtrl m_ctrlTimeFF;
-	CTime m_timeFF;
-	virtual BOOL OnInitDialog();
-	virtual void OnOK();
-	CString m_desc;
-	float m_fAccel;
-};

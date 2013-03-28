@@ -2,10 +2,10 @@
 // interface of the CAdVisuoDoc class
 //
 
-#include "VisLiftGroup.h"
+//#include "VisLiftGroup.h"
 #include "VisProject.h"
-#include "VisSim.h"
-#include "VisLift.h"
+//#include "VisSim.h"
+//#include "VisLift.h"
 #include "xmlrequest.h"
 
 class CAdVisuoView;

@@ -2,7 +2,6 @@
 
 #pragma once
 
-
 #import "msxml3.dll"
 
 class _xmlreq_error
@@ -22,6 +21,7 @@ class CXMLRequest
 	std::wstring m_strFunction;
 	std::wstring m_strRequest;
 
+	HANDLE m_hEvRequired;
 	HANDLE m_hEvCompleted;
 	
 	long m_nReadyState;
@@ -33,9 +33,9 @@ class CXMLRequest
 	_com_error m_com_error;
 
 public:
-	CXMLRequest() : m_hEvCompleted(NULL), m_com_error(0)	{ reset(); }
-	CXMLRequest(std::wstring strUrl) : m_strUrl(strUrl), m_hEvCompleted(NULL), m_com_error(0)	{ reset(); }
-	virtual ~CXMLRequest()	{ }
+	CXMLRequest();
+	CXMLRequest(std::wstring strUrl);
+	virtual ~CXMLRequest();
 
 	void setURL(std::wstring strUrl) { m_strUrl = strUrl; }
 

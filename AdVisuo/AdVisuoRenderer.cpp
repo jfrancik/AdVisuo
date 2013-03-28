@@ -26,7 +26,7 @@ bool CAdVisuoRenderer::SetupCamera(CCamera *pCamera)
 
 	pCamera->CheckLocation();
 
-	m_pLiftGroup->GetProject()->GetEngine()->GetScene()->PutCamera(pCamera->GetCamera());
+	m_pLiftGroup->GetProject()->GetEngine()->PutCamera(pCamera->GetCamera());
 	pCamera->GetCamera()->Render(m_pRenderer);
 	return true;
 }

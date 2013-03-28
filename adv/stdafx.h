@@ -55,10 +55,6 @@ struct AVVECTOR
 	AVFLOAT z;
 };
 
-#define SIDE_LEFT	0
-#define SIDE_RIGHT	1
-#define SIDE_REAR	2
-
 #define _USE_MATH_DEFINES
 #include <math.h>
 

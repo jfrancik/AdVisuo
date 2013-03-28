@@ -5,11 +5,31 @@
 
 #include <sstream>
 
-
 UINT __cdecl WorkerThread(void *p)
 {
 	((CXMLRequest*)p)->ExecWorkerThread();
 	return 0;
+}
+
+CXMLRequest::CXMLRequest() : m_hEvRequired(NULL), m_hEvCompleted(NULL), m_com_error(0)	
+{ 
+	m_hEvRequired = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hEvCompleted = CreateEvent(NULL, FALSE, FALSE, NULL);
+	AfxBeginThread(WorkerThread, this);
+}
+
+CXMLRequest::CXMLRequest(std::wstring strUrl) : m_strUrl(strUrl), m_hEvRequired(NULL), m_hEvCompleted(NULL), m_com_error(0)	
+{ 
+	m_hEvRequired = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hEvCompleted = CreateEvent(NULL, FALSE, FALSE, NULL);
+	AfxBeginThread(WorkerThread, this);
+}
+
+CXMLRequest::~CXMLRequest()
+{
+	m_strFunction = L"";
+	SetEvent(m_hEvRequired);
+	WaitForSingleObject(m_hEvCompleted, 5000);
 }
 
 HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strRequest, bool bWait)
@@ -19,9 +39,7 @@ HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strRequest, boo
 	m_strFunction = strFunction;
 	m_strRequest = strRequest;
 
-	m_hEvCompleted = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-	AfxBeginThread(WorkerThread, this);
+	SetEvent(m_hEvRequired);
 
 	if (bWait)
 	{
@@ -69,51 +87,47 @@ void CXMLRequest::throw_exceptions()
 HRESULT CXMLRequest::ExecWorkerThread()
 {
 	reset();
-
 	CoInitialize(NULL);
 	MSXML2::IXMLHTTPRequestPtr ptrHttpRequest;
-	try
+
+	WaitForSingleObject(m_hEvRequired, INFINITE);
+	while (!m_strFunction.empty())
 	{
-		m_h = ptrHttpRequest.CreateInstance("Microsoft.XMLHTTP");
-		if (FAILED(m_h)) throw _com_error(m_h);
-		// Send Http Request
-		m_h = ptrHttpRequest->open(L"POST", (m_strUrl + L"\\" + m_strFunction).c_str(), false);
-		if (FAILED(m_h)) throw _com_error(m_h);
-		m_h = ptrHttpRequest->setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-		if (FAILED(m_h)) throw _com_error(m_h);
-		m_h = ptrHttpRequest->send(m_strRequest.c_str());
-		if (FAILED(m_h)) throw _com_error(m_h);
+		try
+		{
+			m_h = ptrHttpRequest.CreateInstance("Microsoft.XMLHTTP");
+			if (FAILED(m_h)) throw _com_error(m_h);
+			// Send Http Request
+			m_h = ptrHttpRequest->open(L"POST", (m_strUrl + L"\\" + m_strFunction).c_str(), false);
+			if (FAILED(m_h)) throw _com_error(m_h);
+			m_h = ptrHttpRequest->setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			if (FAILED(m_h)) throw _com_error(m_h);
+			m_h = ptrHttpRequest->send(m_strRequest.c_str());
+			if (FAILED(m_h)) throw _com_error(m_h);
 
-		// Read response and status
-		m_nReadyState = ptrHttpRequest->readyState;
-		m_nStatus = ptrHttpRequest->status;
-		m_strStatus = ptrHttpRequest->statusText;
-		m_strResponse = ptrHttpRequest->responseText;
+			// Read response and status
+			m_nReadyState = ptrHttpRequest->readyState;
+			m_nStatus = ptrHttpRequest->status;
+			m_strStatus = ptrHttpRequest->statusText;
+			m_strResponse = ptrHttpRequest->responseText;
+		}
+		catch(_com_error& e)
+		{
+			m_h = e.Error();
+			m_com_error = _com_error(e);
+			ASSERT(FAILED(m_h));
+		}
+		catch(...)
+		{
+			m_h = E_FAIL;
+		}
+
+		// End http session
+		if (ptrHttpRequest) ptrHttpRequest->abort();
+
+		SetEvent(m_hEvCompleted);
+		WaitForSingleObject(m_hEvRequired, INFINITE);
 	}
-	catch(_com_error& e)
-	{
-		m_h = e.Error();
-		m_com_error = _com_error(e);
-		ASSERT(FAILED(m_h));
-
-		//m_h = e.Error();
-		//m_strComStatus = (wchar_t *)e.Description() ? e.Description() : e.ErrorMessage();
-
-		//if (ptrHttpRequest)
-		//{
-		//	m_nReadyState = ptrHttpRequest->readyState;
-		//	m_nStatus = ptrHttpRequest->status;
-		//	m_strStatus = ptrHttpRequest->statusText;
-		//	m_strResponse = ptrHttpRequest->responseText;
-		//}
-	}
-	catch(...)
-	{
-		m_h = E_FAIL;
-	}
-
-	// End http session
-	if (ptrHttpRequest) ptrHttpRequest->abort();
 
 	SetEvent(m_hEvCompleted);
 	CoUninitialize();

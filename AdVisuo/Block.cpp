@@ -126,20 +126,20 @@ void CBlock::Close()
 	}
 	m_planes.clear();
 
-//	LPOLESTR pLabel;
-//	m_pBone->GetLabel(&pLabel);
-//	for (FWULONG i = 0; i < nVertex; i++)
-//	{
-//		m_pMesh->SetBoneName(i, 0, pLabel); 
-//		m_pMesh->SetBoneWeight(i, 0, 1.0f); 
-//	}
-
-	// old - long version
-	m_pMesh->InitAdvVertexBlending(0.01f, 0);
 	LPOLESTR pLabel;
 	m_pBone->GetLabel(&pLabel);
 	for (FWULONG i = 0; i < nVertex; i++)
-		m_pMesh->AddBlendWeight(i, 1.0f, pLabel); 
+	{
+		m_pMesh->SetBoneName(i, 0, pLabel); 
+		m_pMesh->SetBoneWeight(i, 0, 1.0f); 
+	}
+
+	//// old version (with adv vertex blending)
+	//m_pMesh->InitAdvVertexBlending(0.01f, 0);
+	//LPOLESTR pLabel;
+	//m_pBone->GetLabel(&pLabel);
+	//for (FWULONG i = 0; i < nVertex; i++)
+	//	m_pMesh->AddBlendWeight(i, 1.0f, pLabel); 
 
 	m_pMesh->Close();
 

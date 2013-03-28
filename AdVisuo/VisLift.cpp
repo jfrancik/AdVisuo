@@ -48,9 +48,8 @@ void CLiftVis::AnimateToInitialPosition(CEngine *pEngine, AVULONG nShaftFrom, AV
 	IKineNode *pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
 	AVVECTOR vFrom = GetSim()->GetLiftGroup()->GetCarPos(nShaftFrom, nStoreyFrom);
 
-	CEngine::ANIMATOR anim(pEngine, pBone, timeStart-1);
-	IAction *pAction = NULL;
-	anim.MoveTo(1, vFrom.x, vFrom.y, vFrom.z);
+	ANIM_HANDLE a = pEngine->StartAnimation(timeStart-1);
+	a = pEngine->MoveTo(a, pBone, 1, vFrom.x, vFrom.y, vFrom.z);
 }
 
 void CLiftVis::AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG timeStart, AVULONG timeDuration)
@@ -63,10 +62,10 @@ void CLiftVis::AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, bo
 	IKineNode *pDoorLX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 0)->GetBone();
 	IKineNode *pDoorRX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 1)->GetBone();
 
-	if (pDoorLI) { CEngine::ANIMATOR anim(pEngine, pDoorLI, timeStart); anim.Move(timeDuration, -nDist, 0, 0); }
-	if (pDoorRI) { CEngine::ANIMATOR anim(pEngine, pDoorRI, timeStart); anim.Move(timeDuration, nDist, 0, 0);  }
-	if (pDoorLX) { CEngine::ANIMATOR anim(pEngine, pDoorLX, timeStart); anim.Move(timeDuration, -nDist, 0, 0); }
-	if (pDoorRX) { CEngine::ANIMATOR anim(pEngine, pDoorRX, timeStart); anim.Move(timeDuration, nDist, 0, 0);  }
+	if (pDoorLI) { ANIM_HANDLE a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorLI, timeDuration, -nDist, 0, 0); }
+	if (pDoorRI) { ANIM_HANDLE a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorRI, timeDuration, nDist, 0, 0);  }
+	if (pDoorLX) { ANIM_HANDLE a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorLX, timeDuration, -nDist, 0, 0); }
+	if (pDoorRX) { ANIM_HANDLE a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorRX, timeDuration, nDist, 0, 0);  }
 }
 
 void CLiftVis::AnimateJourney(CEngine *pEngine, AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeStart, AVULONG timeDuration)
@@ -74,9 +73,9 @@ void CLiftVis::AnimateJourney(CEngine *pEngine, AVULONG nShaftTo, AVULONG nStore
 	IKineNode *pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
 	AVVECTOR vTo   = GetSim()->GetLiftGroup()->GetCarPos(nShaftTo, nStoreyTo);
 
-	CEngine::ANIMATOR anim(pEngine, pBone, timeStart);
-	anim.MoveTo(timeDuration, vTo.x, vTo.y, vTo.z);
-	anim.SetParabolicEnvelopeT(2000, 2000);
+	ANIM_HANDLE a = pEngine->StartAnimation(timeStart);
+	a = pEngine->MoveTo(a, pBone, timeDuration, vTo.x, vTo.y, vTo.z);
+	a = pEngine->SetParabolicEnvelopeT(a, 2000, 2000);
 
 	//	FWFLOAT s = sqrt(vTo.z*vTo.z+vTo.y*vTo.y+vTo.x*vTo.x)/1000.0f/0.04f;
 //	pAction->SetEnvelopeEx((ACTION_ENVELOPE)666, 1.0f, 2.5f/s, 1.0f/s, 1.5f/s);
@@ -119,8 +118,8 @@ void CLiftVis::Play(CEngine *pEngine, AVLONG nTime)
 			if (timeStart == UNDEF) timeStart = pJ->m_timeGo;
 			ASSERT(timeStart != UNDEF);
 
-			CEngine::ANIMATOR anim(pEngine, timeStart);
-			anim.SetCB(_callback_journey, i, (void*)this);
+			ANIM_HANDLE a = pEngine->StartAnimation(timeStart);
+			a = pEngine->SetAnimationCB(a, _callback_journey, i, (void*)this);
 
 			AVULONG timeFinish = pJ->m_timeDest;
 			ASSERT(timeFinish != UNDEF);
@@ -148,8 +147,8 @@ AVLONG CLiftVis::FastForward(CEngine *pEngine, AVLONG nTime)
 			if (timeStart == UNDEF) timeStart = pJ->m_timeGo;
 			ASSERT(timeStart != UNDEF);
 
-			CEngine::ANIMATOR anim(pEngine, timeStart);
-			anim.SetCB(_callback_journey, i, (void*)this);
+			ANIM_HANDLE a = pEngine->StartAnimation(timeStart);
+			a = pEngine->SetAnimationCB(a, _callback_journey, i, (void*)this);
 
 			nEarliestTime = min(nEarliestTime, (LONG)pJ->FirstOpenTime());
 		}

@@ -26,6 +26,22 @@ CProject::~CProject()
 		delete pGroup;
 }
 
+AVULONG CProject::GetMaxStoreyCount()
+{
+	return GetLiftGroupsCount() ? GetLiftGroup(0)->GetStoreyCount() : 0;
+}
+
+AVULONG CProject::GetMaxBasementStoreyCount()
+{
+	return GetLiftGroupsCount() ? GetLiftGroup(0)->GetBasementStoreyCount() : 0;
+}
+
+AVULONG CProject::GetMaxShaftCount()
+{
+	auto i = std::max_element(m_groups.begin(), m_groups.end(), [] (CLiftGroup* p1, CLiftGroup* p2) -> bool { return p1->GetShaftCount() < p2->GetShaftCount(); } );
+	return (i == m_groups.end()) ? 0 : (*i)->GetShaftCount();
+}
+
 CLiftGroup *CProject::FindLiftGroup(int id)
 {
 	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLiftGroup* p) -> bool { return (p->GetId() == id); } );

@@ -45,7 +45,10 @@ public:
 	void ReportMinSimulationTime(AVLONG n)		{ if (n < m_nMinSimulationTime) m_nMinSimulationTime = n; }		// used to collect time min info
 	void ReportMaxSimulationTime(AVLONG n)		{ if (n > m_nMaxSimulationTime) m_nMaxSimulationTime = n; }		// used to collect time max info
 
-
+	AVULONG GetMaxStoreyCount();
+	AVULONG GetMaxBasementStoreyCount();
+	AVULONG GetMaxShaftCount();
+	
 	enum PRJ_INFO { PRJ_PROJECT_NAME, PRJ_BUILDING_NAME, PRJ_LANGUAGE, PRJ_UNITS, PRJ_COMPANY, PRJ_CITY, PRJ_LB_RGN, PRJ_COUNTY, PRJ_DESIGNER, PRJ_COUNTRY, PRJ_CHECKED_BY, PRJ_POST_CODE };
 	std::wstring GetProjectInfo(PRJ_INFO what);
 
