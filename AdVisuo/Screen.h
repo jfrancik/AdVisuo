@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include <freewill.h>
-interface IRenderer;
+class CEngine;
 
 // All AVFLOAT type coordinates are 0..1 and are scaled to the current window/screen size
 
@@ -14,7 +13,7 @@ interface IRenderer;
 class CScreen
 {
 protected:
-	IRenderer *m_pRenderer;
+	CEngine *m_pEngine;
 	
 	// screen divider (either vertical or horizontal)
 	struct DIVIDER
@@ -73,10 +72,10 @@ protected:
 	AVFLOAT m_fAspect;
 
 public:
-	CScreen(IRenderer *pRenderer = NULL, AVULONG nCols = 2, AVULONG nRows = 2, AVLONG nFrame = 1);
+	CScreen(CEngine *pEngine, AVULONG nCols = 2, AVULONG nRows = 2, AVLONG nFrame = 1);
 	~CScreen();
 
-	void SetRenderer(IRenderer *pRenderer);
+	void SetEngine(CEngine *pEngine)			{ m_pEngine = pEngine; }
 
 	void SetConfig(AVULONG n)					{ m_nConfig = n; OnSetConfig(n); }
 	AVULONG GetConfig()							{ return m_nConfig; }
@@ -129,6 +128,6 @@ public:
 	enum VIEWPORTS { VP_FULL, VP_UP_LT, VP_UP_RT, VP_LW_LT, VP_LW_RT, VP_UP, VP_LW, VP_LT, VP_RT, VP_EXT_LT, VP_EXT_RT, VP_MAX };
 	enum SCREENCFG { SC_SINGLE, SC_HORIZONTAL, SC_VERTICAL, SC_TRIPLE_LEFT, SC_TRIPLE_RIGHT, SC_QUADRUPLE, SC_MAX };
 
-	CScreen2x2(IRenderer *pRenderer = NULL, AVLONG nFrame = 1);
+	CScreen2x2(CEngine *pEngine, AVLONG nFrame = 1);
 	virtual void OnSetConfig(AVULONG);
 };

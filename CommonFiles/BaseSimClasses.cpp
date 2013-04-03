@@ -176,7 +176,7 @@ CPassenger::CPassenger(CSim *pSim, AVULONG nPassengerId) : m_pSim(pSim), m_nId(n
 	m_nDeck = 0;
 	m_nArrivalFloor = 0;
 	m_nDestFloor = 0;
-	m_timeBorn = 0;
+	m_timeSpawn = 0;
 	m_timeArrival = 0;
 	m_timeGo = 0;
 	m_timeLoad = 0;
@@ -208,7 +208,7 @@ void CPassenger::ResolveMe()
 	SetDeck(ME[L"DeckId"]);
 	SetArrivalFloor((AVULONG)ME[L"FloorArrival"]);
 	SetDestFloor((AVULONG)ME[L"FloorDest"]);
-	SetBornTime(ME[L"TimeBorn"]);
+	SetSpawnTime(ME[L"TimeBorn"]);
 	SetArrivalTime(ME[L"TimeArrival"]);
 	SetGoTime(ME[L"TimeGo"]);
 	SetLoadTime(ME[L"TimeLoad"]);

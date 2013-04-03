@@ -24,12 +24,7 @@
 #include "Sprite.h"
 #include "HUD.h"
 #include "Script.h"
-//#include "Dialogs.h"
 #include "Engine.h"
-
-#include <freewill.h>	// obligatory
-#include <fwrender.h>	// to start the renderer
-#include <fwaction.h>	// actions
 
 #include <functional>
 
@@ -116,7 +111,7 @@ public:
 	void Play();
 	void Stop();
 	void Pause();
-	void Rewind(FWULONG nMSec);		// rewinds the simulation to the given point
+	void Rewind(AVULONG nMSec);		// rewinds the simulation to the given point
 
 
 
@@ -154,7 +149,7 @@ protected:
 	// Snapshot and Video Rendering
 	typedef std::function<void(LPCTSTR strStatus, AVULONG nTime, bool &bStop, bool &bPreview)> CBUpdate;
 	bool RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nResX, AVULONG nResY, AVLONG nTimeFrom, AVLONG nTimeTo, bool bShowCaptions, bool bShowClock, CBUpdate fn);
-	bool RenderToBitmap(LPCTSTR pFilename, enum FW_RENDER_BITMAP fmt);
+	bool RenderToBitmap(LPCTSTR pFilename);
 
 	// Camera Control
 	void OnDrag(int dx, int dy, int dz, bool bShift, bool bCtrl, bool bAlt);

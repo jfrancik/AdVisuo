@@ -2,19 +2,17 @@
 
 #include "StdAfx.h"
 #include "Screen.h"
-
-#include <fwrender.h>
+#include "Engine.h"
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
  
 
-CScreen::CScreen(IRenderer *pRenderer, AVULONG nCols, AVULONG nRows, AVLONG nFrame)
+CScreen::CScreen(CEngine *pEngine, AVULONG nCols, AVULONG nRows, AVLONG nFrame)
 {
 	ASSERT(nRows > 0 && nCols > 0);
 
-	m_pRenderer = NULL;
-	SetRenderer(pRenderer);
+	SetEngine(pEngine);
 
 	m_nXDivs = nCols + 1;
 	m_pXDivs = new DIVIDER[m_nXDivs];
@@ -38,17 +36,9 @@ CScreen::~CScreen()
 	delete [] m_pXDivs;
 	delete [] m_pYDivs;
 	delete [] m_pVP;
-	if (m_pRenderer) m_pRenderer->Release();
 }
 
-void CScreen::SetRenderer(IRenderer *pRenderer)
-{
-	if (m_pRenderer) m_pRenderer->Release();
-	m_pRenderer = pRenderer;
-	if (m_pRenderer) m_pRenderer->AddRef();
-}
-
-CScreen2x2::CScreen2x2(IRenderer *pRenderer, AVLONG nFrame) : CScreen(pRenderer, 2, 2, nFrame)
+CScreen2x2::CScreen2x2(CEngine *pEngine, AVLONG nFrame) : CScreen(pEngine, 2, 2, nFrame)
 {
 	m_nVP = VP_MAX;
 	m_pVP = new VIEWPORT[VP_MAX];
@@ -149,9 +139,8 @@ void CScreen::ApplyAspectRatio(AVFLOAT &x0, AVFLOAT &x1, AVFLOAT &y0, AVFLOAT &y
 {
 	if (m_fAspect == 0) return;
 	
-	AVULONG x, y;
-	m_pRenderer->GetViewSize(&x, &y);
-	AVFLOAT fAR = (AVFLOAT)x / (AVFLOAT)y;
+	CSize size = m_pEngine->GetViewSize();
+	AVFLOAT fAR = (AVFLOAT)size.cx / (AVFLOAT)size.cy;
 	if (fAR > m_fAspect)
 	{
 		AVFLOAT f = m_fAspect / fAR;
@@ -170,25 +159,23 @@ void CScreen::GetViewport(AVULONG i, AVULONG &x0, AVULONG &x1, AVULONG &y0, AVUL
 {
 	AVFLOAT fx0, fx1, fy0, fy1;
 	AVLONG nmx0, nmx1, nmy0, nmy1;
-	AVULONG x, y;
 	GetViewport(i, fx0, fx1, fy0, fy1, nmx0, nmx1, nmy0, nmy1, bShowSelFrame);
-	m_pRenderer->GetViewSize(&x, &y);
-	x0 = (AVULONG)(x * fx0) + nmx0;
-	x1 = (AVULONG)(x * fx1) + nmx1;
-	y0 = (AVULONG)(y * fy0) + nmy0;
-	y1 = (AVULONG)(y * fy1) + nmy1;
+	CSize size = m_pEngine->GetViewSize();
+	x0 = (AVULONG)(size.cx * fx0) + nmx0;
+	x1 = (AVULONG)(size.cx * fx1) + nmx1;
+	y0 = (AVULONG)(size.cy * fy0) + nmy0;
+	y1 = (AVULONG)(size.cy * fy1) + nmy1;
 }
 
 void CScreen::Get(AVULONG &x0, AVULONG &x1, AVULONG &y0, AVULONG &y1)
 {
 	AVFLOAT fx0 = 0, fx1 = 1, fy0 = 0, fy1 = 1;
-	AVULONG x, y;
 	ApplyAspectRatio(fx0, fx1, fy0, fy1);
-	m_pRenderer->GetViewSize(&x, &y);
-	x0 = (AVULONG)(x * fx0);
-	x1 = (AVULONG)(x * fx1);
-	y0 = (AVULONG)(y * fy0);
-	y1 = (AVULONG)(y * fy1);
+	CSize size = m_pEngine->GetViewSize();
+	x0 = (AVULONG)(size.cx * fx0);
+	x1 = (AVULONG)(size.cx * fx1);
+	y0 = (AVULONG)(size.cy * fy0);
+	y1 = (AVULONG)(size.cy * fy1);
 }
 
 AVFLOAT CScreen::GetAspectRatio(AVULONG i)
@@ -200,38 +187,25 @@ AVFLOAT CScreen::GetAspectRatio(AVULONG i)
 
 void CScreen::Prepare()
 {
-	m_pRenderer->PutViewport(0, 0, 1, 1, 0, 0, 0, 0);
+	m_pEngine->PrepareViewport(0, 0, 1, 1, 0, 0, 0, 0, false);
 }
 
 void CScreen::Prepare(AVCOLOR frame, AVCOLOR active_frame, bool bShowSelFrame)
 {
-	AVCOLOR color;
-
-	m_pRenderer->GetBackColor(&color);
-	
 	AVCOLOR black = { 0, 0, 0 };
-	m_pRenderer->PutBackColor(black);
-	m_pRenderer->PutViewport(0, 0, 1, 1, 0, 0, 0, 0);
-	m_pRenderer->Clear();
+	m_pEngine->PrepareViewport(0, 0, 1, 1, 0, 0, 0, 0, black);
 
 	AVFLOAT x0 = 0, x1 = 1, y0 = 0, y1 = 1;
 	ApplyAspectRatio(x0, x1, y0, y1);
-	m_pRenderer->PutBackColor(frame);
-	m_pRenderer->PutViewport(x0, y0, x1-x0, y1-y0, 0, 0, 0, 0);
-	m_pRenderer->Clear();
+	m_pEngine->PrepareViewport(x0, y0, x1-x0, y1-y0, 0, 0, 0, 0, frame);
 	
 	if (bShowSelFrame)
 	{
 		AVFLOAT x0, x1, y0, y1;
 		AVLONG nmx0, nmx1, nmy0, nmy1;
 		GetSelFrame(m_nActiveVP, x0, x1, y0, y1, nmx0, nmx1, nmy0, nmy1);
-
-		m_pRenderer->PutBackColor(active_frame);
-		m_pRenderer->PutViewport(x0, y0, x1-x0, y1-y0, nmx0, nmy0, nmx1-nmx0, nmy1-nmy0);
-		m_pRenderer->Clear();
+		m_pEngine->PrepareViewport(x0, y0, x1-x0, y1-y0, nmx0, nmy0, nmx1-nmx0, nmy1-nmy0, active_frame);
 	}
-
-	m_pRenderer->PutBackColor(color);
 }
 
 bool CScreen::Prepare(AVULONG i, bool bShowSelFrame)
@@ -245,8 +219,7 @@ bool CScreen::Prepare(AVULONG i, bool bShowSelFrame)
 	AVLONG nmx0, nmx1, nmy0, nmy1;
 	GetViewport(i, x0, x1, y0, y1, nmx0, nmx1, nmy0, nmy1, bShowSelFrame);
 
-	m_pRenderer->PutViewport(x0, y0, x1-x0, y1-y0, nmx0, nmy0, nmx1-nmx0, nmy1-nmy0);
-	m_pRenderer->Clear();
+	m_pEngine->PrepareViewport(x0, y0, x1-x0, y1-y0, nmx0, nmy0, nmx1-nmx0, nmy1-nmy0);
 
 	return true;
 }
@@ -256,8 +229,7 @@ void CScreen::HitTest(CPoint &point, enum HIT &nHit, AVULONG &nIndexX, AVULONG &
 	nHit = HIT_NONE;
 	nIndexX = nIndexY = 0;
 
-	AVULONG x, y;
-	m_pRenderer->GetViewSize(&x, &y);
+	CSize size = m_pEngine->GetViewSize();
 
 	for (AVULONG i = 0; i < m_nVP; i++)
 	{
@@ -275,14 +247,14 @@ void CScreen::HitTest(CPoint &point, enum HIT &nHit, AVULONG &nIndexX, AVULONG &
 	}
 
 	for (AVULONG i = 0; i < m_nXDivs; i++)
-		if (m_pXDivs[i].IsMovable() && abs(point.x - (AVLONG)(x * m_pXDivs[i])) <= m_nFrame)
+		if (m_pXDivs[i].IsMovable() && abs(point.x - (AVLONG)(size.cx * m_pXDivs[i])) <= m_nFrame)
 		{
 			nHit = HIT_XDIV;
 			nIndexX = i;
 		}
 
 	for (AVULONG i = 0; i < m_nYDivs; i++)
-		if (m_pYDivs[i].IsMovable() && abs(point.y - (AVLONG)(y * m_pYDivs[i])) <= m_nFrame)
+		if (m_pYDivs[i].IsMovable() && abs(point.y - (AVLONG)(size.cy * m_pYDivs[i])) <= m_nFrame)
 		{
 			nHit = (nHit == HIT_NONE) ? HIT_YDIV : HIT_XYDIV;
 			nIndexY = i;
@@ -292,17 +264,16 @@ void CScreen::HitTest(CPoint &point, enum HIT &nHit, AVULONG &nIndexX, AVULONG &
 
 void CScreen::OnDrag(CPoint &delta, enum HIT &nHit, AVULONG nIndexX, AVULONG nIndexY)
 {
-	AVULONG x, y;
-	m_pRenderer->GetViewSize(&x, &y);
+	CSize size = m_pEngine->GetViewSize();
 
 	if (nHit == HIT_XDIV || nHit == HIT_XYDIV)
 	{
-		m_pXDivs[nIndexX].SetDelta((AVFLOAT)delta.x / (AVFLOAT)x);
+		m_pXDivs[nIndexX].SetDelta((AVFLOAT)delta.x / (AVFLOAT)size.cx);
 		m_pXDivs[nIndexX].ApplyMinMax(nIndexX > 0 ? m_pXDivs[nIndexX-1] + 0.1f : 0, nIndexX < m_nXDivs-1 ? m_pXDivs[nIndexX+1] - 0.1f : 1); 
 	}
 	if (nHit == HIT_YDIV || nHit == HIT_XYDIV)
 	{
-		m_pYDivs[nIndexY].SetDelta((AVFLOAT)delta.y / (AVFLOAT)y);
+		m_pYDivs[nIndexY].SetDelta((AVFLOAT)delta.y / (AVFLOAT)size.cy);
 		m_pYDivs[nIndexY].ApplyMinMax(nIndexY > 0 ? m_pYDivs[nIndexY-1] + 0.1f : 0, nIndexY < m_nYDivs-1 ? m_pYDivs[nIndexY+1] - 0.1f : 1);
 	}
 }

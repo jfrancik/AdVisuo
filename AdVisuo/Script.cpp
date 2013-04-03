@@ -4,12 +4,6 @@
 #include "Script.h"
 #include "AdVisuoView.h"
 
-#include <freewill.h>
-#include <fwaction.h>
-#include <fwrender.h>
-
-#include "freewilltools.h"
-
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
 #pragma warning (disable:4244)
@@ -50,15 +44,12 @@ void CScriptEvent::Play(AVLONG &nTime, AVLONG nAuxClockValue)
 		m_pView->Rewind(nTime);
 	}
 
-	IAction *pAction = NULL;
-	m_pView->GetEngine()->AuxPlay(&pAction, nAuxClockValue); 
 	m_pView->GetEngine()->PutAccel(GetAccel());
 	for (AVULONG i = 0; i < N_CAMERAS; i++)
 		if (GetAnimTime() == 0)
 			m_pView->GetCamera(i)->MoveTo(m_camera[i]);
 		else
-			m_pView->GetCamera(i)->AnimateTo(pAction, m_camera[i], GetAnimTime());
-	pAction->Release();
+			m_pView->GetCamera(i)->AnimateTo(m_pView->GetEngine(), m_camera[i], GetAnimTime());
 }
 
 void CScriptEvent::Serialize(CArchive& ar)

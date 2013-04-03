@@ -9,8 +9,6 @@
 #include "Engine.h"
 
 #include <freewill.h>
-#include <fwaction.h>
-#include "freewilltools.h"
 
 using namespace std;
 
@@ -75,7 +73,7 @@ void CLiftVis::AnimateJourney(CEngine *pEngine, AVULONG nShaftTo, AVULONG nStore
 
 	ANIM_HANDLE a = pEngine->StartAnimation(timeStart);
 	a = pEngine->MoveTo(a, pBone, timeDuration, vTo.x, vTo.y, vTo.z);
-	a = pEngine->SetParabolicEnvelopeT(a, 2000, 2000);
+	a = pEngine->SetEnvelope(a, 2000, 2000);
 
 	//	FWFLOAT s = sqrt(vTo.z*vTo.z+vTo.y*vTo.y+vTo.x*vTo.x)/1000.0f/0.04f;
 //	pAction->SetEnvelopeEx((ACTION_ENVELOPE)666, 1.0f, 2.5f/s, 1.0f/s, 1.5f/s);
@@ -119,7 +117,7 @@ void CLiftVis::Play(CEngine *pEngine, AVLONG nTime)
 			ASSERT(timeStart != UNDEF);
 
 			ANIM_HANDLE a = pEngine->StartAnimation(timeStart);
-			a = pEngine->SetAnimationCB(a, _callback_journey, i, (void*)this);
+			a = pEngine->SetAnimationListener(a, this, i);
 
 			AVULONG timeFinish = pJ->m_timeDest;
 			ASSERT(timeFinish != UNDEF);
@@ -148,7 +146,7 @@ AVLONG CLiftVis::FastForward(CEngine *pEngine, AVLONG nTime)
 			ASSERT(timeStart != UNDEF);
 
 			ANIM_HANDLE a = pEngine->StartAnimation(timeStart);
-			a = pEngine->SetAnimationCB(a, _callback_journey, i, (void*)this);
+			a = pEngine->SetAnimationListener(a, this, i);
 
 			nEarliestTime = min(nEarliestTime, (LONG)pJ->FirstOpenTime());
 		}
@@ -156,12 +154,3 @@ AVLONG CLiftVis::FastForward(CEngine *pEngine, AVLONG nTime)
 	return nEarliestTime;
 }
 
-int _callback_journey(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, void *pParam)
-{
-	if (pEvent->nEvent == EVENT_TICK)
-	{
-		CLiftVis *pLift = (CLiftVis*)pParam;
-		pLift->Go(nParam);
-	}
-	return S_OK;
-}

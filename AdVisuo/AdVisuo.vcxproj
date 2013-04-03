@@ -177,6 +177,7 @@
     <ClInclude Include="AdVisuoRenderer.h" />
     <ClInclude Include="AdVisuoView.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
+    <ClInclude Include="Block.h" />
     <ClInclude Include="DlgDownload.h" />
     <ClInclude Include="DlgMat.h" />
     <ClInclude Include="DlgRepBug.h" />
@@ -202,6 +203,7 @@
     <ClInclude Include="..\CommonFiles\Vector.h" />
     <ClInclude Include="Screen.h" />
     <ClInclude Include="xmlrequest.h" />
+    <ClInclude Include="_base.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\AdVisuo.ico" />

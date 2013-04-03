@@ -22,11 +22,11 @@ CSimVis::~CSimVis(void)
 
 void CSimVis::Play(CEngine *pEngine, AVLONG nTime)
 {
-	for (FWULONG i = 0; i < GetLiftCount(); i++)
+	for (AVULONG i = 0; i < GetLiftCount(); i++)
 		GetLift(i)->Play(pEngine, nTime);
 
-	for (FWULONG i = 0; i < GetPassengerCount(); i++)
-		if (GetPassenger(i)->GetBornTime() >= nTime)
+	for (AVULONG i = 0; i < GetPassengerCount(); i++)
+		if (GetPassenger(i)->GetSpawnTime() >= nTime)
 			GetPassenger(i)->Play(pEngine);
 }
 
@@ -34,32 +34,32 @@ AVLONG CSimVis::FastForward(CEngine *pEngine, AVLONG nTime)
 {
 	AVLONG nEarliestTime = 0x7FFFFFFF;
 
-	for (FWULONG i = 0; i < GetLiftCount(); i++)
+	for (AVULONG i = 0; i < GetLiftCount(); i++)
 	{
 		AVLONG t = GetLift(i)->FastForward(pEngine, nTime);
 		nEarliestTime = min(nEarliestTime, t);
 	}
 
-	for (FWULONG i = 0; i < GetPassengerCount(); i++)
+	for (AVULONG i = 0; i < GetPassengerCount(); i++)
 		if (GetPassenger(i)->GetUnloadTime() >= nTime)
 		{
 			GetPassenger(i)->Play(pEngine);
 
-			AVLONG t = GetPassenger(i)->GetBornTime();
+			AVLONG t = GetPassenger(i)->GetSpawnTime();
 			nEarliestTime = min(nEarliestTime, t);
 		}
 	return min(nEarliestTime, GetProject()->GetMaxSimulationTime());
 }
 
-void CSimVis::RenderPassengers(IRenderer *pRenderer, AVLONG nPhase)
+void CSimVis::RenderPassengers(AVLONG nPhase)
 {
-	for (FWULONG i = 0; i < GetPassengerCount(); i++)
-		GetPassenger(i)->Render(pRenderer, nPhase);
+	for (AVULONG i = 0; i < GetPassengerCount(); i++)
+		GetPassenger(i)->Render(nPhase);
 }
 
 void CSimVis::Stop()
 {
-	for (FWULONG i = 0; i < GetPassengerCount(); i++)
+	for (AVULONG i = 0; i < GetPassengerCount(); i++)
 		GetPassenger(i)->Die();
 }
 

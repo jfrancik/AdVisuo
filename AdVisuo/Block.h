@@ -1,6 +1,10 @@
 #pragma once
 
-#include <freewill.h>
+interface ISceneObject;
+interface IKineNode;
+interface IMesh;
+interface IMaterial;
+
 #include <vector>
 
 class CBlock
@@ -8,12 +12,12 @@ class CBlock
 	IKineNode *m_pBone;				// bone
 	IMesh *m_pMesh;					// mesh - created on the bone
 
-	FWFLOAT m_l, m_h, m_d;			// length (x); height (y); depth (z)
+	AVFLOAT m_l, m_h, m_d;			// length (x); height (y); depth (z)
 
-	FWFLOAT m_x;					// current position along the wall
+	AVFLOAT m_x;					// current position along the wall
 
 	enum NORMAL_DIR { LT, RT };
-	struct PLANE	{ NORMAL_DIR norm; AVVECTOR v; FWULONG nI; AVVECTOR vI; FWULONG nJ; AVVECTOR vJ; FWFLOAT uBase; FWFLOAT vBase; };
+	struct PLANE	{ NORMAL_DIR norm; AVVECTOR v; AVULONG nI; AVVECTOR vI; AVULONG nJ; AVVECTOR vJ; AVFLOAT uBase; AVFLOAT vBase; };
 
 	std::vector<PLANE> m_planes;
 
@@ -21,31 +25,31 @@ public:
 	CBlock();
 	~CBlock();
 
-	void Open(ISceneObject *pObject, IKineNode *pBone, FWFLOAT l, FWFLOAT h, FWFLOAT d, AVVECTOR v, FWFLOAT fRotZ = 0, FWFLOAT fRotX = 0, FWFLOAT fRotY = 0);
+	void Open(ISceneObject *pObject, IKineNode *pBone, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR v, AVFLOAT fRotZ = 0, AVFLOAT fRotX = 0, AVFLOAT fRotY = 0);
 	void Close();
 
-	IMesh *GetMesh()				{ m_pMesh->AddRef(); return m_pMesh; }
-	IKineNode *GetBone()			{ m_pBone->AddRef(); return m_pBone; }
+	IMesh *GetMesh();
+	IKineNode *GetBone();
 
 	void SetMaterial(IMaterial *pMaterial);
 
-	FWFLOAT GetCurX()				{ return m_x; }
-	void SetCurX(FWFLOAT x)			{ m_x = x; }
-	void ProgressCurX(FWFLOAT dx)	{ m_x += dx; }
+	AVFLOAT GetCurX()				{ return m_x; }
+	void SetCurX(AVFLOAT x)			{ m_x = x; }
+	void ProgressCurX(AVFLOAT dx)	{ m_x += dx; }
 
 	void BuildPlane(PLANE&);
-	void BuildPlane(NORMAL_DIR norm, AVVECTOR v, FWULONG nI, AVVECTOR vI, FWULONG nJ, AVVECTOR vJ, FWFLOAT uBase = 0.0f, FWFLOAT vBase = 0.0f);
-	void BuildPlane(NORMAL_DIR norm, FWFLOAT vx, FWFLOAT vy, FWFLOAT vz, FWULONG nI, FWFLOAT vix, FWFLOAT viy, FWFLOAT viz, FWULONG nJ, FWFLOAT vjx, FWFLOAT vjy, FWFLOAT vjz, FWFLOAT uBase = 0.0f, FWFLOAT vBase = 0.0f);
+	void BuildPlane(NORMAL_DIR norm, AVVECTOR v, AVULONG nI, AVVECTOR vI, AVULONG nJ, AVVECTOR vJ, AVFLOAT uBase = 0.0f, AVFLOAT vBase = 0.0f);
+	void BuildPlane(NORMAL_DIR norm, AVFLOAT vx, AVFLOAT vy, AVFLOAT vz, AVULONG nI, AVFLOAT vix, AVFLOAT viy, AVFLOAT viz, AVULONG nJ, AVFLOAT vjx, AVFLOAT vjy, AVFLOAT vjz, AVFLOAT uBase = 0.0f, AVFLOAT vBase = 0.0f);
 
 	void BuildSimpleBlock();
 
-	void BuildFrontSection(FWFLOAT h0 = 0, FWFLOAT h1 = 0, FWFLOAT d0 = 0, FWFLOAT d1 = 0);
-	void BuildRearSection(FWFLOAT h0 = 0, FWFLOAT h1 = 0, FWFLOAT d0 = 0, FWFLOAT d1 = 0);
+	void BuildFrontSection(AVFLOAT h0 = 0, AVFLOAT h1 = 0, AVFLOAT d0 = 0, AVFLOAT d1 = 0);
+	void BuildRearSection(AVFLOAT h0 = 0, AVFLOAT h1 = 0, AVFLOAT d0 = 0, AVFLOAT d1 = 0);
 	
-	void BuildWall(FWFLOAT l = 0, FWFLOAT h0 = 0, FWFLOAT h1 = 0, FWFLOAT d0 = 0, FWFLOAT d1 = 0);
-	void BuildWallTo(FWFLOAT l, FWFLOAT h0 = 0, FWFLOAT h1 = 0, FWFLOAT d0 = 0, FWFLOAT d1 = 0);
+	void BuildWall(AVFLOAT l = 0, AVFLOAT h0 = 0, AVFLOAT h1 = 0, AVFLOAT d0 = 0, AVFLOAT d1 = 0);
+	void BuildWallTo(AVFLOAT l, AVFLOAT h0 = 0, AVFLOAT h1 = 0, AVFLOAT d0 = 0, AVFLOAT d1 = 0);
 
-	void BuildDoor(FWFLOAT w, FWFLOAT h);
-	void BuildWindow(FWFLOAT w, FWFLOAT h0, FWFLOAT h1);
+	void BuildDoor(AVFLOAT w, AVFLOAT h);
+	void BuildWindow(AVFLOAT w, AVFLOAT h0, AVFLOAT h1);
 
 };

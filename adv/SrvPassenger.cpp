@@ -134,12 +134,12 @@ void CPassengerSrv::Play()
 			- timeToGo(XLobby1, YLobby1, XLiftDoor0, YLiftDoor0, stepLen, stepDuration)
 			- timeToGo(XLiftDoor0, YLiftDoor0, XLiftDoor, YLiftDoor, stepLen, stepDuration));
 		SetArrivalTime(min(GetArrivalTime(), GetGoTime()));
-		SetBornTime(GetArrivalTime() - timeToGo(XLobby0, YLobby0, XLobby1, YLobby1, stepLen, stepDuration));
+		SetSpawnTime(GetArrivalTime() - timeToGo(XLobby0, YLobby0, XLobby1, YLobby1, stepLen, stepDuration));
 
 		WAYPOINT my_way_points[] =
 		{
 			{ MOVE, {XLobby0, YLobby0 }, 0, L"" },				// passenger journey start point
-			{ WAIT, {0, 0}, GetBornTime(), L"watch;look" },		// wait...
+			{ WAIT, {0, 0}, GetSpawnTime(), L"watch;look" },	// wait...
 			{ WALK, {XLobby1, YLobby1}, 0,L"" },				// go to lobby wait zone
 			{ WAIT, {0, 0}, GetGoTime(), L"watch;look" },		// wait...
 
@@ -169,12 +169,12 @@ void CPassengerSrv::Play()
 
 		SetGoTime(GetLoadTime());
 		SetArrivalTime(min(GetArrivalTime(), GetGoTime()));
-		SetBornTime(GetArrivalTime() - timeToGo(XLobby0, YLobby0, XLobby1, YLobby1, stepLen, stepDuration));
+		SetSpawnTime(GetArrivalTime() - timeToGo(XLobby0, YLobby0, XLobby1, YLobby1, stepLen, stepDuration));
 
 		WAYPOINT my_way_points[] =
 		{
 			{ MOVE, {XLobby0, YLobby0 }, 0, L"" },				// passenger journey start point
-			{ WAIT, {0, 0}, GetBornTime(), L"watch;look" },		// wait...
+			{ WAIT, {0, 0}, GetSpawnTime(), L"watch;look" },	// wait...
 			{ WALK, {XLobby1, YLobby1}, 0,L"" },				// go to lobby wait zone
 			//{ WAIT, {0, 0}, GetGoTime(), L"watch;look" },		// wait...
 		};
@@ -213,7 +213,7 @@ HRESULT CPassengerSrv::Store(CDataBase db)
 	ins[L"DeckId"] = GetDeck();
 	ins[L"FloorArrival"] = GetArrivalFloor();
 	ins[L"FloorDest"] = GetDestFloor();
-	ins[L"TimeBorn"] = GetBornTime();
+	ins[L"TimeBorn"] = GetSpawnTime();
 	ins[L"TimeArrival"] = GetArrivalTime();
 	ins[L"TimeGo"] = GetGoTime();
 	ins[L"TimeLoad"] = GetLoadTime();

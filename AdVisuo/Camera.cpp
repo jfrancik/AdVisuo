@@ -4,12 +4,9 @@
 #include "Camera.h"
 #include "VisProject.h"
 #include "VisLiftGroup.h"
+#include "Engine.h"
 
 #include <freewill.h>
-#include <fwaction.h>
-#include <fwrender.h>
-
-#include "freewilltools.h"
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
@@ -437,27 +434,10 @@ void CCamera::MoveTo(CAMPARAMS &cp)
 	m_bMoved = m_bRotated = m_bZoomed = false;
 }
 
-	int _callback_fun(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, CCamera *pCamera)
-	{
-		if (pEvent->nEvent != EVENT_TICK) return S_OK;
-		FWFLOAT t;
-		pAction->GetPhase(pEvent, &t);
-		pCamera->GetCamera()->PutPerspective(pCamera->m_fFOV + t * (pCamera->m_cp.FOV() - pCamera->m_fFOV), pCamera->m_cp.fClipNear, pCamera->m_cp.fClipFar, 0);
-		return S_OK;
-	}
-
-	int _callback_fun_oh(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, CCamera *pCamera)
-	{
-		if (pEvent->nEvent != EVENT_TICK) return S_OK;
-		FWFLOAT t;
-		pAction->GetPhase(pEvent, &t);
-		pCamera->GetCamera()->PutPerspective(pCamera->m_fFOV, pCamera->m_fClipNear + t * (pCamera->m_cp.fClipNear - pCamera->m_fClipNear), pCamera->m_cp.fClipFar, 0);
-
-		return S_OK;
-	}
-
-void CCamera::AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime)
+void CCamera::AnimateTo(CEngine *pEngine, CAMPARAMS &cp, AVULONG nTime)
 {
+	pEngine->StartCameraAnimation();	
+		
 	if (m_camloc == CAMLOC_LIFT)
 		SetStorey(m_nLiftStorey);
 	if (cp.camloc == CAMLOC_LIFT)
@@ -468,52 +448,44 @@ void CCamera::AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime)
 	m_camloc = cp.camloc;
 	m_cp = cp;
 
-	IAction *pAction;
-
+	ANIM_HANDLE a;
 	if (cp.camloc == CAMLOC_OVERHEAD) 
 	{
 		AVVECTOR eye1 = { cp.eye.x, cp.eye.y, m_pLiftGroup->GetStorey(cp.nId)->GetLevel() + m_pLiftGroup->GetStorey(cp.nId)->GetBox().Height() };
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, nTime * 6 / 10, GetHandle(), *(FWVECTOR*)&eye1, NULL);
-	}
-	else
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, 0, nTime * 6 / 10, GetHandle(), *(FWVECTOR*)&cp.eye, cp.EyeRef(GetLiftGroup()));
-	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
 
-	ITransform *pT = NULL;
-	GetHandle()->CreateCompatibleTransform(&pT);
+		a = pEngine->MoveCameraTo(GetHandle(), eye1, 0, nTime * 6 / 10, NULL);
+		pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
+		a = pEngine->PanCamera(GetHandle(), (AVFLOAT)M_PI + cp.fPan, 0, nTime);
+		pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
+		a = pEngine->TiltCamera(m_pCamera, cp.fTilt, nTime/2, nTime/2);
+		pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
 
-	pT->FromRotationZ((AVFLOAT)M_PI + cp.fPan);
-	pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"RotateTo", pTickSource, 0, nTime, GetHandle(), pT, NOBONE);
-	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
-
-	pT->FromRotationX(cp.fTilt);
-	pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"RotateTo", pTickSource, nTime/2, nTime/2, m_pCamera, pT, NOBONE);
-	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
-
-	if (cp.camloc == CAMLOC_OVERHEAD) 
-	{
 		// second stage: move up, change the fClipNear
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"MoveTo", pTickSource, nTime, nTime, GetHandle(), *(FWVECTOR*)&cp.eye, cp.EyeRef(GetLiftGroup()));
-		m_pCamera->GetPerspective(&m_fFOV, &m_fClipNear, NULL, NULL); 
-		pAction->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback_fun_oh, 0, this);
-		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
+		a = pEngine->MoveCameraTo(GetHandle(), cp.eye, nTime, nTime/2, cp.EyeRef(GetLiftGroup()));
+		pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
+		a = pEngine->ZoomCamera(m_pCamera, -1, m_cp.fClipNear, m_cp.fClipFar, nTime, nTime/3);
+		pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
 
 		// third step: adjust zoom
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"Generic", pTickSource, pAction, nTime/2);
-		pAction->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback_fun, 0, this);
-		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
+		a = pEngine->ZoomCamera(m_pCamera, m_cp.FOV(), m_cp.fClipNear, m_cp.fClipFar, 3*nTime/2, nTime/4);
+		pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
 	}
 	else
-	if (cp.FOV())
 	{
-		pAction = (IAction*)FWCreateObjWeakPtr(pTickSource->FWDevice(), L"Action", L"Generic", pTickSource, nTime, nTime/2, m_pCamera, pT, GetHandle());
-		m_pCamera->GetPerspective(&m_fFOV, NULL, NULL, NULL);
-		GetCamera()->PutPerspective(m_fFOV, cp.fClipNear, cp.fClipFar, 0);
-		pAction->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback_fun, 0, this);
-		pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
+		a = pEngine->ZoomCamera(m_pCamera, -1, m_cp.fClipNear, m_cp.fClipFar, 0, nTime/10);
+
+		a = pEngine->MoveCameraTo(GetHandle(), cp.eye, 0, nTime * 6 / 10, cp.EyeRef(GetLiftGroup()));
+		pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
+		a = pEngine->PanCamera(GetHandle(), (AVFLOAT)M_PI + cp.fPan, 0, nTime);
+		pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
+		a = pEngine->TiltCamera(m_pCamera, cp.fTilt, nTime/2, nTime/2);
+		pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
+		if (cp.FOV())
+		{
+			a = pEngine->ZoomCamera(m_pCamera, m_cp.FOV(), m_cp.fClipNear, m_cp.fClipFar, nTime, nTime/2);
+			pEngine->SetCameraEnvelope(a, 0.3f, 0.3f);
+		}
 	}
-	
-	pT->Release();
 
 	m_bMoved = m_bRotated = m_bZoomed = false;
 }

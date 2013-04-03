@@ -4,10 +4,8 @@
 
 #include <D3d9.h>
 #include <D3dx9core.h>
-#include <freewill.h>
-interface IRenderer;
 
-namespace avsprite { };
+class CEngine;
 
 class CSprite
 {
@@ -47,7 +45,7 @@ public:
 	};
 
 protected:
-	IRenderer *m_pRenderer;
+	CEngine *m_pEngine;
 	IDirect3DDevice9 *m_pDevice;
 	ID3DXSprite *m_pSprite;
 
@@ -57,9 +55,10 @@ protected:
 	bool m_bDirty;	// if set, imposes the transforms to be recalculated
 	
 public:
-	CSprite(IRenderer *pRenderer = NULL);
+	CSprite(CEngine *pEngine);
 	~CSprite();
-	void SetRenderer(IRenderer *pRenderer);
+	
+	void Initialise();	// call after engine is fully set up
 
 	CTexture *LoadTexture(LPCTSTR strFilename, D3DCOLOR ColorKey = 0);
 	CFont *CreateFont(AVLONG nHeight, BOOL bBold, BOOL bItalic, LPCWSTR pFaceName);

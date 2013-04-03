@@ -166,7 +166,7 @@ public:
 /////////////////////////////////////////////////////////////
 // Passenger Waypoint definition - directly used by CPassenger(Base) objects
 
-enum ENUM_ACTION { MOVE, WAIT, WALK, TURN, ENTER_ARR_FLOOR, ENTER_LIFT, ENTER_DEST_FLOOR };
+enum ENUM_ACTION { MOVE, WAIT, WALK, TURN, ENTER_ARR_FLOOR, ENTER_LIFT, ENTER_DEST_FLOOR, SPAWN = 1000, DIE };
 struct WAYPOINT
 {
 	ENUM_ACTION nAction;
@@ -195,7 +195,7 @@ class CPassenger : public dbtools::CCollection
 	AVULONG m_nArrivalFloor;	// read from file
 	AVULONG m_nDestFloor;		// read from file
 
-	AVLONG m_timeBorn;			// calculated from data - appear at the starting pos
+	AVLONG m_timeSpawn;			// calculated from data - appear at the starting pos
 	AVLONG m_timeArrival;		// read from file		- arrival to the wait zone (lobby)
 	AVLONG m_timeGo;			// calculated from data	- start towards the lift
 	AVLONG m_timeLoad;			// read from file		- load time (in the lift door)
@@ -223,7 +223,7 @@ public:
 	AVULONG GetDeck()				{ return m_nDeck; }
 	AVULONG GetArrivalFloor()		{ return m_nArrivalFloor; }
 	AVULONG GetDestFloor()			{ return m_nDestFloor; }
-	AVLONG GetBornTime()			{ return m_timeBorn; }
+	AVLONG GetSpawnTime()			{ return m_timeSpawn; }
 	AVLONG GetArrivalTime()			{ return m_timeArrival; }
 	AVLONG GetGoTime()				{ return m_timeGo; }
 	AVLONG GetLoadTime()			{ return m_timeLoad; }
@@ -238,7 +238,7 @@ public:
 	void SetDeck(AVULONG n)			{ m_nDeck = n; }
 	void SetArrivalFloor(AVULONG n)	{ m_nArrivalFloor = n; }
 	void SetDestFloor(AVULONG n)	{ m_nDestFloor = n; }
-	void SetBornTime(AVLONG n)		{ m_timeBorn = n; }
+	void SetSpawnTime(AVLONG n)		{ m_timeSpawn = n; }
 	void SetArrivalTime(AVLONG n)	{ m_timeArrival = n; }
 	void SetGoTime(AVLONG n)		{ m_timeGo = n; }
 	void SetLoadTime(AVLONG n)		{ m_timeLoad = n; }

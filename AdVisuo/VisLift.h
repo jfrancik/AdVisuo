@@ -3,11 +3,12 @@
 #pragma once
 
 #include "../CommonFiles/BaseSimClasses.h"
+#include "_base.h"
 
 class CSimVis;
 class CEngine;
 
-class CLiftVis : public CLift
+class CLiftVis : public CLift, public IAnimationListener
 {
 protected:
 	CEngine *m_pEngine;			// FreeWill engine
@@ -27,9 +28,13 @@ public:
 	void AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG timeStart, AVULONG timeDuration = 1000);
 	void AnimateJourney(CEngine *pEngine, AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeStart, AVULONG timeDuration);
 	
-	void Go(AVULONG i)				{ Go(*GetJourney(i)); }
 	void Go(JOURNEY &j);
 
 	void Play(CEngine *pEngine, AVLONG nTime = 0);
 	AVLONG FastForward(CEngine *pEngine, AVLONG nTime);
+
+	// implementation of IAnimationListener
+	virtual int OnAnimationBegin(AVULONG nParam)		{ return S_OK; }
+	virtual int OnAnimationTick(AVULONG nParam)			{ Go(*GetJourney(nParam)); return S_OK; }
+	virtual int OnAnimationEnd(AVULONG nParam)			{ return S_OK; }
 };

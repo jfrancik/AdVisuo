@@ -2,20 +2,18 @@
 
 #include "StdAfx.h"
 #include "Sprite.h"
-
-#include <fwrender.h>
+#include "Engine.h"
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
  
 
-CSprite::CSprite(IRenderer *pRenderer)
+CSprite::CSprite(CEngine *pEngine)
 {
-	m_pRenderer = NULL;
+	m_pEngine = pEngine;
+	
 	m_pDevice = NULL;
 	m_pSprite = NULL;
-
-	SetRenderer(pRenderer);
 
 	m_vecUserScale = m_vecScrScale = D3DXVECTOR2(1, 1);
 	m_vecTrans = D3DXVECTOR2(0, 0);
@@ -24,7 +22,6 @@ CSprite::CSprite(IRenderer *pRenderer)
 
 CSprite::~CSprite()
 {
-	if (m_pRenderer) m_pRenderer->Release();
 	if (m_pDevice) m_pDevice->Release();
 	if (m_pSprite) m_pSprite->Release();
 }
@@ -61,13 +58,9 @@ CSprite::CTexture::~CTexture()
 	if (m_pTexture) m_pTexture->Release();
 }
 
-void CSprite::SetRenderer(IRenderer *pRenderer)
+void CSprite::Initialise()
 {
-	if (m_pRenderer) m_pRenderer->Release();
-	m_pRenderer = pRenderer;
-	if (!m_pRenderer) return;
-	m_pRenderer->AddRef();
-	m_pRenderer->GetDeviceHandle(1, (FWHANDLE*)&m_pDevice);
+	m_pDevice = m_pEngine->GetDXDevice();
 	if (m_pDevice)
 	{
 		if (m_pSprite) m_pSprite->Release();
@@ -126,10 +119,9 @@ void CSprite::End()
 
 void CSprite::OnResize()
 {
-	AVULONG x, y, X, Y;
-	m_pRenderer->GetViewSize(&x, &y);
-	m_pRenderer->GetBackBufferSize(&X, &Y);
-	m_vecScrScale = D3DXVECTOR2((AVFLOAT)X / (AVFLOAT)x, (AVFLOAT)Y / (AVFLOAT)y);
+	CSize sizeView = m_pEngine->GetViewSize();
+	CSize sizeBack = m_pEngine->GetBackBufferSize();
+	m_vecScrScale = D3DXVECTOR2((AVFLOAT)sizeBack.cx / (AVFLOAT)sizeView.cx, (AVFLOAT)sizeBack.cy / (AVFLOAT)sizeView.cy);
 	m_bDirty = true;
 }
 

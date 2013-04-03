@@ -88,7 +88,7 @@ void CSimSrv::Play()
 	{
 		pPassenger->Play();
 		GetProject()->ReportMaxSimulationTime(pPassenger->GetUnloadTime());
-		GetProject()->ReportMinSimulationTime(pPassenger->GetBornTime());
+		GetProject()->ReportMinSimulationTime(pPassenger->GetSpawnTime());
 	}
 }
 

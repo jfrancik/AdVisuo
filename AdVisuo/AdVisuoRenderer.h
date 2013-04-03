@@ -2,18 +2,18 @@
 
 #pragma once
 
-interface IRenderer;
 class CLiftGroupVis;
 class CCamera;
+class CEngine;
 
 class CAdVisuoRenderer
 {
 	CLiftGroupVis *m_pLiftGroup;
-	IRenderer *m_pRenderer;
 	CCamera *m_pCamera;
+	CEngine *m_pEngine;
 public:
-	CAdVisuoRenderer(CLiftGroupVis *pLiftGroup, IRenderer *pRenderer, CCamera *pCamera = NULL)
-		: m_pLiftGroup(pLiftGroup), m_pRenderer(pRenderer), m_pCamera(pCamera)	{ }
+	CAdVisuoRenderer(CEngine *pEngine, CLiftGroupVis *pLiftGroup, CCamera *pCamera = NULL)
+		: m_pLiftGroup(pLiftGroup), m_pEngine(pEngine), m_pCamera(pCamera)	{ }
 
 	void SetLiftGroup(CLiftGroupVis *pLiftGroup)	{ m_pLiftGroup = pLiftGroup; }
 

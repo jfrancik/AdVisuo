@@ -11,8 +11,6 @@ class CLiftVis;
 class CPassengerVis;
 class CEngine;
 
-interface IRenderer;
-
 class CSimVis : public CSim
 {
 	AVULONG m_nColouringMode;	// the Colouring Mode
@@ -30,7 +28,7 @@ public:
 
 	void Play(CEngine *pEngine, AVLONG nTime);
 	AVLONG FastForward(CEngine *pEngine, AVLONG nTime);					// returns the earliest time that must be scanned before FF (usually < nTime)
-	void RenderPassengers(IRenderer *pRenderer, AVLONG nPhase = 0);
+	void RenderPassengers(AVLONG nPhase = 0);
 	void Stop();
 
 protected:

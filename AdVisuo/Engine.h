@@ -2,25 +2,24 @@
 
 #pragma once
 
+#include "_base.h"
 #include "repos.h"
-
-#include <freewill.h>	// obligatory
-#include <fwrender.h>	// to start the renderer
-#include <fwaction.h>	// actions
 
 extern bool g_bFullScreen;
 extern bool g_bReenter;
 
+interface IFWDevice;
+interface IRenderer;
+interface IScene;
 interface IAction;
 interface IBody;
 interface IKineNode;
+interface IKineChild;
 interface IMaterial;
-
-interface ILostDeviceObserver
-{
-	virtual void OnLostDevice() = 0;
-	virtual void OnResetDevice() = 0;
-};
+interface ISceneObject;
+interface ISceneLightDir;
+interface ISceneCamera;
+interface IDirect3DDevice9;
 
 enum
 {
@@ -30,8 +29,7 @@ enum
 	MAT_PLATE_FLOOR = MAT_NUM, MAT_PLATE_LIFT
 };
 
-typedef int (*CB_HANDLE)(struct ACTION_EVENT *pEvent, IAction *pAction, FWULONG nParam, void *pParam);
-typedef IAction *ANIM_HANDLE;
+enum BMP_FORMAT { FORMAT_BMP, FORMAT_JPG, FORMAT_TGA, FORMAT_PNG };
 
 class CEngine : protected CRepos<IBody>
 {
@@ -88,27 +86,29 @@ public:
 	virtual ~CEngine();
 
 private:
-	IRenderer *GetRenderer()					{ return m_pRenderer; }
 	IScene *GetScene()							{ return m_pScene; }
-	friend class CAdVisuoView;
 	friend class CElemVis;
 public:
 
 	// Engine Creation
 	bool Create(HWND hWnd, ILostDeviceObserver *pLDO = NULL);
 
+	// DirectX bridge
+	IDirect3DDevice9 *GetDXDevice();
+
 	// Status
-	bool IsReady()								{ return m_pScene != NULL; }
-	bool IsRunning()							{ return (m_pActionTick->AnySubscriptionsLeft() == TRUE); }
-	CSize GetViewSize()							{ CSize size; m_pRenderer->GetViewSize((FWULONG*)&size.cx, (FWULONG*)&size.cy); return size; }
-	FWULONG GeViewtWidth()						{ FWULONG x, y; m_pRenderer->GetViewSize(&x, &y); return x; }
-	FWULONG GetViewHeight()						{ FWULONG x, y; m_pRenderer->GetViewSize(&x, &y); return y; }
+	bool IsReady();
+	bool IsRunning();
+	CSize GetViewSize();
+	CSize GetBackBufferSize();
+	AVULONG GeViewtWidth();
+	AVULONG GetViewHeight();
 	CString GetDiagnosticMessage();
 
 	// Material manager
 	AVULONG GetMatCount()						{ return sizeof(m_materials) / sizeof(MATERIAL); }
 	void SetSolidMat(AVULONG i, AVCOLOR color, AVSTRING pLabel = NULL);
-	void SetSolidMat(AVULONG i, FWULONG r, FWULONG g, FWULONG b, FWULONG a = 256, AVSTRING pLabel = NULL);
+	void SetSolidMat(AVULONG i, AVULONG r, AVULONG g, AVULONG b, AVULONG a = 256, AVSTRING pLabel = NULL);
 	void SetTexturedMat(AVULONG i, AVSTRING pFName, AVFLOAT fUTile, AVFLOAT fVTile, AVFLOAT alpha = 1.0f, AVSTRING pLabel = NULL);
 
 	void CreateMat(AVULONG i);
@@ -118,8 +118,8 @@ public:
 
 	void CreateFloorPlateMats(AVULONG nStoreys, AVULONG nBasementStoreys);
 	void CreateLiftPlateMats(AVULONG nShafts);
-	void ReleaseFloorPlateMats()				{ for each (IMaterial *pMaterial in m_matFloorPlates) pMaterial->Release(); }
-	void ReleaseLiftPlateMats()					{ for each (IMaterial *pMaterial in m_matLiftPlates) pMaterial->Release(); }
+	void ReleaseFloorPlateMats();
+	void ReleaseLiftPlateMats();
 
 	AVSTRING GetMatLabel(AVULONG i)				{ return m_materials[i].m_pLabel; }
 	bool GetMatSolid(AVULONG i)					{ return m_materials[i].m_bSolid; }
@@ -138,38 +138,46 @@ public:
 	void EndFrame();
 
 	// Proceed the simulation to the given time stamp
-	void Proceed(FWLONG nMSec)					{ m_pActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, 0); }
+	void Proceed(AVLONG nMSec);
 	
 	// Auxiliary Player
 	void AuxPlay(IAction **pAuxAction, AVULONG nClockValue = 0x7FFFFFFF);
-	void ProceedAux(FWLONG nMSec);
+	void ProceedAux(AVLONG nMSec);
 	
 	// Tools
-	bool Play()									{ if (!IsReady()) return false; m_pRenderer->Play(); return true; }
-	bool Play(FWLONG nMSec)						{ if (!IsReady()) return false; m_pRenderer->Play(); m_pRenderer->PutPlayTime(nMSec); return true; }
-	bool Pause()								{ if (!IsReady()) return false; m_pRenderer->Pause(); return true; }
-	bool Stop()									{ if (!IsReady()) return false; m_pRenderer->Stop(); m_pActionTick->UnSubscribeAll(); return true; }
-	bool IsPlaying()							{ return IsReady() && (m_pRenderer->IsPlaying() == S_OK); }
-	bool IsPaused()								{ return IsReady() && (m_pRenderer->IsPaused() == S_OK); }
-	FWLONG GetPlayTime()						{ FWLONG nTime; if (!IsPlaying()) return 0; m_pRenderer->GetPlayTime(&nTime); return nTime; }
-	FWULONG GetFPS()							{ return m_pfps[m_nfps] ? 1000 * (c_fpsNUM-1) / (m_pfps[(m_nfps+c_fpsNUM-1)%c_fpsNUM] - m_pfps[m_nfps]) : 0; }
-	FWFLOAT GetAccel()							{ FWFLOAT accel; m_pRenderer->GetAccel(&accel); return accel; }
-	void PutAccel(FWFLOAT accel)				{ m_pRenderer->PutAccel(accel); }
-	void SlowDown(FWFLOAT f = 2)				{ PutAccel(GetAccel() / f); }
-	void SpeedUp(FWFLOAT f = 2)					{ PutAccel(GetAccel() * f); }
-	void ResetAccel()							{ m_pRenderer->PutAccel(1); }
+	bool Play();
+	bool Play(AVLONG nMSec);
+	bool Pause();
+	bool Stop();
+	bool IsPlaying();
+	bool IsPaused();
+	AVLONG GetPlayTime();
+	AVULONG GetFPS();
+	AVFLOAT GetAccel();
+	void PutAccel(AVFLOAT accel);
+	void SlowDown(AVFLOAT f = 2);
+	void SpeedUp(AVFLOAT f = 2);
+	void ResetAccel();
 
 	// Device Reset and off screen modes
-	void ResetDevice(HWND hWnd = NULL)			{ m_pRenderer->ResetDeviceEx(hWnd, 0, 0); }
-	void InitOffScreen(CSize size, LPCTSTR pAviFile, FWULONG nFPS);
-	void InitOffScreen(CSize size, LPCTSTR pImgFile, FW_RENDER_BITMAP fmt);
-	void SetTargetToScreen()					{ m_pRenderer->SetTargetToScreen(); }
-	void SetTargetOffScreen()					{ m_pRenderer->SetTargetOffScreen(); }
-	void DoneOffScreen();
+	void ResetDevice(HWND hWnd = NULL);
+	void StartTargetToImage(CSize size, LPCTSTR pImgFile, enum BMP_FORMAT);
+	void StartTargetToImage(CSize size, LPCTSTR pImgFile);	// chooses format automatically - after the file ext
+	void StartTargetToVideo(CSize size, LPCTSTR pAviFile, AVULONG nFPS);
+	void SetTargetToScreen();
+	void SetTargetOffScreen();
+	void DoneTargetOffScreen();
+
+	// Viewport preparation
+	void PrepareViewport(AVFLOAT fX, AVFLOAT fY, AVFLOAT fWidth, AVFLOAT fHeight, AVLONG nX, AVLONG nY, AVLONG nWidth, AVLONG nHeight, bool bClear = true);
+	void PrepareViewport(AVFLOAT fX, AVFLOAT fY, AVFLOAT fWidth, AVFLOAT fHeight, AVLONG nX, AVLONG nY, AVLONG nWidth, AVLONG nHeight, AVCOLOR backColor, bool bClear = true);
 
 	// Various functions
 	void RenderLights();
-	void PutCamera(ISceneCamera *p)				{ m_pScene->PutCamera(p); }
+	void Render(ISceneCamera *p);
+	void Render(ISceneObject *p);
+	void RenderPassenger(IBody *pBody, AVULONG nColourMode, AVULONG nPhase, AVLONG timeSpawn, AVLONG timeLoad, AVLONG spanWait);
+	void PutCamera(ISceneCamera *p);
 
 	// Repository Utilities
 	IBody *SpawnBiped();
@@ -177,7 +185,7 @@ public:
 
 	// Animators
 	ANIM_HANDLE StartAnimation(LONG nTime);
-	ANIM_HANDLE SetAnimationCB(ANIM_HANDLE aHandle, CB_HANDLE fn, AVULONG nParam, void *pParam);
+	ANIM_HANDLE SetAnimationListener(ANIM_HANDLE aHandle, IAnimationListener *pListener, AVULONG nParam = 0);
 	ANIM_HANDLE DoNothing(ANIM_HANDLE aHandle);
 	ANIM_HANDLE Move(ANIM_HANDLE aHandle, IBody *pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
 	ANIM_HANDLE Move(ANIM_HANDLE aHandle, IKineNode *pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
@@ -186,7 +194,15 @@ public:
 	ANIM_HANDLE Wait(ANIM_HANDLE aHandle, IBody *pBody, LONG nTimeUntil, std::wstring wstrStyle = L"");
 	ANIM_HANDLE Walk(ANIM_HANDLE aHandle, IBody *pBody, AVFLOAT x, AVFLOAT y, std::wstring wstrStyle = L"");
 	ANIM_HANDLE Turn(ANIM_HANDLE aHandle, IBody *pBody, std::wstring wstrStyle = L"");
-	ANIM_HANDLE SetParabolicEnvelopeT(ANIM_HANDLE aHandle, AVFLOAT fEaseIn, AVFLOAT fEaseOut);
+	ANIM_HANDLE SetEnvelope(ANIM_HANDLE aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec);
+
+	// Camera Animators
+	void StartCameraAnimation(AVULONG nClockValue = 0x7FFFFFFF);
+	ANIM_HANDLE MoveCameraTo(IKineNode *pNode, AVVECTOR v, AVULONG nTime, AVULONG nDuration, IKineNode *pRef);
+	ANIM_HANDLE PanCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration);
+	ANIM_HANDLE TiltCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration);
+	ANIM_HANDLE ZoomCamera(ISceneCamera *pCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVULONG nTime, AVULONG nDuration);
+	ANIM_HANDLE SetCameraEnvelope(ANIM_HANDLE aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec);
 
 
 protected:

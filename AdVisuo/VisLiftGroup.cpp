@@ -6,6 +6,8 @@
 #include "Engine.h"
 #include "VisSim.h"
 
+#include <freewill.h>
+
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
 

@@ -4,6 +4,10 @@
 #include "Engine.h"
 #include "DlgRepBug.h"
 
+#include <freewill.h>
+#include <fwrender.h>
+#include <fwaction.h>
+
 #include "freewill.c"			// #FreeWill: Obligatory!
 #include "freewilltools.h"
 
@@ -136,10 +140,10 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 		h = m_pRenderer->InitDisplay(hWnd, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
 		if (FAILED(h)) throw ERROR_INTERNAL;
 
-	//	AVCOLOR back = { 0.0f, 0.0f, 0.0f };		// black
-	// 	AVCOLOR back = { 0.56f, 0.68f, 0.83f };		// blue
-	//	AVCOLOR back = { 0.33f, 0.33f, 0.33f };		// gray
-		AVCOLOR back = { 0.33f, 0.33f, 0.90f };		// gray
+	//	FWCOLOR back = { 0.0f, 0.0f, 0.0f };		// black
+	// 	FWCOLOR back = { 0.56f, 0.68f, 0.83f };		// blue
+	//	FWCOLOR back = { 0.33f, 0.33f, 0.33f };		// gray
+		FWCOLOR back = { 0.33f, 0.33f, 0.90f };		// gray
 		m_pRenderer->PutBackColor(back);
 
 		// #FreeWill: create & initialise the buffers - determine hardware factors
@@ -212,13 +216,13 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 		// setup lights
 		m_pFWDevice->CreateObject(L"DirLight", IID_ISceneLightDir, (IFWUnknown**)&m_pLight1);
 		m_pScene->AddChild(L"DirLight1", m_pLight1);
-		AVCOLOR cWhite1 = { 0.7f, 0.7f, 0.7f };
+		FWCOLOR cWhite1 = { 0.7f, 0.7f, 0.7f };
 		m_pLight1->PutDiffuseColor(cWhite1);
 		m_pLight1->Create(__FW_Vector(0.1f, -0.3f, -0.4f));
 
 		m_pFWDevice->CreateObject(L"DirLight", IID_ISceneLightDir, (IFWUnknown**)&m_pLight2);
 		m_pScene->AddChild(L"DirLight2", m_pLight2);
-		AVCOLOR cWhite2 = { 0.6f, 0.6f, 0.6f };
+		FWCOLOR cWhite2 = { 0.6f, 0.6f, 0.6f };
 		m_pLight2->PutDiffuseColor(cWhite2);
 		m_pLight2->Create(__FW_Vector(0, 1, 3));
 
@@ -252,6 +256,38 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 	m_pFWDevice->SetUserErrorHandler(HandleErrors);
 	
 	return true;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// DX Bridge
+
+IDirect3DDevice9 *CEngine::GetDXDevice()
+{
+	IDirect3DDevice9 *pDevice = NULL;
+	m_pRenderer->GetDeviceHandle(1, (FWHANDLE*)&pDevice);
+	return pDevice;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Status
+
+bool CEngine::IsReady()					{ return m_pScene != NULL; }
+bool CEngine::IsRunning()				{ return (m_pActionTick->AnySubscriptionsLeft() == TRUE); }
+CSize CEngine::GetViewSize()			{ CSize size; m_pRenderer->GetViewSize((AVULONG*)&size.cx, (AVULONG*)&size.cy); return size; }
+CSize CEngine::GetBackBufferSize()		{ CSize size; m_pRenderer->GetBackBufferSize((AVULONG*)&size.cx, (AVULONG*)&size.cy); return size; }
+AVULONG CEngine::GeViewtWidth()			{ AVULONG x, y; m_pRenderer->GetViewSize(&x, &y); return x; }
+AVULONG CEngine::GetViewHeight()		{ AVULONG x, y; m_pRenderer->GetViewSize(&x, &y); return y; }
+
+CString CEngine::GetDiagnosticMessage()
+{
+	CString str;
+	if (IsPlaying() && !IsPaused())
+		str.Format(L"Playing now at %d", GetPlayTime());
+	else if (IsPlaying() && IsPaused())
+		str.Format(L"Paused at %d", GetPlayTime());
+	else
+		str.Format(L"Not playing");
+	return str;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -292,9 +328,9 @@ void CEngine::CreateMat(AVULONG i)
 
 	if (m_materials[i].m_bSolid)
 	{
-		pMaterial->SetDiffuseColor(m_materials[i].m_color);
-		pMaterial->SetAmbientColor(m_materials[i].m_color);
-		pMaterial->SetSpecularColor(m_materials[i].m_color);
+		pMaterial->SetDiffuseColor(_FWCOLOR(m_materials[i].m_color));
+		pMaterial->SetAmbientColor(_FWCOLOR(m_materials[i].m_color));
+		pMaterial->SetSpecularColor(_FWCOLOR(m_materials[i].m_color));
 		pMaterial->SetSelfIlluminationOff();
 		pMaterial->SetTwoSided(TRUE);
 		pMaterial->SetAlphaMode(m_materials[i].m_color.a < 0.99 ? MAT_ALPHA_MATERIAL : MAT_ALPHA_DISABLE);
@@ -415,6 +451,18 @@ void CEngine::CreateLiftPlateMats(AVULONG nShafts)
 	}
 }
 
+void CEngine::ReleaseFloorPlateMats()
+{ 
+	for each (IMaterial *pMaterial in m_matFloorPlates) 
+		pMaterial->Release(); 
+}
+
+void CEngine::ReleaseLiftPlateMats()
+{ 
+	for each (IMaterial *pMaterial in m_matLiftPlates) 
+		pMaterial->Release(); 
+}
+
 IMaterial *CEngine::GetMat(AVULONG nWallId, AVLONG i)
 {
 	AVULONG LookUp[] = 
@@ -461,28 +509,12 @@ void CEngine::InitMats(AVULONG nStoreys, AVULONG nBasementStoreys, AVULONG nShaf
 	CreateLiftPlateMats(nShafts);
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// Status
-
-CString CEngine::GetDiagnosticMessage()
-{
-	CString str;
-	if (IsPlaying() && !IsPaused())
-		str.Format(L"Playing now at %d", GetPlayTime());
-	else if (IsPlaying() && IsPaused())
-		str.Format(L"Paused at %d", GetPlayTime());
-	else
-		str.Format(L"Not playing");
-	return str;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Rendering cycle
 
 void CEngine::BeginFrame()
 { 
-	m_pRenderer->PutBackColor(GetMatColor(MAT_BACKGROUND));
+	m_pRenderer->PutBackColor(_FWCOLOR(GetMatColor(MAT_BACKGROUND)));
 	m_pRenderer->BeginFrame(); 
 }
 
@@ -491,6 +523,11 @@ void CEngine::EndFrame()
 	m_pRenderer->EndFrame(); 
 	m_pfps[m_nfps] = GetTickCount();
 	m_nfps = (m_nfps + 1) % c_fpsNUM;
+}
+
+void CEngine::Proceed(AVLONG nMSec)
+{
+	m_pActionTick->RaiseEvent(nMSec, EVENT_TICK, nMSec, 0); 
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -513,23 +550,65 @@ void CEngine::ProceedAux(FWLONG nMSec)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+// Tools
+
+bool CEngine::Play()						{ if (!IsReady()) return false; m_pRenderer->Play(); return true; }
+bool CEngine::Play(AVLONG nMSec)			{ if (!IsReady()) return false; m_pRenderer->Play(); m_pRenderer->PutPlayTime(nMSec); return true; }
+bool CEngine::Pause()						{ if (!IsReady()) return false; m_pRenderer->Pause(); return true; }
+bool CEngine::Stop()						{ if (!IsReady()) return false; m_pRenderer->Stop(); m_pActionTick->UnSubscribeAll(); return true; }
+bool CEngine::IsPlaying()					{ return IsReady() && (m_pRenderer->IsPlaying() == S_OK); }
+bool CEngine::IsPaused()					{ return IsReady() && (m_pRenderer->IsPaused() == S_OK); }
+AVLONG CEngine::GetPlayTime()				{ AVLONG nTime; if (!IsPlaying()) return 0; m_pRenderer->GetPlayTime(&nTime); return nTime; }
+AVULONG CEngine::GetFPS()					{ return m_pfps[m_nfps] ? 1000 * (c_fpsNUM-1) / (m_pfps[(m_nfps+c_fpsNUM-1)%c_fpsNUM] - m_pfps[m_nfps]) : 0; }
+AVFLOAT CEngine::GetAccel()					{ AVFLOAT accel; m_pRenderer->GetAccel(&accel); return accel; }
+void CEngine::PutAccel(AVFLOAT accel)		{ m_pRenderer->PutAccel(accel); }
+void CEngine::SlowDown(AVFLOAT f)			{ PutAccel(GetAccel() / f); }
+void CEngine::SpeedUp(AVFLOAT f)			{ PutAccel(GetAccel() * f); }
+void CEngine::ResetAccel()					{ m_pRenderer->PutAccel(1); }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
 // Device Reset and off screen modes
 
-void CEngine::InitOffScreen(CSize sz, LPCTSTR pAviFile, FWULONG nFPS)
+void CEngine::ResetDevice(HWND hWnd)		{ m_pRenderer->ResetDeviceEx(hWnd, 0, 0); }
+
+void CEngine::StartTargetToImage(CSize size, LPCTSTR pImgFile, enum BMP_FORMAT fmt)
+{
+	FW_RENDER_BITMAP conv[] = { RENDER_BMP, RENDER_JPG, RENDER_TGA, RENDER_PNG };
+	m_pFWDevice->EnableErrorException(TRUE);
+	m_pRenderer->InitOffScreen(size.cx, size.cy);
+	m_pRenderer->OpenStillFile(pImgFile, conv[fmt]);
+}
+
+void CEngine::StartTargetToImage(CSize size, LPCTSTR pImgFile)
+{
+	wchar_t drive[_MAX_DRIVE];
+	wchar_t dir[_MAX_DIR];
+	wchar_t fname[_MAX_FNAME];
+	wchar_t ext[_MAX_EXT];
+
+	_wsplitpath(pImgFile, drive, dir, fname, ext);
+
+	enum BMP_FORMAT fmt;
+	if (_wcsicmp(ext, L".bmp") == 0) fmt = FORMAT_BMP;
+	else if (_wcsicmp(ext, L".jpg") == 0) fmt = FORMAT_JPG;
+	else if (_wcsicmp(ext, L".tga") == 0) fmt = FORMAT_TGA;
+	else if (_wcsicmp(ext, L".png") == 0) fmt = FORMAT_PNG;
+	else fmt = FORMAT_BMP;
+
+	StartTargetToImage(size, pImgFile, fmt);
+}
+
+void CEngine::StartTargetToVideo(CSize sz, LPCTSTR pAviFile, FWULONG nFPS)
 {
 	m_pFWDevice->EnableErrorException(TRUE);
 	m_pRenderer->InitOffScreen(sz.cx, sz.cy);
 	m_pRenderer->OpenMovieFile(pAviFile, nFPS);
 }
 
-void CEngine::InitOffScreen(CSize sz, LPCTSTR pImgFile, FW_RENDER_BITMAP fmt)
-{
-	m_pFWDevice->EnableErrorException(TRUE);
-	m_pRenderer->InitOffScreen(sz.cx, sz.cy);
-	m_pRenderer->OpenStillFile(pImgFile, fmt);
-}
+void CEngine::SetTargetToScreen()			{ m_pRenderer->SetTargetToScreen(); }
+void CEngine::SetTargetOffScreen()			{ m_pRenderer->SetTargetOffScreen(); }
 
-void CEngine::DoneOffScreen()
+void CEngine::DoneTargetOffScreen()
 {
 	m_pRenderer->CloseMovieFile();	// will only close the file if previously opened
 	m_pRenderer->DoneOffScreen();
@@ -537,14 +616,128 @@ void CEngine::DoneOffScreen()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+// Viewport preparation
+
+void CEngine::PrepareViewport(AVFLOAT fX, AVFLOAT fY, AVFLOAT fWidth, AVFLOAT fHeight, AVLONG nX, AVLONG nY, AVLONG nWidth, AVLONG nHeight, bool bClear)
+{
+	m_pRenderer->PutViewport(fX, fY, fWidth, fHeight, nX, nY, nWidth, nHeight);
+	if (bClear)
+		m_pRenderer->Clear();
+}
+
+void CEngine::PrepareViewport(AVFLOAT fX, AVFLOAT fY, AVFLOAT fWidth, AVFLOAT fHeight, AVLONG nX, AVLONG nY, AVLONG nWidth, AVLONG nHeight, AVCOLOR backColor, bool bClear)
+{
+	FWCOLOR color;
+	m_pRenderer->GetBackColor(&color);
+	m_pRenderer->PutBackColor(_FWCOLOR(backColor));
+	PrepareViewport(fX, fY, fWidth, fHeight, nX, nY, nWidth, nHeight, bClear);
+	m_pRenderer->PutBackColor(color);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
 // Other rendering functions
 
 void CEngine::RenderLights()
 {
-	AVCOLOR cAmb = { 0.35f, 0.35f, 0.35f };
+	FWCOLOR cAmb = { 0.35f, 0.35f, 0.35f };
 	m_pRenderer->SetAmbientLight(cAmb);
 	m_pLight1->Render(m_pRenderer);
 	m_pLight2->Render(m_pRenderer);
+}
+
+void CEngine::Render(ISceneCamera *p)
+{
+	p->Render(m_pRenderer);
+}
+
+void CEngine::Render(ISceneObject *p)
+{
+	p->Render(m_pRenderer);
+}
+
+void CEngine::PutCamera(ISceneCamera *p)
+{
+	m_pScene->PutCamera(p); 
+}
+
+	static AVCOLOR HSV_to_RGB(AVFLOAT h, AVFLOAT s, AVFLOAT v)
+	{
+		// H is given on [0, 6]. S and V are given on [0, 1].
+		float f = h - (int)h;
+		if (((int)h & 1) == 0) f = 1 - f; // if i is even
+		float m = v * (1 - s);
+		float n = v * (1 - s * f);
+
+		AVCOLOR RGBA;
+		switch ((int)h) 
+		{
+			case 6:
+			case 0: RGBA.r = v; RGBA.g = n; RGBA.b = m; RGBA.a = 1; return RGBA;
+			case 1: RGBA.r = n; RGBA.g = v; RGBA.b = m; RGBA.a = 1; return RGBA;
+			case 2: RGBA.r = m; RGBA.g = v; RGBA.b = n; RGBA.a = 1; return RGBA;
+			case 3: RGBA.r = m; RGBA.g = n; RGBA.b = v; RGBA.a = 1; return RGBA;
+			case 4: RGBA.r = n; RGBA.g = m; RGBA.b = v; RGBA.a = 1; return RGBA;
+			case 5: RGBA.r = v; RGBA.g = m; RGBA.b = n; RGBA.a = 1; return RGBA;
+			default: RGBA.r = 0; RGBA.g = 0; RGBA.b = 0; RGBA.a = 1; return RGBA;
+		}
+	}
+
+void CEngine::RenderPassenger(IBody *pBody, AVULONG nColourMode, AVULONG nPhase, AVLONG timeSpawn, AVLONG timeLoad, AVLONG spanWait)
+{
+	// get the current playing time...
+	AVLONG nTime = GetPlayTime();
+	AVLONG nAge = nTime - timeSpawn;
+	if (nAge < 550 && nPhase == 0 || nAge >= 550 && nPhase == 1)
+		return;
+
+	// get the body object
+	if (!pBody) return;
+	ISceneObject *pObjBody = NULL;
+	IKineNode *pNode = pBody->BodyNode(BODY_OBJECT);
+	pNode->QueryInterface(&pObjBody);
+	pNode->Release();
+	if (!pObjBody)
+		return;
+
+	// Determine Temperature
+	AVULONG time;
+	switch (nColourMode)
+	{
+	case 0: 
+		time = 0;
+		break;
+	case 1: 
+		if (nTime < timeLoad - spanWait)
+			time = 0;
+		else if (nTime >= timeLoad)
+			time = spanWait;
+		else
+			time = nTime + spanWait - timeLoad;
+		break;
+	case 2: 
+		time = spanWait;
+		break;
+	}
+	AVCOLOR color = HSV_to_RGB(2 - (((AVFLOAT)min(time, 55000) * 2) / 55000), 1, 1);
+
+	// Determine transparency (where we are very young...)
+	AVFLOAT fAlpha = 1.0f;
+	if (nAge < 50) fAlpha = 0.0;
+	else if (nAge < 550) fAlpha = (nAge - 50) / 500.0f;
+
+	// Set Material colour & alpha
+	IMaterial *pMaterial = NULL;
+	pObjBody->GetMaterial(&pMaterial);
+	if (pMaterial) 
+	{
+		pMaterial->SetDiffuseColor(_FWCOLOR(color));
+		pMaterial->SetAlpha(fAlpha);
+		pMaterial->Release();
+	}
+
+	// Render & Bye
+	pObjBody->Render((IRndrGeneric*)m_pRenderer);
+	pObjBody->Release();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -613,10 +806,21 @@ ANIM_HANDLE CEngine::StartAnimation(LONG nTime)
 	return (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Generic", m_pActionTick, nTime, 0);
 }
 
-ANIM_HANDLE CEngine::SetAnimationCB(ANIM_HANDLE aHandle, CB_HANDLE fn, AVULONG nParam, void *pParam)
+	int _callback(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, IAnimationListener *p)
+	{
+		switch (pEvent->nEvent)
+		{
+		case EVENT_BEGIN:	return p->OnAnimationBegin(nParam);
+		case EVENT_TICK:	return p->OnAnimationTick(nParam);
+		case EVENT_END:		return p->OnAnimationEnd(nParam);
+		default:			return 0;
+		}
+	}
+
+ANIM_HANDLE CEngine::SetAnimationListener(ANIM_HANDLE aHandle, IAnimationListener *pListener, AVULONG nParam)
 {
 	aHandle = (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Generic", m_pActionTick, aHandle, 0);
-	aHandle->SetHandleEventHook(fn, nParam, pParam);
+	aHandle->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback, nParam, (void*)pListener);
 	return aHandle;
 }
 
@@ -660,8 +864,107 @@ ANIM_HANDLE CEngine::Turn(ANIM_HANDLE aHandle, IBody *pBody, std::wstring wstrSt
 	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Turn", m_pActionTick, aHandle, c_nTurnDuration, (AVSTRING)(wstrStyle.c_str()), pBody, DEG2RAD(180), 3);
 }
 
-ANIM_HANDLE CEngine::SetParabolicEnvelopeT(ANIM_HANDLE aHandle, AVFLOAT fEaseIn, AVFLOAT fEaseOut)
+ANIM_HANDLE CEngine::SetEnvelope(ANIM_HANDLE aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec)
 {
-	aHandle->SetParabolicEnvelopeT(fEaseIn, fEaseOut);
+	aHandle->SetParabolicEnvelopeT(fEaseInMsec, fEaseOutMsec);
 	return aHandle;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Camera Animators
+
+void CEngine::StartCameraAnimation(AVULONG nClockValue)
+{
+	m_pAuxActionTick->UnSubscribeAll();
+	m_nAuxTimeRef = (nClockValue == 0x7FFFFFFF) ? ::GetTickCount() : nClockValue;
+}
+
+ANIM_HANDLE CEngine::MoveCameraTo(IKineNode *pNode, AVVECTOR v, AVULONG nTime, AVULONG nDuration, IKineNode *pRef)
+{
+	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"MoveTo", m_pAuxActionTick, nTime, nDuration, pNode, *(FWVECTOR*)&v, pRef);
+	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
+	return pAction;
+}
+
+ANIM_HANDLE CEngine::PanCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration)
+{
+	ITransform *pT = NULL;
+	m_pScene->CreateCompatibleTransform(&pT);
+
+	pT->FromRotationZ(alpha);
+	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"RotateTo", m_pAuxActionTick, nTime, nDuration, pNode, pT, ((IKineNode*)NULL));
+	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
+
+	pT->Release();
+	return pAction;
+}
+
+ANIM_HANDLE CEngine::TiltCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration)
+{
+	ITransform *pT = NULL;
+	m_pScene->CreateCompatibleTransform(&pT);
+
+	pT->FromRotationX(alpha);
+	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"RotateTo", m_pAuxActionTick, nTime, nDuration, pNode, pT, ((IKineNode*)NULL));
+	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
+
+	pT->Release();
+	return pAction;
+}
+	
+	struct ZOOMINFO
+	{
+		ISceneCamera *pCamera;
+		AVFLOAT fFOV0, fFOV1;
+		AVFLOAT fClipNear0, fClipNear1;
+		AVFLOAT fClipFar0, fClipFar1;
+	};
+
+	int _callback_zoom(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, ZOOMINFO *p)
+	{
+		switch (pEvent->nEvent)
+		{
+		case EVENT_BEGIN:
+			p->pCamera->GetPerspective(&p->fFOV0, &p->fClipNear0, &p->fClipFar0, NULL);
+			if (p->fFOV1 < 0) p->fFOV1 = p->fFOV0;
+			if (p->fClipNear1 < 0) p->fClipNear1 = p->fClipNear0;
+			if (p->fClipFar1 < 0) p->fClipFar1 = p->fClipFar0;
+			break;
+		case EVENT_END:
+			p->pCamera->Release();
+			delete p;
+			break;
+		case EVENT_TICK:
+			FWFLOAT t;
+			pAction->GetPhase(pEvent, &t);
+			AVFLOAT fFOV = p->fFOV0 + t * (p->fFOV1 - p->fFOV0);
+//			t = min(1.0f, t * 20);
+			AVFLOAT fClipNear = p->fClipNear0 + t * (p->fClipNear1 - p->fClipNear0);
+			AVFLOAT fClipFar = p->fClipFar0 + t * (p->fClipFar1 - p->fClipFar0);
+			p->pCamera->PutPerspective(fFOV, fClipNear, fClipFar, 0);
+		}
+
+		return S_OK;
+	}
+
+ANIM_HANDLE CEngine::ZoomCamera(ISceneCamera *pCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVULONG nTime, AVULONG nDuration)
+{
+	ZOOMINFO *p = new ZOOMINFO;
+	p->pCamera = pCamera;
+	p->pCamera->AddRef();
+	p->fFOV1 = fFOV;
+	p->fClipNear1 = fClipNear;
+	p->fClipFar1 = fClipFar;
+
+	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Generic", m_pAuxActionTick, nTime, nDuration);
+	pAction->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback_zoom, 0, p);
+
+	return pAction;
+}
+
+ANIM_HANDLE CEngine::SetCameraEnvelope(ANIM_HANDLE aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec)
+{
+	aHandle->SetParabolicEnvelopeT(fEaseInMsec,fEaseOutMsec);
+	return aHandle;
+}
+

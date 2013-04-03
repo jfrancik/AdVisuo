@@ -74,9 +74,6 @@ class CCamera
 	IKineNode *m_pHandleBone;		// camera handle, used to move and pan
 	ISceneCamera *m_pCamera;		// camera, autonomically tilts but makes no other transformations
 
-	// data used by animation callback functions
-	AVFLOAT m_fFOV, m_fClipNear;
-
 	// data used by text description function
 	CAMDESC m_desc;
 	wchar_t m_buf[256];
@@ -113,8 +110,8 @@ public:
 	void MoveTo(CAMPARAMS &cp);
 	void MoveTo(CAMLOC camloc, AVULONG nId, AVFLOAT fAspect = 1)		{ MoveTo(GetDefCameraParams(camloc, nId, fAspect)); }
 
-	void AnimateTo(IAction *pTickSource, CAMPARAMS &cp, AVULONG nTime);
-	void AnimateTo(CAMLOC camloc, IAction *pTickSource, AVULONG nId, AVFLOAT fAspect = 1, AVULONG nTime = 1000)	{ AnimateTo(pTickSource, GetDefCameraParams(camloc, nId, fAspect), nTime); }
+	void AnimateTo(CEngine *pEngine, CAMPARAMS &cp, AVULONG nTime);
+	void AnimateTo(CAMLOC camloc, CEngine *pEngine, AVULONG nId, AVFLOAT fAspect = 1, AVULONG nTime = 1000)	{ AnimateTo(pEngine, GetDefCameraParams(camloc, nId, fAspect), nTime); }
 
 	void Reset();
 	void Pan(AVFLOAT f);
@@ -142,9 +139,5 @@ public:
 	AVLONG GetYZone()				{ return m_camYZone; }
 	AVLONG GetAzimuth()				{ return m_camAzim; }
 	AVLONG GetShaftPos(AVULONG nRow)	{ return m_nShaftPos[nRow]; }
-
-	// animation callback functions
-	friend int _callback_fun(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, CCamera *pCamera);
-	friend int _callback_fun_oh(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, CCamera *pCamera);
 };
 

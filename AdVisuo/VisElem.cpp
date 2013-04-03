@@ -7,6 +7,8 @@
 #include "Engine.h"
 #include "Block.h"
 
+#include <freewill.h>
+
 #pragma warning (disable:4996)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,22 +153,22 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		pT->Release();
 		pNewBone->Release();
 
-	IMaterial *pMaterial = NULL;
-	ITexture *pTexture = NULL;
-	GetEngine()->GetRenderer()->CreateTexture(&pTexture);
-	pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"dafoldil.jpg").c_str());
-	pTexture->SetUVTile(1, 1);
-	GetEngine()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
-	pMaterial->SetTexture(0, pTexture);
-	IKineChild *pChild = NULL;
-	m_pBone->GetChild(L"main", &pChild);
-	IMesh *pMesh = NULL;
-	pChild->QueryInterface(&pMesh);
-	pMesh->SetMaterial(pMaterial);
-	pMesh->Release();
-	pChild->Release();
-	pMaterial->Release();
-	pTexture->Release();
+	//IMaterial *pMaterial = NULL;
+	//ITexture *pTexture = NULL;
+	//GetEngine()->GetRenderer()->CreateTexture(&pTexture);
+	//pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"dafoldil.jpg").c_str());
+	//pTexture->SetUVTile(1, 1);
+	//GetEngine()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
+	//pMaterial->SetTexture(0, pTexture);
+	//IKineChild *pChild = NULL;
+	//m_pBone->GetChild(L"main", &pChild);
+	//IMesh *pMesh = NULL;
+	//pChild->QueryInterface(&pMesh);
+	//pMesh->SetMaterial(pMaterial);
+	//pMesh->Release();
+	//pChild->Release();
+	//pMaterial->Release();
+	//pTexture->Release();
 		}
 
 

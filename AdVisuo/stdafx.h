@@ -72,13 +72,21 @@ void Debug(LPCTSTR fmt, ...);
 #define AVLONG LONG
 #define AVFLOAT FLOAT
 #define AVSTRING LPOLESTR
-#define AVCOLOR FWCOLOR
+//#define AVCOLOR FWCOLOR
 struct AVVECTOR
 {
 	AVFLOAT x;
 	AVFLOAT y;
 	AVFLOAT z;
 };
+struct AVCOLOR
+{
+	AVFLOAT r;
+	AVFLOAT g;
+	AVFLOAT b;
+	AVFLOAT a;
+};
+#define _FWCOLOR(c) (*(FWCOLOR*)&(c))
 
 // Colours
 #define AVCOLOR2COLORREF(c)	RGB((unsigned)((c).r*255.0f), (unsigned)((c).g*255.0f), (unsigned)((c).b*255.0f))
