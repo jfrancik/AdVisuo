@@ -36,10 +36,12 @@ public:
 	// Implemenmtation
 	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL);
 	virtual void BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVULONG nParam = 0, AVFLOAT fParam1 = 0, AVFLOAT fParam2 = 0);
-	virtual void Move(AVVECTOR vec);
 
 	// implementation specific
 
+	virtual void Move(AVVECTOR vec);
+	virtual void MoveTo(AVVECTOR vec);
+	AVVECTOR GetPos();
 	void PushState();
 	void PopState();
 	void Invalidate();

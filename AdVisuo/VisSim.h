@@ -26,7 +26,7 @@ public:
 	AVULONG GetColouringMode()			{ return m_nColouringMode; }
 	void SetColouringMode(AVULONG n)	{ m_nColouringMode = n; }
 
-	void Play(CEngine *pEngine, AVLONG nTime);
+	void Play(CEngine *pEngine, AVLONG nTime = INT_MIN);
 	AVLONG FastForward(CEngine *pEngine, AVLONG nTime);					// returns the earliest time that must be scanned before FF (usually < nTime)
 	void RenderPassengers(AVLONG nPhase = 0);
 	void Stop();

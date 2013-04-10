@@ -69,7 +69,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <Profile>false</Profile>
+      <Profile>true</Profile>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <UACUIAccess>false</UACUIAccess>
     </Link>

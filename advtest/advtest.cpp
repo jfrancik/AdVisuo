@@ -74,6 +74,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				break;
 			case 'b':
 				bBenchmark = true;
+				break;
 			case 'f':
 				option = (option == DEFAULT) ? IFC : WRONG;
 				break;

@@ -13,7 +13,7 @@ int _tmain(int argc, _TCHAR* argv[])
 //	AVIFC8(1202, "c:\\users\\jarek\\desktop\\warsaw tower.ifc");
 //	AVIFC8(1196, "c:\\users\\jarek\\desktop\\elevcon.ifc");
 
-	AVIFC8(1243, "c:\\users\\jarek\\desktop\\test.ifc");
+	AVIFC8(50, "c:\\users\\jarek\\desktop\\test.ifc");
 //	AVIFC8(1238, "c:\\users\\jarek\\desktop\\test_variety.ifc");
 //	AVIFC8(3, "c:\\users\\jarek\\desktop\\test.ifc");
 

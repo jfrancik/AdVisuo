@@ -14,7 +14,7 @@
 #define new new(1, __FILE__, __LINE__)
 
 
-#define VER100
+#define VER200
 
 
 #include "targetver.h"

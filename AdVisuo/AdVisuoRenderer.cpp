@@ -8,8 +8,6 @@
 #include "VisProject.h"
 #include "Engine.h"
 
-#include <freewill.h>
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -30,14 +28,14 @@ bool CAdVisuoRenderer::SetupCamera(CCamera *pCamera)
 	return true;
 }
 
-void CAdVisuoRenderer::RenderLifts(FWULONG nRow)
+void CAdVisuoRenderer::RenderLifts(AVULONG nRow)
 {
 	AVLONG iShaft = m_pCamera->GetShaftPos(nRow);
 	iShaft = max((AVLONG)m_pLiftGroup->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow)));
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
 		for (AVULONG j = m_pLiftGroup->GetShaft(i)->GetLiftBegin(); j < m_pLiftGroup->GetShaft(i)->GetLiftEnd(); j++)
 			m_pEngine->Render(m_pLiftGroup->GetLiftElement(j)->GetObject());
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
 		for (AVULONG j = m_pLiftGroup->GetShaft(i)->GetLiftBegin(); j < m_pLiftGroup->GetShaft(i)->GetLiftEnd(); j++)
 			m_pEngine->Render(m_pLiftGroup->GetLiftElement(j)->GetObject());
 	if (iShaft >= (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) && iShaft < (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow))
@@ -46,17 +44,17 @@ void CAdVisuoRenderer::RenderLifts(FWULONG nRow)
 }
 
 // Render Shafts
-void CAdVisuoRenderer::RenderShafts(FWULONG nRow, FWULONG iStorey)
+void CAdVisuoRenderer::RenderShafts(AVULONG nRow, AVULONG iStorey)
 {
 	AVLONG iShaft = m_pCamera->GetShaftPos(nRow);
 	iShaft = max((AVLONG)m_pLiftGroup->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow)));
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
 	{
 		m_pEngine->Render(m_pLiftGroup->GetShaftElementLeftOrRight(iStorey, i, nRow)->GetObject());
 		m_pEngine->Render(m_pLiftGroup->GetShaftElement(iStorey, i)->GetObject());
 		m_pEngine->Render(m_pLiftGroup->GetShaftElementLeftOrRight(iStorey, i, 1-nRow)->GetObject());
 	}
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
 	{
 		m_pEngine->Render(m_pLiftGroup->GetShaftElementLeftOrRight(iStorey, i, 1-nRow)->GetObject());
 		m_pEngine->Render(m_pLiftGroup->GetShaftElement(iStorey, i)->GetObject());
@@ -70,17 +68,17 @@ void CAdVisuoRenderer::RenderShafts(FWULONG nRow, FWULONG iStorey)
 	}
 }
 	
-void CAdVisuoRenderer::RenderPits(FWULONG nRow)
+void CAdVisuoRenderer::RenderPits(AVULONG nRow)
 {
 	AVLONG iShaft = m_pCamera->GetShaftPos(nRow);
 	iShaft = max((AVLONG)m_pLiftGroup->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow)));
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
 	{
 		m_pEngine->Render(m_pLiftGroup->GetPitElementLeftOrRight(i, nRow)->GetObject());
 		m_pEngine->Render(m_pLiftGroup->GetPitElement(i)->GetObject());
 		m_pEngine->Render(m_pLiftGroup->GetPitElementLeftOrRight(i, 1-nRow)->GetObject());
 	}
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
 	{
 		m_pEngine->Render(m_pLiftGroup->GetPitElementLeftOrRight(i, 1-nRow)->GetObject());
 		m_pEngine->Render(m_pLiftGroup->GetPitElement(i)->GetObject());
@@ -94,64 +92,64 @@ void CAdVisuoRenderer::RenderPits(FWULONG nRow)
 	}
 }
 
-void CAdVisuoRenderer::RenderMachines(FWULONG nRow)
+void CAdVisuoRenderer::RenderMachines(AVULONG nRow)
 {
 	AVLONG iShaft = m_pCamera->GetShaftPos(nRow);
 	iShaft = max((AVLONG)m_pLiftGroup->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow)));
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
 		m_pEngine->Render(m_pLiftGroup->GetMachineElement(i)->GetObject());
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
 		m_pEngine->Render(m_pLiftGroup->GetMachineElement(i)->GetObject());
 	if (iShaft >= (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) && iShaft < (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow))
 		m_pEngine->Render(m_pLiftGroup->GetMachineElement(iShaft)->GetObject());
 }
 
-void CAdVisuoRenderer::RenderShafts(FWULONG nRow)
+void CAdVisuoRenderer::RenderShafts(AVULONG nRow)
 {
 	AVLONG iStorey = m_pCamera->GetStorey();
 	iStorey = max(0, min(iStorey, (AVLONG)m_pLiftGroup->GetStoreyCount() - 1));
 	RenderPits(nRow);
-	for (FWLONG i = 0; i < iStorey; i++)
+	for (AVLONG i = 0; i < iStorey; i++)
 		RenderShafts(nRow, i);
 	RenderMachines(nRow);
-	for (FWLONG i = m_pLiftGroup->GetStoreyCount() - 1; i > iStorey; i--)
+	for (AVLONG i = m_pLiftGroup->GetStoreyCount() - 1; i > iStorey; i--)
 		RenderShafts(nRow, i);
 	RenderShafts(nRow, iStorey);
 }
 
 // Render Shafts Lobby Side
-void CAdVisuoRenderer::RenderShaftsLobbySide(FWULONG nRow, FWULONG iStorey)
+void CAdVisuoRenderer::RenderShaftsLobbySide(AVULONG nRow, AVULONG iStorey)
 {
 	AVLONG iShaft = m_pCamera->GetShaftPos(nRow); 
 	iShaft = max((AVLONG)m_pLiftGroup->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow)));
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
 		m_pEngine->Render(m_pLiftGroup->GetShaftElementLobbySide(iStorey, i)->GetObject());
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
 		m_pEngine->Render(m_pLiftGroup->GetShaftElementLobbySide(iStorey, i)->GetObject());
 	if (iShaft >= (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) && iShaft < (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow))
 		m_pEngine->Render(m_pLiftGroup->GetShaftElementLobbySide(iStorey, iShaft)->GetObject());
 }
 	
-void CAdVisuoRenderer::RenderPitsLobbySide(FWULONG nRow)
+void CAdVisuoRenderer::RenderPitsLobbySide(AVULONG nRow)
 {
 	AVLONG iShaft = m_pCamera->GetShaftPos(nRow); 
 	iShaft = max((AVLONG)m_pLiftGroup->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow)));
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
 		m_pEngine->Render(m_pLiftGroup->GetPitElementLobbySide(i)->GetObject());
-	for (FWLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
+	for (AVLONG i = m_pLiftGroup->GetShaftBegin(nRow) + m_pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
 		m_pEngine->Render(m_pLiftGroup->GetPitElementLobbySide(i)->GetObject());
 	if (iShaft >= (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) && iShaft < (AVLONG)m_pLiftGroup->GetShaftBegin(nRow) + (AVLONG)m_pLiftGroup->GetShaftCount(nRow))
 		m_pEngine->Render(m_pLiftGroup->GetPitElementLobbySide(iShaft)->GetObject());
 }
 	
-void CAdVisuoRenderer::RenderShaftsLobbySide(FWULONG nRow)
+void CAdVisuoRenderer::RenderShaftsLobbySide(AVULONG nRow)
 {
 	AVLONG iStorey = m_pCamera->GetStorey();
 	iStorey = max(0, min(iStorey, (AVLONG)m_pLiftGroup->GetStoreyCount() - 1));
 	RenderPitsLobbySide(nRow);
-	for (FWLONG i = 0; i < iStorey; i++)
+	for (AVLONG i = 0; i < iStorey; i++)
 		RenderShaftsLobbySide(nRow, i);
-	for (FWLONG i = m_pLiftGroup->GetStoreyCount() - 1; i > iStorey; i--)
+	for (AVLONG i = m_pLiftGroup->GetStoreyCount() - 1; i > iStorey; i--)
 		RenderShaftsLobbySide(nRow, i);
 	RenderShaftsLobbySide(nRow, iStorey);
 }
@@ -163,11 +161,11 @@ void CAdVisuoRenderer::RenderStoreys()
 	iStorey = max(0, min(iStorey, (AVLONG)m_pLiftGroup->GetStoreyCount() - 1));
 	if (m_pLiftGroup->GetPit())
 		m_pEngine->Render(m_pLiftGroup->GetPitElement()->GetObject());
-	for (FWLONG i = 0; i < iStorey; i++)
+	for (AVLONG i = 0; i < iStorey; i++)
 		m_pEngine->Render(m_pLiftGroup->GetStoreyElement(i)->GetObject());
 	if (m_pLiftGroup->GetMachineRoom())
 		m_pEngine->Render(m_pLiftGroup->GetMachineRoomElement()->GetObject());
-	for (FWLONG i = m_pLiftGroup->GetStoreyCount() - 1; i > iStorey; i--)
+	for (AVLONG i = m_pLiftGroup->GetStoreyCount() - 1; i > iStorey; i--)
 		m_pEngine->Render(m_pLiftGroup->GetStoreyElement(i)->GetObject());
 	m_pEngine->Render(m_pLiftGroup->GetStoreyElement(iStorey)->GetObject());
 }

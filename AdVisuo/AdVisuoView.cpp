@@ -295,7 +295,7 @@ void CAdVisuoView::Stop()
 
 	// prepare sim...
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-		GetProject()->GetSim(i)->Play(&m_engine, GetProject()->GetMinSimulationTime());
+		GetProject()->GetSim(i)->Play(&m_engine);
 	for (AVLONG t = GetProject()->GetMinSimulationTime(); t <= 0; t += 40)
 		m_engine.Proceed(t);	// loops un-nested on 24/1/13: Proceed was called too often!
 }

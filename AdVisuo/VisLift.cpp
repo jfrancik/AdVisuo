@@ -8,8 +8,6 @@
 #include "VisSim.h"
 #include "Engine.h"
 
-#include <freewill.h>
-
 using namespace std;
 
 CLiftVis::CLiftVis(CSimVis *pSim, AVULONG nLift, AVULONG nDecks) : CLift(pSim, nLift, nDecks)
@@ -26,12 +24,7 @@ CLiftVis::~CLiftVis()
 
 void CLiftVis::MoveTo(AVVECTOR &v)
 {
-	IKineNode *pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
-	ITransform *p = NULL;
-	pBone->GetLocalTransformRef(&p);
-	p->FromTranslationVector((FWVECTOR*)&v);
-	p->Release();
-	pBone->Invalidate();
+	GetSim()->GetLiftGroup()->GetLiftElement(GetId())->MoveTo(v);
 }
 
 void CLiftVis::MoveToInitialPosition()

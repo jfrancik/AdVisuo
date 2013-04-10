@@ -237,15 +237,6 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	}
 }
 
-void CElemVis::Move(AVVECTOR vec)
-{
-	ITransform *pT = NULL;
-	m_pBone->CreateCompatibleTransform(&pT);
-	pT->FromTranslationVector((FWVECTOR*)(&vec));
-	m_pBone->TransformLocal(pT);
-	pT->Release();
-}
-
 IMesh *CElemVis::AddMesh(AVSTRING strName)
 {
 	IMesh *pMesh = NULL;
@@ -341,6 +332,32 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 			pFMesh->AddBlendWeight(i, 1.0f, strBone);
 		pFMesh->Close();
 	}
+}
+
+void CElemVis::Move(AVVECTOR vec)
+{
+	ITransform *pT = NULL;
+	m_pBone->CreateCompatibleTransform(&pT);
+	pT->FromTranslationVector((FWVECTOR*)(&vec));
+	m_pBone->TransformLocal(pT);
+	pT->Release();
+}
+
+void CElemVis::MoveTo(AVVECTOR vec)
+{
+	ITransform *pT = NULL;
+	m_pBone->GetLocalTransformRef(&pT);
+	pT->FromTranslationVector((FWVECTOR*)&vec);
+	pT->Release();
+	m_pBone->Invalidate();
+}
+
+AVVECTOR CElemVis::GetPos()
+{
+	AVVECTOR vec = { 0, 0, 0 };
+	if (GetBone())
+		GetBone()->LtoG((FWVECTOR*)&vec);
+	return vec;
 }
 
 void CElemVis::PushState()

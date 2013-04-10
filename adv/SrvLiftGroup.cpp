@@ -120,7 +120,8 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 		while (sel1)
 		{
 			std::wstring is = sel1[L"IsServed"];
-			ss[(AVULONG)sel1[L"GroundIndex"] - 1] = is[0];
+			AVLONG nGroundIndex = sel1[L"GroundIndex"];
+			ss[nGroundIndex] = is[0];
 			sel1++;
 		}
 		(*pShaft)[L"StoreysServed"] = ss;
