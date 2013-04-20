@@ -262,8 +262,10 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 	{
 		// Process the most recently loaded data
 		if (!m_http.ok()) m_http.throw_exceptions();
-		GetProject()->LoadFromBuf(m_http.response().c_str());
-
+std::wstring response = m_http.response();
+m_http.reset();
+		GetProject()->LoadFromBuf(response.c_str());
+		
 		m_timeLoaded += 60000;
 
 		if (!IsDownloadComplete())
@@ -271,8 +273,6 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 			str << L"Simulation data download continued in background (" << m_timeLoaded << L").";
 			m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000, false);
 		}
-		else
-			m_http.reset();
 
 		return true;
 

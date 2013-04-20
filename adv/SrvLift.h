@@ -3,7 +3,7 @@
 #pragma once
 
 #include "../CommonFiles/BaseSimClasses.h"
-#include "SrvSimLoader.h"
+#include "SrvLiftGroup.h"
 
 class CSimSrv;
 
@@ -15,6 +15,8 @@ public:
 	CSimSrv *GetSim()					{ return (CSimSrv*)CLift::GetSim(); }
 
 	// IO: load from SIM File, Store to DB
-	DWORD Load(CLiftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload = false, bool bCalcLoad = false);
+	DWORD Load(CLiftGroupSrv::LIFT *pLIFT, dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTrafficScenarioId, AVULONG nIteration);
 	HRESULT Store(dbtools::CDataBase db);
+
+	DWORD Adjust(bool bCalcUnload = true, bool bCalcLoad = true);
 };

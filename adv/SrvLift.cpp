@@ -4,6 +4,7 @@
 #include "SrvLift.h"
 #include "SrvPassenger.h"
 #include "SrvSim.h"
+#include "SrvSimLiftSeq.h"
 
 using namespace dbtools;
 
@@ -11,15 +12,16 @@ CLiftSrv::CLiftSrv(CSimSrv *pSim, AVULONG nLift, AVULONG nDecks) : CLift(pSim, n
 {
 }
 
-DWORD CLiftSrv::Load(CLiftGroupSrv::LIFT *pLIFT, CSimLoader &loader, AVULONG nId, bool bCalcUnload, bool bCalcLoad)
+DWORD CLiftSrv::Load(CLiftGroupSrv::LIFT *pLIFT, dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTrafficScenarioId, AVULONG nIteration)
 {
-	SetId(nId);
-
 	SetDecks(pLIFT->GetShaft()->GetDeckCount());
+	CSimLiftJourneySeq resolver(m_journeys);
+	resolver.Run(db, GetId(), nLiftNativeId, nTrafficScenarioId, nIteration, pLIFT->GetShaft()->GetOpeningTime(), pLIFT->GetShaft()->GetClosingTime());
+	return S_OK;
+}
 
-	CSimJourneyResolver resolver(m_journeys);
-	resolver.Run(pLIFT, loader, nId);
-
+DWORD CLiftSrv::Adjust(bool bCalcUnload, bool bCalcLoad)
+{
 	// Apply Time-Consistency Tests
 	// and sequence the passengers departing/arriving...
 	AVULONG TT = 700;								// transfer time

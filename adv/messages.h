@@ -81,7 +81,7 @@
 //
 // MessageText:
 //
-// %1: function call failed after unrecoverable error(s) [relax - new version!].
+// %1: function call failed after unrecoverable error(s).
 // Please check the event log for detailed error messages.
 //
 #define STATUS_FAIL                      0x00000004L

@@ -25,9 +25,20 @@ void CSimVis::Play(CEngine *pEngine, AVLONG nTime)
 	for (AVULONG i = 0; i < GetLiftCount(); i++)
 		GetLift(i)->Play(pEngine, nTime);
 
+	int nCount = 0;
 	for (AVULONG i = 0; i < GetPassengerCount(); i++)
 		if (GetPassenger(i)->GetSpawnTime() >= nTime)
+		{
 			GetPassenger(i)->Play(pEngine);
+			nCount++;
+		}
+	
+	// this is a temporary assertion to detect crap
+	if (nCount == 0 && nTime <= 600000)
+	{
+		TRACE(L"Shit happens at %d\n", nTime);
+		ASSERT(FALSE);
+	}
 }
 
 AVLONG CSimVis::FastForward(CEngine *pEngine, AVLONG nTime)

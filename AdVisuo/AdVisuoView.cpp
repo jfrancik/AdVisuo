@@ -183,7 +183,7 @@ void CAdVisuoView::OnInitialUpdate()
 	for (int i = 0; i < N_CAMERAS; i++) 
 		CreateCamera(i);
 	AVULONG nStorey = GetProject()->GetLiftGroup(0)->GetBasementStoreyCount();
-	GetCamera(0)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(0)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
+	GetCamera(0)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(0)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	- ID_CAMERA - 1);
 	GetCamera(1)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(1)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTFRONT   - ID_CAMERA - 1);
 	GetCamera(2)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(2)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTREAR     - ID_CAMERA - 1);
 	GetCamera(3)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(3)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTREAR    - ID_CAMERA - 1);
@@ -191,8 +191,8 @@ void CAdVisuoView::OnInitialUpdate()
 	GetCamera(5)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(5)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_CENTRALREAR  - ID_CAMERA - 1);
 	GetCamera(6)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(6)->MoveTo(CAMLOC_OUTSIDE, 0);
 	GetCamera(7)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(7)->MoveTo(CAMLOC_OUTSIDE, 1);
-	GetCamera(8)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(8)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
-	GetCamera(9)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(9)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	  - ID_CAMERA - 1);
+	GetCamera(8)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(8)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	- ID_CAMERA - 1);
+	GetCamera(9)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(9)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	- ID_CAMERA - 1);
 
 	Debug(L"Building created, ready for rendering.");
 
@@ -207,7 +207,7 @@ void CAdVisuoView::OnInitialUpdate()
 
 	// necessary to initialise:
 	Stop();
-
+	
 	SetTimer(101, 1000 / 100, NULL);
 	m_hud.KeepReady();
 }
@@ -349,6 +349,7 @@ void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 	if (GetDocument()->IsSIMDataReady())
 	{
 		LONG m_timeLoaded = GetDocument()->GetLoadedTime();
+
 		GetDocument()->OnSIMDataLoaded();
 		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 			GetProject()->GetSim(i)->Play(&m_engine, m_timeLoaded);

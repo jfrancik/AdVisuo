@@ -19,7 +19,6 @@ class CSim : public dbtools::CCollection
 	// basic information
 	AVULONG m_nId;					// sim id
 	AVULONG m_nLiftGroupId;			// lift group id
-	AVULONG m_nSIMVersionId;		// SIM version id
 	AVULONG m_nIndex;				// index in multi-group structures
 
 	CLiftGroup *m_pLiftGroup;
@@ -50,11 +49,9 @@ public:
 
 	AVULONG GetId()								{ return m_nId; }
 	AVULONG GetLiftGroupId()					{ return m_nLiftGroupId; }
-	AVULONG GetSIMVersionId()					{ return m_nSIMVersionId; }
 
 	void SetId(AVULONG n)						{ m_nId = n; }
 	void SetLiftGroupId(AVULONG n)				{ m_nLiftGroupId = n; }
-	void SetSIMVersionId(AVULONG n)				{ m_nSIMVersionId = n; }
 
 	std::vector<CLift*> &Lfts()					{ return m_lifts; }
 	std::vector<CPassenger*> &Passengers()		{ return m_passengers; }

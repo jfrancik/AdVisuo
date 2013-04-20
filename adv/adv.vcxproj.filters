@@ -66,9 +66,6 @@
     <ClCompile Include="SrvSim.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SrvSimLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -97,6 +94,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SrvLiftGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SrvSimLiftSeq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -158,9 +158,6 @@
     <ClInclude Include="SrvSim.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SrvSimLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\CommonFiles\ConstrProject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -189,6 +186,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SrvLiftGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SrvSimLiftSeq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

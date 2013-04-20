@@ -3,7 +3,6 @@
 #pragma once
 
 #include "../CommonFiles/BaseSimClasses.h"
-#include "SrvSimLoader.h"
 
 class CSimSrv;
 
@@ -16,7 +15,6 @@ public:
 
 	void Play();
 
-	// IO: load from SIM File, Store to DB
-	DWORD Load(AVULONG nId, CSimLoader::Passenger &P);
+	DWORD Load(dbtools::CDataBase::SELECT &sel);
 	HRESULT Store(dbtools::CDataBase db);
 };

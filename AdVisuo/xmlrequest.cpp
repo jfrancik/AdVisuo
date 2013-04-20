@@ -107,8 +107,8 @@ HRESULT CXMLRequest::ExecWorkerThread()
 
 			// Read response and status
 			m_nReadyState = ptrHttpRequest->readyState;
-			m_nStatus = ptrHttpRequest->status;
 			m_strStatus = ptrHttpRequest->statusText;
+			m_nStatus = ptrHttpRequest->status;
 			m_strResponse = ptrHttpRequest->responseText;
 		}
 		catch(_com_error& e)

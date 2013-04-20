@@ -3,6 +3,7 @@
 #include "StdAfx.h"
 #include "SrvPassenger.h"
 #include "SrvSim.h"
+#include "SrvLiftGroup.h"
 
 using namespace dbtools;
 
@@ -185,19 +186,18 @@ void CPassengerSrv::Play()
 	}
 }
 
-DWORD CPassengerSrv::Load(AVULONG nId, CSimLoader::Passenger &P)
+DWORD CPassengerSrv::Load(dbtools::CDataBase::SELECT &sel)
 {
-	SetId(nId);
-	SetArrivalTime((AVULONG)(P.ArrivalTime * 1000));
-	SetArrivalFloor(P.ArrivalFloor + GetSim()->GetLiftGroup()->GetBasementStoreyCount());
-	SetDestFloor(P.DestinationFloor + GetSim()->GetLiftGroup()->GetBasementStoreyCount());
-	SetLiftId(P.CarID);
-	SetShaftId(P.CarID);	// provisionary setting
-	SetDeck(0);				// provisionary setting
+	SetArrivalTime((AVULONG)((float)sel[L"ArrivalTime"] * 1000));
+	SetArrivalFloor((int)sel[L"ArrivalFloor"] + GetSim()->GetLiftGroup()->GetBasementStoreyCount());
+	SetDestFloor((int)sel[L"DestinationFloor"] + GetSim()->GetLiftGroup()->GetBasementStoreyCount());
+	SetLiftId((int)sel[L"LiftId"]);
+	SetShaftId((int)sel[L"LiftId"]);	// provisionary setting
+	SetDeck(0);							// provisionary setting
 
-	SetWaitSpan((AVULONG)(P.WaitingTime * 1000));
-	SetLoadTime(GetArrivalTime() + (AVULONG)(P.WaitingTime * 1000));
-	SetUnloadTime(GetArrivalTime() + (AVULONG)(P.JourneyTime * 1000));
+	SetWaitSpan((AVULONG)((float)sel[L"WaitingTime"] * 1000));
+	SetLoadTime(GetArrivalTime() + (AVULONG)((float)sel[L"WaitingTime"] * 1000));
+	SetUnloadTime(GetArrivalTime() + (AVULONG)((float)sel[L"JourneyTime"] * 1000));
 
 	return S_OK;
 }

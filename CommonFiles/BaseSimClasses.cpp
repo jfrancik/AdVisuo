@@ -14,7 +14,6 @@ CSim::CSim()
 	m_pLiftGroup = NULL;
 	m_nIndex = 0;
 	m_nLiftGroupId = 0;
-	m_nSIMVersionId = 0;
 	m_vecOffset = Vector(0);
 }
 
@@ -51,7 +50,6 @@ void CSim::ResolveMe()
 	m_nId = ME[L"ID"];
 	SetIndex(ME[L"LiftGroupIndex"]);
 	SetLiftGroupId(ME[L"LiftGroupId"]);
-	SetSIMVersionId(ME[L"SIMVersionId"]);
 }
 
 

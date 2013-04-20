@@ -16,63 +16,42 @@ CLift *CSimSrv::CreateLift(AVULONG nId)					{ return new CLiftSrv(this, nId); }
 
 HRESULT CSimSrv::LoadSim(CDataBase db, AVULONG nSimulationId)
 {
+	// Checks
 	if (!db) throw db;
-	dbtools::CDataBase::SELECT sel;
-
-	if (!GetLiftGroup())
-		return Log(ERROR_INTERNAL, L"SIM file loading without the building set.");
-
-	// load!
-	CSimLoader loader;
-
-	// Specify nIteration - a priori zero!
-	AVULONG nIteration = 0;
-
-	// specify scenario id (query for minimal available)
-#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
-	sel = db.select(L"SELECT MIN(TraffiicScenarioId) As MinTrafficScenarioId FROM HallCalls WHERE LiftId=%d AND SimulationId=%d AND Iteration=%d", GetLiftGroup()->GetLift(0)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
+	dbtools::CDataBase::SELECT sel = db.select(L"SELECT * FROM SimulationLogs WHERE SimulationId=%d", nSimulationId);
+	if (!GetLiftGroup()) return Log(ERROR_INTERNAL, L"SIM file loading without the building set.");
 	if (!sel) return ERROR_SIM_MISSING;
-	AVULONG nTrafficScenarioId = sel[L"MinTrafficScenarioId"];
-#else
-	AVULONG nTrafficScenarioId = 0;
-#endif
 
-	int nRes = loader.Load(GetLiftGroup(), db, nSimulationId, nTrafficScenarioId, nIteration);
-	// int nRes = loader.Load(GetSIMFileName().c_str());
-	//int nRes = loader.Load(GetLiftGroup(), L"c:\\Users\\Jarek\\Desktop\\testCirc18lift_251Floors_ver109.sim");
-
-	// detect errors...
-	if FAILED(nRes)
-		return Logf(nRes, GetSIMFileName().c_str());
-	
-	// if ((ULONG)loader.nLifts != GetLiftGroup()->GetLiftCount())
-	//	return Log(ERROR_FILE_INCONSISTENT_LIFTS);		// inconsistent number of floors
-	// if ((ULONG)loader.nFloors != GetLiftGroup()->GetStoreyCount())
-	//	return Log(ERROR_FILE_INCONSISTENT_FLOORS);		// inconsistent number of lifts
-	// check single/double decker consistency
-	// for (AVULONG i = 0; i < (ULONG)loader.nLifts;i++)
-	//	if ((loader.pLifts[i].nDecks == 1 && GetLiftGroup()->GetLift(i)->GetShaft()->GetDeck() == CLiftGroup::DECK_DOUBLE)
-	//	|| (loader.pLifts[i].nDecks > 1 && GetLiftGroup()->GetLift(i)->GetShaft()->GetDeck() == CLiftGroup::DECK_SINGLE))
-	//		return Log(ERROR_FILE_INCONSISTENT_DECKS);
-
-	SetSIMVersionId(loader.nVersion);
+	AVULONG nTrafficScenarioId = (*this)[L"TrafficScenarioId"];
+	AVULONG nIteration = 0;
 
 	bool bWarning = false;
 
-	// load passenger (hall calls) data
-	for (AVULONG i = 0; i < (ULONG)loader.nPassengers; i++)
+	AVULONG iPassengerId = 0;
+	for (AVULONG iLift = 0; iLift < GetLiftGroup()->GetLiftCount(); iLift++)
 	{
-		CPassengerSrv *pPassenger = (CPassengerSrv*)CreatePassenger(i);
-		if (pPassenger->Load(i, loader.pPassengers[i]) != S_OK)
-			bWarning = true;
-		AddPassenger(pPassenger);
-	}
-
-	// load, analyse and consolidate simulation data
-	for (AVULONG i = 0; i < GetLiftGroup()->GetLiftCount(); i++)
-	{
-		CLiftSrv *pLift = (CLiftSrv*)CreateLift(i);
-		HRESULT h = pLift->Load(GetLiftGroup()->GetLift(i), loader, i, true, true);
+		AVULONG nNativeId = GetLiftGroup()->GetLift(iLift)->GetShaft()->GetNativeId();
+		
+		// Create and load passengers (Hall Calls)
+		#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
+		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND TraffiicScenarioId=%d AND Iteration=%d", nNativeId, nTrafficScenarioId, nIteration);
+		#else
+		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND SimulationId=%d AND Iteration=%d", nNativeId, nSimulationId, nIteration);
+		#endif
+		for ( ; sel; sel++)
+		{
+			ASSERT((int)sel[L"SimulationId"] == nSimulationId);
+			CPassengerSrv *pPassenger = (CPassengerSrv*)CreatePassenger(iPassengerId++);
+			if (pPassenger->Load(sel) != S_OK) bWarning = true;
+			pPassenger->SetLiftId(iLift);	// overwrite original values (which were native DB id's)
+			pPassenger->SetShaftId(iLift);
+			AddPassenger(pPassenger);
+		}
+	
+		// Create and load lifts & journeys
+		CLiftSrv *pLift = (CLiftSrv*)CreateLift(iLift);
+		pLift->Load(GetLiftGroup()->GetLift(iLift), db, nNativeId, nTrafficScenarioId, nIteration);
+		HRESULT h = pLift->Adjust();
 		if FAILED(h) return h;
 		if (h != S_OK) bWarning = true;
 		AddLift(pLift);
@@ -115,7 +94,6 @@ HRESULT CSimSrv::Store(CDataBase db)
 
 	ins << ME;
 	ins[L"LiftGroupId"] = GetLiftGroupId();
-	ins[L"SIMVersionId"] = GetSIMVersionId();
 	ins[L"LiftGroupIndex"] = GetIndex();
 	ins[L"Floors"] = GetLiftGroup()->GetStoreyCount();
 	ins[L"Shafts"] = GetLiftGroup()->GetShaftCount();
@@ -161,7 +139,6 @@ HRESULT CSimSrv::Update(CDataBase db, AVLONG nTime)
 	}
 
 	CDataBase::UPDATE upd = db.update(L"AVSims", L"WHERE ID=%d", GetId());
-	upd[L"SIMVersionId"] = GetSIMVersionId();
 	upd[L"Floors"] = GetLiftGroup()->GetStoreyCount();
 	upd[L"Shafts"] = GetLiftGroup()->GetShaftCount();
 	upd[L"Lifts"] = GetLiftGroup()->GetLiftCount();

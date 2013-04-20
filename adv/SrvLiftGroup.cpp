@@ -152,8 +152,21 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 		sel++;
 	}
 
+	// Query for Traffic Scenario Data and add/load storeys
+#ifdef VER200
+	sel = db.select(L"SELECT TrafficScenarioId, TrafficPatternTypeId FROM TrafficScenarios WHERE LiftGroupId=%d ORDER BY TrafficPatternTypeId", nLiftGroupId);
+	if (sel)	// target is to replace it with while and collect ALL traffic scenarios!
+	{
+		CSimSrv *pSim = AddSim();
+		sel >> *pSim;
+	}
+#else
+	sel = db.select(L"SELECT * FROM Floors WHERE SimulationId IN (SELECT SimulationId FROM LiftGroups WHERE LiftGroupId=%d) ORDER BY GroundIndex", nLiftGroupId);
+	CSimSrv *pSim = AddSim();
+	(*pSim)[L"TrafficScenarioId"] = (AVULONG)0;
+#endif
+
 	AddExtras();
-	AddSim();
 	ResolveMe();
 
 	// Resolve and test
