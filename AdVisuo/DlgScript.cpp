@@ -64,7 +64,7 @@ void CDlgScript::PopulateList()
 	m_list.ResetContent();
 	for (AVULONG i = 0; i < m_pScript->size(); i++)
 	{
-		wstringstream s;
+		std::wstringstream s;
 		s << i+1 << L". " << std::wstring((*m_pScript)[i]->GetDesc());
 		m_list.AddString(s.str().c_str());
 	}

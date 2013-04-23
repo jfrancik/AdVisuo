@@ -10,8 +10,6 @@
 
 #pragma warning(disable:4018)
 
-using namespace std;
-
 CSimVis::CSimVis() : m_nColouringMode(0)
 {
 }

@@ -4,8 +4,6 @@
 #include "DlgVideo.h"
 #include <afxtaskdialog.h>
 
-using namespace std;
-
 #define RATIO_16_9			(16.0f / 9.0f)
 #define RATIO_16_10			(16.0f / 10.0f)
 #define RATIO_4_3			(4.0f / 3.0f)
@@ -238,7 +236,7 @@ void CDlgVideo::OnOK()
 	m_ctrlBrowse.GetWindowText(m_path);
 	
 	// if file exists
-	ifstream ifile(m_path);
+	std::ifstream ifile(m_path);
 	if (ifile && !m_ctrlBrowse.IsPathConfirmed())
 	{
 		AVULONG nRes = IDCANCEL;

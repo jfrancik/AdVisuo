@@ -5,7 +5,6 @@
 #pragma once
 
 class CAdVisuoView;
-using namespace std;
 
 #define N_CAMERAS	10
 
@@ -44,7 +43,7 @@ public:
 class CScript
 {
 	CAdVisuoView *m_pView;
-	vector<CScriptEvent*> m_events;
+	std::vector<CScriptEvent*> m_events;
 	AVULONG m_nPos;
 
 

@@ -7,7 +7,12 @@
 #include "Engine.h"
 #include "Block.h"
 
-#include <freewill.h>
+namespace fw
+{
+	#include <freewill.h>
+};
+using namespace fw;
+using namespace std;
 
 #pragma warning (disable:4996)
 

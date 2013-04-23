@@ -149,12 +149,14 @@ HRESULT GetScale(AVFLOAT *pScale)
 
 extern bool g_bRegEvents;
 extern bool g_bOnScreen;
+extern bool g_bVerbose;
 extern bool g_bBenchmark;
 
-ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScreen, bool bBenchmark)
+ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScreen, bool bVerbose, bool bBenchmark)
 {
 	g_bRegEvents = bRegisterEventLog;
 	g_bOnScreen = bPrintOnScreen;
+	g_bVerbose = bVerbose;
 	g_bBenchmark = bBenchmark;
 	return S_OK;
 }

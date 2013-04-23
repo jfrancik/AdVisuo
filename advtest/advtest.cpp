@@ -20,23 +20,23 @@ void usage()
 {
 	wcout << L"Usage:" << endl
 			<< L"  adv [ID]      reads simulation data and prepares for visualisation" << endl
-			<< L"  adv -f [ID]   creates IFC file for the specified simulation" << endl
 			<< L"  adv -d [ID]   deletes visualisation data for the specified simulation" << endl
 			<< L"  adv -dall     deletes all available visualisation data" << endl
 			<< L"  adv -drop     drops all table structure - the next storage will re-initialise" << endl
+			<< L"  adv -f [ID]   creates IFC file for the specified simulation" << endl
 			<< L"  adv -t [ID]   calls AVTest for the specified simulation" << endl
 			<< L"  adv -i [ID]   calls AVInit for the specified simulation" << endl
 			<< L"  adv -p [ID]   calls AVProcess for the specified project" << endl
 			<< L"  adv -h [ID]   displays this information" << endl
-			<< L"  adv -v [ID]   displays version information" << endl
+			<< L"  adv -ver      displays version information" << endl
 			<< L"  adv -c conn   configures the connection string; use %s for the db name" << endl
 			<< L"[ID] is optional and may be omitted to enter interactive mode." << endl
-			<< L"ID must greater than zero." << endl
 			<< L"More options:" << endl
 			<< L"-q for quiet mode: no text output is generated" << endl
+			<< L"-v for verbose mode: displays all SQL commands used" << endl
 			<< L"-b for benchmark mode: to display execution time information" << endl
-			<< L"-y to always proceed with the visualisation in case project is up to date" << endl
-			<< L"-n to never proceed with the visualisation in case project is up to date" << endl
+			<< L"-y to automatically reply \"Yes\" to proceed with the project which is up to date" << endl
+			<< L"-n to automatically reply \"No\" to omit the project which is up to date" << endl
 			<< L"-w to wait for a key pressed at the end of execution" << endl
 			<< endl;
 }
@@ -49,7 +49,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	AVULONG nSimulationID = 0;
 	AVULONG nProjectID;
 	_TCHAR *pParam = NULL;
-	bool bQuiet = false, bYes = false, bNo = false, bWait = false, bBenchmark = false;
+	bool bQuiet = false, bVerbose = false, bYes = false, bNo = false, bWait = false, bBenchmark = false;
 	HRESULT h = S_OK;
 
 	// read params...
@@ -62,6 +62,12 @@ int _tmain(int argc, _TCHAR* argv[])
 			{
 			case 'q':
 				bQuiet = true;
+				break;
+			case 'v':
+				if (_wcsicmp(argv[i], L"-ver") == 0)
+					option = (option == DEFAULT) ? VERSION : WRONG;
+				else
+					bVerbose = true;
 				break;
 			case 'w':
 				bWait = true;
@@ -106,9 +112,6 @@ int _tmain(int argc, _TCHAR* argv[])
 			case '?':
 				option = (option == DEFAULT) ? HELP : WRONG;
 				break;
-			case 'v':
-				option = (option == DEFAULT) ? VERSION : WRONG;
-				break;
 			default:
 				option = WRONG;
 			}
@@ -130,7 +133,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	CoInitialize(NULL);
-	AVSetupDiagnosticOutput(true, !bQuiet, bBenchmark);
+	AVSetupDiagnosticOutput(true, !bQuiet, bVerbose, bBenchmark);
 
 	switch (option)
 	{

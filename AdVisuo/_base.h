@@ -2,8 +2,22 @@
 
 #pragma once
 
-interface IAction;
-typedef IAction *ANIM_HANDLE;
+namespace fw
+{
+	interface IAction;
+	interface IBody;
+	interface IKineNode;
+	interface IMaterial;
+	interface ISceneObject;
+	interface ISceneCamera;
+};
+
+typedef fw::IAction		* HACTION;
+typedef fw::IBody		* HBODY;
+typedef fw::IKineNode	* HBONE;
+typedef fw::IMaterial	* HMATERIAL;
+typedef fw::ISceneObject* HOBJECT;
+typedef fw::ISceneCamera* HCAMERA;
 
 interface ILostDeviceObserver
 {

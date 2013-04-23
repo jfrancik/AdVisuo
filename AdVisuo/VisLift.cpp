@@ -8,8 +8,6 @@
 #include "VisSim.h"
 #include "Engine.h"
 
-using namespace std;
-
 CLiftVis::CLiftVis(CSimVis *pSim, AVULONG nLift, AVULONG nDecks) : CLift(pSim, nLift, nDecks)
 {
 	m_pEngine = NULL;
@@ -36,10 +34,10 @@ void CLiftVis::MoveToInitialPosition()
 
 void CLiftVis::AnimateToInitialPosition(CEngine *pEngine, AVULONG nShaftFrom, AVULONG nStoreyFrom, AVULONG timeStart)
 {
-	IKineNode *pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
+	HBONE pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
 	AVVECTOR vFrom = GetSim()->GetLiftGroup()->GetCarPos(nShaftFrom, nStoreyFrom);
 
-	ANIM_HANDLE a = pEngine->StartAnimation(timeStart-1);
+	HACTION a = pEngine->StartAnimation(timeStart-1);
 	a = pEngine->MoveTo(a, pBone, 1, vFrom.x, vFrom.y, vFrom.z);
 }
 
@@ -48,23 +46,23 @@ void CLiftVis::AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, bo
 	AVFLOAT nDist = GetSim()->GetLiftGroup()->GetShaft(nShaft)->GetBoxDoor().Width() / 2.0f - 0.1f;
 	if (!bOpen) nDist = -nDist;
 
-	IKineNode *pDoorLI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 0)->GetBone();
-	IKineNode *pDoorRI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 1)->GetBone();
-	IKineNode *pDoorLX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 0)->GetBone();
-	IKineNode *pDoorRX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 1)->GetBone();
+	HBONE pDoorLI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 0)->GetBone();
+	HBONE pDoorRI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 1)->GetBone();
+	HBONE pDoorLX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 0)->GetBone();
+	HBONE pDoorRX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 1)->GetBone();
 
-	if (pDoorLI) { ANIM_HANDLE a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorLI, timeDuration, -nDist, 0, 0); }
-	if (pDoorRI) { ANIM_HANDLE a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorRI, timeDuration, nDist, 0, 0);  }
-	if (pDoorLX) { ANIM_HANDLE a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorLX, timeDuration, -nDist, 0, 0); }
-	if (pDoorRX) { ANIM_HANDLE a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorRX, timeDuration, nDist, 0, 0);  }
+	if (pDoorLI) { HACTION a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorLI, timeDuration, -nDist, 0, 0); }
+	if (pDoorRI) { HACTION a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorRI, timeDuration, nDist, 0, 0);  }
+	if (pDoorLX) { HACTION a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorLX, timeDuration, -nDist, 0, 0); }
+	if (pDoorRX) { HACTION a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorRX, timeDuration, nDist, 0, 0);  }
 }
 
 void CLiftVis::AnimateJourney(CEngine *pEngine, AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeStart, AVULONG timeDuration)
 {
-	IKineNode *pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
+	HBONE pBone = GetSim()->GetLiftGroup()->GetLiftElement(GetId())->GetBone();
 	AVVECTOR vTo   = GetSim()->GetLiftGroup()->GetCarPos(nShaftTo, nStoreyTo);
 
-	ANIM_HANDLE a = pEngine->StartAnimation(timeStart);
+	HACTION a = pEngine->StartAnimation(timeStart);
 	a = pEngine->MoveTo(a, pBone, timeDuration, vTo.x, vTo.y, vTo.z);
 	a = pEngine->SetEnvelope(a, 2000, 2000);
 
@@ -89,8 +87,6 @@ void CLiftVis::Go(JOURNEY &j)
 		AnimateJourney(m_pEngine, j.m_shaftTo, j.m_floorTo, j.m_timeGo, j.m_timeDest - j.m_timeGo);
 }
 
-int _callback_journey(struct ACTION_EVENT *pEvent, IAction *pAction, AVULONG nParam, void *pParam);
-
 void CLiftVis::Play(CEngine *pEngine, AVLONG nTime)
 {
 	m_pEngine = pEngine;
@@ -109,7 +105,7 @@ void CLiftVis::Play(CEngine *pEngine, AVLONG nTime)
 			if (timeStart == UNDEF) timeStart = pJ->m_timeGo;
 			ASSERT(timeStart != UNDEF);
 
-			ANIM_HANDLE a = pEngine->StartAnimation(timeStart);
+			HACTION a = pEngine->StartAnimation(timeStart);
 			a = pEngine->SetAnimationListener(a, this, i);
 
 			AVULONG timeFinish = pJ->m_timeDest;
@@ -138,7 +134,7 @@ AVLONG CLiftVis::FastForward(CEngine *pEngine, AVLONG nTime)
 			if (timeStart == UNDEF) timeStart = pJ->m_timeGo;
 			ASSERT(timeStart != UNDEF);
 
-			ANIM_HANDLE a = pEngine->StartAnimation(timeStart);
+			HACTION a = pEngine->StartAnimation(timeStart);
 			a = pEngine->SetAnimationListener(a, this, i);
 
 			nEarliestTime = min(nEarliestTime, (LONG)pJ->FirstOpenTime());

@@ -6,7 +6,11 @@
 #include "VisLiftGroup.h"
 #include "Engine.h"
 
-#include <freewill.h>
+namespace fw
+{
+	#include <freewill.h>
+};
+using namespace fw;
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
@@ -448,7 +452,7 @@ void CCamera::AnimateTo(CEngine *pEngine, CAMPARAMS &cp, AVULONG nTime)
 	m_camloc = cp.camloc;
 	m_cp = cp;
 
-	ANIM_HANDLE a;
+	HACTION a;
 	if (cp.camloc == CAMLOC_OVERHEAD) 
 	{
 		AVVECTOR eye1 = { cp.eye.x, cp.eye.y, m_pLiftGroup->GetStorey(cp.nId)->GetLevel() + m_pLiftGroup->GetStorey(cp.nId)->GetBox().Height() };

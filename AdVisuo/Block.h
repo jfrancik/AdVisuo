@@ -1,16 +1,19 @@
 #pragma once
 
-interface ISceneObject;
-interface IKineNode;
-interface IMesh;
-interface IMaterial;
+namespace fw
+{
+	interface ISceneObject;
+	interface IKineNode;
+	interface IMesh;
+	interface IMaterial;
+};
 
 #include <vector>
 
 class CBlock
 {
-	IKineNode *m_pBone;				// bone
-	IMesh *m_pMesh;					// mesh - created on the bone
+	fw::IKineNode *m_pBone;			// bone
+	fw::IMesh *m_pMesh;				// mesh - created on the bone
 
 	AVFLOAT m_l, m_h, m_d;			// length (x); height (y); depth (z)
 
@@ -25,13 +28,13 @@ public:
 	CBlock();
 	~CBlock();
 
-	void Open(ISceneObject *pObject, IKineNode *pBone, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR v, AVFLOAT fRotZ = 0, AVFLOAT fRotX = 0, AVFLOAT fRotY = 0);
+	void Open(fw::ISceneObject *pObject, fw::IKineNode *pBone, AVFLOAT l, AVFLOAT h, AVFLOAT d, AVVECTOR v, AVFLOAT fRotZ = 0, AVFLOAT fRotX = 0, AVFLOAT fRotY = 0);
 	void Close();
 
-	IMesh *GetMesh();
-	IKineNode *GetBone();
+	fw::IMesh *GetMesh();
+	fw::IKineNode *GetBone();
 
-	void SetMaterial(IMaterial *pMaterial);
+	void SetMaterial(fw::IMaterial *pMaterial);
 
 	AVFLOAT GetCurX()				{ return m_x; }
 	void SetCurX(AVFLOAT x)			{ m_x = x; }

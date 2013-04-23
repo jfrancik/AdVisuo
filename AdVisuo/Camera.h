@@ -8,10 +8,12 @@
 #include "VisLiftGroup.h"
 
 class CLiftGroupVis;
-interface IKineNode;
-interface ISceneCamera;
-interface IAction;
-interface ISceneCamera;
+
+namespace fw
+{
+	interface IKineNode;
+	interface ISceneCamera;
+};
 
 // camera locations
 enum CAMLOC
@@ -44,7 +46,7 @@ struct CAMPARAMS
 	AVFLOAT fClipFar;		// clip far value
 
 	// Camera Eye-Reference object - Weak Reference (no need for Release)
-	IKineNode *EyeRef(CLiftGroupVis *pLiftGroup)	{ return camloc == CAMLOC_LIFT ? pLiftGroup->GetLiftElement(nId)->GetBone() : pLiftGroup->GetStoreyElement(nId)->GetBone(); }
+	fw::IKineNode *EyeRef(CLiftGroupVis *pLiftGroup)	{ return camloc == CAMLOC_LIFT ? pLiftGroup->GetLiftElement(nId)->GetBone() : pLiftGroup->GetStoreyElement(nId)->GetBone(); }
 	AVFLOAT FOV()									{ return max(fHFOV, fVFOV) + fZoom; }
 };
 
@@ -70,9 +72,9 @@ class CCamera
 	bool m_bMoved, m_bRotated, m_bZoomed;	// all clear if the camera is as descibed in m_cp; set when moved, rotated or zoomed
 
 	// FreeWill objects
-	IKineNode *m_pBaseBone;			// base bone (a part of the construction on which the camera is mounted)
-	IKineNode *m_pHandleBone;		// camera handle, used to move and pan
-	ISceneCamera *m_pCamera;		// camera, autonomically tilts but makes no other transformations
+	fw::IKineNode *m_pBaseBone;		// base bone (a part of the construction on which the camera is mounted)
+	fw::IKineNode *m_pHandleBone;	// camera handle, used to move and pan
+	fw::ISceneCamera *m_pCamera;	// camera, autonomically tilts but makes no other transformations
 
 	// data used by text description function
 	CAMDESC m_desc;
@@ -87,13 +89,13 @@ public:
 	AVULONG GetId()											{ return m_nId; }
 	void SetId(AVULONG nId)									{ m_nId = nId; }
 
-	void SetBaseBone(IKineNode *pNode, bool bKeepCoord = true);
+	void SetBaseBone(fw::IKineNode *pNode, bool bKeepCoord = true);
 
 	void SetStorey(AVLONG nStorey, bool bKeepCoord = true);	// attaches camera to the storey
 	void SetLift(AVLONG nLift, bool bKeepCoord = true);		// attaches camera to the lift
 
-	ISceneCamera *GetCamera()								{ return m_pCamera; }
-	IKineNode *GetHandle()									{ return m_pHandleBone; }
+	fw::ISceneCamera *GetCamera()							{ return m_pCamera; }
+	fw::IKineNode *GetHandle()								{ return m_pHandleBone; }
 
 	bool IsReady()											{ return m_pCamera != NULL; }
 
@@ -117,7 +119,7 @@ public:
 	void Pan(AVFLOAT f);
 	void Tilt(AVFLOAT f);
 	void Zoom(AVFLOAT f);
-	void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z, IKineNode *pRef = NULL);
+	void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z, fw::IKineNode *pRef = NULL);
 
 	// adjust the camera after aspect ratio change
 	void Adjust(AVFLOAT fAspect);

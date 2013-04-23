@@ -4,12 +4,16 @@
 #include "Engine.h"
 #include "DlgRepBug.h"
 
-#include <freewill.h>
-#include <fwrender.h>
-#include <fwaction.h>
+namespace fw
+{
+	#include <freewill.h>
+	#include <fwrender.h>
+	#include <fwaction.h>
 
-#include "freewill.c"			// #FreeWill: Obligatory!
-#include "freewilltools.h"
+	#include "freewill.c"			// #FreeWill: Obligatory!
+	#include "freewilltools.h"
+};
+using namespace fw;
 
 #include <D3d9.h>
 
@@ -740,6 +744,50 @@ void CEngine::RenderPassenger(IBody *pBody, AVULONG nColourMode, AVULONG nPhase,
 	pObjBody->Release();
 }
 
+void CEngine::Embark(HBODY pBody, HBONE pNode, bool bSwitchCoord)
+{
+	if (!pBody) return;
+	HBONE pMe = pBody->BodyNode(BODY_OBJECT);
+
+	if (bSwitchCoord && pNode)
+	{
+		FWVECTOR v1 = { 0, 0, 0 };
+		pMe->LtoG(&v1);
+
+		ITransform *pT;
+		pMe->CreateCompatibleTransform(&pT);
+		pNode->GetGlobalTransform(pT);
+		pMe->Transform(pT, KINE_LOCAL | KINE_INVERTED);
+		pMe->GetParentTransform(pT);
+		pMe->Transform(pT, KINE_LOCAL | KINE_REGULAR);
+
+		// compensate for Z coordinate
+		FWVECTOR v2 = { 0, 0, 0 };
+		pNode->LtoG(&v2);
+		pT->FromTranslationXYZ(0, 0, v2.z - v1.z);
+		pMe->Transform(pT, KINE_LOCAL | KINE_REGULAR);
+
+		pT->Release();
+	}
+		
+	HBONE pParent;
+	pMe->GetParent(&pParent);
+	if (pParent)
+	{
+		pParent->DelChildPtr(pMe);
+		pParent->Release();
+	}
+
+	if (pNode)
+	{
+		OLECHAR buf[257];
+		pNode->CreateUniqueLabel(L"Passenger", 256, buf);
+		pNode->AddChild(buf, pMe);
+	}
+
+	pMe->Release();
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Repository Utilities
 
@@ -801,7 +849,7 @@ void CEngine::destroy(IBody *p)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Animators
 
-ANIM_HANDLE CEngine::StartAnimation(LONG nTime)
+HACTION CEngine::StartAnimation(LONG nTime)
 {
 	return (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Generic", m_pActionTick, nTime, 0);
 }
@@ -817,54 +865,54 @@ ANIM_HANDLE CEngine::StartAnimation(LONG nTime)
 		}
 	}
 
-ANIM_HANDLE CEngine::SetAnimationListener(ANIM_HANDLE aHandle, IAnimationListener *pListener, AVULONG nParam)
+HACTION CEngine::SetAnimationListener(HACTION aHandle, IAnimationListener *pListener, AVULONG nParam)
 {
 	aHandle = (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Generic", m_pActionTick, aHandle, 0);
 	aHandle->SetHandleEventHook((HANDLE_EVENT_HOOK_FUNC)_callback, nParam, (void*)pListener);
 	return aHandle;
 }
 
-ANIM_HANDLE CEngine::DoNothing(ANIM_HANDLE aHandle)
+HACTION CEngine::DoNothing(HACTION aHandle)
 {
 	return (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Generic", m_pActionTick, aHandle, 0);
 }
 
-ANIM_HANDLE CEngine::Move(ANIM_HANDLE aHandle, IBody *pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
+HACTION CEngine::Move(HACTION aHandle, IBody *pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
 {
 	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Move", m_pActionTick, aHandle, nDuration, (AVSTRING)(wstrStyle.c_str()), pBody, BODY_ROOT, x, y, z);
 }
 
-ANIM_HANDLE CEngine::Move(ANIM_HANDLE aHandle, IKineNode *pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
+HACTION CEngine::Move(HACTION aHandle, IKineNode *pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
 {
 	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Move", m_pActionTick, aHandle, nDuration, (AVSTRING)(wstrStyle.c_str()), pBone, x, y, z);
 }
 
-ANIM_HANDLE CEngine::MoveTo(ANIM_HANDLE aHandle, IBody *pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
+HACTION CEngine::MoveTo(HACTION aHandle, IBody *pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
 {
 	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"MoveTo", m_pActionTick, aHandle, nDuration, (AVSTRING)(wstrStyle.c_str()), pBody, BODY_ROOT, x, y, z);
 }
 
-ANIM_HANDLE CEngine::MoveTo(ANIM_HANDLE aHandle, IKineNode *pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
+HACTION CEngine::MoveTo(HACTION aHandle, IKineNode *pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle)
 {
 	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"MoveTo", m_pActionTick, aHandle, nDuration, (AVSTRING)(wstrStyle.c_str()), pBone, x, y, z);
 }
 
-ANIM_HANDLE CEngine::Wait(ANIM_HANDLE aHandle, IBody *pBody, LONG nTimeUntil, std::wstring wstrStyle)
+HACTION CEngine::Wait(HACTION aHandle, IBody *pBody, LONG nTimeUntil, std::wstring wstrStyle)
 {
 	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Wait", m_pActionTick, aHandle, 0, (AVSTRING)(wstrStyle.c_str()), pBody, nTimeUntil);
 }
 
-ANIM_HANDLE CEngine::Walk(ANIM_HANDLE aHandle, IBody *pBody, AVFLOAT x, AVFLOAT y, std::wstring wstrStyle)
+HACTION CEngine::Walk(HACTION aHandle, IBody *pBody, AVFLOAT x, AVFLOAT y, std::wstring wstrStyle)
 {
 	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Walk", m_pActionTick, aHandle, c_nStepDuration, (AVSTRING)(wstrStyle.c_str()), pBody, x, y, (AVFLOAT)c_nStepLen, DEG2RAD(90));
 }
 
-ANIM_HANDLE CEngine::Turn(ANIM_HANDLE aHandle, IBody *pBody, std::wstring wstrStyle)
+HACTION CEngine::Turn(HACTION aHandle, IBody *pBody, std::wstring wstrStyle)
 {
 	return (IAction*)::FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"Turn", m_pActionTick, aHandle, c_nTurnDuration, (AVSTRING)(wstrStyle.c_str()), pBody, DEG2RAD(180), 3);
 }
 
-ANIM_HANDLE CEngine::SetEnvelope(ANIM_HANDLE aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec)
+HACTION CEngine::SetEnvelope(HACTION aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec)
 {
 	aHandle->SetParabolicEnvelopeT(fEaseInMsec, fEaseOutMsec);
 	return aHandle;
@@ -879,14 +927,14 @@ void CEngine::StartCameraAnimation(AVULONG nClockValue)
 	m_nAuxTimeRef = (nClockValue == 0x7FFFFFFF) ? ::GetTickCount() : nClockValue;
 }
 
-ANIM_HANDLE CEngine::MoveCameraTo(IKineNode *pNode, AVVECTOR v, AVULONG nTime, AVULONG nDuration, IKineNode *pRef)
+HACTION CEngine::MoveCameraTo(IKineNode *pNode, AVVECTOR v, AVULONG nTime, AVULONG nDuration, IKineNode *pRef)
 {
 	IAction *pAction = (IAction*)FWCreateObjWeakPtr(m_pFWDevice, L"Action", L"MoveTo", m_pAuxActionTick, nTime, nDuration, pNode, *(FWVECTOR*)&v, pRef);
 	pAction->SetEnvelope(ACTION_ENV_PARA, 0.3f, 0.3f);
 	return pAction;
 }
 
-ANIM_HANDLE CEngine::PanCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration)
+HACTION CEngine::PanCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration)
 {
 	ITransform *pT = NULL;
 	m_pScene->CreateCompatibleTransform(&pT);
@@ -899,7 +947,7 @@ ANIM_HANDLE CEngine::PanCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, A
 	return pAction;
 }
 
-ANIM_HANDLE CEngine::TiltCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration)
+HACTION CEngine::TiltCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration)
 {
 	ITransform *pT = NULL;
 	m_pScene->CreateCompatibleTransform(&pT);
@@ -947,7 +995,7 @@ ANIM_HANDLE CEngine::TiltCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, 
 		return S_OK;
 	}
 
-ANIM_HANDLE CEngine::ZoomCamera(ISceneCamera *pCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVULONG nTime, AVULONG nDuration)
+HACTION CEngine::ZoomCamera(ISceneCamera *pCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVULONG nTime, AVULONG nDuration)
 {
 	ZOOMINFO *p = new ZOOMINFO;
 	p->pCamera = pCamera;
@@ -962,7 +1010,7 @@ ANIM_HANDLE CEngine::ZoomCamera(ISceneCamera *pCamera, AVFLOAT fFOV, AVFLOAT fCl
 	return pAction;
 }
 
-ANIM_HANDLE CEngine::SetCameraEnvelope(ANIM_HANDLE aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec)
+HACTION CEngine::SetCameraEnvelope(HACTION aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec)
 {
 	aHandle->SetParabolicEnvelopeT(fEaseInMsec,fEaseOutMsec);
 	return aHandle;

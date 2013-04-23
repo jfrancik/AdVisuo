@@ -4,7 +4,11 @@
 #include "Block.h"
 #include "../CommonFiles/Vector.h"
 
-#include <freewill.h>
+namespace fw
+{
+	#include <freewill.h>
+};
+using namespace fw;
 
 #pragma warning (disable: 4996)
 

@@ -223,8 +223,6 @@ public:
 	public:
 		INSERT()							{ }
 		virtual std::wstring query();
-
-		void createTables();
 		virtual void execute();
 	};
 
@@ -243,9 +241,11 @@ public:
 	private:
 		CREATE(CDataBase *pDB, std::wstring table) : QUERY(pDB, table)	{ }
 		friend CREATE CDataBase::create(const wchar_t *table);
+		static std::map<std::wstring, bool> c_mapTables;	// used to create each table exactly once
 	public:
 		CREATE()							{ }
 		virtual std::wstring query();
+		virtual void execute();
 	};
 };
 

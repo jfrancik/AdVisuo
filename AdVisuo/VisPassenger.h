@@ -6,16 +6,13 @@
 #include "../CommonFiles/XMLTools.h"
 #include "_base.h"
 
-interface IBody;
-interface IKineNode;
-
 class CSimVis;
 class CEngine;
 
 class CPassengerVis : public CPassenger, public IAnimationListener
 {
 	// FreeWill Data
-	IBody *m_pBody;
+	HBODY m_pBody;
 	CEngine *m_pEngine;			// FreeWill engine
 
 public:
@@ -31,8 +28,7 @@ public:
 
 	void Spawn();
 	void Die();
-	void Embark(IKineNode *pNode, bool bSwitchCoord = true);
-
+	
 	// implementation of IAnimationListener
 	virtual int OnAnimationBegin(AVULONG nParam)		{ return S_OK; }
 	virtual int OnAnimationTick(AVULONG nParam);

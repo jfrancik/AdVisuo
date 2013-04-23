@@ -4,7 +4,6 @@
 
 #include "../CommonFiles/BaseSimClasses.h"
 #include "repos.h"
-using namespace std;
 
 class CLiftGroupVis;
 class CLiftVis;

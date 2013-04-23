@@ -5,6 +5,8 @@
 #include "AdVisuoDoc.h"
 #include "AdVisuo.h"
 
+using namespace std;
+
 IMPLEMENT_DYNAMIC(CDlgReportBug, CDialogEx)
 
 CDlgReportBug::CDlgReportBug(CString msg, CWnd* pParent /*=NULL*/)
@@ -119,17 +121,16 @@ void CDlgReportBug::Report(int nReason, CString message)
 	url = L"http://francik.name/advisuo";
 	function = L"report.php";
 	request = (wstring)req;
+	std::wstring response;
 	CXMLRequest http;
 	try
 	{
 		http.setURL(url);
-		http.call(function, request);
-		std::wstring response = http.response();
+		http.call(function, request, response);
 	}
 	catch(...)
 	{
 	}
-	http.reset();
 }
 
 
@@ -168,12 +169,12 @@ void CDlgReportBug::OnOK()
 	request = (wstring)req;
 
 	std::wstringstream str;
+	std::wstring response;
 	CXMLRequest http;
 	try
 	{
 		http.setURL(url);
-		http.call(function, request);
-		std::wstring response = http.response();
+		http.call(function, request, response);
 	}
 	catch (_com_error ce)
 	{
@@ -197,7 +198,6 @@ void CDlgReportBug::OnOK()
 		AfxMessageBox(str.str().c_str(), MB_ICONEXCLAMATION);
 		return;
 	}
-	http.reset();
 	CDialogEx::OnOK();
 	AfxMessageBox(L"Message sent, thank you!", MB_ICONINFORMATION);
 }

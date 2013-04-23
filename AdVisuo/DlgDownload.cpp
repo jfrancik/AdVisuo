@@ -126,14 +126,13 @@ void CDlgDownload::OnBnClickedRefresh()
 
 	// Download available projects
 	std::wstringstream str;
+	std::wstring response;
 	CXMLRequest http;
 	try
 	{
 		http.setURL((LPCTSTR)url);
-		http.AVIndex();
-
-		std::wstring response = http.response();
-		CProjectVis::LoadIndexFromBuf(http.response().c_str(), m_prjs);
+		http.AVIndex(response);
+		CProjectVis::LoadIndexFromBuf(response.c_str(), m_prjs);
 		
 		m_list.DeleteAllItems();
 		for (unsigned i = 0; i < m_prjs.size(); i++)
@@ -168,7 +167,7 @@ void CDlgDownload::OnBnClickedRefresh()
 	}
 	catch (_com_error ce)
 	{
-		str << "System error while downloading from " << http.URL() << ":" << endl;
+		str << "System error while downloading from " << http.URL() << ":" << std::endl;
 		if ((wchar_t*)ce.Description())
 			str << ce.Description();
 		else
@@ -182,7 +181,6 @@ void CDlgDownload::OnBnClickedRefresh()
 	{
 		str << L"Unidentified errors while downloading from " << http.URL();
 	}
-	http.reset();
 	m_list.DeleteAllItems();
 	Debug(str.str().c_str());
 	AfxMessageBox(str.str().c_str(), MB_OK | MB_ICONHAND);

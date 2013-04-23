@@ -6,20 +6,21 @@
 #include "../CommonFiles/XMLTools.h"
 #include <vector>
 
-interface IMesh;
-interface IKineNode;
-interface ISceneObject;
-interface IRenderer;
+namespace fw
+{
+	interface IMesh;
+	interface IKineNode;
+	interface ISceneObject;
+	interface IRenderer;
+};
 
 class CProjectVis;
 class CLiftGroupVis;
 class CEngine;
 
-using namespace std;
-
 class CElemVis : public CElem
 {
-	IKineNode *m_pBone;
+	fw::IKineNode *m_pBone;
 public:
 	CElemVis(CProject *pProject, CLiftGroup *pLiftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 	virtual ~CElemVis();
@@ -30,8 +31,8 @@ public:
 	CEngine *GetEngine();
 
 	// FreeWill+ specific
-	IKineNode *GetBone()					{ return m_pBone; }
-	ISceneObject *GetObject();
+	fw::IKineNode *GetBone()				{ return m_pBone; }
+	fw::ISceneObject *GetObject();
 
 	// Implemenmtation
 	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL);
@@ -46,7 +47,7 @@ public:
 	void PopState();
 	void Invalidate();
 
-	IMesh *AddMesh(AVSTRING strName);
+	fw::IMesh *AddMesh(AVSTRING strName);
 	void Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale = 1.0f, AVFLOAT fTexScale = 1.0f);
-	void Render(IRenderer *pRenderer);
+	void Render(fw::IRenderer *pRenderer);
 };

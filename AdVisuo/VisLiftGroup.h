@@ -4,8 +4,6 @@
 
 #include "../CommonFiles/ConstrLiftGroup.h"
 
-using namespace std;
-
 class CSimVis;
 class CElemVis;
 class CProjectVis;

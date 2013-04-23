@@ -96,7 +96,7 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		}
 		catch (_com_error ce)
 		{
-			err << "System error while loading from " << lpszPathName << ":" << endl;
+			err << "System error while loading from " << lpszPathName << ":" << std::endl;
 			if ((wchar_t*)ce.Description())
 				err << ce.Description();
 			else
@@ -137,7 +137,7 @@ BOOL CAdVisuoDoc::OnSaveDocument(LPCTSTR lpszPathName)
 	}
 	catch (_com_error ce)
 	{
-		err << "System error while storing to " << lpszPathName << ":" << endl;
+		err << "System error while storing to " << lpszPathName << ":" << std::endl;
 		if ((wchar_t*)ce.Description())
 			err << ce.Description();
 		else
@@ -189,35 +189,37 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 
 	// Initiate the download
 	std::wstringstream str;
+	std::wstring response;
 	try
 	{
 		m_http.setURL((LPCTSTR)strUrl);
 
-		m_http.AVProject(nId);
-		GetProject()->LoadFromBuf(m_http.response().c_str());
+		m_http.AVProject(nId, response);
+		GetProject()->LoadFromBuf(response.c_str());
 
 		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
 		m_strPathName = GetTitle();
 
-		m_http.AVLiftGroups(GetProject()->GetId());
-		GetProject()->LoadFromBuf(m_http.response().c_str());
+		m_http.AVLiftGroups(GetProject()->GetId(), response);
+		GetProject()->LoadFromBuf(response.c_str());
 
 		// load lift groups
 		for each (CLiftGroupVis *pGroup in GetProject()->GetLiftGroups())
 		{
-			m_http.AVFloors(pGroup->GetId());
-			GetProject()->LoadFromBuf(m_http.response().c_str());
+			m_http.AVFloors(pGroup->GetId(), response);
+			GetProject()->LoadFromBuf(response.c_str());
 
-			m_http.AVShafts(pGroup->GetId());
-			GetProject()->LoadFromBuf(m_http.response().c_str());
+			m_http.AVShafts(pGroup->GetId(), response);
+			GetProject()->LoadFromBuf(response.c_str());
 
-			m_http.AVSim(pGroup->GetId());
-			GetProject()->LoadFromBuf(m_http.response().c_str());
+			m_http.AVSim(pGroup->GetId(), response);
+			GetProject()->LoadFromBuf(response.c_str());
 		}
 
 		// first SIM data chunk
 		m_timeLoaded = GetProject()->GetMinSimulationTime();
 		m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
+		m_http.wait();
 		OnSIMDataLoaded();
 
 		m_h = S_OK;
@@ -231,7 +233,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	}
 	catch (_com_error ce)
 	{
-		str << "System error while downloading from " << m_http.URL() << ":" << endl;
+		str << "System error while downloading from " << m_http.URL() << ":" << std::endl;
 		if ((wchar_t*)ce.Description())
 			str << ce.Description();
 		else
@@ -251,7 +253,6 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	}
 	Debug(str.str().c_str());
 	AfxMessageBox(str.str().c_str(), MB_OK | MB_ICONHAND);
-	m_http.reset();
 	return false;
 }
 
@@ -261,9 +262,8 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 	try
 	{
 		// Process the most recently loaded data
-		if (!m_http.ok()) m_http.throw_exceptions();
-std::wstring response = m_http.response();
-m_http.reset();
+		std::wstring response;
+		m_http.get_response(response);
 		GetProject()->LoadFromBuf(response.c_str());
 		
 		m_timeLoaded += 60000;
@@ -271,7 +271,7 @@ m_http.reset();
 		if (!IsDownloadComplete())
 		{
 			str << L"Simulation data download continued in background (" << m_timeLoaded << L").";
-			m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000, false);
+			m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
 		}
 
 		return true;
@@ -283,7 +283,7 @@ m_http.reset();
 	}
 	catch (_com_error ce)
 	{
-		str << "System error while downloading from " << m_http.URL() << ":" << endl;
+		str << "System error while downloading from " << m_http.URL() << ":" << std::endl;
 		if ((wchar_t*)ce.Description())
 			str << ce.Description();
 		else
@@ -301,7 +301,6 @@ m_http.reset();
 	{
 		str << L"Unidentified errors while downloading from " << m_http.URL();
 	}
-	m_http.reset();
 	Debug(str.str().c_str());
 	AfxMessageBox(str.str().c_str(), MB_OK | MB_ICONHAND);
 	return false;

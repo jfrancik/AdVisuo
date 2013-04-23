@@ -5,21 +5,19 @@
 #include "_base.h"
 #include "repos.h"
 
+namespace fw
+{
+	interface IFWDevice;
+	interface IRenderer;
+	interface IScene;
+	interface IKineChild;
+	interface ISceneLightDir;
+};
+
+interface IDirect3DDevice9;
+
 extern bool g_bFullScreen;
 extern bool g_bReenter;
-
-interface IFWDevice;
-interface IRenderer;
-interface IScene;
-interface IAction;
-interface IBody;
-interface IKineNode;
-interface IKineChild;
-interface IMaterial;
-interface ISceneObject;
-interface ISceneLightDir;
-interface ISceneCamera;
-interface IDirect3DDevice9;
 
 enum
 {
@@ -31,29 +29,29 @@ enum
 
 enum BMP_FORMAT { FORMAT_BMP, FORMAT_JPG, FORMAT_TGA, FORMAT_PNG };
 
-class CEngine : protected CRepos<IBody>
+class CEngine : protected CRepos<fw::IBody>
 {
 	// Main Scene
-	IFWDevice *m_pFWDevice;					// FreeWill Device
-	IRenderer *m_pRenderer;					// The Renderer
-	IScene *m_pScene;						// The Scene
+	fw::IFWDevice *m_pFWDevice;				// FreeWill Device
+	fw::IRenderer *m_pRenderer;				// The Renderer
+	fw::IScene *m_pScene;					// The Scene
 
 	// action tick
-	IAction *m_pActionTick;					// The Clock Tick Action...
+	fw::IAction *m_pActionTick;				// The Clock Tick Action...
 
 	// auxiliary action tick & ref time
-	IAction *m_pAuxActionTick;				// The Clock Tick Action for Camera Animation...
+	fw::IAction *m_pAuxActionTick;			// The Clock Tick Action for Camera Animation...
 	AVULONG m_nAuxTimeRef;					// The Clock Value for m_pAuxActionTick
 
 	// bipeds spawning machine
-	IKineChild *m_pBiped;					// biped (template)
-	IMaterial *m_pMaterial;					// material (for produced bipeds)
+	fw::IKineChild *m_pBiped;				// biped (template)
+	fw::IMaterial *m_pMaterial;				// material (for produced bipeds)
 	BYTE *m_pBipedBuf;						// Data buffer for Store/RetrieveState functions
 	AVULONG m_nBipedBufCount;
 
 	// lights
-	ISceneLightDir *m_pLight1;				// light 1
-	ISceneLightDir *m_pLight2;				// light 2
+	fw::ISceneLightDir *m_pLight1;			// light 1
+	fw::ISceneLightDir *m_pLight2;			// light 2
 
 	// Frame Rate calculation
 	static const DWORD c_fpsNUM = 120;		// Frame per Second rate calculation
@@ -73,20 +71,20 @@ class CEngine : protected CRepos<IBody>
 		AVCOLOR m_color;
 		AVSTRING m_pFName;
 		AVFLOAT m_fUTile, m_fVTile;
-		IMaterial *m_pMaterial;
+		fw::IMaterial *m_pMaterial;
 		
 		MATERIAL() { memset(this, 0, sizeof(*this)); }
 		~MATERIAL() { if (m_pLabel) free(m_pLabel); if (m_pFName) free(m_pFName); }
 	} m_materials[MAT_NUM];
-	std::vector<IMaterial*> m_matFloorPlates;
-	std::vector<IMaterial*> m_matLiftPlates;
+	std::vector<fw::IMaterial*> m_matFloorPlates;
+	std::vector<fw::IMaterial*> m_matLiftPlates;
 
 public:
 	CEngine();
 	virtual ~CEngine();
 
 private:
-	IScene *GetScene()							{ return m_pScene; }
+	fw::IScene *GetScene()							{ return m_pScene; }
 	friend class CElemVis;
 public:
 
@@ -129,7 +127,7 @@ public:
 	AVFLOAT GetMatUTile(AVULONG i)				{ return m_materials[i].m_fUTile; }
 	AVFLOAT GetMatVTile(AVULONG i)				{ return m_materials[i].m_fVTile; }
 
-	IMaterial *GetMat(AVULONG nWallId, AVLONG i = 0);
+	HMATERIAL GetMat(AVULONG nWallId, AVLONG i = 0);
 	
 	void InitMats(AVULONG nStoreys, AVULONG nBasementStoreys, AVULONG nShafts);
 
@@ -141,7 +139,7 @@ public:
 	void Proceed(AVLONG nMSec);
 	
 	// Auxiliary Player
-	void AuxPlay(IAction **pAuxAction, AVULONG nClockValue = 0x7FFFFFFF);
+	void AuxPlay(HACTION *pAuxAction, AVULONG nClockValue = 0x7FFFFFFF);
 	void ProceedAux(AVLONG nMSec);
 	
 	// Tools
@@ -174,40 +172,41 @@ public:
 
 	// Various functions
 	void RenderLights();
-	void Render(ISceneCamera *p);
-	void Render(ISceneObject *p);
-	void RenderPassenger(IBody *pBody, AVULONG nColourMode, AVULONG nPhase, AVLONG timeSpawn, AVLONG timeLoad, AVLONG spanWait);
-	void PutCamera(ISceneCamera *p);
+	void Render(HCAMERA p);
+	void Render(HOBJECT p);
+	void RenderPassenger(HBODY pBody, AVULONG nColourMode, AVULONG nPhase, AVLONG timeSpawn, AVLONG timeLoad, AVLONG spanWait);
+	void PutCamera(HCAMERA p);
+	void Embark(HBODY pBody, HBONE pNode, bool bSwitchCoord = true);	// embarks the body as the pNode node
 
 	// Repository Utilities
-	IBody *SpawnBiped();
-	void KillBiped(IBody*);
+	HBODY SpawnBiped();
+	void KillBiped(HBODY);
 
 	// Animators
-	ANIM_HANDLE StartAnimation(LONG nTime);
-	ANIM_HANDLE SetAnimationListener(ANIM_HANDLE aHandle, IAnimationListener *pListener, AVULONG nParam = 0);
-	ANIM_HANDLE DoNothing(ANIM_HANDLE aHandle);
-	ANIM_HANDLE Move(ANIM_HANDLE aHandle, IBody *pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
-	ANIM_HANDLE Move(ANIM_HANDLE aHandle, IKineNode *pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
-	ANIM_HANDLE MoveTo(ANIM_HANDLE aHandle, IBody *pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
-	ANIM_HANDLE MoveTo(ANIM_HANDLE aHandle, IKineNode *pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
-	ANIM_HANDLE Wait(ANIM_HANDLE aHandle, IBody *pBody, LONG nTimeUntil, std::wstring wstrStyle = L"");
-	ANIM_HANDLE Walk(ANIM_HANDLE aHandle, IBody *pBody, AVFLOAT x, AVFLOAT y, std::wstring wstrStyle = L"");
-	ANIM_HANDLE Turn(ANIM_HANDLE aHandle, IBody *pBody, std::wstring wstrStyle = L"");
-	ANIM_HANDLE SetEnvelope(ANIM_HANDLE aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec);
+	HACTION StartAnimation(LONG nTime);
+	HACTION SetAnimationListener(HACTION aHandle, IAnimationListener *pListener, AVULONG nParam = 0);
+	HACTION DoNothing(HACTION aHandle);
+	HACTION Move(HACTION aHandle, HBODY pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
+	HACTION Move(HACTION aHandle, HBONE pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
+	HACTION MoveTo(HACTION aHandle, HBODY pBody, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
+	HACTION MoveTo(HACTION aHandle, HBONE pBone, AVULONG nDuration, AVFLOAT x, AVFLOAT y, AVFLOAT z, std::wstring wstrStyle = L"");
+	HACTION Wait(HACTION aHandle, HBODY pBody, LONG nTimeUntil, std::wstring wstrStyle = L"");
+	HACTION Walk(HACTION aHandle, HBODY pBody, AVFLOAT x, AVFLOAT y, std::wstring wstrStyle = L"");
+	HACTION Turn(HACTION aHandle, HBODY pBody, std::wstring wstrStyle = L"");
+	HACTION SetEnvelope(HACTION aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec);
 
 	// Camera Animators
 	void StartCameraAnimation(AVULONG nClockValue = 0x7FFFFFFF);
-	ANIM_HANDLE MoveCameraTo(IKineNode *pNode, AVVECTOR v, AVULONG nTime, AVULONG nDuration, IKineNode *pRef);
-	ANIM_HANDLE PanCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration);
-	ANIM_HANDLE TiltCamera(IKineNode *pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration);
-	ANIM_HANDLE ZoomCamera(ISceneCamera *pCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVULONG nTime, AVULONG nDuration);
-	ANIM_HANDLE SetCameraEnvelope(ANIM_HANDLE aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec);
+	HACTION MoveCameraTo(HBONE pNode, AVVECTOR v, AVULONG nTime, AVULONG nDuration, HBONE pRef);
+	HACTION PanCamera(HBONE pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration);
+	HACTION TiltCamera(HBONE pNode, AVFLOAT alpha, AVULONG nTime, AVULONG nDuration);
+	HACTION ZoomCamera(HCAMERA pCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVULONG nTime, AVULONG nDuration);
+	HACTION SetCameraEnvelope(HACTION aHandle, AVFLOAT fEaseInMsec, AVFLOAT fEaseOutMsec);
 
 
 protected:
 	// CRepos<IBody> implementation
-	virtual IBody *create();
-	virtual void destroy(IBody*);
+	virtual HBODY create();
+	virtual void destroy(HBODY);
 };
 

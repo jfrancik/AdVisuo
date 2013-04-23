@@ -151,7 +151,7 @@ void CProjectVis::Load(xmltools::CXmlReader reader)
 	}
 }
 
-void CProjectVis::LoadIndex(xmltools::CXmlReader reader, vector<CProjectVis*> &prjs)
+void CProjectVis::LoadIndex(xmltools::CXmlReader reader, std::vector<CProjectVis*> &prjs)
 {
 	while (reader.read())
 		if (reader.getName() == L"AVProject")

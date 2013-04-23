@@ -9,8 +9,6 @@ class CLiftGroupVis;
 class CSimVis;
 class CEngine;
 
-using namespace std;
-
 class _prj_error
 {
 public:
@@ -62,7 +60,7 @@ public:
 	void StoreToBuf(LPOLESTR pBuffer, size_t nSize)							{ ASSERT(FALSE); } // not implemented at the moment
 	void Store(xmltools::CXmlWriter writer);
 
-	static void LoadIndexFromBuf(LPCOLESTR pBuf, vector<CProjectVis*> &prjs)		{ LoadIndex(pBuf, prjs); }
-	static void LoadIndexFromFile(LPCOLESTR pFileName, vector<CProjectVis*> &prjs)	{ LoadIndex((std::wstring)pFileName, prjs); }
-	static void LoadIndex(xmltools::CXmlReader reader, vector<CProjectVis*>&);
+	static void LoadIndexFromBuf(LPCOLESTR pBuf, std::vector<CProjectVis*> &prjs)		{ LoadIndex(pBuf, prjs); }
+	static void LoadIndexFromFile(LPCOLESTR pFileName, std::vector<CProjectVis*> &prjs)	{ LoadIndex((std::wstring)pFileName, prjs); }
+	static void LoadIndex(xmltools::CXmlReader reader, std::vector<CProjectVis*>&);
 };

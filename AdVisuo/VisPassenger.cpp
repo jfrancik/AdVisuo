@@ -7,12 +7,8 @@
 #include "VisLiftGroup.h"
 #include "Engine.h"
 
-#include <freewill.h>
-
 #define DEG2RAD(d)	( (d) * (AVFLOAT)M_PI / 180.0f )
 #define RAD2DEG(r)	( 180.0f * (r) / (AVFLOAT)M_PI )
-
-using namespace std;
 
 CPassengerVis::CPassengerVis(CSimVis *pSim, AVULONG nPassengerId) 
 	: CPassenger(pSim, nPassengerId), m_pBody(NULL)
@@ -22,7 +18,7 @@ CPassengerVis::CPassengerVis(CSimVis *pSim, AVULONG nPassengerId)
 
 CPassengerVis::~CPassengerVis(void)
 {
-	if (m_pBody) m_pBody->Release();
+	if (m_pBody) ((IUnknown*)m_pBody)->Release();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -33,7 +29,7 @@ void CPassengerVis::Play(CEngine *pEngine)
 	m_pEngine = pEngine;
 
 	// Plan spawning
-	ANIM_HANDLE a = pEngine->StartAnimation(GetSpawnTime());
+	HACTION a = pEngine->StartAnimation(GetSpawnTime());
 	a = pEngine->SetAnimationListener(a, this, SPAWN);
 }
 
@@ -51,7 +47,7 @@ void CPassengerVis::Render(AVLONG nPhase)
 
 int CPassengerVis::OnAnimationTick(AVULONG nParam)			
 { 
-	IKineNode *pNode = NULL;
+	HBONE pNode = NULL;
 	switch (nParam)
 	{
 	case SPAWN:
@@ -62,15 +58,15 @@ int CPassengerVis::OnAnimationTick(AVULONG nParam)
 		break;
 	case ENTER_ARR_FLOOR:
 		pNode = GetSim()->GetLiftGroup()->GetStoreyElement(GetArrivalFloor())->GetBone(); 
-		Embark(pNode);
+		m_pEngine->Embark(m_pBody, pNode);
 		break;
 	case ENTER_LIFT:
 		pNode = GetSim()->GetLiftGroup()->GetLiftDeck(GetLiftId(), GetDeck())->GetBone(); 
-		Embark(pNode);
+		m_pEngine->Embark(m_pBody, pNode);
 		break;
 	case ENTER_DEST_FLOOR:
 		pNode = GetSim()->GetLiftGroup()->GetStoreyElement(GetDestFloor())->GetBone(); 
-		Embark(pNode);
+		m_pEngine->Embark(m_pBody, pNode);
 		break;
 	}
 	return S_OK;
@@ -83,8 +79,8 @@ void CPassengerVis::Spawn()
 	if (!m_pBody) return;
 
 	// Plan Actions!
-	ANIM_HANDLE a = m_pEngine->StartAnimation(GetSpawnTime());
-	Embark(GetSim()->GetLiftGroup()->GetStoreyElement(GetArrivalFloor())->GetBone(), false);
+	HACTION a = m_pEngine->StartAnimation(GetSpawnTime());
+	m_pEngine->Embark(m_pBody, GetSim()->GetLiftGroup()->GetStoreyElement(GetArrivalFloor())->GetBone(), false);
 	for (AVULONG i = 0; i < GetWaypointCount(); i++)
 	{
 		WAYPOINT *wp = GetWaypoint(i);
@@ -107,51 +103,8 @@ void CPassengerVis::Die()
 {
 	if (!m_pBody) return;
 
-	Embark((IKineNode*)NULL);
+	m_pEngine->Embark(m_pBody, (HBONE)NULL);
 	m_pEngine->KillBiped(m_pBody);
 	m_pBody = NULL;
 }
 
-void CPassengerVis::Embark(IKineNode *pNode, bool bSwitchCoord)
-{
-	if (!m_pBody) return;
-	IKineNode *pMe = m_pBody->BodyNode(BODY_OBJECT);
-
-	if (bSwitchCoord && pNode)
-	{
-		FWVECTOR v1 = { 0, 0, 0 };
-		pMe->LtoG(&v1);
-
-		ITransform *pT;
-		pMe->CreateCompatibleTransform(&pT);
-		pNode->GetGlobalTransform(pT);
-		pMe->Transform(pT, KINE_LOCAL | KINE_INVERTED);
-		pMe->GetParentTransform(pT);
-		pMe->Transform(pT, KINE_LOCAL | KINE_REGULAR);
-
-		// compensate for Z coordinate
-		FWVECTOR v2 = { 0, 0, 0 };
-		pNode->LtoG(&v2);
-		pT->FromTranslationXYZ(0, 0, v2.z - v1.z);
-		pMe->Transform(pT, KINE_LOCAL | KINE_REGULAR);
-
-		pT->Release();
-	}
-		
-	IKineNode *pParent;
-	pMe->GetParent(&pParent);
-	if (pParent)
-	{
-		pParent->DelChildPtr(pMe);
-		pParent->Release();
-	}
-
-	if (pNode)
-	{
-		OLECHAR buf[257];
-		pNode->CreateUniqueLabel(L"Passenger", 256, buf);
-		pNode->AddChild(buf, pMe);
-	}
-
-	pMe->Release();
-}

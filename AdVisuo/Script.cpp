@@ -10,7 +10,7 @@
 
 CString CScriptEvent::GetDesc()
 {
-	wstringstream s;
+	std::wstringstream s;
 
 	CString str;
 	str.Format(L"%d:%02d:%02d", (m_nTime/3600000), (m_nTime/60000)%60, (m_nTime/1000)%60);		//, (-t/10)%100);
@@ -111,7 +111,7 @@ void CScript::Proceed(AVLONG &nTime, AVLONG nAuxClockValue)
 
 void CScript::Sort()
 {
-	sort(m_events.begin(), m_events.end(), [](CScriptEvent *p1, CScriptEvent *p2) -> bool { return p1->GetTime() < p2->GetTime(); } );
+	std::sort(m_events.begin(), m_events.end(), [](CScriptEvent *p1, CScriptEvent *p2) -> bool { return p1->GetTime() < p2->GetTime(); } );
 }
 
 void CScript::Reset()

@@ -10,6 +10,8 @@
 using namespace dbtools;
 using namespace std;
 
+std::map<std::wstring, bool> CDataBase::CREATE::c_mapTables;	// used to create each table exactly once
+
 static wstring _str2wstr(string str)
 { 
 	size_t sz = str.size() + 1; 
@@ -176,7 +178,7 @@ std::wstring CValue::as_sql_type()
 {
 	switch (type)
 	{
-	case V_NULL:	return L"int";
+	case V_NULL:	return L"nvarchar(255)";
 	case V_INT:		return L"int";
 	case V_BOOL:	return L"bit";
 	case V_FLOAT:	return L"float";	// L"decimal(9,2)";
@@ -286,11 +288,14 @@ CDataBase::CDataBase(LPCOLESTR pConnectionString)
 	if FAILED(m_h) throw m_h;
 }
 
+bool g_bVerbose = false;
+
 // execute any SQL statement
 void CDataBase::execute(const wchar_t *query, ...)
 {
 	wchar_t out[10240];
 	va_list body; va_start(body, query); vswprintf_s(out, query, body); va_end(body);
+	if (g_bVerbose) wprintf(L"%ls\n", out);
 	m_h = m_connection->Execute(out, NULL, 1);
 	if FAILED(m_h) throw m_h;
 }
@@ -330,6 +335,7 @@ CDataBase::SELECT::SELECT(CDataBase &db, const wchar_t *query)
 {
 	m_h = m_recordset.CreateInstance(__uuidof(ADODB::Recordset));
 	if FAILED(m_h) throw m_h;
+	if (g_bVerbose) wprintf(L"%ls\n", query);
 	m_h = m_recordset->Open(query, ((ADODB::_ConnectionPtr&)db).GetInterfacePtr(), ADODB::adOpenForwardOnly, ADODB::adLockReadOnly, ADODB::adCmdText);
 	if FAILED(m_h) throw m_h;
 }
@@ -376,21 +382,15 @@ wstring CDataBase::INSERT::query()
 	return str.str();
 }
 
-void CDataBase::INSERT::createTables()
-{
-	CDataBase::CREATE create = pDB->create(table.c_str());
-	create << *this;
-
-	create.execute();
-}
-
 void CDataBase::INSERT::execute()
-{ 
+{
 	if (pDB)
 	{
-		createTables();
-		pDB->execute(query().c_str());
+		CDataBase::CREATE create = pDB->create(table.c_str());
+		create << *this;
+		create.execute();
 	}
+	QUERY::execute();
 }
 
 wstring CDataBase::UPDATE::query()
@@ -425,3 +425,11 @@ wstring CDataBase::CREATE::query()
 	return str.str();
 }
 
+void CDataBase::CREATE::execute()
+{
+	auto it = c_mapTables.find(table);
+	if (it != c_mapTables.end())
+		return;		// already created!
+	c_mapTables[table] = true;	// this bool value is never needed again
+	QUERY::execute();
+}
