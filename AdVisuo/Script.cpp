@@ -49,7 +49,7 @@ void CScriptEvent::Play(AVLONG &nTime, AVLONG nAuxClockValue)
 		if (GetAnimTime() == 0)
 			m_pView->GetCamera(i)->MoveTo(m_camera[i]);
 		else
-			m_pView->GetCamera(i)->AnimateTo(m_pView->GetEngine(), m_camera[i], GetAnimTime());
+			m_pView->GetCamera(i)->AnimateTo(m_camera[i], GetAnimTime());
 }
 
 void CScriptEvent::Serialize(CArchive& ar)
@@ -62,7 +62,7 @@ void CScriptEvent::Serialize(CArchive& ar)
 		ar << m_fAccel;
 		ar << m_desc;
 		for (int i = 0; i < N_CAMERAS; i++)
-			ar.Write(m_camera + i, sizeof(CAMPARAMS));
+			ar.Write(m_camera + i, sizeof(CCamera::CAMPARAMS));
 	}
 	else
 	{
@@ -72,7 +72,7 @@ void CScriptEvent::Serialize(CArchive& ar)
 		ar >> m_fAccel; 
 		ar >> m_desc;
 		for (int i = 0; i < N_CAMERAS; i++)
-			ar.Read(m_camera + i, sizeof(CAMPARAMS));
+			ar.Read(m_camera + i, sizeof(CCamera::CAMPARAMS));
 	}
 }
 

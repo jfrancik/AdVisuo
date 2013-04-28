@@ -76,6 +76,7 @@ class CAdVisuoView : public CView, ILostDeviceObserver
 	AVLONG m_nAspectImageIndex;					// image index for the ID_VIEW_ASPECT button
 	CMFCRibbonBaseElement *m_pbutFloor;			// last generated "Change Floor" button
 	CMFCRibbonBaseElement *m_pbutLift;			// last generated "Lift Camera" button
+	CMFCRibbonBaseElement *m_pbutGroup;			// last generated "Lift Camera" button
 	AVULONG m_nCamExtSideOption;				// used to interchange between left and right side vision
 
 protected: // create from serialization only
@@ -113,26 +114,17 @@ public:
 	void Pause();
 	void Rewind(AVULONG nMSec);		// rewinds the simulation to the given point
 
-
-
-
-
-
 	CEngine *GetEngine()						{ return &m_engine; }
 
-	void CreateCamera(int i)					{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = new CCamera(GetDocument()->GetProject()->GetLiftGroup(0), i); m_pCamera[i]->Create(); }
-	void DeleteCamera(int i)					{ if (i >= N_CAMERAS) return; if (m_pCamera[i]) delete m_pCamera[i]; m_pCamera[i] = NULL; }
 	CCamera *GetCamera(int i)					{ return i < N_CAMERAS ? m_pCamera[i] : NULL; }
-	void SetCamera(int i, CCamera *pCamera)		{ if (i >= N_CAMERAS) return; DeleteCamera(i); m_pCamera[i] = pCamera; }
-
 	CCamera *GetCurCamera()						{ return GetCamera(m_screen.GetCurCamera()); }
-	AVULONG GetCurLiftGroupIndex()				{ return GetCurCamera()->GetLiftGroup()->GetIndex(); }
+	
+	AVULONG GetCurLiftGroupIndex()				{ return GetCurCamera()->GetLiftGroup(); }
 
 	AVFLOAT GetScreenAspectRatio()				{ return (AVFLOAT)GetSystemMetrics(SM_CXSCREEN) / (AVFLOAT)GetSystemMetrics(SM_CYSCREEN); }
 	AVFLOAT GetWindowAspectRatio()				{ CRect rect; GetClientRect(rect); return (AVFLOAT)rect.Width() / (AVFLOAT)rect.Height(); }
 	AVFLOAT GetViewAspectRatio()				{ return m_screen.GetCurAspectRatio(); }
 	AVFLOAT GetViewAspectRatio(AVULONG i)		{ return m_screen.GetAspectRatio(i); }
-
 
 	// Timer, Cursor and Size Handlers
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
@@ -176,6 +168,7 @@ protected:
 	afx_msg void OnUpdateCamera(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateStoreyMenu(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateCameraLiftMenu(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateCameraGroupMenu(CCmdUI *pCmdUI);
 
 	// Action
 	afx_msg void OnActionPlay();
@@ -238,12 +231,6 @@ protected:
 	afx_msg void OnUpdateRecScript(CCmdUI *pCmdUI);
 	afx_msg void OnRecRecord();
 	afx_msg void OnRecPlay();
-	afx_msg void OnTmpGroup1();
-	afx_msg void OnTmpGroup2();
-	afx_msg void OnTmpGroup3();
-	afx_msg void OnUpdateTmpGroup1(CCmdUI *pCmdUI);
-	afx_msg void OnUpdateTmpGroup2(CCmdUI *pCmdUI);
-	afx_msg void OnUpdateTmpGroup3(CCmdUI *pCmdUI);
 };
    
 

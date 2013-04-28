@@ -18,7 +18,7 @@ class CScriptEvent
 	AVFLOAT m_fAccel;
 	CString m_desc;
 
-	CAMPARAMS m_camera[N_CAMERAS];
+	CCamera::CAMPARAMS m_camera[N_CAMERAS];
 
 public:
 	CScriptEvent(CAdVisuoView *pView) : m_pView(pView), m_nTime(0), m_nTimeAnim(0), m_nTimeFF(0), m_fAccel(0) { } 

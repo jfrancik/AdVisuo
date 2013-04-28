@@ -788,6 +788,101 @@ void CEngine::Embark(HBODY pBody, HBONE pNode, bool bSwitchCoord)
 	pMe->Release();
 }
 
+HBONE CEngine::CreateChild(HBONE pParent, AVSTRING strLabel)
+{
+	HBONE h = NULL;
+	OLECHAR buf[257];
+	pParent->CreateUniqueLabel(L"CameraHandle", 256, buf);
+	pParent->CreateChild(buf, &h);
+	return h;
+}
+
+void CEngine::DeleteChild(HBONE pParent, HBONE hBone)
+{
+	if (pParent && hBone) pParent->DelChildPtr(hBone);
+}
+
+HCAMERA CEngine::CreateCamera(HBONE pParent, AVSTRING strLabel)
+{
+	HCAMERA h = NULL;
+
+	m_pFWDevice->CreateObject(L"Camera", IID_ISceneCamera, (IFWUnknown**)&h);
+	pParent->AddChild(L"Camera", h);
+
+	h->Create(__FW_Vector(0, 0, 0), __FW_Vector(0, 1, 0), __FW_Vector(0, 0, 1.0f));
+	h->PutPerspective((AVFLOAT)M_PI / 4, 20.0f, 10000.0f, 0.0f);
+	h->PutVisible(TRUE);
+
+	IKineTargetedObj *pTO = NULL;
+	h->QueryInterface(&pTO);
+	pTO->PutConfig(KINE_TARGET_ORBITING, NULL);
+	pTO->Release();
+
+	return h;
+}
+
+AVVECTOR CEngine::GetBonePos(HBONE bone)
+{
+	AVVECTOR pos = { 0, 0, 0 };
+	bone->LtoG((FWVECTOR*)&pos);
+	return pos;
+}
+
+AVVECTOR CEngine::GetBonePosLocal(HBONE bone, HBONE ref)
+{
+	AVVECTOR pos = { 0, 0, 0 };
+	bone->LtoG((FWVECTOR*)&pos);
+	ref->GtoL((FWVECTOR*)&pos);
+	return pos;
+}
+
+
+void CEngine::ResetBone(HBONE bone)
+{
+	bone->Reset();
+}
+
+void CEngine::MoveBone(HBONE bone, AVFLOAT x, AVFLOAT y, AVFLOAT z)
+{
+	ITransform *pT = NULL;
+	bone->CreateCompatibleTransform(&pT);
+	pT->FromTranslationXYZ(x, y, z);
+	bone->Transform(pT, KINE_RIGHT_SIDE);
+	pT->Release();
+}
+
+void CEngine::RotateBoneX(HBONE bone, AVFLOAT f)
+{
+	ITransform *pT = NULL;
+	bone->CreateCompatibleTransform(&pT);
+	pT->FromRotationX(f);
+	bone->Transform(pT, KINE_RIGHT_SIDE);
+	pT->Release();
+}
+
+void CEngine::RotateBoneY(HBONE bone, AVFLOAT f)
+{
+	ITransform *pT = NULL;
+	bone->CreateCompatibleTransform(&pT);
+	pT->FromRotationY(f);
+	bone->Transform(pT, KINE_RIGHT_SIDE);
+	pT->Release();
+}
+
+void CEngine::RotateBoneZ(HBONE bone, AVFLOAT f)
+{
+	ITransform *pT = NULL;
+	bone->CreateCompatibleTransform(&pT);
+	pT->FromRotationZ(f);
+	bone->Transform(pT, KINE_RIGHT_SIDE);
+	pT->Release();
+}
+
+void CEngine::SetCameraPerspective(HCAMERA hCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVFLOAT fAspect)
+{
+	hCamera->PutPerspective(fFOV, fClipNear, fClipFar, fAspect);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Repository Utilities
 

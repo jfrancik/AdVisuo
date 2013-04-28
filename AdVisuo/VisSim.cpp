@@ -35,7 +35,7 @@ void CSimVis::Play(CEngine *pEngine, AVLONG nTime)
 	if (nCount == 0 && nTime <= 600000)
 	{
 		TRACE(L"Shit happens at %d\n", nTime);
-		ASSERT(FALSE);
+//		ASSERT(FALSE);
 	}
 }
 

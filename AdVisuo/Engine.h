@@ -142,7 +142,7 @@ public:
 	void AuxPlay(HACTION *pAuxAction, AVULONG nClockValue = 0x7FFFFFFF);
 	void ProceedAux(AVLONG nMSec);
 	
-	// Tools
+	// Animation Control Tools
 	bool Play();
 	bool Play(AVLONG nMSec);
 	bool Pause();
@@ -175,10 +175,26 @@ public:
 	void Render(HCAMERA p);
 	void Render(HOBJECT p);
 	void RenderPassenger(HBODY pBody, AVULONG nColourMode, AVULONG nPhase, AVLONG timeSpawn, AVLONG timeLoad, AVLONG spanWait);
+	
 	void PutCamera(HCAMERA p);
 	void Embark(HBODY pBody, HBONE pNode, bool bSwitchCoord = true);	// embarks the body as the pNode node
 
-	// Repository Utilities
+	HBONE CreateChild(HBONE pParent, AVSTRING strLabel);
+	HCAMERA CreateCamera(HBONE pParent, AVSTRING strLabel);
+	void DeleteChild(HBONE pParent, HBONE hBone);
+
+	AVVECTOR GetBonePos(HBONE bone);
+	AVVECTOR GetBonePosLocal(HBONE bone, HBONE ref);
+
+	void ResetBone(HBONE bone);
+	void MoveBone(HBONE bone, AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	void RotateBoneX(HBONE bone, AVFLOAT f);
+	void RotateBoneY(HBONE bone, AVFLOAT f);
+	void RotateBoneZ(HBONE bone, AVFLOAT f);
+	void SetCameraPerspective(HCAMERA hCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVFLOAT fAspect);
+
+
+	// Biped Repository Utilities
 	HBODY SpawnBiped();
 	void KillBiped(HBODY);
 

@@ -34,14 +34,19 @@ BEGIN_MESSAGE_MAP(CAdVisuoView, CView)
 	ON_COMMAND_RANGE(ID_CAMERA_EXT_REAR, ID_CAMERA_EXT_SIDE, &CAdVisuoView::OnCamera)
 	ON_COMMAND_RANGE(ID_STOREY_MENU + 1000, ID_STOREY_MENU + 1300, &CAdVisuoView::OnCamera)
 	ON_COMMAND_RANGE(ID_CAMERA_LIFT_MENU + 2000, ID_CAMERA_LIFT_MENU + 2200, &CAdVisuoView::OnCamera)
+	ON_COMMAND_RANGE(ID_CAMERA_GROUP_MENU + 3000, ID_CAMERA_GROUP_MENU + 3200, &CAdVisuoView::OnCamera)
+	ON_COMMAND_RANGE(ID_CAMERA_GROUPRIGHT, ID_CAMERA_GROUP_LEFT, &CAdVisuoView::OnCamera)
 
 	ON_UPDATE_COMMAND_UI_RANGE(ID_CAMERA, ID_STOREY_ONEDOWN, &CAdVisuoView::OnUpdateCamera)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_CAMERA_EXT_REAR, ID_CAMERA_EXT_SIDE, &CAdVisuoView::OnUpdateCamera)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_STOREY_MENU + 1000, ID_STOREY_MENU + 1300, &CAdVisuoView::OnUpdateCamera)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_CAMERA_LIFT_MENU + 2000, ID_CAMERA_LIFT_MENU + 2200, &CAdVisuoView::OnUpdateCamera)
+	ON_UPDATE_COMMAND_UI_RANGE(ID_CAMERA_GROUP_MENU + 3000, ID_CAMERA_GROUP_MENU + 3200, &CAdVisuoView::OnUpdateCamera)
+	ON_UPDATE_COMMAND_UI_RANGE(ID_CAMERA_GROUPRIGHT, ID_CAMERA_GROUP_LEFT, &CAdVisuoView::OnUpdateCamera)
 
 	ON_UPDATE_COMMAND_UI(ID_STOREY_MENU, &CAdVisuoView::OnUpdateStoreyMenu)
 	ON_UPDATE_COMMAND_UI(ID_CAMERA_LIFT_MENU, &CAdVisuoView::OnUpdateCameraLiftMenu)
+	ON_UPDATE_COMMAND_UI(ID_CAMERA_GROUP_MENU, &CAdVisuoView::OnUpdateCameraGroupMenu)
 
 
 	ON_COMMAND_RANGE(ID_SELCAMERA, ID_SELCAMERA_10, &CAdVisuoView::OnSelCamera)
@@ -107,12 +112,6 @@ BEGIN_MESSAGE_MAP(CAdVisuoView, CView)
 	ON_UPDATE_COMMAND_UI(ID_CHARACTER_CURRENTWAITINGTIME, &CAdVisuoView::OnUpdateCharacterCurrentwaitingtime)
 	ON_COMMAND(ID_CHARACTER_EXPECTEDWAITINGTIME, &CAdVisuoView::OnCharacterExpectedwaitingtime)
 	ON_UPDATE_COMMAND_UI(ID_CHARACTER_EXPECTEDWAITINGTIME, &CAdVisuoView::OnUpdateCharacterExpectedwaitingtime)
-	ON_COMMAND(ID_TMP_GROUP1, &CAdVisuoView::OnTmpGroup1)
-	ON_COMMAND(ID_TMP_GROUP2, &CAdVisuoView::OnTmpGroup2)
-	ON_COMMAND(ID_TMP_GROUP3, &CAdVisuoView::OnTmpGroup3)
-	ON_UPDATE_COMMAND_UI(ID_TMP_GROUP1, &CAdVisuoView::OnUpdateTmpGroup1)
-	ON_UPDATE_COMMAND_UI(ID_TMP_GROUP2, &CAdVisuoView::OnUpdateTmpGroup2)
-	ON_UPDATE_COMMAND_UI(ID_TMP_GROUP3, &CAdVisuoView::OnUpdateTmpGroup3)
 END_MESSAGE_MAP()
 
 // CAdVisuoView construction/destruction
@@ -130,6 +129,7 @@ CAdVisuoView::CAdVisuoView() : m_screen(&m_engine, 2), m_sprite(&m_engine), m_pl
 	m_nAspectImageIndex = 16;
 	m_pbutFloor = NULL;
 	m_pbutLift = NULL;
+	m_pbutGroup = NULL;
 	m_nCamExtSideOption = 2;
 	m_bLock = false;
 }
@@ -137,7 +137,7 @@ CAdVisuoView::CAdVisuoView() : m_screen(&m_engine, 2), m_sprite(&m_engine), m_pl
 CAdVisuoView::~CAdVisuoView()
 {
 	for (int i = 0; i < N_CAMERAS; i++) 
-		DeleteCamera(i);
+		if (m_pCamera[i]) delete m_pCamera[i];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -181,7 +181,12 @@ void CAdVisuoView::OnInitialUpdate()
 	Debug(L"Initialising cameras...");
 	// initialise cameras
 	for (int i = 0; i < N_CAMERAS; i++) 
-		CreateCamera(i);
+	{
+		m_pCamera[i] = new CCamera(); 
+		m_pCamera[i]->Create(&m_engine, GetDocument()->GetProject(), i, 0, 0); 
+	}
+
+
 	AVULONG nStorey = GetProject()->GetLiftGroup(0)->GetBasementStoreyCount();
 	GetCamera(0)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(0)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	- ID_CAMERA - 1);
 	GetCamera(1)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(1)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTFRONT   - ID_CAMERA - 1);
@@ -879,34 +884,42 @@ void CAdVisuoView::OnCamera(UINT nCmd)
 	if (::GetKeyState(VK_CONTROL) >= 0)
 	{
 		if (nCmd >= ID_STOREY_MENU + 1000 && nCmd < ID_STOREY_MENU + 1300)
-			GetCurCamera()->AnimateTo(CAMLOC_STOREY, &m_engine, nCmd - ID_STOREY_MENU - 1000, GetViewAspectRatio());
+			GetCurCamera()->AnimateTo(CAMLOC_STOREY, nCmd - ID_STOREY_MENU - 1000, GetViewAspectRatio());
 		else if (nCmd >= ID_CAMERA_LIFT_MENU + 2000 && nCmd < ID_CAMERA_LIFT_MENU + 2200)
-			GetCurCamera()->AnimateTo(CAMLOC_LIFT, &m_engine, nCmd - ID_CAMERA_LIFT_MENU - 2000, GetViewAspectRatio());
+			GetCurCamera()->AnimateTo(CAMLOC_LIFT, nCmd - ID_CAMERA_LIFT_MENU - 2000, GetViewAspectRatio());
+		else if (nCmd >= ID_CAMERA_GROUP_MENU + 3000 && nCmd < ID_CAMERA_GROUP_MENU + 3200)
+			GetCurCamera()->AnimateTo(CAMLOC_LIFTGROUP, nCmd - ID_CAMERA_GROUP_MENU - 3000, GetViewAspectRatio());
 		else switch (nCmd)
 		{
-			case ID_CAMERA_OVERHEAD:		GetCurCamera()->AnimateTo(CAMLOC_OVERHEAD, &m_engine, 0, GetViewAspectRatio()); break;
-			case ID_CAMERA_LEFTREAR:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 0, GetViewAspectRatio()); break;
-			case ID_CAMERA_CENTRALREAR:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 1, GetViewAspectRatio()); break;
-			case ID_CAMERA_RIGHTREAR:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 2, GetViewAspectRatio()); break;
-			case ID_CAMERA_RIGHTSIDE:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 3, GetViewAspectRatio()); break;
-			case ID_CAMERA_RIGHTFRONT:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 4, GetViewAspectRatio()); break;
-			case ID_CAMERA_CENTRALFRONT:	GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 5, GetViewAspectRatio()); break;
-			case ID_CAMERA_LEFTFRONT:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 6, GetViewAspectRatio()); break;
-			case ID_CAMERA_LEFTSIDE:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 7, GetViewAspectRatio()); break;
+			case ID_CAMERA_OVERHEAD:		GetCurCamera()->AnimateTo(CAMLOC_OVERHEAD, 0, GetViewAspectRatio()); break;
+			case ID_CAMERA_LEFTREAR:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY,    0, GetViewAspectRatio()); break;
+			case ID_CAMERA_CENTRALREAR:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY,    1, GetViewAspectRatio()); break;
+			case ID_CAMERA_RIGHTREAR:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY,    2, GetViewAspectRatio()); break;
+			case ID_CAMERA_RIGHTSIDE:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY,    3, GetViewAspectRatio()); break;
+			case ID_CAMERA_RIGHTFRONT:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY,    4, GetViewAspectRatio()); break;
+			case ID_CAMERA_CENTRALFRONT:	GetCurCamera()->AnimateTo(CAMLOC_LOBBY,    5, GetViewAspectRatio()); break;
+			case ID_CAMERA_LEFTFRONT:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY,    6, GetViewAspectRatio()); break;
+			case ID_CAMERA_LEFTSIDE:		GetCurCamera()->AnimateTo(CAMLOC_LOBBY,    7, GetViewAspectRatio()); break;
+			
 			case ID_CAMERA_LIFT_MENU:		break;
-			case ID_CAMERA_LIFTRIGHT:		GetCurCamera()->AnimateTo(CAMLOC_LIFT, &m_engine, GetCurCamera()->GetLift()-1, GetViewAspectRatio()); break;
-			case ID_CAMERA_LIFTLEFT:		GetCurCamera()->AnimateTo(CAMLOC_LIFT, &m_engine, GetCurCamera()->GetLift()+1, GetViewAspectRatio()); break;
+			case ID_CAMERA_LIFTRIGHT:		GetCurCamera()->AnimateTo(CAMLOC_LIFT, GetCurCamera()->GetLift()-1, GetViewAspectRatio()); break;
+			case ID_CAMERA_LIFTLEFT:		GetCurCamera()->AnimateTo(CAMLOC_LIFT, GetCurCamera()->GetLift()+1, GetViewAspectRatio()); break;
+
+			case ID_CAMERA_GROUP_MENU:		break;
+			case ID_CAMERA_GROUPRIGHT:		GetCurCamera()->AnimateTo(CAMLOC_LIFTGROUP, GetCurCamera()->GetLiftGroup()-1, GetViewAspectRatio()); break;
+			case ID_CAMERA_GROUP_LEFT:		GetCurCamera()->AnimateTo(CAMLOC_LIFTGROUP, GetCurCamera()->GetLiftGroup()+1, GetViewAspectRatio()); break;
+
 			case ID_STOREY_MENU:			break;
-			case ID_STOREY_ONEUP:			GetCurCamera()->AnimateTo(CAMLOC_STOREY, &m_engine, GetCurCamera()->GetStorey()+1, GetViewAspectRatio()); break;
-			case ID_STOREY_ONEDOWN:			GetCurCamera()->AnimateTo(CAMLOC_STOREY, &m_engine, GetCurCamera()->GetStorey()-1, GetViewAspectRatio()); break;
-			case ID_CAMERA_EXT_FRONT:		GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, &m_engine, 0, GetViewAspectRatio()); break;
-			case ID_CAMERA_EXT_REAR:		GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, &m_engine, 1, GetViewAspectRatio()); break;
+			case ID_STOREY_ONEUP:			GetCurCamera()->AnimateTo(CAMLOC_STOREY, GetCurCamera()->GetStorey()+1, GetViewAspectRatio()); break;
+			case ID_STOREY_ONEDOWN:			GetCurCamera()->AnimateTo(CAMLOC_STOREY, GetCurCamera()->GetStorey()-1, GetViewAspectRatio()); break;
+			case ID_CAMERA_EXT_FRONT:		GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, 0, GetViewAspectRatio()); break;
+			case ID_CAMERA_EXT_REAR:		GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, 1, GetViewAspectRatio()); break;
 			case ID_CAMERA_EXT_SIDE:		if (desc.camloc == CAMLOC_OUTSIDE && desc.index == 2) 
-												GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, &m_engine, m_nCamExtSideOption = 3, GetViewAspectRatio());
+												GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, m_nCamExtSideOption = 3, GetViewAspectRatio());
 											else if (desc.camloc == CAMLOC_OUTSIDE && desc.index == 3)
-												GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, &m_engine, m_nCamExtSideOption = 2, GetViewAspectRatio());
+												GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, m_nCamExtSideOption = 2, GetViewAspectRatio());
 											else 
-												GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, &m_engine, m_nCamExtSideOption, GetViewAspectRatio()); 
+												GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, m_nCamExtSideOption, GetViewAspectRatio()); 
 											break;
 		}
 	}
@@ -917,6 +930,8 @@ void CAdVisuoView::OnCamera(UINT nCmd)
 			GetCurCamera()->MoveTo(CAMLOC_STOREY, nCmd - ID_STOREY - 1000, GetViewAspectRatio());
 		else if (nCmd >= ID_CAMERA_LIFT_MENU + 2000 && nCmd < ID_CAMERA_LIFT_MENU + 2200)
 			GetCurCamera()->MoveTo(CAMLOC_LIFT, nCmd - ID_CAMERA_LIFT_MENU - 2000, GetViewAspectRatio());
+		else if (nCmd >= ID_CAMERA_GROUP_MENU + 3000 && nCmd < ID_CAMERA_GROUP_MENU + 3200)
+			GetCurCamera()->MoveTo(CAMLOC_LIFTGROUP, nCmd - ID_CAMERA_GROUP_MENU - 3000, GetViewAspectRatio());
 		else switch (nCmd)
 		{
 			case ID_CAMERA_OVERHEAD:		GetCurCamera()->MoveTo(CAMLOC_OVERHEAD, 0, GetViewAspectRatio()); break;
@@ -930,6 +945,8 @@ void CAdVisuoView::OnCamera(UINT nCmd)
 			case ID_CAMERA_LEFTSIDE:		GetCurCamera()->MoveTo(CAMLOC_LOBBY, 7, GetViewAspectRatio()); break;
 			case ID_CAMERA_LIFTRIGHT:		GetCurCamera()->MoveTo(CAMLOC_LIFT, GetCurCamera()->GetLift()-1, GetViewAspectRatio()); break;
 			case ID_CAMERA_LIFTLEFT:		GetCurCamera()->MoveTo(CAMLOC_LIFT, GetCurCamera()->GetLift()+1, GetViewAspectRatio()); break;
+			case ID_CAMERA_GROUPRIGHT:		GetCurCamera()->MoveTo(CAMLOC_LIFTGROUP, GetCurCamera()->GetLiftGroup()-1, GetViewAspectRatio()); break;
+			case ID_CAMERA_GROUP_LEFT:		GetCurCamera()->MoveTo(CAMLOC_LIFTGROUP, GetCurCamera()->GetLiftGroup()+1, GetViewAspectRatio()); break;
 			case ID_STOREY_ONEUP:			GetCurCamera()->MoveTo(CAMLOC_STOREY, GetCurCamera()->GetStorey()+1, GetViewAspectRatio()); break;
 			case ID_STOREY_ONEDOWN:			GetCurCamera()->MoveTo(CAMLOC_STOREY, GetCurCamera()->GetStorey()-1, GetViewAspectRatio()); break;
 			case ID_CAMERA_EXT_FRONT:		GetCurCamera()->MoveTo(CAMLOC_OUTSIDE, 0, GetViewAspectRatio()); break;
@@ -963,6 +980,8 @@ void CAdVisuoView::OnUpdateCamera(CCmdUI *pCmdUI)
 	}
 	else if (pCmdUI->m_nID >= ID_CAMERA_LIFT_MENU + 2000 && pCmdUI->m_nID < ID_CAMERA_LIFT_MENU + 2200)
 		pCmdUI->SetCheck(pCmdUI->m_nID - ID_CAMERA_LIFT_MENU - 2000 == GetCurCamera()->GetLift());
+	else if (pCmdUI->m_nID >= ID_CAMERA_GROUP_MENU + 3000 && pCmdUI->m_nID < ID_CAMERA_GROUP_MENU + 3200)
+		pCmdUI->SetCheck(pCmdUI->m_nID - ID_CAMERA_GROUP_MENU - 3000 == GetCurCamera()->GetLiftGroup());
 	else switch (pCmdUI->m_nID)
 	{
 	case ID_CAMERA_OVERHEAD:		pCmdUI->SetCheck(desc.camloc == CAMLOC_OVERHEAD); break;
@@ -976,6 +995,10 @@ void CAdVisuoView::OnUpdateCamera(CCmdUI *pCmdUI)
 	case ID_CAMERA_LEFTSIDE:		pCmdUI->SetCheck(desc.camloc == CAMLOC_LOBBY && desc.index == 7); break;
 	case ID_CAMERA_LIFTRIGHT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() > 0);  break;
 	case ID_CAMERA_LIFTLEFT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() < (AVLONG)GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->GetLiftCount() - 1); break;
+	
+	case ID_CAMERA_GROUPRIGHT:		pCmdUI->Enable(GetCurCamera()->GetLiftGroup() > 0); break;
+	case ID_CAMERA_GROUP_LEFT:		pCmdUI->Enable(GetCurCamera()->GetLiftGroup() < (AVLONG)GetProject()->GetLiftGroupsCount() - 1); break;
+
 	case ID_STOREY_ONEUP:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() < (AVLONG)GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->GetStoreyCount() - 1); break;
 	case ID_STOREY_ONEDOWN:			pCmdUI->Enable(desc.camloc != CAMLOC_LIFT && GetCurCamera()->GetStorey() > 0);break;
 
@@ -1058,6 +1081,29 @@ void CAdVisuoView::OnUpdateCameraLiftMenu(CCmdUI *pCmdUI)
 			m_pbutLift = new CMFCRibbonButton(ID_CAMERA_LIFT_MENU + 2000 + i, pLiftGroup->GetLift(i)->GetName().c_str());
 			m_pbutLift->SetDefaultMenuLook();
 			pButton->AddSubItem(m_pbutLift);
+		}
+	}
+}
+
+void CAdVisuoView::OnUpdateCameraGroupMenu(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(GetProject()->GetLiftGroupsCount() >= 2);
+
+	CMFCRibbonButton *pButton = ((CMFCRibbonButton*)((CMFCRibbonCmdUI*)pCmdUI)->m_pUpdated);
+	if (pButton && pButton->IsKindOf(RUNTIME_CLASS(CMFCRibbonButton)))
+	{
+		auto pSubItems = &pButton->GetSubItems();
+		INT_PTR n = pSubItems->GetSize();
+		if (n && (*pSubItems)[n - 1] == m_pbutGroup)
+			return;		// we already have this menu in place
+
+		// create the floors menu
+		pButton->RemoveAllSubItems();
+		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+		{
+			m_pbutGroup = new CMFCRibbonButton(ID_CAMERA_GROUP_MENU + 3000 + i, GetProject()->GetLiftGroup(i)->GetName().c_str());
+			m_pbutGroup->SetDefaultMenuLook();
+			pButton->AddSubItem(m_pbutGroup);
 		}
 	}
 }
@@ -1416,54 +1462,4 @@ void CAdVisuoView::OnRecPlay()
 {
 	AVLONG a = 0;
 	m_instRec.Play(a);
-}
-
-
-void CAdVisuoView::OnTmpGroup1()
-{
-	GetCurCamera()->SetLiftGroup(GetProject()->GetLiftGroup(0));
-	if (::GetKeyState(VK_CONTROL) >= 0)
-		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 6, GetViewAspectRatio());
-	else
-		GetCurCamera()->MoveTo(CAMLOC_LOBBY, 6, GetViewAspectRatio());
-}
-
-
-void CAdVisuoView::OnTmpGroup2()
-{
-	GetCurCamera()->SetLiftGroup(GetProject()->GetLiftGroup(1));
-	if (::GetKeyState(VK_CONTROL) >= 0)
-		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 6, GetViewAspectRatio());
-	else
-		GetCurCamera()->MoveTo(CAMLOC_LOBBY, 6, GetViewAspectRatio());
-}
-
-
-void CAdVisuoView::OnTmpGroup3()
-{
-	GetCurCamera()->SetLiftGroup(GetProject()->GetLiftGroup(2));
-	if (::GetKeyState(VK_CONTROL) >= 0)
-		GetCurCamera()->AnimateTo(CAMLOC_LOBBY, &m_engine, 6, GetViewAspectRatio());
-	else
-		GetCurCamera()->MoveTo(CAMLOC_LOBBY, 6, GetViewAspectRatio());
-}
-
-
-void CAdVisuoView::OnUpdateTmpGroup1(CCmdUI *pCmdUI)
-{
-	pCmdUI->SetRadio(GetCurLiftGroupIndex() == 0);
-}
-
-
-void CAdVisuoView::OnUpdateTmpGroup2(CCmdUI *pCmdUI)
-{
-	pCmdUI->Enable(GetProject()->GetLiftGroupsCount() >= 2);
-	pCmdUI->SetRadio(GetCurLiftGroupIndex() == 1);
-}
-
-
-void CAdVisuoView::OnUpdateTmpGroup3(CCmdUI *pCmdUI)
-{
-	pCmdUI->Enable(GetProject()->GetLiftGroupsCount() >= 3);
-	pCmdUI->SetRadio(GetCurLiftGroupIndex() == 2);
 }
