@@ -45,26 +45,30 @@ CScreen2x2::CScreen2x2(CEngine *pEngine, AVLONG nFrame) : CScreen(pEngine, 2, 2,
 	m_pVP[VP_FULL]    = VIEWPORT(0, 2, 0, 2, 0, true);
 	m_pVP[VP_UP_LT]   = VIEWPORT(0, 1, 0, 1, 0, false);
 	m_pVP[VP_UP_RT]   = VIEWPORT(1, 2, 0, 1, 1, false);
-	m_pVP[VP_LW_LT]   = VIEWPORT(0, 1, 1, 2, 3, false);
-	m_pVP[VP_LW_RT]   = VIEWPORT(1, 2, 1, 2, 2, false);
-	m_pVP[VP_UP]      = VIEWPORT(0, 2, 0, 1, 4, false);
-	m_pVP[VP_LW]      = VIEWPORT(0, 2, 1, 2, 5, false);
-	m_pVP[VP_LT]      = VIEWPORT(0, 1, 0, 2, 0, false);	// cameras outside?
-	m_pVP[VP_RT ]     = VIEWPORT(1, 2, 0, 2, 3, false);	// cameras outside?
-	m_pVP[VP_EXT_LT]  = VIEWPORT(0, 1, 0, 2, 6, false);	// external cameras?
-	m_pVP[VP_EXT_RT ] = VIEWPORT(1, 2, 0, 2, 7, false);	// external cameras?
+	m_pVP[VP_LW_LT]   = VIEWPORT(0, 1, 1, 2, 2, false);
+	m_pVP[VP_LW_RT]   = VIEWPORT(1, 2, 1, 2, 3, false);
+	m_pVP[VP_UP]      = VIEWPORT(0, 2, 0, 1, 0, false);
+	m_pVP[VP_LW]      = VIEWPORT(0, 2, 1, 2, 1, false);
+	m_pVP[VP_LT]      = VIEWPORT(0, 1, 0, 2, 0, false);
+	m_pVP[VP_RT ]     = VIEWPORT(1, 2, 0, 2, 1, false);
+	m_pVP[VP_TRP_LT]  = VIEWPORT(0, 1, 0, 2, 5, false);
+	m_pVP[VP_TRP_RT ] = VIEWPORT(1, 2, 0, 2, 4, false);
+	m_pVP[VP_TRP_UP_LT]   = VIEWPORT(0, 1, 0, 1, 0, false);
+	m_pVP[VP_TRP_UP_RT]   = VIEWPORT(1, 2, 0, 1, 0, false);
+	m_pVP[VP_TRP_LW_LT]   = VIEWPORT(0, 1, 1, 2, 1, false);
+	m_pVP[VP_TRP_LW_RT]   = VIEWPORT(1, 2, 1, 2, 1, false);
 }
 
 void CScreen2x2::OnSetConfig(AVULONG n)
 {
 	bool configs[SC_MAX][VP_MAX] =
 	{
-		{  true, false, false, false, false, false, false, false, false, false, false },	// SC_SINGLE
-		{ false, false, false, false, false,  true,  true, false, false, false, false },	// SC_HORIZONTAL
-		{ false, false, false, false, false, false, false,  true,  true, false, false },	// SC_VERTICAL
-		{ false, false,  true, false,  true, false, false, false, false,  true, false },	// SC_TRIPLE_LEFT
-		{ false,  true, false,  true, false, false, false, false, false, false,  true },	// SC_TRIPLE_RIGHT
-		{ false,  true,  true,  true,  true, false, false, false, false, false, false },	// SC_QUADRUPLE
+		{  true, false, false, false, false, false, false, false, false, false, false, false, false, false, false },	// SC_SINGLE
+		{ false, false, false, false, false,  true,  true, false, false, false, false, false, false, false, false },	// SC_HORIZONTAL
+		{ false, false, false, false, false, false, false,  true,  true, false, false, false, false, false, false },	// SC_VERTICAL
+		{ false, false, false, false, false, false, false, false, false,  true, false, false,  true, false,  true },	// SC_TRIPLE_LEFT
+		{ false, false, false, false, false, false, false, false, false, false,  true,  true, false,  true, false },	// SC_TRIPLE_RIGHT
+		{ false,  true,  true,  true,  true, false, false, false, false, false, false, false, false, false, false },	// SC_QUADRUPLE
 	};
 	
 	if (n >= SC_MAX) return;

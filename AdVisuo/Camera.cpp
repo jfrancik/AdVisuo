@@ -78,7 +78,7 @@ void CCamera::CheckLocation()
 	AVLONG nStorey = 0, nShaft = 0, nLift = 0, nLiftStorey = 0;
 
 	// position of the camera
-	AVVECTOR pos = m_pEngine->GetBonePos(m_pHandleBone);
+	AVVECTOR pos = CEngine::GetBonePos(m_pHandleBone);
 
 	// first thing: determine which lift group it is!
 	AVULONG i = 0;
@@ -178,14 +178,14 @@ void CCamera::CheckLocation()
 void CCamera::Pan(AVFLOAT f)
 {
 	if (!m_pCamera || !m_pHandleBone) return;
-	m_pEngine->RotateBoneZ(m_pHandleBone, f);
+	CEngine::RotateBoneZ(m_pHandleBone, f);
 	m_bRotated = true;
 }
 
 void CCamera::Tilt(AVFLOAT f)
 {
 	if (!m_pCamera) return;
-	m_pEngine->RotateBoneX((HBONE)m_pCamera, f);
+	CEngine::RotateBoneX((HBONE)m_pCamera, f);
 	m_bRotated = true;
 }
 
@@ -197,7 +197,7 @@ void CCamera::Zoom(AVFLOAT f)
 	m_cp.fHFOV -= f;
 	m_cp.fVFOV -= f;
 
-	m_pEngine->SetCameraPerspective(m_pCamera, m_cp.FOV(), m_cp.fClipNear, m_cp.fClipFar, m_cp.fAspectRatio);
+	CEngine::SetCameraPerspective(m_pCamera, m_cp.FOV(), m_cp.fClipNear, m_cp.fClipFar, m_cp.fAspectRatio);
 
 	m_bZoomed = true;
 }
@@ -205,7 +205,7 @@ void CCamera::Zoom(AVFLOAT f)
 void CCamera::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z, HBONE pRef)
 {
 	if (!m_pCamera || !m_pHandleBone) return;
-	m_pEngine->MoveBone(m_pHandleBone, x, y, z);
+	CEngine::MoveBone(m_pHandleBone, x, y, z);
 	m_bMoved = true;
 }
 
@@ -213,7 +213,7 @@ void CCamera::Adjust(AVFLOAT fNewAspectRatio)
 {
 	m_cp.fHFOV = 2 * atan(tan(m_cp.fHFOV/2) * m_cp.fAspectRatio / fNewAspectRatio);
 	m_cp.fAspectRatio = fNewAspectRatio;
-	m_pEngine->SetCameraPerspective(m_pCamera, m_cp.FOV(), m_cp.fClipNear, m_cp.fClipFar, m_cp.fAspectRatio);
+	CEngine::SetCameraPerspective(m_pCamera, m_cp.FOV(), m_cp.fClipNear, m_cp.fClipFar, m_cp.fAspectRatio);
 }
 
 CAMLOC CCamera::GetDescription(CAMDESC *pDesc)
@@ -378,12 +378,12 @@ void CCamera::MoveTo(CAMPARAMS &cp)
 	m_camloc = cp.camloc;
 	m_cp = cp;
 
-	m_pEngine->ResetBone(m_pHandleBone);
-	m_pEngine->ResetBone((HBONE)m_pCamera);
+	CEngine::ResetBone(m_pHandleBone);
+	CEngine::ResetBone((HBONE)m_pCamera);
 	Move(cp.eye.x, cp.eye.y, cp.eye.z, cp.EyeRef(m_pProject->GetLiftGroup(m_nLiftGroup)));
 	Pan((AVFLOAT)M_PI + cp.fPan);
 	Tilt(cp.fTilt);
-	m_pEngine->SetCameraPerspective(m_pCamera, cp.FOV(), cp.fClipNear, cp.fClipFar, 0);
+	CEngine::SetCameraPerspective(m_pCamera, cp.FOV(), cp.fClipNear, cp.fClipFar, 0);
 
 	m_bMoved = m_bRotated = m_bZoomed = false;
 }

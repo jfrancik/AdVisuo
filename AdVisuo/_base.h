@@ -10,6 +10,7 @@ namespace fw
 	interface IMaterial;
 	interface ISceneObject;
 	interface ISceneCamera;
+	interface IMesh;
 };
 
 typedef fw::IAction		* HACTION;
@@ -18,6 +19,7 @@ typedef fw::IKineNode	* HBONE;
 typedef fw::IMaterial	* HMATERIAL;
 typedef fw::ISceneObject* HOBJECT;
 typedef fw::ISceneCamera* HCAMERA;
+typedef fw::IMesh		* HMESH;
 
 interface ILostDeviceObserver
 {

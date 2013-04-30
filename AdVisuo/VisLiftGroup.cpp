@@ -42,8 +42,15 @@ void CLiftGroupVis::RestoreConfig()
 	for (AVULONG i = 0; i < GetLiftCount(); i++)
 	{
 		GetLiftElement(i)->PopState();
+		GetLiftElement(i)->Invalidate();
+		GetLiftElement(i)->PushState();
 		for (AVULONG k = 0; k < MAX_DOORS; k++)
-			if (GetLiftDoor(i, k))	{ GetLiftDoor(i, k)->PopState(); GetLiftDoor(i, k)->Invalidate(); GetLiftDoor(i, k)->PushState(); }
+			if (GetLiftDoor(i, k))	
+			{ 
+				GetLiftDoor(i, k)->PopState(); 
+				GetLiftDoor(i, k)->Invalidate(); 
+				GetLiftDoor(i, k)->PushState(); 
+			}
 	}
 	for (AVULONG i = 0; i < GetStoreyCount(); i++)
 		for (AVULONG j = 0; j < GetShaftCount(); j++)

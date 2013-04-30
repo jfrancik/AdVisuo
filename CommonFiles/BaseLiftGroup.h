@@ -380,6 +380,8 @@ public:
 	bool IsStoreyServed(AVULONG nStorey, AVULONG nShaft)	{ return GetShaft(nShaft)->IsStoreyServed(nStorey); }
 	AVULONG GetHighestStoreyServed()		{ AVLONG N = 0; for (AVULONG i = 0; i < GetShaftCount(); i++) { AVLONG n = GetShaft(i)->GetHighestStoreyServed(); if (n > N) N = n; } return N; }
 	AVULONG GetLowestStoreyServed()			{ AVLONG N = 32767; for (AVULONG i = 0; i < GetShaftCount(); i++) { AVLONG n = GetShaft(i)->GetLowestStoreyServed(); if (n < N) N = n; } return N; }
+	AVULONG GetFloorUp(AVULONG nStorey)		{ if (nStorey >= GetHighestStoreyServed()) return GetHighestStoreyServed(); else if (IsStoreyServed(nStorey+1)) return nStorey+1; else return GetFloorUp(nStorey+1); }
+	AVULONG GetFloorDown(AVULONG nStorey)	{ if (nStorey <= GetLowestStoreyServed()) return GetLowestStoreyServed(); else if (IsStoreyServed(nStorey-1)) return nStorey-1; else return GetFloorDown(nStorey-1); }
 
 	// The Sim
 	CSim *AddSim();

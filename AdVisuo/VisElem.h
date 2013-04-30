@@ -2,17 +2,10 @@
 
 #pragma once
 
+#include "_base.h"
 #include "../CommonFiles/ConstrProject.h"
 #include "../CommonFiles/XMLTools.h"
 #include <vector>
-
-namespace fw
-{
-	interface IMesh;
-	interface IKineNode;
-	interface ISceneObject;
-	interface IRenderer;
-};
 
 class CProjectVis;
 class CLiftGroupVis;
@@ -20,7 +13,7 @@ class CEngine;
 
 class CElemVis : public CElem
 {
-	fw::IKineNode *m_pBone;
+	HBONE m_pBone;
 public:
 	CElemVis(CProject *pProject, CLiftGroup *pLiftGroup, CElem *pParent, AVULONG nElemId, AVSTRING name, AVLONG i, AVVECTOR vec);
 	virtual ~CElemVis();
@@ -31,8 +24,8 @@ public:
 	CEngine *GetEngine();
 
 	// FreeWill+ specific
-	fw::IKineNode *GetBone()				{ return m_pBone; }
-	fw::ISceneObject *GetObject();
+	HBONE GetBone()							{ return m_pBone; }
+	HOBJECT GetObject();
 
 	// Implemenmtation
 	virtual void BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX box, AVVECTOR vecRot = Vector(0), AVULONG nDoorNum = 0, FLOAT *pDoorData = NULL);
@@ -47,7 +40,6 @@ public:
 	void PopState();
 	void Invalidate();
 
-	fw::IMesh *AddMesh(AVSTRING strName);
+	HMESH AddMesh(AVSTRING strName);
 	void Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale = 1.0f, AVFLOAT fTexScale = 1.0f);
-	void Render(fw::IRenderer *pRenderer);
 };

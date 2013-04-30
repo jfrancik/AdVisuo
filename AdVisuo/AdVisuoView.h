@@ -28,7 +28,7 @@
 
 #include <functional>
 
-#define N_CAMERAS	10						// number of cameras
+#define N_CAMERAS	8						// number of cameras
 
 class CAdVisuoView : public CView, ILostDeviceObserver
 {
@@ -75,6 +75,7 @@ class CAdVisuoView : public CView, ILostDeviceObserver
 	// UI - specific
 	AVLONG m_nAspectImageIndex;					// image index for the ID_VIEW_ASPECT button
 	CMFCRibbonBaseElement *m_pbutFloor;			// last generated "Change Floor" button
+	AVULONG m_nLGButFloor;						// used to refresh the menu after LiftGroup changed
 	CMFCRibbonBaseElement *m_pbutLift;			// last generated "Lift Camera" button
 	CMFCRibbonBaseElement *m_pbutGroup;			// last generated "Lift Camera" button
 	AVULONG m_nCamExtSideOption;				// used to interchange between left and right side vision

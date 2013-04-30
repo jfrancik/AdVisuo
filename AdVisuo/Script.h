@@ -6,7 +6,7 @@
 
 class CAdVisuoView;
 
-#define N_CAMERAS	10
+#define N_CAMERAS	8
 
 class CScriptEvent
 {

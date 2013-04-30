@@ -83,11 +83,6 @@ public:
 	CEngine();
 	virtual ~CEngine();
 
-private:
-	fw::IScene *GetScene()							{ return m_pScene; }
-	friend class CElemVis;
-public:
-
 	// Engine Creation
 	bool Create(HWND hWnd, ILostDeviceObserver *pLDO = NULL);
 
@@ -180,18 +175,26 @@ public:
 	void Embark(HBODY pBody, HBONE pNode, bool bSwitchCoord = true);	// embarks the body as the pNode node
 
 	HBONE CreateChild(HBONE pParent, AVSTRING strLabel);
+	HOBJECT CreateObject(AVSTRING strLabel);
 	HCAMERA CreateCamera(HBONE pParent, AVSTRING strLabel);
 	void DeleteChild(HBONE pParent, HBONE hBone);
 
-	AVVECTOR GetBonePos(HBONE bone);
-	AVVECTOR GetBonePosLocal(HBONE bone, HBONE ref);
+	static AVVECTOR GetBonePos(HBONE bone);
+	static AVVECTOR GetBonePosLocal(HBONE bone, HBONE ref);
 
-	void ResetBone(HBONE bone);
-	void MoveBone(HBONE bone, AVFLOAT x, AVFLOAT y, AVFLOAT z);
-	void RotateBoneX(HBONE bone, AVFLOAT f);
-	void RotateBoneY(HBONE bone, AVFLOAT f);
-	void RotateBoneZ(HBONE bone, AVFLOAT f);
-	void SetCameraPerspective(HCAMERA hCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVFLOAT fAspect);
+	static void ResetBone(HBONE bone);
+	static void MoveBone(HBONE bone, AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	static void MoveBoneTo(HBONE bone, AVFLOAT x, AVFLOAT y, AVFLOAT z);
+	static void RotateBoneX(HBONE bone, AVFLOAT f);
+	static void RotateBoneY(HBONE bone, AVFLOAT f);
+	static void RotateBoneZ(HBONE bone, AVFLOAT f);
+	static void PushState(HBONE bone);
+	static void PopState(HBONE bone);
+	static void Invalidate(HBONE bone);
+
+	static void SetCameraPerspective(HCAMERA hCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVFLOAT fAspect);
+
+
 
 
 	// Biped Repository Utilities

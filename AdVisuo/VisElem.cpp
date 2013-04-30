@@ -11,7 +11,6 @@ namespace fw
 {
 	#include <freewill.h>
 };
-using namespace fw;
 using namespace std;
 
 #pragma warning (disable:4996)
@@ -39,14 +38,13 @@ CElemVis::CElemVis(CProject *pProject, CLiftGroup *pLiftGroup, CElem *pParent, A
 
 	case ELEM_BONE:
 	case ELEM_DECK:
-		GetParent()->GetBone()->CreateChild((AVSTRING)GetName().c_str(), &m_pBone);
+		m_pBone = GetEngine()->CreateChild(GetParent()->GetBone(), (AVSTRING)GetName().c_str());
 		if (m_pBone)
 			Move(vec);
 		break;
 
 	default:
-		if (GetEngine() && GetEngine()->GetScene())
-			GetEngine()->GetScene()->NewObject((AVSTRING)GetName().c_str(), (ISceneObject**)&m_pBone);
+		m_pBone = (HBONE)GetEngine()->CreateObject((AVSTRING)GetName().c_str());
 		if (m_pBone)
 			Move(vec);
 		break;
@@ -55,7 +53,7 @@ CElemVis::CElemVis(CProject *pProject, CLiftGroup *pLiftGroup, CElem *pParent, A
 
 CElemVis::~CElemVis()
 {
-	if (m_pBone) m_pBone->Release(); 
+	if (m_pBone) ((IUnknown*)m_pBone)->Release(); 
 }
 
 CEngine *CElemVis::GetEngine()
@@ -63,17 +61,17 @@ CEngine *CElemVis::GetEngine()
 	return GetProject() ? GetProject()->GetEngine() : NULL; 
 }
 
-ISceneObject *CElemVis::GetObject()
+HOBJECT CElemVis::GetObject()
 {
-	IKineNode *pNode = m_pBone;
+	HBONE pNode = m_pBone;
 	if (pNode == NULL) return NULL;
 	pNode->AddRef();
 
-	ISceneObject *pObj = NULL;
+	HOBJECT pObj = NULL;
 	if (pNode) pNode->QueryInterface(&pObj);
 	while (!pObj)
 	{
-		IKineNode *pParentNode = NULL;
+		HBONE pParentNode = NULL;
 		pNode->GetParent(&pParentNode);
 		pNode->Release();
 		pNode = pParentNode;
@@ -90,8 +88,7 @@ void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX b
 	OLECHAR _name[257];
 	_snwprintf_s(_name, 256, strName, nIndex);
 
-	IKineNode *pNewBone = NULL;
-	m_pBone->CreateChild(_name, &pNewBone);
+	HBONE pNewBone = GetEngine()->CreateChild(m_pBone, _name);
 
 	CBlock block;
 	block.Open(GetObject(), pNewBone, box.Width(), box.Height(), box.Depth(), box.LeftFrontLower(), vecRot.z, vecRot.x, vecRot.y);
@@ -108,7 +105,7 @@ void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX b
 
 	block.SetMaterial(GetProject()->GetEngine()->GetMat(nWallId, LOWORD(nIndex)));
 	
-	pNewBone->Release();
+	((IUnknown*)pNewBone)->Release();
 
 	block.Close();
 }
@@ -121,9 +118,6 @@ void CElemVis::BuildWall(AVULONG nWallId, AVSTRING strName, AVLONG nIndex, BOX b
 
 void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVULONG nParam, AVFLOAT fParam1, AVFLOAT fParam2)
 {
-	return;
-//	BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
-	
 	if (!m_pBone) return;
 	AVFLOAT fScale = GetLiftGroup()->GetScale();
 	float f;
@@ -132,6 +126,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	switch (nModelId)
 	{
 	case MODEL_MACHINE:
+		break;
 		box.SetDepth(-box.Depth());
 		box.Grow(0.9f, 0.9f, 0.9f);
 		//BuildWall(WALL_BEAM, strName, nIndex, box);
@@ -139,7 +134,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		OLECHAR _name[257];
 		_snwprintf_s(_name, 256, L"Machine %d", nIndex);
 
-		IKineNode *pNewBone = NULL;
+		HBONE pNewBone = NULL;
 		m_pBone->CreateChild(_name, &pNewBone);
 
 
@@ -149,11 +144,11 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		pNewBone->GetLabel(&pLabel);
 		Load((LPOLESTR)(_stdPathModels + L"bunny.obj").c_str(), pLabel, 700, 100);
 		
-		ITransform *pT = NULL;
+		fw::ITransform *pT = NULL;
 		pNewBone->CreateCompatibleTransform(&pT);
 		pT->FromRotationX(M_PI/2);
 		AVVECTOR vec = box.CentreLower();
-		pT->MulTranslationVector((FWVECTOR*)(&vec));
+		pT->MulTranslationVector((fw::FWVECTOR*)(&vec));
 		pNewBone->PutLocalTransform(pT);
 		pT->Release();
 		pNewBone->Release();
@@ -167,7 +162,7 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	//pMaterial->SetTexture(0, pTexture);
 	//IKineChild *pChild = NULL;
 	//m_pBone->GetChild(L"main", &pChild);
-	//IMesh *pMesh = NULL;
+	//HMESH pMesh = NULL;
 	//pChild->QueryInterface(&pMesh);
 	//pMesh->SetMaterial(pMaterial);
 	//pMesh->Release();
@@ -180,11 +175,33 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		break;
 	case MODEL_OVERSPEED:
 		f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
-		box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
-		box.Move(0, f*60, 0);
 		centre = box.CentreLower();
 		BuildWall(WALL_BEAM, strName, nIndex, __helper(centre, 7, f*30, 30));
 		break;
+
+
+
+
+		//f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+		//box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
+		//box.Move(0, f*60, 0);
+		//centre = box.CentreLower();
+		//BuildWall(WALL_BEAM, strName, nIndex, __helper(centre, 7, f*30, 30));
+		//break;
+
+	case MODEL_CONTROL_PANEL:
+//		f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
+//		box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
+//		box.Move(0, f*60, 0);
+//		centre = box.CentreLower();
+//		BuildWall(WALL_BEAM, strName, nIndex, __helper(centre, 7, f*30, 30));
+		break;
+
+	case MODEL_DRIVE_PANEL:
+	case MODEL_GROUP_PANEL:
+	case MODEL_ISOLATOR:
+		break;
+
 	//case MODEL_CONTROL:
 	//	i = GetLiftGroup()->GetShaft(nIndex)->GetShaftLine();	// which shaft line we are
 	//	centre.x += p->Width() * (nIndex - GetLiftGroup()->GetShaftBegin(i) - (AVFLOAT)(GetLiftGroup()->GetShaftCount(i) - 1) / 2.0f);
@@ -198,53 +215,66 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	//	p->build(this, nModelId, strName, nIndex, centre, fRot);
 	//	break;
 	case MODEL_CWT:
+		break;
 		f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		box.SetDepth(-box.Depth());
 		box.Move(0, -f*2, 0);
 		BuildWall(WALL_BEAM, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
 	case MODEL_RAIL:
+		break;
 		BuildWall(WALL_BEAM, strName, nIndex, box);
 		break;
 	case MODEL_BUFFER_CAR:
+		break;
 //		BuildWall(WALL_BEAM, strName, nIndex, box);
 		break;
 	case MODEL_BUFFER_CWT:
+		break;
 //		BuildWall(WALL_BEAM, strName, nIndex, box);
 		break;
 	case MODEL_PULLEY:
+		break;
 		f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
 		box.Move(0, f*60, 0);
 		centre = box.CentreLower();
 		BuildWall(WALL_BEAM, strName, nIndex, __helper(centre, 6, f*20, 30));
 		break;
-	//case MODEL_LADDER:
+	case MODEL_LADDER:
+		break;
 	//	box.SetDepth(box.Depth() / 2);		// adjustment to avoid collision with the guide rail
 	//	centre = box.CentreLower();
 	//	p->build(this, nModelId, strName, nIndex, centre, 0.8, 0.8, 1, fRot);
 	//	break;
+	case MODEL_LIGHT:
+		break;
 	case MODEL_JAMB:
 	case MODEL_JAMB_CAR:
+		break;
 		//box.SetDepth(-box.Depth());	// unclear why needed
 		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
 	case MODEL_HEADING:
 	case MODEL_HEADING_CAR:
+		break;
 		box.SetDepth(-box.Depth());	// unclear why needed
 		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
 	case MODEL_SILL:
 	case MODEL_SILL_CAR:
+		break;
 		box.SetDepth(-box.Depth());	// unclear why needed
 		BuildWall(WALL_OPENING, strName, nIndex, box, Vector(0, 0, fRot));
+		break;
+	case MODEL_HANDRAIL:
 		break;
 	}
 }
 
-IMesh *CElemVis::AddMesh(AVSTRING strName)
+HMESH CElemVis::AddMesh(AVSTRING strName)
 {
-	IMesh *pMesh = NULL;
+	HMESH pMesh = NULL;
 	GetObject()->NewMesh(strName, &pMesh);
 	pMesh->Open(NULL, NULL);
 	pMesh->InitAdvNormalSupport(0);
@@ -253,8 +283,8 @@ IMesh *CElemVis::AddMesh(AVSTRING strName)
 
 void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFLOAT fTexScale)
 {
-	IMesh *pVMesh = NULL;
-	IMesh *pFMesh = NULL;
+	HMESH pVMesh = NULL;
+	HMESH pFMesh = NULL;
 	wstring name;
 	
 	wifstream verfile(strFilename);
@@ -279,7 +309,7 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 		{
 			line.replace(0, i, L"");
 			wistringstream iss(line);
-			FWFLOAT a, b, c;
+			AVFLOAT a, b, c;
 			if (!(iss >> a >> b >> c))
 				break;
 
@@ -307,7 +337,7 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 		{
 			line[0] = ' ';
 			wistringstream iss(line);
-			FWFLOAT a, b, c;
+			AVFLOAT a, b, c;
 			if (!(iss >> a >> b >> c))
 				break;
 
@@ -316,7 +346,7 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 				if (pVMesh == NULL) continue;
 				pFMesh = pVMesh;
 				pVMesh = NULL;
-				IKineChild *pChild = NULL;
+				fw::IKineChild *pChild = NULL;
 				pFMesh->QueryInterface(&pChild);
 				pChild->PutLabel((AVSTRING)name.c_str());
 				pChild->Release();
@@ -341,53 +371,32 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 
 void CElemVis::Move(AVVECTOR vec)
 {
-	ITransform *pT = NULL;
-	m_pBone->CreateCompatibleTransform(&pT);
-	pT->FromTranslationVector((FWVECTOR*)(&vec));
-	m_pBone->TransformLocal(pT);
-	pT->Release();
+	CEngine::MoveBone(m_pBone, vec.x, vec.y, vec.z);
 }
 
 void CElemVis::MoveTo(AVVECTOR vec)
 {
-	ITransform *pT = NULL;
-	m_pBone->GetLocalTransformRef(&pT);
-	pT->FromTranslationVector((FWVECTOR*)&vec);
-	pT->Release();
-	m_pBone->Invalidate();
+	CEngine::MoveBoneTo(m_pBone, vec.x, vec.y, vec.z);
 }
 
 AVVECTOR CElemVis::GetPos()
 {
-	AVVECTOR vec = { 0, 0, 0 };
-	if (GetBone())
-		GetBone()->LtoG((FWVECTOR*)&vec);
-	return vec;
+	return CEngine::GetBonePos(GetBone());
 }
 
 void CElemVis::PushState()
 {
-	if (!GetObject()) return;
-	GetObject()->PushState();
+	return CEngine::PushState((HBONE)GetObject());
 }
 
 void CElemVis::PopState()
 {
-	if (!GetObject()) return;
-	GetObject()->PopState(); 
-	GetObject()->Invalidate(); 
-	GetObject()->PushState();
+	return CEngine::PopState((HBONE)GetObject());
 }
 
 void CElemVis::Invalidate()
 {
-	if (!GetObject()) return;
-	GetObject()->Invalidate(); 
+	return CEngine::Invalidate((HBONE)GetObject());
 }
 
-void CElemVis::Render(IRenderer *pRenderer)
-{
-	if (!GetObject()) return;
-	GetObject()->Render((IRndrGeneric*)pRenderer);
-}
 

@@ -5,33 +5,30 @@
 class CLiftGroupVis;
 class CCamera;
 class CEngine;
+class CProjectVis;
 
 class CAdVisuoRenderer
 {
-	CLiftGroupVis *m_pLiftGroup;
 	CCamera *m_pCamera;
 	CEngine *m_pEngine;
 public:
-	CAdVisuoRenderer(CEngine *pEngine, CLiftGroupVis *pLiftGroup, CCamera *pCamera = NULL)
-		: m_pLiftGroup(pLiftGroup), m_pEngine(pEngine), m_pCamera(pCamera)	{ }
+	CAdVisuoRenderer(CEngine *pEngine) : m_pEngine(pEngine)	{ }
+	void Render(CProjectVis *pProject, CCamera *pCamera);
 
-	void SetLiftGroup(CLiftGroupVis *pLiftGroup)	{ m_pLiftGroup = pLiftGroup; }
+private:
+	void RenderLifts(CLiftGroupVis *pLiftGroup, AVULONG nRow);
+	void RenderShafts(CLiftGroupVis *pLiftGroup, AVULONG nRow, AVULONG iStorey);
+	void RenderPits(CLiftGroupVis *pLiftGroup, AVULONG nRow);
+	void RenderMachines(CLiftGroupVis *pLiftGroup, AVULONG nRow);
+	void RenderShafts(CLiftGroupVis *pLiftGroup, AVULONG nRow);
+	void RenderShaftsLobbySide(CLiftGroupVis *pLiftGroup, AVULONG nRow, AVULONG iStorey);
+	void RenderPitsLobbySide(CLiftGroupVis *pLiftGroup, AVULONG nRow);
+	void RenderShaftsLobbySide(CLiftGroupVis *pLiftGroup, AVULONG nRow);
+	void RenderStoreys(CLiftGroupVis *pLiftGroup);
 
-	bool SetupCamera(CCamera *pCamera);
-
-	void RenderLifts(AVULONG nRow);
-	void RenderShafts(AVULONG nRow, AVULONG iStorey);
-	void RenderPits(AVULONG nRow);
-	void RenderMachines(AVULONG nRow);
-	void RenderShafts(AVULONG nRow);
-	void RenderShaftsLobbySide(AVULONG nRow, AVULONG iStorey);
-	void RenderPitsLobbySide(AVULONG nRow);
-	void RenderShaftsLobbySide(AVULONG nRow);
-	void RenderStoreys();
-
-	void RenderCentre();
-	void RenderSide(AVLONG nLiftRow = -1);
-	void RenderCentreOuter();
-	void RenderSideOuter(AVLONG nLiftRow = -1);
+	void RenderCentre(CLiftGroupVis *pLiftGroup);
+	void RenderSide(CLiftGroupVis *pLiftGroup, AVLONG nLiftRow = -1);
+	void RenderCentreOuter(CLiftGroupVis *pLiftGroup);
+	void RenderSideOuter(CLiftGroupVis *pLiftGroup, AVLONG nLiftRow = -1);
 };
 

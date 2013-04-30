@@ -792,8 +792,17 @@ HBONE CEngine::CreateChild(HBONE pParent, AVSTRING strLabel)
 {
 	HBONE h = NULL;
 	OLECHAR buf[257];
-	pParent->CreateUniqueLabel(L"CameraHandle", 256, buf);
+	pParent->CreateUniqueLabel(strLabel, 256, buf);
 	pParent->CreateChild(buf, &h);
+	return h;
+}
+
+HOBJECT CEngine::CreateObject(AVSTRING strLabel)
+{
+	HOBJECT h = NULL;
+	OLECHAR buf[257];
+	m_pScene->CreateUniqueLabel(strLabel, 256, buf);
+	m_pScene->NewObject(buf, &h);
 	return h;
 }
 
@@ -851,6 +860,15 @@ void CEngine::MoveBone(HBONE bone, AVFLOAT x, AVFLOAT y, AVFLOAT z)
 	pT->Release();
 }
 
+void CEngine::MoveBoneTo(HBONE bone, AVFLOAT x, AVFLOAT y, AVFLOAT z)
+{
+	ITransform *pT = NULL;
+	bone->GetLocalTransformRef(&pT);
+	pT->FromTranslationXYZ(x, y, z);
+	pT->Release();
+	bone->Invalidate();
+}
+
 void CEngine::RotateBoneX(HBONE bone, AVFLOAT f)
 {
 	ITransform *pT = NULL;
@@ -876,6 +894,26 @@ void CEngine::RotateBoneZ(HBONE bone, AVFLOAT f)
 	pT->FromRotationZ(f);
 	bone->Transform(pT, KINE_RIGHT_SIDE);
 	pT->Release();
+}
+
+void CEngine::PushState(HBONE bone)
+{
+	if (!bone) return;
+	bone->PushState();
+}
+
+void CEngine::PopState(HBONE bone)
+{
+	if (!bone) return;
+	bone->PopState(); 
+	bone->Invalidate(); 
+	bone->PushState();
+}
+
+void CEngine::Invalidate(HBONE bone)
+{
+	if (!bone) return;
+	bone->Invalidate(); 
 }
 
 void CEngine::SetCameraPerspective(HCAMERA hCamera, AVFLOAT fFOV, AVFLOAT fClipNear, AVFLOAT fClipFar, AVFLOAT fAspect)
