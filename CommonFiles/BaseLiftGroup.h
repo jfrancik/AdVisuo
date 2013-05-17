@@ -19,8 +19,8 @@ class CLiftGroup : public dbtools::CCollection
 {
 // enum & struct definitions
 public:
-	enum SHAFT_ARRANGEMENT	{ SHAFT_INLINE = 1, SHAFT_OPPOSITE, SHAFT_UNKNOWN = -1 };
-	enum LOBBY_ARRANGEMENT	{ LOBBY_THROUGH = 1, LOBBY_OPENPLAN, LOBBY_DEADEND_LEFT, LOBBY_DEADEND_RIGHT, LOBBY_UNKNOWN = -1 };
+	enum SHAFT_ARRANG		{ SHAFT_INLINE = 1, SHAFT_OPPOSITE, SHAFT_UNKNOWN = -1 };
+	enum LOBBY_ARRANG		{ LOBBY_THROUGH = 1, LOBBY_OPENPLAN, LOBBY_DEADEND_LEFT, LOBBY_DEADEND_RIGHT, LOBBY_UNKNOWN = -1 };
 	enum DOOR_TYPE			{ DOOR_CENTRE = 1, DOOR_LSIDE, DOOR_RSIDE, DOOR_CENTRE_2, DOOR_LSIDE_2, DOOR_RSIDE_2, DOOR_CENTRE_3, DOOR_LSIDE_3, DOOR_RSIDE_3, DOOR_UNKNOWN = -1 };
 	enum TYPE_OF_LIFT		{ LIFT_CONVENTIONAL = 1, LIFT_MRL, LIFT_UNKNOWN };
 	enum TYPE_OF_DECK		{ DECK_SINGLE = 1, DECK_DOUBLE, DECK_TWIN, DECK_UNKNOWN = -1 };
@@ -120,13 +120,16 @@ public:
 		BOX m_boxCwt;							// counterweight
 		BOX m_boxGovernor;						// governors
 		BOX m_boxLadder;						// pit ladder
+		BOX m_boxPanelCtrl;						// control panel
+		BOX m_boxPanelDrv;						// drive panel
+		BOX m_boxPanelIso;						// isolator panel (may be 0-size)
 
 		AVULONG m_nLiftType;					// 1 = conventional, 2 = MRL
 		AVFLOAT m_fShaftOrientation;			// machine orientation (0 for line 0, M_PI for line 1)
 		AVULONG m_nMachineType;					// machine type (1 - 4)
-		AVULONG m_nPanelCtrlType, m_nPanelDrvType, m_nPanelIsoType;		// control/drive/isolator panel type
-		AVFLOAT m_fPanelCtrlWidth, m_fPanelDrvWidth, m_fPanelIsoWidth;	// control/drive/isolator panel width
 		AVFLOAT m_fMachineOrientation;			// machine orientation
+		AVULONG m_nPanelCtrlType, m_nPanelDrvType, m_nPanelIsoType;		// control/drive/isolator panel type
+		AVFLOAT m_fPanelIsoOrientation;			// isolator panel orientation
 		AVFLOAT m_fRailWidth;					// guiding rail width
 		AVFLOAT m_fRailLength;					// guiding rail length
 		AVULONG m_nBufferNum;					// number of car/cwt buffers
@@ -167,7 +170,7 @@ public:
 		AVULONG GetLiftEnd()					{ return m_nLiftBegin + m_nLiftCount; }
 		void SetLiftRange(AVULONG i, AVULONG n)	{ m_nLiftBegin = i; m_nLiftCount = n; } 
 
-		enum SHAFT_BOX { BOX_SHAFT, BOX_DOOR, BOX_CAR, BOX_CARDOOR, BOX_MOUNTING, BOX_CW, BOX_GOVERNOR, BOX_LADDER };
+		enum SHAFT_BOX { BOX_SHAFT, BOX_DOOR, BOX_CAR, BOX_CARDOOR, BOX_MOUNTING, BOX_CW, BOX_GOVERNOR, BOX_LADDER, BOX_PANEL_CTRL, BOX_PANEL_DRV, BOX_PANEL_ISO };
 		BOX &GetBox(enum SHAFT_BOX n = BOX_SHAFT, AVULONG i = 0);
 		BOX &GetBoxDoor(AVULONG i = 0)			{ return m_boxDoor[i]; }
 		BOX &GetBoxCar()						{ return m_boxCar; }
@@ -187,10 +190,15 @@ public:
 		AVULONG GetPanelCtrlType()				{ return m_nPanelCtrlType; }
 		AVULONG GetPanelDrvType()				{ return m_nPanelDrvType; }
 		AVULONG GetPanelIsoType()				{ return m_nPanelIsoType; }
-		AVFLOAT GetPanelCtrlWidth()				{ return m_fPanelCtrlWidth; }
-		AVFLOAT GetPanelDrvWidth()				{ return m_fPanelDrvWidth; }
-		AVFLOAT GetPanelTwoWidth()				{ return m_fPanelCtrlWidth + m_fPanelDrvWidth; }
-		AVFLOAT GetPanelIsoWidth()				{ return m_fPanelIsoWidth; }
+		BOX &GetBoxPanelCtrl()					{ return m_boxPanelCtrl; }
+		BOX &GetBoxPanelDrv()					{ return m_boxPanelDrv; }
+		BOX &GetBoxPanelIso()					{ return m_boxPanelIso; }
+		AVFLOAT GetPanelCtrlOrientation()		{ return GetShaftOrientation() + M_PI; }	// no separate orientation for ctrl panels - mirrors that of the shaft
+		AVFLOAT GetPanelDrvOrientation()		{ return GetShaftOrientation() + M_PI; }	// no separate orientation for ctrl panels - mirrors that of the shaft
+		AVFLOAT GetPanelIsoOrientation()		{ return m_fPanelIsoOrientation; }
+		void SetPanelIsoOrientation(AVFLOAT f)	{ m_fPanelIsoOrientation = f; }
+
+
 		AVFLOAT GetRailWidth()					{ return m_fRailWidth; }
 		AVFLOAT GetRailLength()					{ return m_fRailLength; }
 		AVULONG GetBufferNum()					{ return m_nBufferNum; }
@@ -264,19 +272,28 @@ private:
 
 	AVFLOAT m_fScale;					// scale factor (applied to all dimensions)
 
+	// storey counters
 	AVULONG m_nBasementStoreyCount;		// basement storey count
 	AVULONG m_pnShaftCount[2];			// counter of lifts per line
 
-	SHAFT_ARRANGEMENT m_LiftShaftArrang;// Lift shaft arrangements
-	LOBBY_ARRANGEMENT m_LobbyArrangement;// Lobby arrangement
+	// lobby arrangement
+	SHAFT_ARRANG m_LiftShaftArrang;		// Lift shaft arrangements
+	LOBBY_ARRANG m_LobbyArrangement;	// Lobby arrangement
 
+	// the lobby box
 	BOX m_box;							// scaled lobby floor plan (size of the lobby & its walls, zero height)
 	
+	// machine room layout
 	BOX m_boxMachineRoom;				// scaled floor plan and level for the machine room
-	AVFLOAT m_fMachineRoomLevel;
+	BOX m_boxPanelGrp;					// group panel (box & orientation)
+	AVFLOAT m_fPanelGrpOrientation;
+	AVFLOAT m_fMachineRoomDoorOffset;	// machine room door offset value
+	AVFLOAT m_fMachineRoomLevel;		// machine room level
 	AVFLOAT m_fLiftingBeamHeight;		// lifting beam height
 	AVFLOAT m_fLiftingBeamWidth;		// lifting beam height
 
+
+	// pit level layout
 	BOX m_boxPit;						// scaled floor plan and level for the pit level
 	AVFLOAT m_fPitLevel;
 
@@ -313,6 +330,11 @@ public:
 
 	BOX &GetBoxMachineRoom()				{ return m_boxMachineRoom; }
 	bool InBoxMachineRoom(AVVECTOR &pt)		{ return m_boxMachineRoom.InBoxExt(pt); }
+	BOX &GetBoxPanelGrp()					{ return m_boxPanelGrp; }
+	AVFLOAT GetPanelGrpOrientation()		{ return m_fPanelGrpOrientation; }
+	AVFLOAT GetMachineRoomDoorOffset()		{ return m_fMachineRoomDoorOffset; }
+	AVFLOAT GetMachineRoomDoorWidth()		{ return 1200 * GetScale(); }
+	AVFLOAT GetMachineRoomDoorHeight()		{ return 2100 * GetScale(); }
 	BOX &GetBoxPit()						{ return m_boxPit; }
 	bool InBoxPit(AVVECTOR &pt)				{ return m_boxPit.InBoxExt(pt); }
 
@@ -348,7 +370,11 @@ public:
 	AVFLOAT GetPitLadderHeight()			{ if (IsPitLadder()) return (GetPitLadderRungs() + 1) * 300 * GetScale(); else return 0; }
 	AVFLOAT GetPitLadderLowerBracket()		{ if (IsPitLadder()) return 500 * GetScale(); else return 0; }
 	AVFLOAT GetPitLadderUpperBracket()		{ if (IsPitLadder()) return (GetPitLadderHeight() - 600) * GetScale(); else return 0; }
-	AVFLOAT GetPanelGrpWidth()				{ return 700.0f; }
+
+	AVSIZE CalcPanelFootstep(AVULONG iFrom = 0, AVULONG iTo = 9999);
+	AVSIZE CalcPanelFootstepIso(AVULONG iFrom = 0, AVULONG iTo = 9999);
+	AVSIZE CalcPanelFootstepGrp()			{ return AVSIZE(GetBoxPanelGrp().Width(), abs(GetBoxPanelGrp().Depth())); }
+	AVSIZE CalcPanelFootstepLn(AVULONG iLn)	{ return CalcPanelFootstep(GetShaftBegin(iLn), GetShaftEnd(iLn)); }
 
 	// Shafts
 	SHAFT *AddShaft();
@@ -391,8 +417,8 @@ public:
 
 
 	// Various
-	SHAFT_ARRANGEMENT GetLiftShaftArrang()	{ return m_LiftShaftArrang; }
-	LOBBY_ARRANGEMENT GetLobbyArrangement()	{ return m_LobbyArrangement; }
+	SHAFT_ARRANG GetLiftShaftArrang()		{ return m_LiftShaftArrang; }
+	LOBBY_ARRANG GetLobbyArrangement()		{ return m_LobbyArrangement; }
 	
 
 

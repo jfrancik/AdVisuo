@@ -87,6 +87,32 @@ void CLiftGroup::DeleteExtras()
 	m_pPit = NULL;
 }
 
+AVSIZE CLiftGroup::CalcPanelFootstep(AVULONG iFrom, AVULONG iTo)
+{
+	if (iTo > GetShaftCount()) iTo = GetShaftCount();
+	
+	AVSIZE sz(0, 0);
+	for (AVULONG iShaft = iFrom; iShaft < iTo; iShaft++)
+	{
+		sz.x += GetShaft(iShaft)->GetBoxPanelCtrl().Width() + GetShaft(iShaft)->GetBoxPanelDrv().Width();
+		sz.y = max(sz.y, max(abs(GetShaft(iShaft)->GetBoxPanelCtrl().Depth()), abs(GetShaft(iShaft)->GetBoxPanelDrv().Depth())));
+	}
+	return sz;
+}
+
+AVSIZE CLiftGroup::CalcPanelFootstepIso(AVULONG iFrom, AVULONG iTo)
+{
+	if (iTo > GetShaftCount()) iTo = GetShaftCount();
+	
+	AVSIZE sz(0, 0);
+	for (AVULONG iShaft = iFrom; iShaft < iTo; iShaft++)
+	{
+		sz.x += GetShaft(iShaft)->GetBoxPanelIso().Width();
+		sz.y = max(sz.y, abs(GetShaft(iShaft)->GetBoxPanelIso().Depth()));
+	}
+	return sz;
+}
+
 CLiftGroup::LIFT *CLiftGroup::AddLift()
 {
 	LIFT *p = CreateLift(m_lifts.size());
@@ -141,8 +167,8 @@ void CLiftGroup::ResolveMe()
 void CLiftGroup::ConsoleCreate()
 {
 	// resolve vars
-	m_LobbyArrangement = (LOBBY_ARRANGEMENT)(ULONG)ME[L"LobbyArrangementId"];
-	m_LiftShaftArrang = (SHAFT_ARRANGEMENT)(ULONG)ME[L"LiftShaftArrangementId"];
+	m_LobbyArrangement = (LOBBY_ARRANG)(ULONG)ME[L"LobbyArrangementId"];
+	m_LiftShaftArrang = (SHAFT_ARRANG)(ULONG)ME[L"LiftShaftArrangementId"];
 	m_strName = ME[L"Name"];
 
 	if (m_LobbyArrangement == LOBBY_OPENPLAN && m_LiftShaftArrang == SHAFT_OPPOSITE)
@@ -304,18 +330,13 @@ void CLiftGroup::ConsoleCreate()
 		fLevel += pStorey->GetHeight();
 	}
 
-	// calculate machine room box & level
+	// calculate machine room box & level; including panel box sizes but not positions
 	m_boxMachineRoom = BOX(0, 0, 0, 0, 0, 0);
 	AVFLOAT fHeadroom = 0;
 	m_boxMachineRoom = GetTotalAreaBox();
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
 	{
 		SHAFT *pShaft = GetShaft(i);
-//		if (pShaft->GetBox().Left() < m_boxMachineRoom.Left()) m_boxMachineRoom.SetLeft(pShaft->GetBox().Left());
-//		if (pShaft->GetBox().Right() > m_boxMachineRoom.Right()) m_boxMachineRoom.SetRight(pShaft->GetBox().Right());
-//		if (pShaft->GetBox().Front() < m_boxMachineRoom.Front()) m_boxMachineRoom.SetFront(pShaft->GetBox().Front());
-//		if (pShaft->GetBox().Rear() < m_boxMachineRoom.Front()) m_boxMachineRoom.SetFront(pShaft->GetBox().Rear());
-//		if (pShaft->GetBox().Rear() > m_boxMachineRoom.Rear()) m_boxMachineRoom.SetRear(pShaft->GetBox().Rear());
 		if (((AVFLOAT)(*pShaft)[L"MachineRoomHeight"]) > m_boxMachineRoom.Height()) m_boxMachineRoom.SetHeight((AVFLOAT)(*pShaft)[L"MachineRoomHeight"]);
 		if (((AVFLOAT)(*pShaft)[L"Headroom"]) > fHeadroom) fHeadroom = (AVFLOAT)(*pShaft)[L"Headroom"];
 	}
@@ -323,6 +344,216 @@ void CLiftGroup::ConsoleCreate()
 	m_fMachineRoomLevel = max(GetStorey(GetHighestStoreyServed())->GetRoofLevel(), GetStorey(GetHighestStoreyServed())->GetLevel() + fHeadroom);
 	m_fMachineRoomLevel += + fMachineRoomSlabThickness;
 
+	m_boxPanelGrp = BOX(0, 0, 0, 700, 1300, 2200);
+	m_fPanelGrpOrientation = (AVFLOAT)M_PI;
+	m_fMachineRoomDoorOffset = 100;
+
+	// calculate position and layout of panels
+	AVSIZE szAvail(m_boxMachineRoom.Width(), m_box.Depth());
+	AVSIZE szExtra;
+	AVSIZE szCtr = CalcPanelFootstep();
+	AVSIZE szIso = CalcPanelFootstepIso();
+	AVSIZE szGrp = CalcPanelFootstepGrp();
+
+	if (GetShaftLinesCount() == 1)
+	{
+		// inline shafts: default layout: all panels along the wall
+		AVULONG iBreak = 0;		// line break point (default: line 0 is empty, line 1 has everything)
+		AVULONG iGroup = 1;		// Group Panel position (default: in line 1)
+		AVSIZE szLn0;			// size of line 0 (default: 0)
+		AVSIZE szLn1 = szCtr;	// size of line 1 (default: all panels)
+
+		// if no space for everything inline - break up into two lines
+		if (szIso.x + szCtr.x + szGrp.x > szAvail.x)
+		{
+			iBreak = GetShaftCount() / 2;			// even break up of the panels
+			szLn0 = CalcPanelFootstep(0, iBreak);
+			szLn1 = CalcPanelFootstep(iBreak, 9999);
+
+			// if no room in line #1 and line #0 is shorter --> move the group ctrl to line #0
+			if (szLn1.x + szGrp.x + szIso.x > szAvail.x && szLn0.x < szLn1.x)
+				iGroup = 0;
+		}
+
+		// include the size of the group controller
+		if (iGroup == 0) szLn0.x += szGrp.x; else szLn1.x += szGrp.x; 
+
+		// check the capacity
+		if (szIso.x + max(szLn0.x, szLn1.x) > szAvail.x)
+			szExtra.x = szIso.x + max(szLn0.x, szLn1.x) - szAvail.x;
+
+		// make the machine room narrower if possible
+		if (szLn0.y + szLn1.y < szAvail.y)
+		{
+			AVFLOAT f = m_boxMachineRoom.RearThickness();
+			m_boxMachineRoom.SetRear(m_boxMachineRoom.Rear() - szAvail.y + szLn0.y + szLn1.y);
+			m_boxMachineRoom.SetRearThickness(f);
+		}
+
+		// Place the panels!
+		AVFLOAT x = m_boxMachineRoom.Right();
+		AVFLOAT y = m_boxMachineRoom.Rear();
+
+		// Isolator Panels
+		for (AVULONG iShaft = 0; iShaft < GetShaftCount(); iShaft++)
+		{
+			BOX *pBox = &GetShaft(iShaft)->GetBoxPanelIso();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x - w, y - d, 0, w, d, h);
+			x -= w;
+			GetShaft(iShaft)->SetPanelIsoOrientation((AVFLOAT)M_PI);
+		}
+		// Line #1 Ctrl and Drive Panels
+		for (AVULONG iShaft = iBreak; iShaft < GetShaftCount(); iShaft++)
+		{
+			BOX *pBox = &GetShaft(iShaft)->GetBoxPanelDrv();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x - w, y - d, 0, w, d, h);
+			x -= w;
+			pBox = &GetShaft(iShaft)->GetBoxPanelCtrl();
+			w = pBox->Width(); d = pBox->Depth(); h = pBox->Height();
+			*pBox = BOX(x - w, y - d, 0, w, d, h);
+			x -= w;
+		}
+		// Optionally - Group Controller (in line #1)
+		if (iGroup == 1)
+		{
+			BOX *pBox = &GetBoxPanelGrp();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x - w, y - d, 0, w, d, h);
+			x -= w;
+			m_fPanelGrpOrientation = (AVFLOAT)M_PI;
+		}
+		x = m_boxMachineRoom.Right() - szIso.x;
+		y -= szLn1.y;
+		// Line #0 Ctrl and Drive Panels
+		for (AVLONG iShaft = iBreak - 1; iShaft >= 0; iShaft--)
+		{
+			BOX *pBox = &GetShaft(iShaft)->GetBoxPanelDrv();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x - w, y - d, 0, w, d, h);
+			x -= w;
+			pBox = &GetShaft(iShaft)->GetBoxPanelCtrl();
+			w = pBox->Width(); d = pBox->Depth(); h = pBox->Height();
+			*pBox = BOX(x - w, y - d, 0, w, d, h);
+			x -= w;
+		}
+		// Optionally - Group Controller (in line #1)
+		if (iGroup == 0)
+		{
+			BOX *pBox = &GetBoxPanelGrp();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x - w, y - d, 0, w, d, h);
+			x -= w;
+			m_fPanelGrpOrientation = (AVFLOAT)M_PI;
+		}
+
+		// Door location
+		m_fMachineRoomDoorOffset = szLn1.y;
+	}
+	else
+	{
+		// opposite shafts
+		AVULONG iGroup = 1;				// Group Panel position (default: in line 1)
+		AVSIZE szLn0 = CalcPanelFootstepLn(0);	// size of line 0 (default: 0)
+		AVSIZE szLn1 = CalcPanelFootstepLn(1);	// size of line 1 (default: all panels)
+
+		// if line 0 is shorter, move the group panel there
+		if (szLn0.x < szLn1.x)
+			iGroup = 0;
+
+		// inlude the size of the group controller
+		if (iGroup == 0) szLn0.x += szGrp.x; else szLn1.x += szGrp.x; 
+
+		// check the capacity
+		if (szIso.y + max(szLn0.x, szLn1.x) + 500 > szAvail.x)
+			szExtra.x = szIso.y + max(szLn0.x, szLn1.x) + 500 - szAvail.x;
+
+		// Place the panels!
+		AVFLOAT x = m_boxMachineRoom.Left() + 500;
+		AVFLOAT y = m_box.CentreY();
+
+		// Line #0 Ctrl and Drive Panels
+		for (AVULONG iShaft = 0; iShaft < GetShaftEnd(0); iShaft++)
+		{
+			BOX *pBox = &GetShaft(iShaft)->GetBoxPanelCtrl();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x, y - d, 0, w, d, h);
+			x += w;
+			pBox = &GetShaft(iShaft)->GetBoxPanelDrv();
+			w = pBox->Width(); d = pBox->Depth(); h = pBox->Height();
+			*pBox = BOX(x, y - d, 0, w, d, h);
+			x += w;
+		}
+		// Optionally - Group Controller (in line #0)
+		if (iGroup == 0)
+		{
+			BOX *pBox = &GetBoxPanelGrp();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x, y - d, 0, w, d, h);
+			x += w;
+			m_fPanelGrpOrientation = (AVFLOAT)M_PI;
+		}
+
+		x = m_boxMachineRoom.Left() + 500;
+		y += szLn1.y;
+
+		// Line #1 Ctrl and Drive Panels
+		for (AVULONG iShaft = GetShaftEnd(1) - 1; iShaft >= GetShaftBegin(1); iShaft--)
+		{
+			BOX *pBox = &GetShaft(iShaft)->GetBoxPanelCtrl();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x, y - d, 0, w, d, h);
+			x += w;
+			pBox = &GetShaft(iShaft)->GetBoxPanelDrv();
+			w = pBox->Width(); d = pBox->Depth(); h = pBox->Height();
+			*pBox = BOX(x, y - d, 0, w, d, h);
+			x += w;
+		}
+		// Optionally - Group Controller (in line #1)
+		if (iGroup == 1)
+		{
+			BOX *pBox = &GetBoxPanelGrp();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x, y - d, 0, w, d, h);
+			x += w;
+			m_fPanelGrpOrientation = 0;
+		}
+
+		// Isolator Panels
+		x = m_boxMachineRoom.Right() - szIso.y;
+		y = m_box.CentreY() - (szIso.x + GetMachineRoomDoorWidth()) / 2;
+
+		if (szExtra.x > 0) x += szExtra.x;
+
+		for (AVULONG iShaft = 0; iShaft < GetShaftEnd(0); iShaft++)
+		{
+			BOX *pBox = &GetShaft(iShaft)->GetBoxPanelIso();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x, y, 0, d, w, h);
+			y += w;
+			GetShaft(iShaft)->SetPanelIsoOrientation(-(AVFLOAT)M_PI/2);
+		}
+		y += GetMachineRoomDoorWidth();
+		m_fMachineRoomDoorOffset = m_boxMachineRoom.Rear() - y;
+		for (AVULONG iShaft = GetShaftBegin(1); iShaft < GetShaftEnd(1); iShaft++)
+		{
+			BOX *pBox = &GetShaft(iShaft)->GetBoxPanelIso();
+			AVFLOAT w = pBox->Width(), d = pBox->Depth(), h = pBox->Height();
+			*pBox = BOX(x, y, 0, d, w, h);
+			y += w;
+			GetShaft(iShaft)->SetPanelIsoOrientation(-(AVFLOAT)M_PI/2);
+		}
+	}
+
+	// Extend Machine Room on the Right (if necessary)
+	if (szExtra.x > 0)
+	{
+		AVFLOAT f = m_boxMachineRoom.RightThickness();
+		m_boxMachineRoom.SetRight(m_boxMachineRoom.Right() + szExtra.x);
+		m_boxMachineRoom.SetRightThickness(f);
+	}
+		
 	if (GetMachineRoom()) GetMachineRoom()->ConsoleCreate();
 
 	// calculate pit level box & level
@@ -345,6 +576,9 @@ void CLiftGroup::ConsoleCreate()
 	ME[L"Line2"] = m_pnShaftCount[1];
 	ME[L"BoxLobby"] = m_box.Stringify();
 	ME[L"BoxMachineRoom"] = m_boxMachineRoom.Stringify();
+	ME[L"BoxPanelGrp"] = m_boxPanelGrp.Stringify();
+	ME[L"PanelGrpOrientation"] = m_fPanelGrpOrientation;
+	ME[L"MachineRoomDoorOffset"] = m_fMachineRoomDoorOffset;
 	ME[L"MachineRoomLevel"] = m_fMachineRoomLevel;
 	ME[L"BoxPit"] = m_boxPit.Stringify();
 	ME[L"PitLevel"] = m_fPitLevel;
@@ -358,13 +592,16 @@ void CLiftGroup::ConsoleCreate()
 
 void CLiftGroup::Create()
 {
-	m_LobbyArrangement = (LOBBY_ARRANGEMENT)(ULONG)ME[L"LobbyArrangementId"];
-	m_LiftShaftArrang = (SHAFT_ARRANGEMENT)(ULONG)ME[L"LiftShaftArrangementId"];
+	m_LobbyArrangement = (LOBBY_ARRANG)(ULONG)ME[L"LobbyArrangementId"];
+	m_LiftShaftArrang = (SHAFT_ARRANG)(ULONG)ME[L"LiftShaftArrangementId"];
 	m_strName = ME[L"Name"];
 	m_pnShaftCount[0] = ME[L"Line1"];
 	m_pnShaftCount[1] = ME[L"Line2"];
 	m_box.ParseFromString(ME[L"BoxLobby"]);
 	m_boxMachineRoom.ParseFromString(ME[L"BoxMachineRoom"]);
+	m_boxPanelGrp.ParseFromString(ME[L"BoxPanelGrp"]);
+	m_fPanelGrpOrientation = ME[L"PanelGrpOrientation"];
+	m_fMachineRoomDoorOffset = ME[L"MachineRoomDoorOffset"];
 	m_fMachineRoomLevel = ME[L"MachineRoomLevel"];
 	m_boxPit.ParseFromString(ME[L"BoxPit"]);
 	m_fPitLevel = ME[L"PitLevel"];
@@ -385,19 +622,21 @@ void CLiftGroup::Scale(AVFLOAT f)
 {
 	m_fScale *= f;
 	m_box.Scale(f);
-	m_boxPit.Scale(f);
+	m_boxMachineRoom.Scale(f);
+	m_boxPanelGrp.Scale(f);
+	m_fMachineRoomDoorOffset *= f;
 	m_fMachineRoomLevel *= f;
-	m_fPitLevel *= f;
 	m_fLiftingBeamHeight *= f;
 	m_fLiftingBeamWidth *= f;
+	m_boxPit.Scale(f);
+	m_fPitLevel *= f;
+
 	for (AVULONG i = 0; i < GetShaftCount(); i++) 
 		GetShaft(i)->Scale(f);
 	for (AVULONG i = 0; i < GetStoreyCount(); i++) 
 		GetStorey(i)->Scale(f);
 	if (GetMachineRoom()) GetMachineRoom()->Scale(f);
-	GetBoxMachineRoom().Scale(f);
 	if (GetPit()) GetPit()->Scale(f);
-	GetBoxPit().Scale(f);
 }
 
 void CLiftGroup::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
@@ -408,7 +647,10 @@ void CLiftGroup::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 	for (AVULONG i = 0; i < GetStoreyCount(); i++) 
 		GetStorey(i)->Move(x, y, z);
 	if (GetMachineRoom()) GetMachineRoom()->Move(x, y, z);
+	GetBoxMachineRoom().Move(x, y, z);
+	GetBoxPanelGrp().Move(x, y, z);
 	if (GetPit()) GetPit()->Move(x, y, z);
+	GetBoxPit().Move(x, y, z);
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -501,6 +743,9 @@ BOX &CLiftGroup::SHAFT::GetBox(CLiftGroup::SHAFT::SHAFT_BOX n, AVULONG i)
 	case BOX_CW:		return m_boxCwt;
 	case BOX_GOVERNOR:	return m_boxGovernor;
 	case BOX_LADDER:	return m_boxLadder;
+	case BOX_PANEL_CTRL:return m_boxPanelCtrl;
+	case BOX_PANEL_DRV:	return m_boxPanelDrv;
+	case BOX_PANEL_ISO:	return m_boxPanelIso;
 	default:			return m_boxShaft;
 	}
 }
@@ -562,10 +807,10 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 	if (fCapacity >= 1275) slingb = 600; if (fCapacity >= 1800) slingb = 800;
 
 	// determine machine & panel types
-	                          m_nMachineType = 1; m_nPanelCtrlType = 1; m_nPanelDrvType = 1; m_nPanelIsoType = 1; m_fPanelCtrlWidth = 700; m_fPanelDrvWidth = 1000; m_fPanelIsoWidth = 1000;
-	if (fCapacity >= 1800)	{ m_nMachineType = 2; m_nPanelCtrlType = 1; m_nPanelDrvType = 2; m_nPanelIsoType = 2; m_fPanelCtrlWidth = 700; m_fPanelDrvWidth = 1500; m_fPanelIsoWidth = 1250; }
-	if (fSpeed >= 2.5)		{ m_nMachineType = 3; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_fPanelCtrlWidth = 700; m_fPanelDrvWidth = 1700; m_fPanelIsoWidth = 1600; }
-	if (fSpeed >= 5)		{ m_nMachineType = 4; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_fPanelCtrlWidth = 700; m_fPanelDrvWidth = 1700; m_fPanelIsoWidth = 1600; }
+	                          m_nMachineType = 1; m_nPanelCtrlType = 1; m_nPanelDrvType = 1; m_nPanelIsoType = 1; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1000, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1000, 1300, 2200);
+	if (fCapacity >= 1800)	{ m_nMachineType = 2; m_nPanelCtrlType = 1; m_nPanelDrvType = 2; m_nPanelIsoType = 2; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1500, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1250, 1300, 2200); }
+	if (fSpeed >= 2.5)		{ m_nMachineType = 3; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1700, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1600, 1300, 2200); }
+	if (fSpeed >= 5)		{ m_nMachineType = 4; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1700, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1600, 1300, 2200); }
 
 	// additional tuning for the isolator type: isolators are set for every fourth shaft
 	AVULONG nId4th = (GetId() / 4) * 4;	// index of the master: first in each four (0, 4, 8 ...)
@@ -575,10 +820,10 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 		if (m_nPanelIsoType > GetLiftGroup()->GetShaft(nId4th)->m_nPanelIsoType)
 		{
 			GetLiftGroup()->GetShaft(nId4th)->m_nPanelIsoType = m_nPanelIsoType;
-			GetLiftGroup()->GetShaft(nId4th)->m_fPanelIsoWidth = m_fPanelIsoWidth;
+			GetLiftGroup()->GetShaft(nId4th)->m_boxPanelIso = m_boxPanelIso;
 		}
 		m_nPanelIsoType = 0;
-		m_fPanelIsoWidth = 0;
+		m_boxPanelIso = BOX(0, 0, 0, 0, 0, 0);
 	}
 
 	// determine rails size
@@ -632,6 +877,7 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 
 	m_fShaftOrientation = (m_nShaftLine == 0) ? 0 : M_PI;
 	m_fMachineOrientation = nMachineOrientation * M_PI_2;
+	m_fPanelIsoOrientation = (AVFLOAT)M_PI;	
 
 	switch (nMachineOrientation)
 	{	case 0:	// forward (first line of lifts): cwt in the rear, gov on the right, light asymetrically, ladder on the left
@@ -721,16 +967,18 @@ void CLiftGroup::SHAFT::ConsoleCreateAmend()
 	ME[L"BoxCwt"] = m_boxCwt.Stringify();
 	ME[L"BoxGovernor"] = m_boxGovernor.Stringify();
 	ME[L"BoxLadder"] = m_boxLadder.Stringify();
-	
+
+	ME[L"BoxPanelCtrl"] = m_boxPanelCtrl.Stringify();
+	ME[L"BoxPanelDrv"] = m_boxPanelDrv.Stringify();
+	ME[L"BoxPanelIso"] = m_boxPanelIso.Stringify();
+
 	ME[L"ShaftOrientation"] = m_fShaftOrientation;
 	ME[L"MachineType"] = m_nMachineType;
 	ME[L"MachineOrientation"] = m_fMachineOrientation;
 	ME[L"PanelCtrlType"] = m_nPanelCtrlType;
 	ME[L"PanelDrvType"] = m_nPanelDrvType;
 	ME[L"PanelIsoType"] = m_nPanelIsoType;
-	ME[L"PanelCtrlWidth"] = m_fPanelCtrlWidth;
-	ME[L"PanelDrvWidth"] = m_fPanelDrvWidth;
-	ME[L"PanelIsoWidth"] = m_fPanelIsoWidth;
+	ME[L"PanelIsoOrientation"] = m_fPanelIsoOrientation;
 	ME[L"RailWidth"] = m_fRailWidth;
 	ME[L"RailLength"] = m_fRailLength;
 	ME[L"BufferNum"] = m_nBufferNum;
@@ -781,6 +1029,9 @@ void CLiftGroup::SHAFT::Scale(AVFLOAT f)
 	m_boxCwt.Scale(f);
 	m_boxGovernor.Scale(f);
 	m_boxLadder.Scale(f);
+	m_boxPanelCtrl.Scale(f);
+	m_boxPanelDrv.Scale(f);
+	m_boxPanelIso.Scale(f);
 	m_fRailWidth *= f;
 	m_fRailLength *= f;
 	m_nBufferDiameter *= f;
@@ -801,6 +1052,9 @@ void CLiftGroup::SHAFT::Reflect()
 	m_boxCwt.Scale(1, -1, 1);
 	m_boxGovernor.Scale(1, -1, 1);
 	m_boxLadder.Scale(1, -1, 1);
+//	m_boxPanelCtrl.Scale(1, -1, 1);
+//	m_boxPanelDrv.Scale(1, -1, 1);
+//	m_boxPanelIso.Scale(1, -1, 1);
 }
 
 void CLiftGroup::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
@@ -816,6 +1070,9 @@ void CLiftGroup::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 	m_boxCwt.Move(x, y, z);
 	m_boxGovernor.Move(x, y, z);
 	m_boxLadder.Move(x, y, z);
+	m_boxPanelCtrl.Move(x, y, z);
+	m_boxPanelDrv.Move(x, y, z);
+	m_boxPanelIso.Move(x, y, z);
 	m_fLightingXPos += x;
 }
 
@@ -846,15 +1103,17 @@ void CLiftGroup::SHAFT::Create()
 	m_fBeamLtHeight = ME[L"BeamLtHeight"];
 	m_fBeamRtHeight = ME[L"BeamRtHeight"];
 
+	m_boxPanelCtrl.ParseFromString(ME[L"BoxPanelCtrl"]);
+	m_boxPanelDrv.ParseFromString(ME[L"BoxPanelDrv"]);
+	m_boxPanelIso.ParseFromString(ME[L"BoxPanelIso"]);
+
 	m_fShaftOrientation = ME[L"ShaftOrientation"];
 	m_nMachineType = ME[L"MachineType"];
 	m_fMachineOrientation = ME[L"MachineOrientation"];
 	m_nPanelCtrlType = ME[L"PanelCtrlType"];
 	m_nPanelDrvType = ME[L"PanelDrvType"];
 	m_nPanelIsoType = ME[L"PanelIsoType"];
-	m_fPanelCtrlWidth = ME[L"PanelCtrlWidth"];
-	m_fPanelDrvWidth = ME[L"PanelDrvWidth"];
-	m_fPanelIsoWidth = ME[L"PanelIsoWidth"];
+	m_fPanelIsoOrientation = ME[L"PanelIsoOrientation"];
 	m_fRailWidth = ME[L"RailWidth"];
 	m_fRailLength = ME[L"RailLength"];
 	m_nBufferNum = ME[L"BufferNum"];

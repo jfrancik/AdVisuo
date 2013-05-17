@@ -95,6 +95,13 @@ void CLiftGroupConstr::STOREY::Construct(AVULONG iStorey)
 		box.Move(0, 0, h);
 		if (box.FrontThickness() > 0)
 			m_pElem->BuildWall(CElem::WALL_REAR, L"RearWall (HR)",   iStorey2, box.FrontWall());
+		if (GetLiftGroup()->GetShaftLinesCount() == 1)
+		{
+			// for in-line arrangements, the Front Wall will follow the MR arrangement rather than the lobby
+			box = GetLiftGroup()->GetBoxMachineRoom();
+			box.SetHeight(h1 - h);
+			box.Move(0, 0, h);
+		}
 		if (box.RearThickness() > 0)
 			m_pElem->BuildWall(CElem::WALL_FRONT, L"FrontWall (HR)",	iStorey2, box.RearWall(), Vector(0, 0, F_PI));
 	}
@@ -121,8 +128,7 @@ void CLiftGroupConstr::MACHINEROOM::Construct()
 	else
 	{
 		// Door Info
-		AVFLOAT fScale = GetLiftGroup()->GetScale();
-		FLOAT doors[] = { GetBox().Rear() - GetLiftGroup()->GetBox().Rear() + 500 * fScale, 1200 * fScale, 2100 * fScale };
+		FLOAT doors[] = { GetLiftGroup()->GetMachineRoomDoorOffset(), GetLiftGroup()->GetMachineRoomDoorWidth(), GetLiftGroup()->GetMachineRoomDoorHeight() };
 
 		// build walls
 		m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Machine Room Slab", 0, GetBox().LowerSlab());
@@ -136,6 +142,9 @@ void CLiftGroupConstr::MACHINEROOM::Construct()
 		AVFLOAT w = GetLiftGroup()->GetLiftingBeamWidth(), h = GetLiftGroup()->GetLiftingBeamHeight();
 		BOX box(GetBox().Left(), GetBox().CentreY() - w/2, GetBox().Height() - h, GetBox().Width(), -w, h);
 		m_pElem->BuildWall(CElem::WALL_BEAM, L"LiftingBeam", 0, box);
+
+		// Build the Group Panel
+		GetLiftGroup()->GetMachineRoom()->GetElement()->BuildModel(CElem::MODEL_CONTROL_PANEL, L"Group Panel", GetId(), GetLiftGroup()->GetBoxPanelGrp(), GetLiftGroup()->GetPanelGrpOrientation());
 	}
 }
 
@@ -351,7 +360,7 @@ void CLiftGroupConstr::SHAFT::Construct(AVULONG iStorey)
 	}
 }
 
-void CLiftGroupConstr::SHAFT::ConstructMachine()
+void CLiftGroupConstr::SHAFT::ConstructMREquipment()
 {
 	if (!GetMachineElement())
 		m_pElemMachine = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetMachineRoomElement(), CElem::ELEM_SHAFT, L"Machine %c", GetId() + 'A', Vector(0, 0, GetLiftGroup()->GetMachineRoomLevel()));
@@ -361,8 +370,20 @@ void CLiftGroupConstr::SHAFT::ConstructMachine()
 		return;
 
 	OLECHAR _name[100];
+
+	_snwprintf_s(_name, 256, L"Control Panel Type %d", GetPanelCtrlType());
+	GetMachineElement()->BuildModel(CElem::MODEL_CONTROL_PANEL, _name, GetId(), GetBoxPanelCtrl(), GetPanelCtrlOrientation(), GetPanelCtrlType());
+
+	_snwprintf_s(_name, 256, L"Drive Panel Type %d", GetPanelDrvType());
+	GetMachineElement()->BuildModel(CElem::MODEL_DRIVE_PANEL, _name, GetId(), GetBoxPanelDrv(), GetPanelDrvOrientation(), GetPanelDrvType());
+
+	_snwprintf_s(_name, 256, L"Isolator Panel Type %d", GetPanelIsoType());
+	if (GetBoxPanelIso().WidthExt() > 1)
+		GetMachineElement()->BuildModel(CElem::MODEL_ISOLATOR, _name, GetId(), GetBoxPanelIso(), GetPanelIsoOrientation(), GetPanelIsoType());
+
 	_snwprintf_s(_name, 256, L"Machine Type %d", GetMachineType());
 	GetMachineElement()->BuildModel(CElem::MODEL_MACHINE, _name, GetId(), GetBoxCar(), GetMachineOrientation() + M_PI_2, GetMachineType());
+
 	GetMachineElement()->BuildModel(CElem::MODEL_OVERSPEED, L"Overspeed Governor", GetId(), GetBoxGovernor(), GetMachineOrientation() + M_PI_2);
 	
 	// Build the Lifting Beam
@@ -378,51 +399,6 @@ void CLiftGroupConstr::SHAFT::ConstructMachine()
 		BOX box(GetBoxCar().CentreX() - w/2, pmr->GetBox().CentreY() + w/2, pmr->GetBox().Height() - h, pmr->GetBox().Rear() - pmr->GetBox().CentreY() - w/2, w, h);
 		GetMachineElement()->BuildWall(CElem::WALL_BEAM, L"LiftingBeam", GetId(), box, Vector(0, 0, F_PI_2));
 	}
-}
-
-void CLiftGroupConstr::SHAFT::ConstructPanels(AVFLOAT x)
-{
-	if (!GetMachineElement())
-		m_pElemMachine = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetMachineRoomElement(), CElem::ELEM_SHAFT, L"Machine %c", GetId() + 'A', Vector(0, 0, GetLiftGroup()->GetMachineRoomLevel()));
-
-	// do nothing if Machine Room-Less Lift
-	if (IsMRL())
-		return;
-
-	// calculate boxes for the panels!
-	BOX box = GetLiftGroup()->GetBox();
-
-	box.MoveX(x + GetPanelCtrlWidth() / 2.0f);
-	if (GetShaftLine() == 0)
-		box.MoveY(-650);
-	else
-		box.MoveY(650);
-
-	OLECHAR _name[100];
-	_snwprintf_s(_name, 256, L"Control Panel Type %d", GetPanelCtrlType());
-	GetMachineElement()->BuildModel(CElem::MODEL_CONTROL_PANEL, _name, GetId(), box, GetShaftOrientation() + M_PI, GetPanelCtrlType());
-
-	box.MoveX(GetPanelTwoWidth() / 2.0f);
-	_snwprintf_s(_name, 256, L"Drive Panel Type %d", GetPanelDrvType());
-	GetMachineElement()->BuildModel(CElem::MODEL_DRIVE_PANEL, _name, GetId(), box, GetShaftOrientation() + M_PI, GetPanelDrvType());
-}
-
-void CLiftGroupConstr::SHAFT::ConstructIsoPanel(AVFLOAT y)
-{
-	if (!GetMachineElement())
-		m_pElemMachine = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetMachineRoomElement(), CElem::ELEM_SHAFT, L"Machine %c", GetId() + 'A', Vector(0, 0, GetLiftGroup()->GetMachineRoomLevel()));
-
-	// do nothing if Machine Room-Less Lift or no Isolator panel for this shaft
-	if (IsMRL() || GetPanelIsoType() == 0)
-		return;
-
-	BOX box = GetLiftGroup()->GetBox();
-	box.MoveX(GetLiftGroup()->GetMachineRoom()->GetBox().Width() / 2.0f - 650);
-	box.MoveY(box.Depth() / 2.0f - GetPanelIsoWidth() / 2.0f - y - 1950);
-
-	OLECHAR _name[100];
-	_snwprintf_s(_name, 256, L"Isolator Panel Type %d", GetPanelIsoType());
-	GetMachineElement()->BuildModel(CElem::MODEL_ISOLATOR, _name, GetId(), box, -F_PI/2, GetPanelIsoType());
 }
 
 void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
@@ -682,48 +658,8 @@ void CLiftGroupConstr::Construct(AVVECTOR vec)
 	{
 		GetMachineRoom()->Construct();
 		if (!IsMRL())	// do nothing if Machine Room-Less Lift
-		{
-			for (AVULONG iLine = 0; iLine < GetShaftLinesCount(); iLine++)
-			{
-				// Calculate the position for the central block of panels
-				AVFLOAT xPanel = -GetPanelGrpWidth() / 2.0f;
-				for (AVULONG iShaft = GetShaftBegin(iLine); iShaft < GetShaftEnd(iLine); iShaft++)
-					xPanel -= GetShaft(iShaft)->GetPanelTwoWidth() / 2.0f;
-			
-				// Group Panel
-				if (iLine == 0)
-				{
-					BOX box = GetBox();
-					box.Move(xPanel + GetPanelGrpWidth() / 2.0f, -650, 0);
-					GetMachineRoom()->GetElement()->BuildModel(CElem::MODEL_CONTROL_PANEL, L"Group Panel", GetId(), box, GetShaft(0)->GetShaftOrientation() + M_PI);
-				}
-				xPanel += GetPanelGrpWidth();
-				
-				// Machines and central panels
-				if (iLine == 0)
-					for (AVULONG iShaft = GetShaftBegin(iLine); iShaft < GetShaftEnd(iLine); iShaft++) 
-					{
-						GetShaft(iShaft)->ConstructMachine();
-						GetShaft(iShaft)->ConstructPanels(xPanel);
-						xPanel += GetShaft(iShaft)->GetPanelTwoWidth();
-					}
-				else
-					for (AVULONG iShaft = GetShaftEnd(iLine) - 1; iShaft >= GetShaftBegin(iLine); iShaft--)
-					{
-						GetShaft(iShaft)->ConstructMachine();
-						GetShaft(iShaft)->ConstructPanels(xPanel);
-						xPanel += GetShaft(iShaft)->GetPanelTwoWidth();
-					}
-
-			}
-			// Isolator Panels
-			AVFLOAT yPanel = 0;
-			for (AVULONG iShaft = 0; iShaft < GetShaftCount(); iShaft++)
-			{
-				GetShaft(iShaft)->ConstructIsoPanel(yPanel);
-				yPanel += GetShaft(iShaft)->GetPanelIsoWidth();
-			}
-		}
+			for (AVULONG iShaft = 0; iShaft < this->GetShaftCount(); iShaft++) 
+				GetShaft(iShaft)->ConstructMREquipment();
 	}
 }
 

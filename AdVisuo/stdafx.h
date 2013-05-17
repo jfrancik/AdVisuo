@@ -79,6 +79,12 @@ struct AVVECTOR
 	AVFLOAT y;
 	AVFLOAT z;
 };
+struct AVSIZE
+{
+	AVSIZE(AVFLOAT x = 0, AVFLOAT y = 0) : x(x), y(y) { }
+	AVFLOAT x;
+	AVFLOAT y;
+};
 struct AVCOLOR
 {
 	AVFLOAT r;
