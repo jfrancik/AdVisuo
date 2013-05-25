@@ -150,8 +150,8 @@ void CAdVisuoRenderer::RenderStoreys(CLiftGroupVis *pLiftGroup)
 		m_pEngine->Render(pLiftGroup->GetPitElement()->GetObject());
 	for (AVLONG i = 0; i < iStorey; i++)
 		m_pEngine->Render(pLiftGroup->GetStoreyElement(i)->GetObject());
-	if (pLiftGroup->GetMachineRoom())
-		m_pEngine->Render(pLiftGroup->GetMachineRoomElement()->GetObject());
+	if (pLiftGroup->GetMR())
+		m_pEngine->Render(pLiftGroup->GetMRElement()->GetObject());
 	for (AVLONG i = pLiftGroup->GetStoreyCount() - 1; i > iStorey; i--)
 		m_pEngine->Render(pLiftGroup->GetStoreyElement(i)->GetObject());
 	m_pEngine->Render(pLiftGroup->GetStoreyElement(iStorey)->GetObject());

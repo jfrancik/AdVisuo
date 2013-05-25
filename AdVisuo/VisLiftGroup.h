@@ -30,13 +30,13 @@ public:
 	STOREY *GetGroundStorey(AVULONG i = 0)												{ return (STOREY*)CLiftGroupConstr::GetGroundStorey(i); }
 	SHAFT *GetShaft(AVULONG i)															{ return (SHAFT*)CLiftGroupConstr::GetShaft(i); }
 	LIFT *GetLift(AVULONG i)															{ return (LIFT*)CLiftGroupConstr::GetLift(i); }
-	MACHINEROOM *GetMachineRoom()														{ return (MACHINEROOM*)CLiftGroupConstr::GetMachineRoom(); }
+	MR *GetMR()																			{ return (MR*)CLiftGroupConstr::GetMR(); }
 	PIT *GetPit()																		{ return (PIT*)CLiftGroupConstr::GetPit(); }
 
 	CElemVis *GetElement()																{ return (CElemVis*)CLiftGroupConstr::GetElement(); }
 
 	CElemVis *GetStoreyElement(AVULONG nStorey)											{ return (CElemVis*)CLiftGroupConstr::GetStoreyElement(nStorey); }
-	CElemVis *GetMachineRoomElement()													{ return (CElemVis*)CLiftGroupConstr::GetMachineRoomElement(); }
+	CElemVis *GetMRElement()															{ return (CElemVis*)CLiftGroupConstr::GetMRElement(); }
 	CElemVis *GetPitElement()															{ return (CElemVis*)CLiftGroupConstr::GetPitElement(); }
 
 	CElemVis *GetLiftElement(AVULONG nLift)												{ return (CElemVis*)CLiftGroupConstr::GetLiftElement(nLift); }

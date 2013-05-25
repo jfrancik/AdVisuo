@@ -321,7 +321,7 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "",IDC_STATIC,48,7,149,74,0,WS_EX_CLIENTEDGE
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "AdSimulo Project\nAdVisuo 2.02.30430\nPre-release 30 April 2013\npowered by FreeWill+\n\nCopyright (C) 2009-13 by Lerch Bates\nPortions Copyright by Kingston University and Openboard Media",IDC_STATIC,54,12,135,64,SS_NOPREFIX
+    LTEXT           "AdSimulo Project\nAdVisuo 2.02.30524\nPre-release 24 May 2013\npowered by FreeWill+\n\nCopyright (C) 2009-13 by Lerch Bates\nPortions Copyright by Kingston University and Openboard Media",IDC_STATIC,54,12,135,64,SS_NOPREFIX
     DEFPUSHBUTTON   "OK",IDOK,77,87,50,14,WS_GROUP
 END
 

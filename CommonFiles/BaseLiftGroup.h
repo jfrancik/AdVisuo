@@ -74,20 +74,24 @@ public:
 		void Move(AVFLOAT x, AVFLOAT y, AVFLOAT z);
 	};
 
-	class MACHINEROOM : public STOREY
+	class MR : public STOREY
 	{
 	public:
-		MACHINEROOM(CLiftGroup *pLiftGroup) : STOREY(pLiftGroup, 9999)	{ }
-		virtual ~MACHINEROOM()										{ }
+		MR(CLiftGroup *pLiftGroup) : STOREY(pLiftGroup, 9999)		{ }
+		virtual ~MR()												{ }
 		void ConsoleCreate();
 		void Create();
+
+		AVFLOAT GetExt();
+		BOX GetBoxMain();
+		BOX GetBoxExt();
 	};
 
 	class PIT : public STOREY
 	{
 	public:
 		PIT(CLiftGroup *pLiftGroup) : STOREY(pLiftGroup, 9998)		{ }
-		virtual ~PIT()											{ }
+		virtual ~PIT()												{ }
 		void ConsoleCreate();
 		void Create();
 	};
@@ -284,14 +288,17 @@ private:
 	BOX m_box;							// scaled lobby floor plan (size of the lobby & its walls, zero height)
 	
 	// machine room layout
-	BOX m_boxMachineRoom;				// scaled floor plan and level for the machine room
-	BOX m_boxPanelGrp;					// group panel (box & orientation)
-	AVFLOAT m_fPanelGrpOrientation;
-	AVFLOAT m_fMachineRoomDoorOffset;	// machine room door offset value
-	AVFLOAT m_fMachineRoomLevel;		// machine room level
+	BOX m_boxMR;						// scaled floor plan and level for the machine room
+	AVFLOAT m_fMRLevel;					// machine room level
+	AVFLOAT m_fMRDoorOffset;			// machine room door offset value
 	AVFLOAT m_fLiftingBeamHeight;		// lifting beam height
 	AVFLOAT m_fLiftingBeamWidth;		// lifting beam height
+	AVFLOAT m_fMRIndentFront;			// position of indentation for extended/indented MR (to provide space for excessive panels)
+	AVFLOAT m_fMRIndentRear;			// position of indentation for extended/indented MR (to provide space for excessive panels)
 
+	// group panel orientation (MR)
+	BOX m_boxPanelGrp;					// group panel (box & orientation)
+	AVFLOAT m_fPanelGrpOrientation;
 
 	// pit level layout
 	BOX m_boxPit;						// scaled floor plan and level for the pit level
@@ -302,7 +309,7 @@ protected:
 	std::vector<SHAFT*>  m_shafts;
 	std::vector<LIFT*>   m_lifts;
 	
-	MACHINEROOM *m_pMachineRoom;
+	MR *m_pMR;
 	PIT *m_pPit;
 
 public:
@@ -323,24 +330,16 @@ public:
 	AVULONG GetIndex()						{ return m_nIndex; }
 	void SetIndex(AVULONG n)				{ m_nIndex = n; }
 
+	// scale
+	AVFLOAT GetScale()						{ return m_fScale; }
+
+	// the box
 	BOX &GetBox()							{ return m_box; }
 	bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
 
+	// other info
 	bool IsMRL()							{ for (AVULONG i = 0; i < GetShaftCount(); i++) if (!GetShaft(i)->IsMRL()) return false; return true; }
-
-	BOX &GetBoxMachineRoom()				{ return m_boxMachineRoom; }
-	bool InBoxMachineRoom(AVVECTOR &pt)		{ return m_boxMachineRoom.InBoxExt(pt); }
-	BOX &GetBoxPanelGrp()					{ return m_boxPanelGrp; }
-	AVFLOAT GetPanelGrpOrientation()		{ return m_fPanelGrpOrientation; }
-	AVFLOAT GetMachineRoomDoorOffset()		{ return m_fMachineRoomDoorOffset; }
-	AVFLOAT GetMachineRoomDoorWidth()		{ return 1200 * GetScale(); }
-	AVFLOAT GetMachineRoomDoorHeight()		{ return 2100 * GetScale(); }
-	BOX &GetBoxPit()						{ return m_boxPit; }
-	bool InBoxPit(AVVECTOR &pt)				{ return m_boxPit.InBoxExt(pt); }
-
 	BOX GetTotalAreaBox();
-
-	AVFLOAT GetScale()						{ return m_fScale; }
 
 
 	// Storeys
@@ -356,12 +355,35 @@ public:
 	void AddExtras();
 	void DeleteExtras();
 
-	MACHINEROOM *GetMachineRoom()			{ return m_pMachineRoom; }
-	AVFLOAT GetMachineRoomLevel()			{ return m_fMachineRoomLevel; }
-	AVFLOAT GetMachineRoomSlabThickness()	{ return GetBoxMachineRoom().LowerThickness(); }
+	// MR
+	MR *GetMR()								{ return m_pMR; }
+
+	BOX &GetBoxMR()							{ return m_boxMR; }
+	bool InBoxMR(AVVECTOR &pt)				{ return m_boxMR.InBoxExt(pt); }
+	BOX &GetBoxPanelGrp()					{ return m_boxPanelGrp; }
+	AVFLOAT GetPanelGrpOrientation()		{ return m_fPanelGrpOrientation; }
+
+	AVFLOAT GetMRLevel()					{ return m_fMRLevel; }
+	AVFLOAT GetMRSlabThickness()			{ return GetBoxMR().LowerThickness(); }
 	AVFLOAT GetLiftingBeamHeight()			{ return m_fLiftingBeamHeight; }
 	AVFLOAT GetLiftingBeamWidth()			{ return m_fLiftingBeamWidth; }
+	AVFLOAT GetMRDoorOffset()				{ return m_fMRDoorOffset; }
+	AVFLOAT GetMRDoorWidth()				{ return 1200 * GetScale(); }
+	AVFLOAT GetMRDoorHeight()				{ return 2100 * GetScale(); }
+	AVFLOAT GetMRIndentFront()				{ return m_fMRIndentFront; }
+	AVFLOAT GetMRIndentRear()				{ return m_fMRIndentRear; }
+
+	AVSIZE CalcPanelFootstep(AVULONG iFrom = 0, AVULONG iTo = 9999);
+	AVSIZE CalcPanelFootstepIso(AVULONG iFrom = 0, AVULONG iTo = 9999);
+	AVSIZE CalcPanelFootstepGrp()			{ return AVSIZE(GetBoxPanelGrp().Width(), abs(GetBoxPanelGrp().Depth())); }
+	AVSIZE CalcPanelFootstepLn(AVULONG iLn)	{ return CalcPanelFootstep(GetShaftBegin(iLn), GetShaftEnd(iLn)); }
+
+	// Pit
 	PIT *GetPit()							{ return m_pPit; }
+
+	BOX &GetBoxPit()						{ return m_boxPit; }
+	bool InBoxPit(AVVECTOR &pt)				{ return m_boxPit.InBoxExt(pt); }
+
 	AVFLOAT GetPitLevel()					{ return m_fPitLevel; }
 	AVFLOAT GetPitHeight()					{ return -m_fPitLevel; }
 	bool IsPitLadder()						{ return GetPitHeight() > 600 * GetScale() && GetPitHeight() < 2500 * GetScale(); }
@@ -370,11 +392,6 @@ public:
 	AVFLOAT GetPitLadderHeight()			{ if (IsPitLadder()) return (GetPitLadderRungs() + 1) * 300 * GetScale(); else return 0; }
 	AVFLOAT GetPitLadderLowerBracket()		{ if (IsPitLadder()) return 500 * GetScale(); else return 0; }
 	AVFLOAT GetPitLadderUpperBracket()		{ if (IsPitLadder()) return (GetPitLadderHeight() - 600) * GetScale(); else return 0; }
-
-	AVSIZE CalcPanelFootstep(AVULONG iFrom = 0, AVULONG iTo = 9999);
-	AVSIZE CalcPanelFootstepIso(AVULONG iFrom = 0, AVULONG iTo = 9999);
-	AVSIZE CalcPanelFootstepGrp()			{ return AVSIZE(GetBoxPanelGrp().Width(), abs(GetBoxPanelGrp().Depth())); }
-	AVSIZE CalcPanelFootstepLn(AVULONG iLn)	{ return CalcPanelFootstep(GetShaftBegin(iLn), GetShaftEnd(iLn)); }
 
 	// Shafts
 	SHAFT *AddShaft();
@@ -438,7 +455,7 @@ protected:
 	virtual STOREY *CreateStorey(AVULONG nId) = 0;
 	virtual SHAFT *CreateShaft(AVULONG nId) = 0;
 	virtual LIFT *CreateLift(AVULONG nId) = 0;
-	virtual MACHINEROOM *CreateMachineRoom() = 0;
+	virtual MR *CreateMR() = 0;
 	virtual PIT *CreatePit() = 0;
 
 	virtual CSim *CreateSim() = 0;

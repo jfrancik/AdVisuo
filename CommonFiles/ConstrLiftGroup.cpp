@@ -88,7 +88,7 @@ void CLiftGroupConstr::STOREY::Construct(AVULONG iStorey)
 	// Lift Headroom Space
 	if (iStorey == GetLiftGroup()->GetHighestStoreyServed() && !GetLiftGroup()->bFastLoad)
 	{
-		AVFLOAT h1 = GetLiftGroup()->GetMachineRoomLevel() - GetLiftGroup()->GetMachineRoomSlabThickness() - GetLiftGroup()->GetStorey(iStorey)->GetLevel();
+		AVFLOAT h1 = GetLiftGroup()->GetMRLevel() - GetLiftGroup()->GetMRSlabThickness() - GetLiftGroup()->GetStorey(iStorey)->GetLevel();
 		AVFLOAT h = GetLiftGroup()->GetStorey(iStorey)->GetBox().HeightExt();
 		BOX box = GetBox();
 		box.SetHeight(h1 - h);
@@ -98,7 +98,7 @@ void CLiftGroupConstr::STOREY::Construct(AVULONG iStorey)
 		if (GetLiftGroup()->GetShaftLinesCount() == 1)
 		{
 			// for in-line arrangements, the Front Wall will follow the MR arrangement rather than the lobby
-			box = GetLiftGroup()->GetBoxMachineRoom();
+			box = GetLiftGroup()->GetBoxMR();
 			box.SetHeight(h1 - h);
 			box.Move(0, 0, h);
 		}
@@ -113,42 +113,65 @@ void CLiftGroupConstr::STOREY::Deconstruct()
 	delete m_pElem;
 }
 
-void CLiftGroupConstr::MACHINEROOM::Construct()
+void CLiftGroupConstr::MR::Construct()
 {
 	if (::GetKeyState(VK_CONTROL) < 0 && ::GetKeyState(VK_SHIFT) < 0 && !GetLiftGroup()->bFastLoad) { GetLiftGroup()->bFastLoad = true; MessageBeep(MB_OK); }
 
 	// create skeletal structure (object & bone)
 	m_pElem = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetElement(), CElem::ELEM_STOREY, (LPOLESTR)GetName().c_str(), 9999, Vector(0, 0, GetLevel()));
 
-	// do nothing if Machine Room-Less Lift
-	if (GetLiftGroup()->IsMRL())
+	// if MRL - just build the main slab and finish
+	if (GetLiftGroup()->IsMRL() || GetLiftGroup()->bFastLoad)
 	{
-		m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Slab (MRL)", 0, GetBox().LowerSlab());
+		m_pElem->BuildWall(CElem::WALL_FLOOR, L"Slab (MRL)", 0, GetBox().LowerSlab());
+		return;
 	}
+
+	// auxiliary boxes
+	BOX boxMain = GetBoxMain();
+	BOX boxExt = GetBoxExt();
+	AVFLOAT fExt = GetExt();
+
+	// build the slab
+	m_pElem->BuildWall(CElem::WALL_FLOOR, L"Machine Room Slab", 0, boxMain.LowerSlab());
+	if (fExt > 0)
+		m_pElem->BuildWall(CElem::WALL_FLOOR, L"Machine Room Slab Extension", 0, boxExt.LowerSlab());
+
+	// Door Info
+	FLOAT doors[] = { GetLiftGroup()->GetMRDoorOffset(), GetLiftGroup()->GetMRDoorWidth(), GetLiftGroup()->GetMRDoorHeight() };
+
+	// build three easy walls
+	m_pElem->BuildWall(CElem::WALL_SHAFT, L"RearWall", 0, boxMain.FrontWall());
+	m_pElem->BuildWall(CElem::WALL_SHAFT, L"FrontWall", 0, boxMain.RearWall(), Vector(0, 0, F_PI));
+	m_pElem->BuildWall(CElem::WALL_SHAFT, L"LeftWall", 0, boxMain.LeftWall(), Vector(0, 0, F_PI_2));
+	if (fExt <= 0)
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RightWall", 0, GetBox().RightWall(), Vector(0, 0, -F_PI_2), 1, doors);
 	else
 	{
-		// Door Info
-		FLOAT doors[] = { GetLiftGroup()->GetMachineRoomDoorOffset(), GetLiftGroup()->GetMachineRoomDoorWidth(), GetLiftGroup()->GetMachineRoomDoorHeight() };
+		// indented walls of the MR extension
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RightWallExt", 0, boxExt.RightWall(), Vector(0, 0, -F_PI_2), 1, doors);
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RearWallExt", 0, boxExt.FrontWall());
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"FrontWallExt", 0, boxExt.RearWall(), Vector(0, 0, F_PI));
 
-		// build walls
-		m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Machine Room Slab", 0, GetBox().LowerSlab());
-		if (GetLiftGroup()->bFastLoad) return;
-		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RearWall", 0, GetBox().FrontWall());
-		m_pElem->BuildWall(CElem::WALL_SHAFT, L"FrontWall", 0, GetBox().RearWall(), Vector(0, 0, F_PI));
-		m_pElem->BuildWall(CElem::WALL_SHAFT, L"LeftWall", 0, GetBox().LeftWall(), Vector(0, 0, F_PI_2));
-		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RightWall", 0, GetBox().RightWall(), Vector(0, 0, -F_PI_2), 1, doors);
+		BOX boxAux = boxMain;
+		boxAux.SetRear(GetLiftGroup()->GetMRIndentFront()); boxAux.SetRearThickness(0);
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RightWall_1", 0, boxAux.RightWall(), Vector(0, 0, -F_PI_2));
 
-		// Build the Lifting Beam
-		AVFLOAT w = GetLiftGroup()->GetLiftingBeamWidth(), h = GetLiftGroup()->GetLiftingBeamHeight();
-		BOX box(GetBox().Left(), GetBox().CentreY() - w/2, GetBox().Height() - h, GetBox().Width(), -w, h);
-		m_pElem->BuildWall(CElem::WALL_BEAM, L"LiftingBeam", 0, box);
-
-		// Build the Group Panel
-		GetLiftGroup()->GetMachineRoom()->GetElement()->BuildModel(CElem::MODEL_CONTROL_PANEL, L"Group Panel", GetId(), GetLiftGroup()->GetBoxPanelGrp(), GetLiftGroup()->GetPanelGrpOrientation());
+		boxAux = boxMain;
+		boxAux.SetFront(GetLiftGroup()->GetMRIndentRear()); boxAux.SetFrontThickness(0);
+		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RightWall_2", 0, boxAux.RightWall(), Vector(0, 0, -F_PI_2));
 	}
+
+	// Build the Lifting Beam
+	AVFLOAT w = GetLiftGroup()->GetLiftingBeamWidth(), h = GetLiftGroup()->GetLiftingBeamHeight();
+	BOX box(GetBox().Left(), GetBox().CentreY() - w/2, GetBox().Height() - h, GetBox().Width(), -w, h);
+	m_pElem->BuildWall(CElem::WALL_BEAM, L"LiftingBeam", 0, box);
+
+	// Build the Group Panel
+	GetLiftGroup()->GetMR()->GetElement()->BuildModel(CElem::MODEL_CONTROL_PANEL, L"Group Panel", GetId(), GetLiftGroup()->GetBoxPanelGrp(), GetLiftGroup()->GetPanelGrpOrientation());
 }
 
-void CLiftGroupConstr::MACHINEROOM::Deconstruct()
+void CLiftGroupConstr::MR::Deconstruct()
 {
 	if (m_pElem) delete m_pElem;
 }
@@ -318,7 +341,7 @@ void CLiftGroupConstr::SHAFT::Construct(AVULONG iStorey)
 	// Lift Headroom Space
 	if (iStorey == GetLiftGroup()->GetHighestStoreyServed() && !GetLiftGroup()->bFastLoad)
 	{
-		AVFLOAT h1 = GetLiftGroup()->GetMachineRoomLevel() - GetLiftGroup()->GetMachineRoomSlabThickness() - GetLiftGroup()->GetStorey(iStorey)->GetLevel();
+		AVFLOAT h1 = GetLiftGroup()->GetMRLevel() - GetLiftGroup()->GetMRSlabThickness() - GetLiftGroup()->GetStorey(iStorey)->GetLevel();
 		AVFLOAT h = GetLiftGroup()->GetStorey(iStorey)->GetBox().HeightExt();
 
 		// top level beams & side walls
@@ -363,7 +386,7 @@ void CLiftGroupConstr::SHAFT::Construct(AVULONG iStorey)
 void CLiftGroupConstr::SHAFT::ConstructMREquipment()
 {
 	if (!GetMachineElement())
-		m_pElemMachine = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetMachineRoomElement(), CElem::ELEM_SHAFT, L"Machine %c", GetId() + 'A', Vector(0, 0, GetLiftGroup()->GetMachineRoomLevel()));
+		m_pElemMachine = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetMRElement(), CElem::ELEM_SHAFT, L"Machine %c", GetId() + 'A', Vector(0, 0, GetLiftGroup()->GetMRLevel()));
 
 	// do nothing if Machine Room-Less Lift
 	if (IsMRL())
@@ -388,7 +411,7 @@ void CLiftGroupConstr::SHAFT::ConstructMREquipment()
 	
 	// Build the Lifting Beam
 	AVFLOAT w = GetLiftGroup()->GetLiftingBeamWidth(), h = GetLiftGroup()->GetLiftingBeamHeight();
-	MACHINEROOM *pmr = GetLiftGroup()->GetMachineRoom();
+	MR *pmr = GetLiftGroup()->GetMR();
 	if (GetShaftLine() == 0)
 	{
 		BOX box(GetBoxCar().CentreX() + w/2, pmr->GetBox().CentreY() - w/2, pmr->GetBox().Height() - h, -(pmr->GetBox().Front() - pmr->GetBox().CentreY()) - w/2, w, h);
@@ -474,7 +497,7 @@ void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
 	AVFLOAT rl = GetRailLength();
 
 	box = BOX(GetBoxCar().LeftExt() - 50 * fScale - rl, GetBoxCar().CentreY() - rw/2, 0, rl, rw, 0);
-	box.SetHeight(h + GetLiftGroup()->GetMachineRoomLevel() - GetLiftGroup()->GetMachineRoomSlabThickness());
+	box.SetHeight(h + GetLiftGroup()->GetMRLevel() - GetLiftGroup()->GetMRSlabThickness());
 	GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Car Guide Rail 1", GetId(), box, F_PI);
 	box.Move(GetBoxCar().WidthExt() + 100 * fScale + rl, 0, 0);
 	GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Car Guide Rail 2", GetId(), box, 0);
@@ -483,7 +506,7 @@ void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
 	if (bCwtRear)
 	{
 		box = BOX(GetBoxCwt().LeftExt() - rl, GetBoxCwt().CentreY() - rw/2, 0, rl, rw, 0);
-		box.SetHeight(h + GetLiftGroup()->GetMachineRoomLevel() - GetLiftGroup()->GetMachineRoomSlabThickness());
+		box.SetHeight(h + GetLiftGroup()->GetMRLevel() - GetLiftGroup()->GetMRSlabThickness());
 		GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Counterweight Guide Rail 1", GetId(), box, F_PI);
 		box.Move(GetBoxCwt().WidthExt() + rl, 0, 0);
 		GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Counterweight Guide Rail 2", GetId(), box, 0);
@@ -493,7 +516,7 @@ void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
 		if (GetShaftLine() == 0) rl = -rl;
 
 		box = BOX(GetBoxCwt().CentreX() - rw/2, GetBoxCwt().FrontExt() - rl, 0, rw, rl, 0);
-		box.SetHeight(h + GetLiftGroup()->GetMachineRoomLevel() - GetLiftGroup()->GetMachineRoomSlabThickness());
+		box.SetHeight(h + GetLiftGroup()->GetMRLevel() - GetLiftGroup()->GetMRSlabThickness());
 		GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Counterweight Guide Rail 1", GetId(), box, 3*F_PI/2);
 		box.Move(0, GetBoxCwt().DepthExt() + rl, 0);
 		GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Counterweight Guide Rail 2", GetId(), box, F_PI/2);
@@ -654,9 +677,9 @@ void CLiftGroupConstr::Construct(AVVECTOR vec)
 	}
 
 	// The Machine Room
-	if (GetMachineRoom())
+	if (GetMR())
 	{
-		GetMachineRoom()->Construct();
+		GetMR()->Construct();
 		if (!IsMRL())	// do nothing if Machine Room-Less Lift
 			for (AVULONG iShaft = 0; iShaft < this->GetShaftCount(); iShaft++) 
 				GetShaft(iShaft)->ConstructMREquipment();
@@ -674,8 +697,8 @@ void CLiftGroupConstr::Deconstruct()
 	for (AVULONG i = 0; i < GetLiftCount(); i++)
 		GetLift(i)->Deconstruct();
 
-	if (GetMachineRoom())
-		GetMachineRoom()->Deconstruct();
+	if (GetMR())
+		GetMR()->Deconstruct();
 	if (GetPit())
 		GetPit()->Deconstruct();
 }

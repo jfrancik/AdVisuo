@@ -14,7 +14,7 @@ public:
 	CElemIfc *GetElement()																{ return (CElemIfc*)CLiftGroupSrv::GetElement(); }
 
 	CElemIfc *GetStoreyElement(AVULONG nStorey)											{ return (CElemIfc*)CLiftGroupSrv::GetStoreyElement(nStorey); }
-	CElemIfc *GetMachineRoomElement()													{ return (CElemIfc*)CLiftGroupSrv::GetMachineRoomElement(); }
+	CElemIfc *GetMRElement()															{ return (CElemIfc*)CLiftGroupSrv::GetMRElement(); }
 	CElemIfc *GetPitElement()															{ return (CElemIfc*)CLiftGroupSrv::GetPitElement(); }
 	
 	CElemIfc *GetLiftElement(AVULONG nLift)												{ return (CElemIfc*)CLiftGroupSrv::GetLiftElement(nLift); }

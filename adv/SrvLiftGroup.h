@@ -29,7 +29,7 @@ public:
 	STOREY *GetGroundStorey(AVULONG i = 0)		{ return (STOREY*)CLiftGroupConstr::GetGroundStorey(i); }
 	SHAFT *GetShaft(AVULONG i)					{ return (SHAFT*)CLiftGroupConstr::GetShaft(i); }
 	LIFT *GetLift(AVULONG i)					{ return (LIFT*)CLiftGroupConstr::GetLift(i); }
-	MACHINEROOM *GetMachineRoom()				{ return (MACHINEROOM*)CLiftGroupConstr::GetMachineRoom(); }
+	MR *GetMR()									{ return (MR*)CLiftGroupConstr::GetMR(); }
 	PIT *GetPit()								{ return (PIT*)CLiftGroupConstr::GetPit(); }
 
 
