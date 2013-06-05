@@ -15,6 +15,142 @@ CSim *CLiftGroupSrv::CreateSim()
 }
 
 //////////////////////////////////////////////////////////////////////////////////
+// Database Load
+
+HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
+{
+	if (!db) throw db;
+	CDataBase::SELECT sel, sel1;
+
+	ME[L"LiftGroupIndex"] = GetIndex();
+
+//  original reason for this snippet is highly unclear
+//	sel = db.select(L"SELECT f.* FROM FloorDataSets f, LiftGroups g WHERE f.SimulationId=g.SimulationId AND g.LiftGroupId=%d", nLiftGroupId);
+//	if (!sel) throw ERROR_BUILDING;
+//	sel >> *this;
+
+	sel = db.select(L"SELECT * FROM LiftGroups WHERE LiftGroupId=%d", nLiftGroupId);
+	if (!sel) throw ERROR_BUILDING;
+	sel >> *this;
+
+	sel = db.select(L"SELECT COUNT(LiftId) AS NumberOfLifts FROM Lifts WHERE LiftGroupId=%d", nLiftGroupId);
+	if (!sel) throw ERROR_BUILDING;
+	sel >> *this;
+
+
+	sel = db.select(L"SELECT COUNT(FloorId) AS NumberOfStoreys FROM Floors WHERE SimulationId IN (SELECT t.SimulationId FROM LiftGroups g, Tenancies t WHERE t.TenancyId = g.TenancyId AND g.LiftGroupId=%d)", nLiftGroupId);
+	if (!sel) throw ERROR_BUILDING;
+	sel >> *this;
+
+	sel = db.select(L"SELECT 0 AS NumberOfBasementStoreys");	
+	if (!sel) throw ERROR_BUILDING;
+	sel >> *this;
+
+	// Query for Shaft Data and add /load shafts
+	sel = db.select(L"SELECT * FROM Lifts l, Doors d WHERE LiftGroupId=%d  AND d.LiftId = l.LiftId AND d.DoorConfigurationId=1 ORDER BY LiftNumber", nLiftGroupId);
+	while (sel)
+	{
+		SHAFT *pShaft = AddShaft();
+
+		sel >> *pShaft;
+		pShaft->erase(L"LiftGroupId");
+
+		// Queries for Stories Served
+		std::wstring ss((AVULONG)(*this)[L"NumberOfStoreys"], L'0');
+		sel1 = db.select(L"SELECT lf.IsServed AS IsServed, f.GroundIndex AS GroundIndex FROM LiftFloors lf, LiftGroupFloors lgf, Floors f WHERE lf.LiftId = %d AND lf.LiftGroupFloorId = lgf.LiftGroupFloorId AND lgf.FloorId = f.FloorId ORDER BY f.GroundIndex ", (AVULONG)sel[L"LiftId"]); 
+		while (sel1)
+		{
+			std::wstring is = sel1[L"IsServed"];
+			AVLONG nGroundIndex = sel1[L"GroundIndex"];
+			ss[nGroundIndex] = is[0];
+			sel1++;
+		}
+		(*pShaft)[L"StoreysServed"] = ss;
+
+		sel++;
+	}
+
+	// Query for Storey Data and add/load storeys
+
+	sel = db.select(L"SELECT * FROM Floors WHERE SimulationId IN (SELECT t.SimulationId FROM LiftGroups g, Tenancies t WHERE t.TenancyId = g.TenancyId AND g.LiftGroupId=%d) ORDER BY GroundIndex", nLiftGroupId);
+	while (sel)
+	{
+		STOREY *pStorey = AddStorey();
+		sel >> *pStorey;
+		sel++;
+	}
+
+	// Query for Traffic Scenario Data
+	sel = db.select(L"SELECT s.TrafficScenarioId, s.TrafficPatternTypeId, t.Name AS TrafficPatternName FROM TrafficScenarios s, TrafficPatternTypes t WHERE s.TrafficPatternTypeId=t.TrafficPatternTypeId AND s.LiftGroupId=%d ORDER BY TrafficScenarioIndex", nLiftGroupId);
+	while (sel)	// target is to replace it with while and collect ALL traffic scenarios!
+	{
+		CSimSrv *pSim = AddSim();
+		sel >> *pSim;
+		sel++;
+	}
+
+	AddExtras();
+	ResolveMe();
+
+	// Resolve and test
+	ConsoleCreate();
+	if (!IsValid())
+		throw ERROR_BUILDING;
+
+	return S_OK;
+}
+
+HRESULT CLiftGroupSrv::LoadFromVisualisation(CDataBase db, ULONG nLiftGroupID)
+{
+	if (!db) throw db;
+	CDataBase::SELECT sel;
+
+	// Query for Lobby Data
+	sel = db.select(L"SELECT * FROM AVLiftGroups WHERE ID=%d", nLiftGroupID);
+	if (!sel) throw ERROR_DATA_NOT_FOUND;
+	sel >> *this;
+
+	// Query for Shaft Data and add /load shafts
+	sel = db.select(L"SELECT * FROM AVShafts WHERE LiftGroupId=%d ORDER BY ShaftID", nLiftGroupID);
+	while (sel)
+	{
+		SHAFT *pShaft = AddShaft();
+		sel >> *pShaft;
+		sel++;
+	}
+
+	// Query for Storey Data and add/load storeys
+	sel = db.select(L"SELECT * FROM AVFloors WHERE LiftGroupId=%d ORDER BY FloorId", nLiftGroupID);
+	while (sel)
+	{
+		STOREY *pStorey = AddStorey();
+		sel >> *pStorey;
+		sel++;
+	}
+
+	AddExtras();
+	ResolveMe();
+
+	// Resolve and test
+	Create();
+	if (!IsValid())
+		throw ERROR_DATA_NOT_FOUND;
+
+	// Query for Sims
+	// previously also had "AND LiftGroupIndex=%d" - no idea why
+	sel = db.select(L"SELECT * FROM AVSims WHERE LiftGroupId=%d", nLiftGroupID);
+	while (sel)
+	{
+		CSimSrv *pSim = AddSim();
+		HRESULT h = pSim->LoadFromVisualisation(db, sel[L"ID"]);
+		if FAILED(h) return h;
+		sel++;
+	}
+
+	return S_OK;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
 // Database Store
 
 HRESULT CLiftGroupSrv::Store(CDataBase db)
@@ -58,164 +194,12 @@ HRESULT CLiftGroupSrv::Store(CDataBase db)
 	}
 
 	// store Sim
-	GetSim()->SetLiftGroupId(GetId());
-	HRESULT h = GetSim()->Store(db);
-	if FAILED(h) return h;
-
-	return S_OK;
-}
-
-//////////////////////////////////////////////////////////////////////////////////
-// Database Load
-
-HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
-{
-	if (!db) throw db;
-	CDataBase::SELECT sel, sel1;
-
-	ME[L"LiftGroupIndex"] = GetIndex();
-
-//  original reason for this snippet is highly unclear
-//	sel = db.select(L"SELECT f.* FROM FloorDataSets f, LiftGroups g WHERE f.SimulationId=g.SimulationId AND g.LiftGroupId=%d", nLiftGroupId);
-//	if (!sel) throw ERROR_BUILDING;
-//	sel >> *this;
-
-	sel = db.select(L"SELECT * FROM LiftGroups WHERE LiftGroupId=%d", nLiftGroupId);
-	if (!sel) throw ERROR_BUILDING;
-	sel >> *this;
-
-	sel = db.select(L"SELECT COUNT(LiftId) AS NumberOfLifts FROM Lifts WHERE LiftGroupId=%d", nLiftGroupId);
-	if (!sel) throw ERROR_BUILDING;
-	sel >> *this;
-
-#ifdef VER200
-	sel = db.select(L"SELECT COUNT(FloorId) AS NumberOfStoreys FROM Floors WHERE SimulationId IN (SELECT t.SimulationId FROM LiftGroups g, Tenancies t WHERE t.TenancyId = g.TenancyId AND g.LiftGroupId=%d)", nLiftGroupId);
-#else
-	sel = db.select(L"SELECT COUNT(FloorId) AS NumberOfStoreys FROM Floors WHERE SimulationId IN (SELECT SimulationId FROM LiftGroups WHERE LiftGroupId=%d)", nLiftGroupId);
-#endif
-	if (!sel) throw ERROR_BUILDING;
-	sel >> *this;
-
-#ifdef VER200
-	sel = db.select(L"SELECT 0 AS NumberOfBasementStoreys");	
-#else
-	sel = db.select(L"SELECT COUNT(f.FloorId) AS NumberOfBasementStoreys FROM Floors f, LiftGroups g WHERE f.SimulationId=g.SimulationId AND g.LiftGroupId=%d AND f.GroundIndex < 0", nLiftGroupId);
-#endif
-	if (!sel) throw ERROR_BUILDING;
-	sel >> *this;
-
-	// Query for Shaft Data and add /load shafts
-	sel = db.select(L"SELECT * FROM Lifts l, Doors d WHERE LiftGroupId=%d  AND d.LiftId = l.LiftId AND d.DoorConfigurationId=1 ORDER BY LiftNumber", nLiftGroupId);
-	while (sel)
+	HRESULT h;
+	for each (CSimSrv *pSim in GetSims())
 	{
-		SHAFT *pShaft = AddShaft();
-
-		sel >> *pShaft;
-		pShaft->erase(L"LiftGroupId");
-
-		// Queries for Stories Served
-#ifdef VER200
-		std::wstring ss((AVULONG)(*this)[L"NumberOfStoreys"], L'0');
-		sel1 = db.select(L"SELECT lf.IsServed AS IsServed, f.GroundIndex AS GroundIndex FROM LiftFloors lf, LiftGroupFloors lgf, Floors f WHERE lf.LiftId = %d AND lf.LiftGroupFloorId = lgf.LiftGroupFloorId AND lgf.FloorId = f.FloorId ORDER BY f.GroundIndex ", (AVULONG)sel[L"LiftId"]); 
-		while (sel1)
-		{
-			std::wstring is = sel1[L"IsServed"];
-			AVLONG nGroundIndex = sel1[L"GroundIndex"];
-			ss[nGroundIndex] = is[0];
-			sel1++;
-		}
-		(*pShaft)[L"StoreysServed"] = ss;
-#else
-		std::wstring ss = L"";
-		sel1 = db.select(L"SELECT sf.IsServed AS IsServed, f.GroundIndex FROM ServedFloors sf, Floors f WHERE sf.FloorId = f.FloorId and sf.LiftId = %d ORDER BY f.GroundIndex ", (AVULONG)sel[L"LiftId"]); 
-		while (sel1)
-		{
-			ss += sel1[L"IsServed"];
-			sel1++;
-		}
-		(*pShaft)[L"StoreysServed"] = ss;
-#endif
-
-		sel++;
+		pSim->SetLiftGroupId(GetId());
+		if FAILED(h = pSim->Store(db)) return h;
 	}
-
-	// Query for Storey Data and add/load storeys
-#ifdef VER200
-	sel = db.select(L"SELECT * FROM Floors WHERE SimulationId IN (SELECT t.SimulationId FROM LiftGroups g, Tenancies t WHERE t.TenancyId = g.TenancyId AND g.LiftGroupId=%d) ORDER BY GroundIndex", nLiftGroupId);
-#else
-	sel = db.select(L"SELECT * FROM Floors WHERE SimulationId IN (SELECT SimulationId FROM LiftGroups WHERE LiftGroupId=%d) ORDER BY GroundIndex", nLiftGroupId);
-#endif
-	while (sel)
-	{
-		STOREY *pStorey = AddStorey();
-		sel >> *pStorey;
-		sel++;
-	}
-
-	// Query for Traffic Scenario Data and add/load storeys
-#ifdef VER200
-	sel = db.select(L"SELECT TrafficScenarioId, TrafficPatternTypeId FROM TrafficScenarios WHERE LiftGroupId=%d ORDER BY TrafficPatternTypeId", nLiftGroupId);
-	if (sel)	// target is to replace it with while and collect ALL traffic scenarios!
-	{
-		CSimSrv *pSim = AddSim();
-		sel >> *pSim;
-	}
-#else
-	sel = db.select(L"SELECT * FROM Floors WHERE SimulationId IN (SELECT SimulationId FROM LiftGroups WHERE LiftGroupId=%d) ORDER BY GroundIndex", nLiftGroupId);
-	CSimSrv *pSim = AddSim();
-	(*pSim)[L"TrafficScenarioId"] = (AVULONG)0;
-#endif
-
-	AddExtras();
-	ResolveMe();
-
-	// Resolve and test
-	ConsoleCreate();
-	if (!IsValid())
-		throw ERROR_BUILDING;
-
-	return S_OK;
-}
-
-HRESULT CLiftGroupSrv::LoadFromVisualisation(CDataBase db, ULONG nLiftGroupID)
-{
-	if (!db) throw db;
-	CDataBase::SELECT sel;
-
-	// Query for Lobby Data
-	sel = db.select(L"SELECT * FROM AVLiftGroups WHERE ID=%d", nLiftGroupID);
-	if (!sel) throw ERROR_DATA_NOT_FOUND;
-	sel >> *this;
-
-	// Query for Shaft Data and add /load shafts
-	sel = db.select(L"SELECT * FROM AVShafts WHERE LiftGroupId=%d ORDER BY ShaftID", nLiftGroupID);
-	while (sel)
-	{
-		SHAFT *pShaft = AddShaft();
-		sel >> *pShaft;
-		sel++;
-	}
-
-	// Query for Storey Data and add/load storeys
-	sel = db.select(L"SELECT * FROM AVFloors WHERE LiftGroupId=%d ORDER BY FloorId", nLiftGroupID);
-	while (sel)
-	{
-		STOREY *pStorey = AddStorey();
-		sel >> *pStorey;
-		sel++;
-	}
-
-	AddExtras();
-	AddSim();
-	ResolveMe();
-
-	// Resolve and test
-	Create();
-	if (!IsValid())
-		throw ERROR_DATA_NOT_FOUND;
-
-	HRESULT h = GetSim()->LoadFromVisualisation(db, nLiftGroupID);
-	if FAILED(h) return h;
 
 	return S_OK;
 }

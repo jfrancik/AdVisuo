@@ -4,6 +4,7 @@
 
 #include "Box.h"
 #include "DBTools.h"
+#include <functional>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CLiftGroup
@@ -272,7 +273,6 @@ private:
 
 	CProject *m_pProject;				// The Project Object
 	std::wstring m_strName;				// Lift Group name
-	CSim *m_pSim;						// Sim object
 
 	AVFLOAT m_fScale;					// scale factor (applied to all dimensions)
 
@@ -308,6 +308,7 @@ protected:
 	std::vector<STOREY*> m_storeys;
 	std::vector<SHAFT*>  m_shafts;
 	std::vector<LIFT*>   m_lifts;
+	std::vector<CSim*>	 m_sims;
 	
 	MR *m_pMR;
 	PIT *m_pPit;
@@ -341,6 +342,11 @@ public:
 	bool IsMRL()							{ for (AVULONG i = 0; i < GetShaftCount(); i++) if (!GetShaft(i)->IsMRL()) return false; return true; }
 	BOX GetTotalAreaBox();
 
+	// collection generic
+	std::vector<STOREY*> &GetStoreys()		{ return m_storeys; }
+	std::vector<SHAFT*> &GetShafts()		{ return m_shafts; }
+	std::vector<LIFT*> &GetLifts()			{ return m_lifts; }
+	std::vector<CSim*> &GetSims()			{ return m_sims; }
 
 	// Storeys
 	void CreateStoreys(AVULONG nStoreyCount, AVULONG nBasementStoreyCount = 0);
@@ -415,7 +421,6 @@ public:
 	LIFT *AddLift();
 	void DeleteLifts();
 	LIFT *GetLift(AVULONG i)				{ return i < GetLiftCount() ? m_lifts[i] : NULL; }
-
 	AVULONG GetLiftCount()					{ return m_lifts.size(); }
 
 	// Storeys Served
@@ -428,16 +433,13 @@ public:
 
 	// The Sim
 	CSim *AddSim();
-	void DeleteSim();
-	CSim *GetSim()							{ return m_pSim; }
-
-
+	void DeleteSims();
+	CSim *GetSim(AVULONG i)					{ return i < GetSimCount() ? m_sims[i] : NULL; }
+	AVULONG GetSimCount()					{ return m_sims.size(); }
 
 	// Various
 	SHAFT_ARRANG GetLiftShaftArrang()		{ return m_LiftShaftArrang; }
 	LOBBY_ARRANG GetLobbyArrangement()		{ return m_LobbyArrangement; }
-	
-
 
 	// Status
 	bool IsValid()							{ return GetStoreyCount() && GetShaftCount() && GetShaftCount(0); }

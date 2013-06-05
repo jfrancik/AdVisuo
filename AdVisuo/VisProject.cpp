@@ -29,7 +29,7 @@ CElem *CProjectVis::CreateElement(CLiftGroup *pLiftGroup, CElem *pParent, AVULON
 
 void CProjectVis::StoreConfig()
 { 
-	for each (CLiftGroupVis *pGroup in Groups())
+	for each (CLiftGroupVis *pGroup in GetLiftGroups())
 		pGroup->StoreConfig();
 }
 
@@ -78,7 +78,8 @@ void CProjectVis::Load(xmltools::CXmlReader reader)
 		{
 			AVULONG nLiftGroupId = reader[L"LiftGroupId"];
 			CLiftGroupVis *pGroup = FindLiftGroup(nLiftGroupId);
-			if (!pGroup || pGroup->GetSim()) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			if (!pGroup || pGroup->GetSim(0)) 
+				throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
 			CLiftGroup::STOREY *pStorey = pGroup->AddStorey();
 			reader >> *pStorey;
 		}
@@ -87,7 +88,8 @@ void CProjectVis::Load(xmltools::CXmlReader reader)
 		{
 			AVULONG nLiftGroupId = reader[L"LiftGroupId"];
 			CLiftGroupVis *pGroup = FindLiftGroup(nLiftGroupId);
-			if (!pGroup || pGroup->GetSim()) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			if (!pGroup || pGroup->GetSim(0)) 
+				throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
 			CLiftGroup::SHAFT *pShaft = pGroup->AddShaft();
 			reader >> *pShaft;
 		}
@@ -96,7 +98,8 @@ void CProjectVis::Load(xmltools::CXmlReader reader)
 		{
 			AVULONG nLiftGroupId = reader[L"LiftGroupId"];
 			CLiftGroupVis *pGroup = FindLiftGroup(nLiftGroupId);
-			if (!pGroup || pGroup->GetSim()) throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+			if (!pGroup /*|| pGroup->GetSim()*/) 
+				throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
 
 			pGroup->AddExtras();
 			CSimVis *pSim = pGroup->AddSim();
@@ -141,7 +144,8 @@ void CProjectVis::Load(xmltools::CXmlReader reader)
 		{
 			AVULONG nSimId = reader[L"SimID"];
 			CSimVis *pSim = FindSim(nSimId);
-			CLiftGroupVis *pGroup = pSim->GetLiftGroup();
+			if (!pSim || !pSim->GetLiftGroup()) 
+				throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
 
 			CPassengerVis *pPassenger = (CPassengerVis*)pSim->CreatePassenger(0);
 			reader >> *pPassenger;
@@ -179,11 +183,11 @@ void CProjectVis::Store(xmltools::CXmlWriter writer)
 		for (ULONG i = 0; i < GetLiftGroup(i)->GetStoreyCount(); i++)
 			writer.write(L"AVFloor", *GetLiftGroup(i)->GetStorey(i));
 
-		for (ULONG i = 0; i < GetLiftGroup(i)->GetSim()->GetLiftCount(); i++)
-			for (ULONG j = 0; j < GetLiftGroup(i)->GetSim()->GetLift(i)->GetJourneyCount(); j++)
+		for (ULONG i = 0; i < GetLiftGroup(i)->GetSim(0)->GetLiftCount(); i++)
+			for (ULONG j = 0; j < GetLiftGroup(i)->GetSim(0)->GetLift(i)->GetJourneyCount(); j++)
 			{
-				JOURNEY *pJ = GetLiftGroup(i)->GetSim()->GetLift(i)->GetJourney(j);
-				writer[L"LiftID"] = GetLiftGroup(i)->GetSim()->GetLift(i)->GetId();
+				JOURNEY *pJ = GetLiftGroup(i)->GetSim(0)->GetLift(i)->GetJourney(j);
+				writer[L"LiftID"] = GetLiftGroup(i)->GetSim(0)->GetLift(i)->GetId();
 				writer[L"ShaftFrom"] = pJ->m_shaftFrom;
 				writer[L"ShaftTo"] = pJ->m_shaftTo;
 				writer[L"FloorFrom"] = pJ->m_floorFrom;
@@ -194,7 +198,7 @@ void CProjectVis::Store(xmltools::CXmlWriter writer)
 				writer.write(L"AVJourney");
 			}
 
-		for (ULONG i = 0; i < GetLiftGroup(i)->GetSim()->GetPassengerCount(); i++)
-			writer.write(L"AVPassenger", *GetLiftGroup(i)->GetSim()->GetPassenger(i));
+		for (ULONG i = 0; i < GetLiftGroup(i)->GetSim(0)->GetPassengerCount(); i++)
+			writer.write(L"AVPassenger", *GetLiftGroup(i)->GetSim(0)->GetPassenger(i));
 	}
 }

@@ -53,8 +53,8 @@ public:
 	void SetId(AVULONG n)						{ m_nId = n; }
 	void SetLiftGroupId(AVULONG n)				{ m_nLiftGroupId = n; }
 
-	std::vector<CLift*> &Lfts()					{ return m_lifts; }
-	std::vector<CPassenger*> &Passengers()		{ return m_passengers; }
+	std::vector<CLift*> &GetLfts()				{ return m_lifts; }
+	std::vector<CPassenger*> &GetPassengers()	{ return m_passengers; }
 
 	AVVECTOR GetOffsetVector()					{ return m_vecOffset; }
 	void SetOffsetVector(AVVECTOR v)			{ m_vecOffset = v; }

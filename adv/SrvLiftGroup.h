@@ -18,25 +18,12 @@ protected:
 
 public:
 	CSimSrv *AddSim()							{ return (CSimSrv*)CLiftGroupConstr::AddSim(); }
-	CSimSrv *GetSim()							{ return (CSimSrv*)CLiftGroupConstr::GetSim(); }
-
-	SHAFT  *AddShaft()							{ return (SHAFT *)CLiftGroupConstr::AddShaft(); }
-	STOREY *AddStorey()							{ return (STOREY*)CLiftGroupConstr::AddStorey(); }
-	LIFT   *AddLift()							{ return (LIFT  *)CLiftGroupConstr::AddLift(); }
-
+	CSimSrv *GetSim(AVULONG i)					{ return (CSimSrv*)CLiftGroupConstr::GetSim(i); }
 	CProjectSrv *GetProject()					{ return (CProjectSrv*)CLiftGroupConstr::GetProject(); }
-	STOREY *GetStorey(AVULONG i)				{ return (STOREY*)CLiftGroupConstr::GetStorey(i); }
-	STOREY *GetGroundStorey(AVULONG i = 0)		{ return (STOREY*)CLiftGroupConstr::GetGroundStorey(i); }
-	SHAFT *GetShaft(AVULONG i)					{ return (SHAFT*)CLiftGroupConstr::GetShaft(i); }
-	LIFT *GetLift(AVULONG i)					{ return (LIFT*)CLiftGroupConstr::GetLift(i); }
-	MR *GetMR()									{ return (MR*)CLiftGroupConstr::GetMR(); }
-	PIT *GetPit()								{ return (PIT*)CLiftGroupConstr::GetPit(); }
-
-
-
+	
 public:
 	// IO
-	HRESULT Store(dbtools::CDataBase db);
 	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nLiftGroupId);
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nLiftGroupID);
+	HRESULT Store(dbtools::CDataBase db);
 };

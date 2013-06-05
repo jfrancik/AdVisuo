@@ -14,9 +14,6 @@
 #define new new(1, __FILE__, __LINE__)
 
 
-#define VER200
-
-
 #include "targetver.h"
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers

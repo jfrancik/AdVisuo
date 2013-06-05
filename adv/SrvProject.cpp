@@ -4,6 +4,7 @@
 #include "SrvProject.h"
 #include "SrvLiftGroup.h"
 #include "SrvSim.h"
+#include "../CommonFiles/BaseScenario.h"
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
@@ -17,6 +18,11 @@ CProjectSrv::CProjectSrv() : CProjectConstr()
 CLiftGroup *CProjectSrv::CreateLiftGroup(AVULONG nIndex)
 { 
 	return new CLiftGroupSrv(this, nIndex); 
+}
+
+CScenario *CProjectSrv::CreateScenario(AVULONG iIndex)
+{
+	return new CScenario(this);
 }
 
 HRESULT CProjectSrv::FindProjectID(CDataBase db, ULONG nSimulationId, ULONG &nProjectID)
@@ -49,16 +55,23 @@ HRESULT CProjectSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	SetSimulationId(nSimulationId);
 	SetAVVersionId(GetAVNativeVersionId());
 	
-	// Query for Simulations
+	// Query for the Simulation (not Sim!)
 	sel = db.select(L"SELECT * FROM Simulations s, Projects p WHERE p.ProjectId = s.ProjectId AND s.SimulationId=%d", nSimulationId);
 	if (!sel) throw ERROR_PROJECT;
 	sel >> ME;
 
-#ifdef VER200
+	//// Query for Traffic Scenarios
+	//sel = db.select(L"SELECT s.*, t.Name AS TrafficPatternName FROM TrafficScenarios s, TrafficPatternTypes t WHERE s.TrafficPatternTypeId=t.TrafficPatternTypeId AND s.LiftGroupId=%d ORDER BY TrafficScenarioIndex", nLiftGroupId);
+	//while (sel)	// target is to replace it with while and collect ALL traffic scenarios!
+	//{
+	//	CSimSrv *pSim = AddSim();
+	//	sel >> *pSim;
+	//	sel++;
+	//}
+
+
+	// Query for Lift Groups
 	sel = db.select(L"SELECT LiftGroupId FROM LiftGroups WHERE TenancyId IN (SELECT TenancyId FROM Tenancies WHERE SimulationId=%d)", nSimulationId);
-#else
-	sel = db.select(L"SELECT LiftGroupId FROM LiftGroups WHERE SimulationId=%d", nSimulationId);
-#endif
 	while (sel)
 	{
 		CLiftGroupSrv *pGroup = AddLiftGroup();
@@ -66,6 +79,17 @@ HRESULT CProjectSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 		sel++;
 	}
 
+	return S_OK;
+}
+
+HRESULT CProjectSrv::LoadFromReports(dbtools::CDataBase db)
+{
+	for each (CLiftGroupSrv *pGroup in GetLiftGroups())
+		for each (CSimSrv *pSim in pGroup->GetSims())
+		{
+			HRESULT h = pSim->LoadFromReports(db);
+			if FAILED(h) return h;
+		}
 	return S_OK;
 }
 
@@ -119,7 +143,7 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	SetId(sel[(short)0]);
 
 	// Save LiftGroups & Sims
-	for each (CLiftGroupSrv *pGroup in Groups())
+	for each (CLiftGroupSrv *pGroup in GetLiftGroups())
 	{
 		pGroup->SetProjectId(GetId());
 		HRESULT h = pGroup->Store(db);
@@ -128,15 +152,16 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	return S_OK;
 }
 
-HRESULT CProjectSrv::Update(dbtools::CDataBase db, AVLONG nTime)
+HRESULT CProjectSrv::Update(dbtools::CDataBase db)
 {
 	if (!db) throw db;
 
-	for each (CLiftGroupSrv *pGroup in Groups())
-	{
-		HRESULT h = pGroup->GetSim()->Update(db, nTime);
-		if FAILED(h) return h;
-	}
+	for each (CLiftGroupSrv *pGroup in GetLiftGroups())
+		for each (CSimSrv *pSim in pGroup->GetSims())
+		{
+			HRESULT h = pSim->Update(db);
+			if FAILED(h) return h;
+		}
 
 	CDataBase::UPDATE upd = db.update(L"AVProjects", L"WHERE ID=%d", GetId());
 	upd[L"MinSimulationTime"] = GetMinSimulationTime();
@@ -148,14 +173,11 @@ HRESULT CProjectSrv::Update(dbtools::CDataBase db, AVLONG nTime)
 	return S_OK;
 }
 
-HRESULT CProjectSrv::LoadSim(dbtools::CDataBase db, AVULONG nSimulationId)
-{
-	for each (CLiftGroupSrv *pGroup in Groups())
-	{
-		HRESULT h = pGroup->GetSim()->LoadSim(db, nSimulationId);
-		if FAILED(h) return h;
-	}
-	return S_OK;
+void CProjectSrv::Play()
+{ 
+	for each (CLiftGroupSrv *pGroup in GetLiftGroups()) 
+		for each (CSimSrv *pSim in pGroup->GetSims())
+			pSim->Play();
 }
 
 HRESULT CProjectSrv::CleanUp(CDataBase db, ULONG nSimulationId)
@@ -197,8 +219,3 @@ HRESULT CProjectSrv::DropTables(CDataBase db)
 	return S_OK;
 }
 
-void CProjectSrv::Play()
-{ 
-	for each (CLiftGroupSrv *pGroup in Groups()) 
-		pGroup->GetSim()->Play(); 
-}

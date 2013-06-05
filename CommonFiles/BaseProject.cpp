@@ -4,6 +4,7 @@
 #include "BaseProject.h"
 #include "BaseLiftGroup.h"
 #include "BaseSimClasses.h"
+#include "BaseScenario.h"
 
 #include <algorithm>
 
@@ -42,12 +43,6 @@ AVULONG CProject::GetMaxShaftCount()
 	return (i == m_groups.end()) ? 0 : (*i)->GetShaftCount();
 }
 
-CLiftGroup *CProject::FindLiftGroup(int id)
-{
-	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLiftGroup* p) -> bool { return (p->GetId() == id); } );
-	return (i == m_groups.end()) ? NULL : *i;
-}
-
 CLiftGroup *CProject::AddLiftGroup()
 {
 	CLiftGroup *p = CreateLiftGroup(m_groups.size());
@@ -55,15 +50,34 @@ CLiftGroup *CProject::AddLiftGroup()
 	return p;
 }
 
-CSim *CProject::GetSim(int i)
+CLiftGroup *CProject::FindLiftGroup(int id)
 {
-	return m_groups[i]->GetSim();
+	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLiftGroup* p) -> bool { return (p->GetId() == id); } );
+	return (i == m_groups.end()) ? NULL : *i;
+}
+
+CScenario *CProject::AddScenario()
+{
+	CScenario *p = CreateScenario(m_scenarios.size());
+	m_scenarios.push_back(p);
+	return p;
+}
+
+CScenario *CProject::FindScenario(int id)
+{
+	auto i = std::find_if(m_scenarios.begin(), m_scenarios.end(), [id] (CScenario* p) -> bool { return (p->GetId() == id); } );
+	return (i == m_scenarios.end()) ? NULL : *i;
 }
 
 CSim *CProject::FindSim(int id)
 {
-	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLiftGroup* p) -> bool { CSim *pSim = p->GetSim(); if (pSim) return (pSim->GetId() == id); else return false; } );
-	return (i == m_groups.end()) ? NULL : (*i)->GetSim();
+	for each (CLiftGroup *pGroup in GetLiftGroups())
+	{
+		std::vector<CSim*> &sims = pGroup->GetSims();
+		auto i = std::find_if(sims.begin(), sims.end(), [id] (CSim* pSim) -> bool { return (pSim->GetId() == id); } );
+		if (i != sims.end()) return *i;
+	}
+	return NULL;
 }
 
 void CProject::ResolveMe()
@@ -108,3 +122,4 @@ void CProject::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 	for each (CLiftGroup *pGroup in m_groups) 
 		pGroup->Move(x, y, z); 
 }
+

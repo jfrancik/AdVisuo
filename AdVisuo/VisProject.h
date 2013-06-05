@@ -43,7 +43,6 @@ public:
 	CLiftGroupVis *FindLiftGroup(int id)	{ return (CLiftGroupVis*)CProjectConstr::FindLiftGroup(id); }
 	CLiftGroupVis *AddLiftGroup()			{ return (CLiftGroupVis*)CProjectConstr::AddLiftGroup(); }
 
-	CSimVis *GetSim(int i)					{ return (CSimVis*)CProjectConstr::GetSim(i); }
 	CSimVis *FindSim(int id)				{ return (CSimVis*)CProjectConstr::FindSim(id); }
 	
 	// Engine specific

@@ -33,7 +33,7 @@ void CProjectConstr::Construct()
 	BOX _box = GetLiftGroup(0)->GetTotalAreaBox();
 
 	float y = GetLiftGroup(0)->GetTotalAreaBox().RearExt();
-	for each (CLiftGroupConstr *pLiftGroup in Groups())
+	for each (CLiftGroupConstr *pLiftGroup in GetLiftGroups())
 	{
 		float x = -(GetLiftGroup(0)->GetBox().WidthExt() - pLiftGroup->GetBox().WidthExt()) / 2;
 		y -= pLiftGroup->GetTotalAreaBox().RearExt();
@@ -41,8 +41,9 @@ void CProjectConstr::Construct()
 		pLiftGroup->Deconstruct();
 		pLiftGroup->Construct(Vector(x, y, 0));
 
-		if (pLiftGroup->GetSim())
-			pLiftGroup->GetSim()->SetOffsetVector(Vector(x, y, 0));
+		for each (CSim *pSim in pLiftGroup->GetSims())
+			pSim->SetOffsetVector(Vector(x, y, 0));
+		
 		y = pLiftGroup->GetTotalAreaBox().FrontExt();
 	}
 }

@@ -23,13 +23,8 @@ void CSimLiftJourneySeq::Run(dbtools::CDataBase db, AVULONG nLiftId, AVULONG nLi
 	pJourney = &journeys.back();
 
 	// Lift Logs
-	#ifdef VER200                                                                                                   /*** REPEATING SPELLING ERROR HERE ***/
 	dbtools::CDataBase::SELECT selLiftLogs = db.select(L"SELECT * FROM LiftLogs WHERE LiftId = %d AND TrafficScenarioId=%d AND Iteration=%d ORDER BY [Time]", nLiftNativeId, nTrafficScenarioId, nIteration);
 	dbtools::CDataBase::SELECT selDeckLogs = db.select(L"SELECT * FROM DeckLogs WHERE LiftId = %d AND TrafficScenarioId=%d AND Iteration=%d ORDER BY [Time]", nLiftNativeId, nTrafficScenarioId, nIteration);
-	#else
-	dbtools::CDataBase::SELECT selLiftLogs = db.select(L"SELECT * FROM LiftLogs WHERE LiftId = %d AND SimulationId=%d  AND Iteration=%d ORDER BY [Time]", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
-	dbtools::CDataBase::SELECT selDeckLogs = db.select(L"SELECT * FROM DeckLogs WHERE LiftId = %d AND SimulationId=%d  AND Iteration=%d ORDER BY [Time]", pLiftGroup->GetLift(iLift)->GetShaft()->GetNativeId(), nSimulationId, nIteration);
-	#endif
 	for ( ; selLiftLogs; selLiftLogs++)
 	{
 		AVULONG t = (AVULONG)((float)selLiftLogs[L"Time"] * 1000.0f);

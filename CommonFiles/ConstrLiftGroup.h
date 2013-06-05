@@ -161,7 +161,6 @@ public:
 	MR *GetMR()								{ return (MR*)CLiftGroup::GetMR(); }
 	PIT *GetPit()							{ return (PIT*)CLiftGroup::GetPit(); }
 
-
 	CElem *GetElement()																{ return m_pElem; }
 	
 	CElem *GetStoreyElement(AVULONG nStorey)										{ return GetStorey(nStorey)->GetElement(); }
@@ -189,5 +188,10 @@ public:
 
 	virtual void Construct(AVVECTOR vec);
 	virtual void Deconstruct();
+
+	// necessary overrides for new versions of SHAFT/STOREY/LIFT
+	SHAFT  *AddShaft()						{ return (SHAFT *)CLiftGroup::AddShaft(); }
+	STOREY *AddStorey()						{ return (STOREY*)CLiftGroup::AddStorey(); }
+	LIFT   *AddLift()						{ return (LIFT  *)CLiftGroup::AddLift(); }
 };
 

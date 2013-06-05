@@ -11,7 +11,6 @@ CLiftGroup::CLiftGroup(CProject *pProject, AVULONG nIndex) : m_pProject(pProject
 {
 	m_nId = 0;
 	m_nProjectId = 0;
-	m_pSim = NULL;
 	m_fScale = 1;
 	m_nBasementStoreyCount = 0;
 	m_pnShaftCount[0] = m_pnShaftCount[1] = 0;
@@ -31,7 +30,7 @@ CLiftGroup::~CLiftGroup()
 	DeleteShafts();
 	DeleteLifts();
 	DeleteExtras();
-	DeleteSim();
+	DeleteSims();
 }
 
 BOX CLiftGroup::GetTotalAreaBox()
@@ -89,6 +88,39 @@ void CLiftGroup::DeleteExtras()
 	m_pPit = NULL;
 }
 
+CLiftGroup::LIFT *CLiftGroup::AddLift()
+{
+	LIFT *p = CreateLift(m_lifts.size());
+	m_lifts.push_back(p);
+	return p;
+}
+
+void CLiftGroup::DeleteLifts()
+{
+	for each (LIFT *pLift in m_lifts)
+		delete pLift;
+	m_lifts.clear();
+}
+
+CSim *CLiftGroup::AddSim()
+{
+	CSim *pSim = CreateSim();
+	if (pSim)
+	{
+		pSim->SetLiftGroup(this);
+		pSim->SetIndex(GetIndex());
+	}
+	m_sims.push_back(pSim);
+	return pSim;
+}
+
+void CLiftGroup::DeleteSims()
+{
+	for each (CSim *pSim in m_sims)
+		delete pSim;
+	m_sims.clear();
+}
+
 AVSIZE CLiftGroup::CalcPanelFootstep(AVULONG iFrom, AVULONG iTo)
 {
 	if (iTo > GetShaftCount()) iTo = GetShaftCount();
@@ -113,37 +145,6 @@ AVSIZE CLiftGroup::CalcPanelFootstepIso(AVULONG iFrom, AVULONG iTo)
 		sz.y = max(sz.y, abs(GetShaft(iShaft)->GetBoxPanelIso().Depth()));
 	}
 	return sz;
-}
-
-CLiftGroup::LIFT *CLiftGroup::AddLift()
-{
-	LIFT *p = CreateLift(m_lifts.size());
-	m_lifts.push_back(p);
-	return p;
-}
-
-void CLiftGroup::DeleteLifts()
-{
-	for each (LIFT *pLift in m_lifts)
-		delete pLift;
-	m_lifts.clear();
-}
-
-CSim *CLiftGroup::AddSim()
-{
-	m_pSim = CreateSim();
-	if (m_pSim)
-	{
-		m_pSim->SetLiftGroup(this);
-		m_pSim->SetIndex(GetIndex());
-	}
-	return m_pSim;
-}
-
-void CLiftGroup::DeleteSim()
-{
-	if (m_pSim) delete m_pSim;
-	m_pSim = NULL;
 }
 
 void CLiftGroup::ResolveMe()

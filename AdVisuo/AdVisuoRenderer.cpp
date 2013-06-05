@@ -221,7 +221,7 @@ void CAdVisuoRenderer::Render(CProjectVis *pProject, CCamera *pCamera)
 
 	// my own display list goes here... instead of m_pScene->Render(pRenderer);
 	for (AVULONG i = 0; i < pProject->GetLiftGroupsCount(); i++)
-		pProject->GetLiftGroup(i)->GetSim()->RenderPassengers(0);
+		pProject->GetLiftGroup(i)->GetSim(1)->RenderPassengers(0);
 
 	// for multiple lift groups
 	for (AVULONG i = 0; i < pProject->GetLiftGroupsCount(); i++)
@@ -259,6 +259,6 @@ void CAdVisuoRenderer::Render(CProjectVis *pProject, CCamera *pCamera)
 	}
 
 	for (AVULONG i = 0; i < pProject->GetLiftGroupsCount(); i++)
-		pProject->GetLiftGroup(i)->GetSim()->RenderPassengers(1);
+		pProject->GetLiftGroup(i)->GetSim(1)->RenderPassengers(1);
 }
 

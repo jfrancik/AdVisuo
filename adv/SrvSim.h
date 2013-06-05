@@ -16,13 +16,13 @@ public:
 	CPassengerSrv *GetPassenger(int i)						{ return (CPassengerSrv*)CSim::GetPassenger(i); }
 	CLiftGroupSrv *GetLiftGroup()							{ return (CLiftGroupSrv*)CSim::GetLiftGroup(); }
 
-	HRESULT LoadSim(dbtools::CDataBase db, AVULONG nSimulationId);
 	void Play();
 
 	// Database operations
-	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nLiftGroupId);
+	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nSimId);
+	HRESULT LoadFromReports(dbtools::CDataBase db);
 	HRESULT Store(dbtools::CDataBase db);
-	HRESULT Update(dbtools::CDataBase db, AVLONG nTime = -1);
+	HRESULT Update(dbtools::CDataBase db);
 
 protected:
 	virtual CPassenger *CreatePassenger(AVULONG nId);

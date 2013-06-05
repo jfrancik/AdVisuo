@@ -303,7 +303,7 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 		prj.Scale(fScale);
 
 		lt.Reset(); 
-		h = prj.LoadSim(pRepConn, prj.GetSimulationId()); lt.Log(L"LoadSim");
+		h = prj.LoadFromReports(pRepConn); lt.Log(L"LoadSim");
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		prj.Play(); lt.Log(L"Play");

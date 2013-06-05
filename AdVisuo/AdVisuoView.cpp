@@ -302,8 +302,9 @@ void CAdVisuoView::SetColouringMode(AVULONG n)
 	m_nColouringMode = n;
 	GetAdVisuoApp()->SetColouringMode(m_nColouringMode);
 
-	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-		GetProject()->GetLiftGroup(i)->GetSim()->SetColouringMode(m_nColouringMode);
+	for each (CLiftGroupVis *pGroup in GetProject()->GetLiftGroups())
+		for each (CSimVis *pSim in pGroup->GetSims())
+			pSim->SetColouringMode(m_nColouringMode);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -321,13 +322,13 @@ void CAdVisuoView::Stop()
 	m_engine.Stop();
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
+		GetProject()->GetLiftGroup(i)->GetSim(1)->Stop();
 		GetProject()->GetLiftGroup(i)->RestoreConfig();
 	}
 
 	// prepare sim...
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-		GetProject()->GetSim(i)->Play(&m_engine);
+		GetProject()->GetLiftGroup(i)->GetSim(1)->Play(&m_engine);
 	for (AVLONG t = GetProject()->GetMinSimulationTime(); t <= 0; t += 40)
 		m_engine.Proceed(t);	// loops un-nested on 24/1/13: Proceed was called too often!
 }
@@ -344,13 +345,13 @@ void CAdVisuoView::Rewind(AVULONG nMSec)
 	m_engine.Stop();
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetProject()->GetLiftGroup(i)->GetSim()->Stop();
+		GetProject()->GetLiftGroup(i)->GetSim(1)->Stop();
 		GetProject()->GetLiftGroup(i)->RestoreConfig();
 	}
 
 	AVLONG t;
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-		t = GetProject()->GetLiftGroup(i)->GetSim()->FastForward(&m_engine, nMSec);
+		t = GetProject()->GetLiftGroup(i)->GetSim(1)->FastForward(&m_engine, nMSec);
 
 	for ( ; t <= (AVLONG)nMSec; t += 40)
 		m_engine.Proceed(t);
@@ -384,7 +385,7 @@ void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 
 		GetDocument()->OnSIMDataLoaded();
 		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-			GetProject()->GetSim(i)->Play(&m_engine, m_timeLoaded);
+			GetProject()->GetLiftGroup(i)->GetSim(1)->Play(&m_engine, m_timeLoaded);
 	}
 
 	GetDocument()->UpdateAllViews(NULL, 0, 0);
