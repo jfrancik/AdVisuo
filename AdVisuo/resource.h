@@ -95,6 +95,8 @@
 #define IDS_DLGVIDEO_MESSAGE2           337
 #define IDD_ADV_SCRIPT                  337
 #define IDD_ADV_SCRIPT_PROPERTIES       338
+#define IDB_BITMAP3                     340
+#define IDB_SCENARIOS                   340
 #define IDC_EDIT1                       1000
 #define IDC_EDIT2                       1001
 #define IDC_EDIT3                       1002
@@ -275,14 +277,19 @@
 #define ID_CAMERA_GROUPRIGHT            32898
 #define ID_CAMERA_GROUP_LEFT            32899
 #define ID_BUTTON2                      32900
+#define ID_SCENARIO_MENU                32900
+#define ID_TENANCY                      32900
 #define ID_CAMERA_GROUP_MENU            32901
+#define ID_CAMERA_GROUPLEFT             32903
+#define ID_SELTENANCY                   32904
+#define ID_TENANCY_MENU                 32905
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        339
-#define _APS_NEXT_COMMAND_VALUE         32902
+#define _APS_NEXT_RESOURCE_VALUE        341
+#define _APS_NEXT_COMMAND_VALUE         32906
 #define _APS_NEXT_CONTROL_VALUE         1089
 #define _APS_NEXT_SYMED_VALUE           317
 #endif

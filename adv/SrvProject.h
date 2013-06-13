@@ -37,5 +37,4 @@ public:
 
 protected:
 	virtual CLiftGroup *CreateLiftGroup(AVULONG nIndex);
-	virtual CScenario *CreateScenario(AVULONG nIndex);
 };

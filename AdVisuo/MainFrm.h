@@ -44,8 +44,6 @@ public:
 
 protected:  // control bar embedded members
 	CMFCRibbonBar     m_wndRibbonBar;
-	CMFCRibbonApplicationButton m_MainButton;
-	CMFCToolBarImages m_PanelImages;
 	CMFCRibbonStatusBar  m_wndStatusBar;
 	COutputWnd        m_wndOutput;
 

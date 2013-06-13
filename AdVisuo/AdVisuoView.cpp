@@ -12,6 +12,8 @@
 #include "DlgMat.h"
 #include "DlgScript.h"
 
+#include "RibbonScenarioButton.h"
+
 #include <math.h>
 
 #ifdef _DEBUG
@@ -47,6 +49,12 @@ BEGIN_MESSAGE_MAP(CAdVisuoView, CView)
 	ON_UPDATE_COMMAND_UI(ID_STOREY_MENU, &CAdVisuoView::OnUpdateStoreyMenu)
 	ON_UPDATE_COMMAND_UI(ID_CAMERA_LIFT_MENU, &CAdVisuoView::OnUpdateCameraLiftMenu)
 	ON_UPDATE_COMMAND_UI(ID_CAMERA_GROUP_MENU, &CAdVisuoView::OnUpdateCameraGroupMenu)
+
+	ON_COMMAND(ID_TENANCY_MENU, &CAdVisuoView::OnTenancyMenu)
+	ON_UPDATE_COMMAND_UI(ID_TENANCY_MENU, &CAdVisuoView::OnUpdateTenancyMenu)
+	
+	ON_COMMAND(ID_SCENARIO_MENU, &CAdVisuoView::OnScenarioMenu)
+	ON_UPDATE_COMMAND_UI(ID_SCENARIO_MENU, &CAdVisuoView::OnUpdateScenarioMenu)
 
 
 	ON_COMMAND_RANGE(ID_SELCAMERA, ID_SELCAMERA_10, &CAdVisuoView::OnSelCamera)
@@ -312,6 +320,12 @@ void CAdVisuoView::SetColouringMode(AVULONG n)
 
 void CAdVisuoView::Play()
 {
+	if (CRibbonScenarioButton::IsDirty())
+	{
+		Stop();
+		CRibbonScenarioButton::ClearDirtyFlag();
+	}
+
 	m_engine.ResetAccel();
 	m_engine.Play();
 	m_script.Play();
@@ -319,16 +333,18 @@ void CAdVisuoView::Play()
 
 void CAdVisuoView::Stop()
 {
+	CWaitCursor wait;
+
 	m_engine.Stop();
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetProject()->GetLiftGroup(i)->GetSim(1)->Stop();
+		GetProject()->GetLiftGroup(i)->GetCurSim()->Stop();
 		GetProject()->GetLiftGroup(i)->RestoreConfig();
 	}
 
 	// prepare sim...
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-		GetProject()->GetLiftGroup(i)->GetSim(1)->Play(&m_engine);
+		GetProject()->GetLiftGroup(i)->GetCurSim()->Play(&m_engine);
 	for (AVLONG t = GetProject()->GetMinSimulationTime(); t <= 0; t += 40)
 		m_engine.Proceed(t);	// loops un-nested on 24/1/13: Proceed was called too often!
 }
@@ -345,13 +361,13 @@ void CAdVisuoView::Rewind(AVULONG nMSec)
 	m_engine.Stop();
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 	{
-		GetProject()->GetLiftGroup(i)->GetSim(1)->Stop();
+		GetProject()->GetLiftGroup(i)->GetCurSim()->Stop();
 		GetProject()->GetLiftGroup(i)->RestoreConfig();
 	}
 
 	AVLONG t;
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-		t = GetProject()->GetLiftGroup(i)->GetSim(1)->FastForward(&m_engine, nMSec);
+		t = GetProject()->GetLiftGroup(i)->GetCurSim()->FastForward(&m_engine, nMSec);
 
 	for ( ; t <= (AVLONG)nMSec; t += 40)
 		m_engine.Proceed(t);
@@ -385,7 +401,7 @@ void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 
 		GetDocument()->OnSIMDataLoaded();
 		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-			GetProject()->GetLiftGroup(i)->GetSim(1)->Play(&m_engine, m_timeLoaded);
+			GetProject()->GetLiftGroup(i)->GetCurSim()->Play(&m_engine, m_timeLoaded);
 	}
 
 	GetDocument()->UpdateAllViews(NULL, 0, 0);
@@ -971,7 +987,7 @@ void CAdVisuoView::OnUpdateCamera(CCmdUI *pCmdUI)
 	case ID_CAMERA_LEFTFRONT:		pCmdUI->SetCheck(desc.camloc == CAMLOC_LOBBY && desc.index == 6); break;
 	case ID_CAMERA_LEFTSIDE:		pCmdUI->SetCheck(desc.camloc == CAMLOC_LOBBY && desc.index == 7); break;
 	case ID_CAMERA_LIFTRIGHT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() > 0);  break;
-	case ID_CAMERA_LIFTLEFT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() < (AVLONG)GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->GetLiftCount() - 1); break;
+	case ID_CAMERA_LIFTLEFT:		pCmdUI->Enable(desc.camloc == CAMLOC_LIFT && GetCurCamera()->GetLift() < (AVLONG)GetProject()->GetLiftGroup(GetCurLiftGroupIndex())->GetShaftCount() - 1); break;
 	
 	case ID_CAMERA_GROUPRIGHT:		pCmdUI->Enable(GetCurCamera()->GetLiftGroup() > 0); break;
 	case ID_CAMERA_GROUP_LEFT:		pCmdUI->Enable(GetCurCamera()->GetLiftGroup() < (AVLONG)GetProject()->GetLiftGroupsCount() - 1); break;
@@ -1051,7 +1067,7 @@ void CAdVisuoView::OnUpdateCameraLiftMenu(CCmdUI *pCmdUI)
 		// create the lifts menu
 		pButton->RemoveAllSubItems();
 		CLiftGroupVis *pLiftGroup = GetProject()->GetLiftGroup(GetCurLiftGroupIndex());
-		for (AVULONG i = 0; i < pLiftGroup->GetLiftCount(); i++)
+		for (AVULONG i = 0; i < pLiftGroup->GetShaftCount(); i++)
 		{
 			if (i == pLiftGroup->GetShaftCount(0))
 			{
@@ -1086,6 +1102,33 @@ void CAdVisuoView::OnUpdateCameraGroupMenu(CCmdUI *pCmdUI)
 			pButton->AddSubItem(m_pbutGroup);
 		}
 	}
+}
+
+void CAdVisuoView::OnTenancyMenu()
+{
+}
+
+void CAdVisuoView::OnUpdateTenancyMenu(CCmdUI *pCmdUI)
+{
+}
+
+void CAdVisuoView::OnScenarioMenu()
+{
+	Stop();
+	CRibbonScenarioButton::ClearDirtyFlag();
+}
+
+void CAdVisuoView::OnUpdateScenarioMenu(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(m_engine.IsReady() && !m_engine.IsPlaying()); 
+
+	if (!pCmdUI->m_pOther)
+		return;
+
+	CRibbonScenarioButton *pButton = ((CRibbonScenarioButton*)((CMFCRibbonCmdUI*)pCmdUI)->m_pUpdated);
+
+	if (pButton->GetProject() != GetProject())
+		pButton->SetProject(GetProject());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

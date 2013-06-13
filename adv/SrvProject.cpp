@@ -4,7 +4,6 @@
 #include "SrvProject.h"
 #include "SrvLiftGroup.h"
 #include "SrvSim.h"
-#include "../CommonFiles/BaseScenario.h"
 
 #pragma warning (disable:4995)
 #pragma warning (disable:4996)
@@ -18,11 +17,6 @@ CProjectSrv::CProjectSrv() : CProjectConstr()
 CLiftGroup *CProjectSrv::CreateLiftGroup(AVULONG nIndex)
 { 
 	return new CLiftGroupSrv(this, nIndex); 
-}
-
-CScenario *CProjectSrv::CreateScenario(AVULONG iIndex)
-{
-	return new CScenario(this);
 }
 
 HRESULT CProjectSrv::FindProjectID(CDataBase db, ULONG nSimulationId, ULONG &nProjectID)
@@ -59,16 +53,6 @@ HRESULT CProjectSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	sel = db.select(L"SELECT * FROM Simulations s, Projects p WHERE p.ProjectId = s.ProjectId AND s.SimulationId=%d", nSimulationId);
 	if (!sel) throw ERROR_PROJECT;
 	sel >> ME;
-
-	//// Query for Traffic Scenarios
-	//sel = db.select(L"SELECT s.*, t.Name AS TrafficPatternName FROM TrafficScenarios s, TrafficPatternTypes t WHERE s.TrafficPatternTypeId=t.TrafficPatternTypeId AND s.LiftGroupId=%d ORDER BY TrafficScenarioIndex", nLiftGroupId);
-	//while (sel)	// target is to replace it with while and collect ALL traffic scenarios!
-	//{
-	//	CSimSrv *pSim = AddSim();
-	//	sel >> *pSim;
-	//	sel++;
-	//}
-
 
 	// Query for Lift Groups
 	sel = db.select(L"SELECT LiftGroupId FROM LiftGroups WHERE TenancyId IN (SELECT TenancyId FROM Tenancies WHERE SimulationId=%d)", nSimulationId);

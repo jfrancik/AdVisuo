@@ -538,12 +538,16 @@ void CLiftGroupConstr::SHAFT::Deconstruct()
 	if (m_pStoreyBones == NULL) return;
 	for (AVULONG i = 0; i < GetLiftGroup()->GetStoreyCount(); i++)
 	{
-		delete m_pStoreyBones[i].m_pElem;
-		delete m_pStoreyBones[i].m_pElemLobbySide;
-		delete m_pStoreyBones[i].m_pElemLeft;
-		delete m_pStoreyBones[i].m_pElemRight;
+		delete m_pStoreyBones[i].m_pElem;			m_pStoreyBones[i].m_pElem = NULL;
+		delete m_pStoreyBones[i].m_pElemLobbySide;	m_pStoreyBones[i].m_pElemLobbySide = NULL;
+		delete m_pStoreyBones[i].m_pElemLeft;		m_pStoreyBones[i].m_pElemLeft = NULL;
+		delete m_pStoreyBones[i].m_pElemRight;		m_pStoreyBones[i].m_pElemRight = NULL;
 		for (AVULONG j = 0; j < MAX_DOORS; j++)
-			if (m_pStoreyBones[i].m_ppDoors[j]) delete m_pStoreyBones[i].m_ppDoors[j];
+		{
+			if (m_pStoreyBones[i].m_ppDoors[j]) 
+				delete m_pStoreyBones[i].m_ppDoors[j];
+			m_pStoreyBones[i].m_ppDoors[j] = NULL;
+		}
 	}
 	delete [] m_pStoreyBones;
 	m_pStoreyBones = NULL;

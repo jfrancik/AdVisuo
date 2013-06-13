@@ -4,7 +4,6 @@
 #include "BaseProject.h"
 #include "BaseLiftGroup.h"
 #include "BaseSimClasses.h"
-#include "BaseScenario.h"
 
 #include <algorithm>
 
@@ -54,19 +53,6 @@ CLiftGroup *CProject::FindLiftGroup(int id)
 {
 	auto i = std::find_if(m_groups.begin(), m_groups.end(), [id] (CLiftGroup* p) -> bool { return (p->GetId() == id); } );
 	return (i == m_groups.end()) ? NULL : *i;
-}
-
-CScenario *CProject::AddScenario()
-{
-	CScenario *p = CreateScenario(m_scenarios.size());
-	m_scenarios.push_back(p);
-	return p;
-}
-
-CScenario *CProject::FindScenario(int id)
-{
-	auto i = std::find_if(m_scenarios.begin(), m_scenarios.end(), [id] (CScenario* p) -> bool { return (p->GetId() == id); } );
-	return (i == m_scenarios.end()) ? NULL : *i;
 }
 
 CSim *CProject::FindSim(int id)

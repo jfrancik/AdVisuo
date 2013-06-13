@@ -23,8 +23,8 @@ public:
 	enum SHAFT_ARRANG		{ SHAFT_INLINE = 1, SHAFT_OPPOSITE, SHAFT_UNKNOWN = -1 };
 	enum LOBBY_ARRANG		{ LOBBY_THROUGH = 1, LOBBY_OPENPLAN, LOBBY_DEADEND_LEFT, LOBBY_DEADEND_RIGHT, LOBBY_UNKNOWN = -1 };
 	enum DOOR_TYPE			{ DOOR_CENTRE = 1, DOOR_LSIDE, DOOR_RSIDE, DOOR_CENTRE_2, DOOR_LSIDE_2, DOOR_RSIDE_2, DOOR_CENTRE_3, DOOR_LSIDE_3, DOOR_RSIDE_3, DOOR_UNKNOWN = -1 };
-	enum TYPE_OF_LIFT		{ LIFT_CONVENTIONAL = 1, LIFT_MRL, LIFT_UNKNOWN };
-	enum TYPE_OF_DECK		{ DECK_SINGLE = 1, DECK_DOUBLE, DECK_TWIN, DECK_UNKNOWN = -1 };
+//	enum TYPE_OF_LIFT		{ LIFT_CONVENTIONAL = 1, LIFT_MRL, LIFT_UNKNOWN };
+//	enum TYPE_OF_DECK		{ DECK_SINGLE = 1, DECK_DOUBLE, DECK_TWIN, DECK_UNKNOWN = -1 };
 	enum CAR_ENTRANCES		{ CAR_FRONT = 1, CAR_REAR = 999, CAR_BOTH = 2, CAR_UNKNOWN = -1 };
 	enum CNTRWEIGHT_POS		{ CNTRWEIGHT_REAR = 1, CNTRWEIGHT_LSIDE, CNTRWEIGHT_RSIDE, CNTRWEIGHT_UNKNOWN = -1 };
 	enum LIFT_STRUCTURE		{ STRUCT_STEEL = 1, STRUCT_CONCRETE = 2, STRUCT_UNKNOWN = -1 };
@@ -104,9 +104,6 @@ public:
 		CLiftGroup *m_pLiftGroup;				// lift group
 		AVULONG m_nShaftLine;					// 0 for SHAFT_INLINE and 0 or 1 for SHAFT_OPPOSITE
 
-		TYPE_OF_LIFT m_type;					// type of lift (conventional/MRL)
-		TYPE_OF_DECK m_deck;					// type of deck (single/double/twin)
-
 		AVULONG m_nOpeningTime;					// door opening time
 		AVULONG m_nClosingTime;					// door closing time
 
@@ -130,6 +127,7 @@ public:
 		BOX m_boxPanelIso;						// isolator panel (may be 0-size)
 
 		AVULONG m_nLiftType;					// 1 = conventional, 2 = MRL
+		AVULONG m_nDeckType;					// 
 		AVFLOAT m_fShaftOrientation;			// machine orientation (0 for line 0, M_PI for line 1)
 		AVULONG m_nMachineType;					// machine type (1 - 4)
 		AVFLOAT m_fMachineOrientation;			// machine orientation
@@ -146,7 +144,7 @@ public:
 	public:
 
 		SHAFT(CLiftGroup *pLiftGroup, AVULONG nId) : m_pLiftGroup(pLiftGroup), m_nId(nId), 
-			m_nShaftLine(0), m_type(LIFT_CONVENTIONAL), m_deck(DECK_SINGLE), m_nLiftCount(1), m_fWallLtStart(0), m_fWallRtStart(0), m_fBeamLtHeight(0), m_fBeamRtHeight(0)	{ }
+			m_nShaftLine(0), m_nLiftType(1), m_nDeckType(1), m_nLiftCount(1), m_fWallLtStart(0), m_fWallRtStart(0), m_fBeamLtHeight(0), m_fBeamRtHeight(0)	{ }
 		virtual ~SHAFT()						{ }
 
 		// Attributes:
@@ -159,9 +157,7 @@ public:
 
 		AVLONG GetNativeId()					{ return ME[L"LiftId"]; }
 
-		TYPE_OF_LIFT GetType()					{ return m_type; }
-		TYPE_OF_DECK GetDeck()					{ return m_deck; }
-		AVULONG GetDeckCount()					{ return m_deck == DECK_DOUBLE ? 2 : 1; }
+		AVULONG GetDeckCount()					{ return m_nDeckType == 2 ? 2 : 1; }
 
 		AVULONG GetOpeningTime()				{ return m_nOpeningTime; }
 		AVULONG GetClosingTime()				{ return m_nClosingTime; }
@@ -211,7 +207,7 @@ public:
 		AVULONG GetBufferHeight()				{ return m_nBufferHeight; }
 		AVFLOAT GetLightingXPos()				{ return m_fLightingXPos; }
 		AVULONG GetDoorType()					{ return (m_nDoorType - 1) % 3; }		// 0 = center; 1 = left; 2 = right
-		AVULONG GetDoorPanelsCount()			{ return (m_nDoorType - 1) / 3 + 1; }	// 1, 2, or 3 (no zero!)
+		AVULONG GetDoorPanelsCount()			{ AVULONG n = (m_nDoorType - 1) / 3 + 1; return min(n, 3); }	// 1, 2, or 3 (no zero and never more than 3)
 
 		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetLiftGroup()->GetStorey(nStorey)->GetLevel()); }
 
@@ -309,6 +305,8 @@ protected:
 	std::vector<SHAFT*>  m_shafts;
 	std::vector<LIFT*>   m_lifts;
 	std::vector<CSim*>	 m_sims;
+
+	CSim *m_pCurSim;					// currently active Sim (used by AdVisuo client)
 	
 	MR *m_pMR;
 	PIT *m_pPit;
@@ -436,6 +434,9 @@ public:
 	void DeleteSims();
 	CSim *GetSim(AVULONG i)					{ return i < GetSimCount() ? m_sims[i] : NULL; }
 	AVULONG GetSimCount()					{ return m_sims.size(); }
+
+	CSim *GetCurSim()						{ return m_pCurSim; }
+	void SetCurSim(CSim *pSim = NULL)		{ m_pCurSim = pSim; }
 
 	// Various
 	SHAFT_ARRANG GetLiftShaftArrang()		{ return m_LiftShaftArrang; }

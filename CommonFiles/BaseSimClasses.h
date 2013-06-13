@@ -39,6 +39,9 @@ public:
 	AVULONG GetIndex()							{ return m_nIndex; }
 	void SetIndex(AVULONG n)					{ m_nIndex = n; }
 
+	bool IsCur()								{ return GetLiftGroup()->GetCurSim() == this; }
+	void SetCur()								{ GetLiftGroup()->SetCurSim(this); }
+
 	std::wstring GetSIMFileName()				{ return ME[L"SIMFileName"]; }
 	std::wstring GetIFCFileName()				{ return ME[L"IFCFileName"]; }
 	AVULONG GetBldgFloors()						{ return ME[L"Floors"]; }
@@ -46,6 +49,10 @@ public:
 	DATE GetTimeStamp()							{ return ME[L"TimeStamp"]; }
 	enum ALGORITHM { DESTINATION, COLLECTIVE } ;
 	ALGORITHM GetAlgorithm()					{ return (ALGORITHM)(ULONG)ME[L"Algorithm"]; }
+
+	AVULONG GetScenarioTypeId()					{ return ME[L"TrafficPatternTypeId"]; }
+	std::wstring GetScenarioName()				{ return ME[L"TrafficPatternName"]; }
+	std::wstring GetScenarioDesc();
 
 	AVULONG GetId()								{ return m_nId; }
 	AVULONG GetLiftGroupId()					{ return m_nLiftGroupId; }

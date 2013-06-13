@@ -171,6 +171,14 @@ protected:
 	afx_msg void OnUpdateCameraLiftMenu(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateCameraGroupMenu(CCmdUI *pCmdUI);
 
+	// Tenancy
+	afx_msg void OnTenancyMenu();
+	afx_msg void OnUpdateTenancyMenu(CCmdUI *pCmdUI);
+
+	// Scenario
+	afx_msg void OnScenarioMenu();
+	afx_msg void OnUpdateScenarioMenu(CCmdUI *pCmdUI);
+
 	// Action
 	afx_msg void OnActionPlay();
 	afx_msg void OnUpdateActionPlay(CCmdUI *pCmdUI);

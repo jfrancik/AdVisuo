@@ -81,7 +81,7 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 	}
 
 	// Query for Traffic Scenario Data
-	sel = db.select(L"SELECT s.TrafficScenarioId, s.TrafficPatternTypeId, t.Name AS TrafficPatternName FROM TrafficScenarios s, TrafficPatternTypes t WHERE s.TrafficPatternTypeId=t.TrafficPatternTypeId AND s.LiftGroupId=%d ORDER BY TrafficScenarioIndex", nLiftGroupId);
+	sel = db.select(L"SELECT s.TrafficScenarioId, s.TrafficPatternTypeId, s.TrafficProfileId, s.TrafficScenarioIndex, s.Incoming, s.Outgoing, s.Interfloor, t.Name AS TrafficPatternName, p.Name AS TrafficProfileName FROM TrafficScenarios s, TrafficPatternTypes t, TrafficProfiles p WHERE s.TrafficPatternTypeId=t.TrafficPatternTypeId AND s.TrafficProfileId=p.TrafficProfileId AND s.LiftGroupId=%d ORDER BY TrafficScenarioIndex", nLiftGroupId);
 	while (sel)	// target is to replace it with while and collect ALL traffic scenarios!
 	{
 		CSimSrv *pSim = AddSim();

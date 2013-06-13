@@ -17,6 +17,7 @@
 #include "stdafx.h"
 #include "AdVisuo.h"
 #include "AdVisuoDoc.h"
+#include "RibbonScenarioButton.h"
 
 #include "MainFrm.h"
 
@@ -77,10 +78,10 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndRibbonBar.Create(this);
 	m_wndRibbonBar.LoadFromResource(IDR_RIBBON);
 
-//	m_PanelImages.SetImageSize(CSize(16, 16));
-//	m_PanelImages.Load(IDB_BUTTONS);
-//	m_wndRibbonBar.AddToTabs(new CMFCRibbonButton(ID_APP_ABOUT, _T("\na"), m_PanelImages.ExtractIcon (0)));
-	
+	// scenario button
+	m_wndRibbonBar.GetCategory(1)->GetPanel(0)->Add(new CRibbonScenarioButton(ID_SCENARIO_MENU, L"Scenario", -1, 23, IDB_SCENARIOS, 32));
+
+
 	SetTimer(100, 1000 / 50, NULL);
 
 	// enable Visual Studio 2005 style docking window behavior

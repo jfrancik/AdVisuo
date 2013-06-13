@@ -84,11 +84,14 @@ void CAdVisuoRenderer::RenderMachines(CLiftGroupVis *pLiftGroup, AVULONG nRow)
 	AVLONG iShaft = m_pCamera->GetShaftPos(nRow);
 	iShaft = max((AVLONG)pLiftGroup->GetShaftBegin(nRow) - 1, min(iShaft, (AVLONG)pLiftGroup->GetShaftBegin(nRow) + (AVLONG)pLiftGroup->GetShaftCount(nRow)));
 	for (AVLONG i = pLiftGroup->GetShaftBegin(nRow); i < iShaft; i++)
-		m_pEngine->Render(pLiftGroup->GetMachineElement(i)->GetObject());
+		if (pLiftGroup->GetMachineElement(i) && pLiftGroup->GetMachineElement(i)->GetObject())
+			m_pEngine->Render(pLiftGroup->GetMachineElement(i)->GetObject());
 	for (AVLONG i = pLiftGroup->GetShaftBegin(nRow) + pLiftGroup->GetShaftCount(nRow) - 1; i > iShaft; i--)
-		m_pEngine->Render(pLiftGroup->GetMachineElement(i)->GetObject());
+		if (pLiftGroup->GetMachineElement(i) && pLiftGroup->GetMachineElement(i)->GetObject())
+			m_pEngine->Render(pLiftGroup->GetMachineElement(i)->GetObject());
 	if (iShaft >= (AVLONG)pLiftGroup->GetShaftBegin(nRow) && iShaft < (AVLONG)pLiftGroup->GetShaftBegin(nRow) + (AVLONG)pLiftGroup->GetShaftCount(nRow))
-		m_pEngine->Render(pLiftGroup->GetMachineElement(iShaft)->GetObject());
+		if (pLiftGroup->GetMachineElement(iShaft) && pLiftGroup->GetMachineElement(iShaft)->GetObject())
+			m_pEngine->Render(pLiftGroup->GetMachineElement(iShaft)->GetObject());
 }
 
 void CAdVisuoRenderer::RenderShafts(CLiftGroupVis *pLiftGroup, AVULONG nRow)
@@ -221,7 +224,7 @@ void CAdVisuoRenderer::Render(CProjectVis *pProject, CCamera *pCamera)
 
 	// my own display list goes here... instead of m_pScene->Render(pRenderer);
 	for (AVULONG i = 0; i < pProject->GetLiftGroupsCount(); i++)
-		pProject->GetLiftGroup(i)->GetSim(1)->RenderPassengers(0);
+		pProject->GetLiftGroup(i)->GetCurSim()->RenderPassengers(0);
 
 	// for multiple lift groups
 	for (AVULONG i = 0; i < pProject->GetLiftGroupsCount(); i++)
@@ -259,6 +262,6 @@ void CAdVisuoRenderer::Render(CProjectVis *pProject, CCamera *pCamera)
 	}
 
 	for (AVULONG i = 0; i < pProject->GetLiftGroupsCount(); i++)
-		pProject->GetLiftGroup(i)->GetSim(1)->RenderPassengers(1);
+		pProject->GetLiftGroup(i)->GetCurSim()->RenderPassengers(1);
 }
 

@@ -46,10 +46,15 @@ void CLiftVis::AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, bo
 	AVFLOAT nDist = GetSim()->GetLiftGroup()->GetShaft(nShaft)->GetBoxDoor().Width() / 2.0f - 0.1f;
 	if (!bOpen) nDist = -nDist;
 
-	HBONE pDoorLI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 0)->GetBone();
-	HBONE pDoorRI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 1)->GetBone();
-	HBONE pDoorLX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 0)->GetBone();
-	HBONE pDoorRX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 1)->GetBone();
+	CElemVis *pElemLI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 0);
+	CElemVis *pElemRI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 1);
+	CElemVis *pElemLX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 0);
+	CElemVis *pElemRX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 1);
+
+	HBONE pDoorLI = pElemLI ? pElemLI->GetBone() : NULL;
+	HBONE pDoorRI = pElemRI ? pElemRI->GetBone() : NULL;
+	HBONE pDoorLX = pElemLX ? pElemLX->GetBone() : NULL;
+	HBONE pDoorRX = pElemRX ? pElemRX->GetBone() : NULL;
 
 	if (pDoorLI) { HACTION a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorLI, timeDuration, -nDist, 0, 0); }
 	if (pDoorRI) { HACTION a = pEngine->StartAnimation(timeStart); a = pEngine->Move(a, pDoorRI, timeDuration, nDist, 0, 0);  }

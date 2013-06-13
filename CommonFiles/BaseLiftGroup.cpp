@@ -22,6 +22,7 @@ CLiftGroup::CLiftGroup(CProject *pProject, AVULONG nIndex) : m_pProject(pProject
 	m_fLiftingBeamHeight = m_fLiftingBeamWidth = 0;
 	m_fMRDoorOffset = 0;
 	m_fMRIndentFront = m_fMRIndentRear = 0;
+	m_pCurSim = NULL;
 }
 
 CLiftGroup::~CLiftGroup()
@@ -111,6 +112,7 @@ CSim *CLiftGroup::AddSim()
 		pSim->SetIndex(GetIndex());
 	}
 	m_sims.push_back(pSim);
+	if (!m_pCurSim) m_pCurSim = pSim;
 	return pSim;
 }
 
@@ -119,6 +121,7 @@ void CLiftGroup::DeleteSims()
 	for each (CSim *pSim in m_sims)
 		delete pSim;
 	m_sims.clear();
+	m_pCurSim = NULL;
 }
 
 AVSIZE CLiftGroup::CalcPanelFootstep(AVULONG iFrom, AVULONG iTo)
@@ -825,9 +828,17 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 	//m_nId = ME[L"LiftIndex"];
 	m_nShaftLine = nLine;
 
-	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
-	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
+	// Patch over Krzysztof's new door types for MRL
+	switch ((AVULONG)ME[L"DoorTypeId"])
+	{
+	case 11: ME[L"DoorTypeId"] = (AVULONG)1; break;
+	case 12: ME[L"DoorTypeId"] = (AVULONG)4; break;
+	case 14: ME[L"DoorTypeId"] = (AVULONG)5; break;
+	case 15: ME[L"DoorTypeId"] = (AVULONG)6; break;
+	}
+
 	m_nLiftType = ME[L"LiftTypeId"];
+	m_nDeckType = ME[L"DecksId"];
 	m_nDoorType = ME[L"DoorTypeId"];
 
 	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
@@ -1146,11 +1157,19 @@ void CLiftGroup::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 
 void CLiftGroup::SHAFT::Create()
 {
+	// Patch over Krzysztof's new door types for MRL
+	switch ((AVULONG)ME[L"DoorTypeId"])
+	{
+	case 11: ME[L"DoorTypeId"] = (AVULONG)1; break;
+	case 12: ME[L"DoorTypeId"] = (AVULONG)4; break;
+	case 14: ME[L"DoorTypeId"] = (AVULONG)5; break;
+	case 15: ME[L"DoorTypeId"] = (AVULONG)6; break;
+	}
+
 	m_nId = ME[L"ShaftId"];
-	m_type = (TYPE_OF_LIFT)(ULONG)ME[L"LiftTypeId"];
-	m_deck = (TYPE_OF_DECK)(ULONG)ME[L"DecksId"];
-	m_nDoorType = ME[L"DoorTypeId"];
 	m_nLiftType = ME[L"LiftTypeId"];
+	m_nDeckType = ME[L"DecksId"];
+	m_nDoorType = ME[L"DoorTypeId"];
 
 	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
 	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);

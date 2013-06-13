@@ -94,7 +94,6 @@
   <ItemGroup>
     <ClCompile Include="..\CommonFiles\BaseLiftGroup.cpp" />
     <ClCompile Include="..\CommonFiles\BaseProject.cpp" />
-    <ClCompile Include="..\CommonFiles\BaseScenario.cpp" />
     <ClCompile Include="..\CommonFiles\ConstrLiftGroup.cpp" />
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp" />
     <ClCompile Include="..\CommonFiles\DBTools.cpp" />
@@ -133,7 +132,6 @@
   <ItemGroup>
     <ClInclude Include="..\CommonFiles\BaseLiftGroup.h" />
     <ClInclude Include="..\CommonFiles\BaseProject.h" />
-    <ClInclude Include="..\CommonFiles\BaseScenario.h" />
     <ClInclude Include="..\CommonFiles\ConstrLiftGroup.h" />
     <ClInclude Include="..\CommonFiles\ConstrProject.h" />
     <ClInclude Include="..\CommonFiles\DBTools.h" />

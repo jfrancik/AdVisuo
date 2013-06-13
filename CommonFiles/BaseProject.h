@@ -5,7 +5,6 @@
 #include "DBTools.h"
 
 class CLiftGroup;
-class CScenario;
 class CSim;
 
 class CProject : public dbtools::CCollection
@@ -21,7 +20,6 @@ class CProject : public dbtools::CCollection
 	AVLONG m_nTimeSaved;			// simulation saved time
 
 	std::vector<CLiftGroup*> m_groups;
-	std::vector<CScenario*> m_scenarios;
 
 public:
 	CProject();
@@ -58,13 +56,6 @@ public:
 	AVULONG GetLiftGroupsCount()				{ return m_groups.size(); }
 	std::vector<CLiftGroup*> &GetLiftGroups()	{ return m_groups; }		// get lift group collection
 
-	// Scenarios
-	CScenario *AddScenario();
-	CScenario *GetScenario(int i)				{ return m_scenarios[i]; }	// get scenario by index
-	CScenario *FindScenario(int i);											// find scenario by id
-	AVULONG GetScenariosCount()					{ return m_scenarios.size(); }
-	std::vector<CScenario*> &GetScenarios()		{ return m_scenarios; }		// get scenario collection
-
 	// Sims
 	CSim *FindSim(int id);													// find lift group by id
 
@@ -76,6 +67,5 @@ public:
 
 protected:
 	virtual CLiftGroup *CreateLiftGroup(AVULONG iIndex) = 0;
-	virtual CScenario *CreateScenario(AVULONG iIndex) = 0;
 };
 

@@ -20,6 +20,7 @@ protected:
 public:
 	CSimVis *AddSim()																	{ return (CSimVis*)CLiftGroupConstr::AddSim(); }
 	CSimVis *GetSim(AVULONG i)															{ return (CSimVis*)CLiftGroupConstr::GetSim(i); }
+	CSimVis *GetCurSim()																{ return (CSimVis*)CLiftGroupConstr::GetCurSim(); }
 
 	SHAFT  *AddShaft()																	{ return (SHAFT *)CLiftGroupConstr::AddShaft(); }
 	STOREY *AddStorey()																	{ return (STOREY*)CLiftGroupConstr::AddStorey(); }

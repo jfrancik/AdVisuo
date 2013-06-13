@@ -4,7 +4,7 @@
 #include "BaseSimClasses.h"
 #include "dbtools.h"
 #include <string>
-#include <sstream>
+//#include <sstream>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSim
@@ -21,6 +21,17 @@ CSim::~CSim()
 {
 	DeleteLifts();
 	DeletePassengers();
+}
+
+std::wstring CSim::GetScenarioDesc()
+{
+	std::wstringstream str;
+	str << (std::wstring)ME[L"TrafficPatternName"] << L"\n"
+		<< L" incoming: " << (ULONG)ME[L"Incoming"]
+		<< L" outgoing: " << (ULONG)ME[L"Outgoing"]
+		<< L" interfloor: " << (ULONG)ME[L"Interfloor"]
+		<< L"; " << (std::wstring)ME[L"TrafficProfileName"] << L" profile";
+	return str.str();
 }
 
 void CSim::DeleteLifts()
