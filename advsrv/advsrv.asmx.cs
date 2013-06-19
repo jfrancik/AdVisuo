@@ -5,7 +5,11 @@ using System.Web;
 using System.Web.Services;
 using System.Data;
 using System.Data.OleDb;
+using System.Data.SqlClient;
 using Microsoft.Win32;
+
+using System.Text;
+using System.Security.Cryptography;
 
 namespace advsrv
 {
@@ -28,6 +32,78 @@ namespace advsrv
             return str;
         }
 
+        private string GetUsersConnStr()
+        {
+            RegistryKey ourKey = Registry.LocalMachine.OpenSubKey("Software\\LerchBates\\AdVisuo\\ServerModule");
+            string str = ourKey.GetValue("UsersConnectionString").ToString();
+            return str;
+        }
+
+        private string EncodePassword(string pass, string salt)
+        {
+            byte[] bytes = Encoding.Unicode.GetBytes(pass);
+            byte[] src = Convert.FromBase64String(salt);
+            byte[] dst = new byte[src.Length + bytes.Length];
+            Buffer.BlockCopy(src, 0, dst, 0, src.Length);
+            Buffer.BlockCopy(bytes, 0, dst, src.Length, bytes.Length);
+            HashAlgorithm algorithm = HashAlgorithm.Create("SHA1");
+            byte[] inArray = algorithm.ComputeHash(dst);
+            return Convert.ToBase64String(inArray);
+        }
+
+        [WebMethod(Description = "Returns the Connection String.")]
+        public string  AVCreateTicket(string strUsername, string strPassword)
+        {
+            // open connection
+            OleDbConnection connUsers = new OleDbConnection(GetUsersConnStr());
+            OleDbCommand cmdSelect = new OleDbCommand("SELECT m.Password, m.PasswordSalt FROM aspnet_Users u, aspnet_Membership m WHERE u.UserId=m.UserId AND u.UserName='" + strUsername + "'", connUsers);
+            connUsers.Open();
+            OleDbDataReader reader = cmdSelect.ExecuteReader();
+
+            if (reader.Read())
+            {
+                string pswd = reader.GetString(0);  // password
+                string salt = reader.GetString(1);  // salt
+
+                // check password
+                string ver = EncodePassword(strPassword, salt);
+                reader.Close();
+                if (ver != pswd)
+                    return "";
+
+                // create ticket
+                RandomNumberGenerator gen = RandomNumberGenerator.Create();
+                byte[] bytes = new byte[20];
+                gen.GetBytes(bytes);
+                string strTicket = Convert.ToBase64String(bytes);
+
+                // store ticket
+                OleDbConnection connVis = new OleDbConnection(GetConnStr());
+                OleDbCommand cmdInsert = new OleDbCommand("INSERT INTO AVTickets (UserId, Ticket, TimeStamp) VALUES (?, ?, CURRENT_TIMESTAMP)", connVis);
+                cmdInsert.Parameters.AddWithValue("UserId", strUsername);
+                cmdInsert.Parameters.AddWithValue("Ticket", strTicket);
+                connVis.Open();
+
+                try
+                {
+                    cmdInsert.ExecuteNonQuery();
+                }
+                catch (OleDbException ex)
+                {
+                    strTicket = "";
+                }
+
+                return strTicket;
+            }
+            else
+            {
+                // wrong user
+                reader.Close();
+                return "";
+            }
+        }
+        
+        
         [WebMethod(Description = "Returns the Connection String.")]
         public string AVConnStr()
         {

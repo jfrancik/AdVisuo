@@ -30,6 +30,7 @@ void usage()
 			<< L"  adv -h [ID]   displays this information" << endl
 			<< L"  adv -ver      displays version information" << endl
 			<< L"  adv -c conn   configures the connection string; use %s for the db name" << endl
+			<< L"  adv -u userid creates a ticket for the user id" << endl
 			<< L"[ID] is optional and may be omitted to enter interactive mode." << endl
 			<< L"More options:" << endl
 			<< L"-q for quiet mode: no text output is generated" << endl
@@ -45,7 +46,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	enum OPTION { DEFAULT, IFC, DEL, DEL_ALL, DROP_TABLES, TEST, INIT, PROCESS, CONN, CONN_ELEVATED, HELP, VERSION, WRONG, WRONG_2 } option = DEFAULT;
+	enum OPTION { DEFAULT, IFC, DEL, DEL_ALL, DROP_TABLES, TEST, INIT, PROCESS, USER_TICKET, CONN, CONN_ELEVATED, HELP, VERSION, WRONG, WRONG_2 } option = DEFAULT;
 	AVULONG nSimulationID = 0;
 	AVULONG nProjectID;
 	_TCHAR *pParam = NULL;
@@ -87,7 +88,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			case 'd':
 				if (_wcsicmp(argv[i], L"-dall") == 0)
 					option = (option == DEFAULT) ? DEL_ALL : WRONG;
-				if (_wcsicmp(argv[i], L"-drop") == 0)
+				else if (_wcsicmp(argv[i], L"-drop") == 0)
 					option = (option == DEFAULT) ? DROP_TABLES : WRONG;
 				else
 					option = (option == DEFAULT) ? DEL : WRONG;
@@ -108,6 +109,9 @@ int _tmain(int argc, _TCHAR* argv[])
 				else
 					option = (option == DEFAULT) ? CONN : WRONG;
 				break;
+			case 'u':
+				option = (option == DEFAULT) ? USER_TICKET : WRONG;
+				break;
 			case 'h':
 			case '?':
 				option = (option == DEFAULT) ? HELP : WRONG;
@@ -121,7 +125,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	if ((option == DEL_ALL || option == DROP_TABLES || option == CONN || option == CONN_ELEVATED) && nSimulationID > 0)
 		option = WRONG;
 
-	if ((option == CONN || option == CONN_ELEVATED) && pParam == NULL)
+	if ((option == USER_TICKET || option == CONN || option == CONN_ELEVATED) && pParam == NULL)
 		option = WRONG;
 
 	if ((option == DEFAULT || option == IFC || option == DEL || option == TEST || option == INIT || option == PROCESS) && nSimulationID <= 0)
@@ -193,6 +197,11 @@ int _tmain(int argc, _TCHAR* argv[])
 		break;
 	case PROCESS: 
 		h = AVProcess(nSimulationID);
+		break;
+	case USER_TICKET:
+		wchar_t pBufTicket[64];
+		h = AVCreateTicket(pParam, pBufTicket);
+		wcout << L"Ticket generated: " << pBufTicket << endl;
 		break;
 	case CONN:
 		wchar_t buf[512];

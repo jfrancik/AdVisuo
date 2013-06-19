@@ -203,3 +203,25 @@ HRESULT CProjectSrv::DropTables(CDataBase db)
 	return S_OK;
 }
 
+HRESULT CProjectSrv::CreateTicket(dbtools::CDataBase db, AVSTRING strUserId, AVSTRING strBuf)
+{
+	static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+	srand(time(NULL));
+	for (int i = 0; i < 27; i++)
+		strBuf[i] = base64_chars[rand() % 64];
+	strBuf[27] = '=';
+	strBuf[28] = '\0';
+	
+	CDataBase::INSERT ins = db.insert(L"AVTickets");
+
+	ins[L"UserId"] = strUserId;
+	ins[L"Ticket"] = strBuf;
+	ins[L"TimeStamp"] = L"CURRENT_TIMESTAMP";
+	ins[L"TimeStamp"].act_as_symbol();
+
+	ins.execute();
+
+	return S_OK;
+}
+

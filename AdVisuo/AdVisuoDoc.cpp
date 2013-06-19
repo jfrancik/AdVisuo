@@ -158,6 +158,8 @@ BOOL CAdVisuoDoc::OnSaveDocument(LPCTSTR lpszPathName)
 
 BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 {
+	Debug(L"Analysing URL: %s", url);
+
 	// Resolve the URL
 	CString strUrl = url;
 	m_strUrl = strUrl;

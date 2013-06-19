@@ -35,6 +35,8 @@ public:
 	static HRESULT CleanUpAll(dbtools::CDataBase db);
 	static HRESULT DropTables(dbtools::CDataBase db);
 
+	static HRESULT CreateTicket(dbtools::CDataBase db, AVSTRING strUserId, AVSTRING strBuf);
+
 protected:
 	virtual CLiftGroup *CreateLiftGroup(AVULONG nIndex);
 };

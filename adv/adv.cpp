@@ -50,7 +50,7 @@ ADV_API AVULONG AVGetVersion()
 	return CProject::GetAVNativeVersionId();
 }
 
-ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation)
+ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation, AVSTRING pConnUsers)
 {
 	HKEY hRegKey = NULL; 
 	HRESULT h;
@@ -58,18 +58,20 @@ ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, A
 	h = RegSetValueEx(hRegKey, L"ConsoleConnectionString", 0, REG_EXPAND_SZ, (PBYTE)pConnConsole, (_tcslen(pConnConsole) + 1) * sizeof TCHAR); if (h != 0) return Log(ERROR_COM, h);
 	h = RegSetValueEx(hRegKey, L"ReportsConnectionString", 0, REG_EXPAND_SZ, (PBYTE)pConnReports, (_tcslen(pConnReports) + 1) * sizeof TCHAR); if (h != 0) return Log(ERROR_COM, h);
 	h = RegSetValueEx(hRegKey, L"VisualisationConnectionString", 0, REG_EXPAND_SZ, (PBYTE)pConnVisualisation, (_tcslen(pConnVisualisation) + 1) * sizeof TCHAR); if (h != 0) return Log(ERROR_COM, h);
+	h = RegSetValueEx(hRegKey, L"UsersConnectionString", 0, REG_EXPAND_SZ, (PBYTE)pConnUsers, (_tcslen(pConnUsers) + 1) * sizeof TCHAR); if (h != 0) return Log(ERROR_COM, h);
 	h = RegCloseKey(hRegKey); if (h != 0) return Log(ERROR_COM, h);
-	Logf(INFO_CONFIG_SET, L"\n\rConsole = %s\n\rReports = %s\n\rVisualisation = %s", pConnConsole, pConnReports, pConnVisualisation);
+	Logf(INFO_CONFIG_SET, L"\n\rConsole = %s\n\rReports = %s\n\rVisualisation = %s\n\rUsers = %s", pConnConsole, pConnReports, pConnVisualisation, pConnUsers);
 	return S_OK;
 }
 
-ADV_API HRESULT AVSetConnStrings8(char *pConnConsole, char *pConnReports, char *pConnVisualisation)
+ADV_API HRESULT AVSetConnStrings8(char *pConnConsole, char *pConnReports, char *pConnVisualisation, char *pConnUsers)
 {
 	USES_CONVERSION;
 	CA2W wConnConsole(pConnConsole);
 	CA2W wConnReports(pConnReports);
 	CA2W wConnVisualisation(pConnVisualisation);
-	return AVSetConnStrings(wConnConsole, wConnReports, wConnVisualisation);
+	CA2W wConnUsers(pConnUsers);
+	return AVSetConnStrings(wConnConsole, wConnReports, wConnVisualisation, wConnUsers);
 }
 
 ADV_API HRESULT AVSetConnString(AVSTRING pConn)
@@ -77,19 +79,22 @@ ADV_API HRESULT AVSetConnString(AVSTRING pConn)
 	static wchar_t pConnConsole[1024];
 	static wchar_t pConnReport[1024];
 	static wchar_t pConnVisualisation[1024];
+	static wchar_t pConnUsers[1024];
 	if (wcschr(pConn, L'=') == NULL)
 	{
 		_snwprintf_s(pConnConsole, 1024,	   L"Provider=SQLOLEDB;Data Source=%s\\SQLEXPRESS;Initial Catalog=Adsimulo_Console;Integrated Security=SSPI;", pConn);
 		_snwprintf_s(pConnReport, 1024,	       L"Provider=SQLOLEDB;Data Source=%s\\SQLEXPRESS;Initial Catalog=Adsimulo_Reports;Integrated Security=SSPI;", pConn);
 		_snwprintf_s(pConnVisualisation, 1024, L"Provider=SQLOLEDB;Data Source=%s\\SQLEXPRESS;Initial Catalog=Adsimulo_Visualisation;Integrated Security=SSPI;", pConn);
+		_snwprintf_s(pConnUsers, 1024,         L"Provider=SQLOLEDB;Data Source=%s\\SQLEXPRESS;Initial Catalog=AD_AspNetProviders;Integrated Security=SSPI;", pConn);
 	}
 	else
 	{
 		_snwprintf_s(pConnConsole, 1024, pConn, L"Adsimulo_Console");
 		_snwprintf_s(pConnReport, 1024, pConn, L"Adsimulo_Reports");
 		_snwprintf_s(pConnVisualisation, 1024, pConn, L"Adsimulo_Visualisation");
+		_snwprintf_s(pConnUsers, 1024, pConn, L"AD_AspNetProviders");
 	}
-	return AVSetConnStrings(pConnConsole, pConnReport, pConnVisualisation);
+	return AVSetConnStrings(pConnConsole, pConnReport, pConnVisualisation, pConnUsers);
 }
 
 ADV_API HRESULT AVSetConnString8(char *pConn)
@@ -111,11 +116,12 @@ ADV_API HRESULT AVSetScalingFactor(AVFLOAT fScale)
 	return S_OK;
 }
 
-HRESULT GetConnStrings(AVSTRING *ppConnConsole, AVSTRING *ppConnReports, AVSTRING *ppConnVisualisation)
+HRESULT GetConnStrings(AVSTRING *ppConnConsole, AVSTRING *ppConnReports, AVSTRING *ppConnVisualisation, AVSTRING *ppConnUsers)
 {
 	static WCHAR bufConnConsole[1024];
 	static WCHAR bufConnReports[1024];
 	static WCHAR bufConnVisualisation[1024];
+	static WCHAR bufConnUsers[1024];
 	HKEY hRegKey = NULL; 
 
 	DWORD type, size;
@@ -124,11 +130,13 @@ HRESULT GetConnStrings(AVSTRING *ppConnConsole, AVSTRING *ppConnReports, AVSTRIN
 	size = 1024; h = RegQueryValueEx(hRegKey, L"ConsoleConnectionString", 0, &type, (PBYTE)bufConnConsole, &size); if (h != 0) return Log(ERROR_COM, h);
 	size = 1024; h = RegQueryValueEx(hRegKey, L"ReportsConnectionString", 0, &type, (PBYTE)bufConnReports, &size); if (h != 0) return Log(ERROR_COM, h);
 	size = 1024; h = RegQueryValueEx(hRegKey, L"VisualisationConnectionString", 0, &type, (PBYTE)bufConnVisualisation, &size); if (h != 0) return Log(ERROR_COM, h);
+	size = 1024; h = RegQueryValueEx(hRegKey, L"UsersConnectionString", 0, &type, (PBYTE)bufConnUsers, &size); if (h != 0) return Log(ERROR_COM, h);
 	h = RegCloseKey(hRegKey); if (h != 0) return Log(ERROR_COM, h);
 
 	if (ppConnConsole) *ppConnConsole = bufConnConsole;
 	if (ppConnReports) *ppConnReports = bufConnReports;
 	if (ppConnVisualisation) *ppConnVisualisation = bufConnVisualisation;
+	if (ppConnUsers) *ppConnUsers = bufConnUsers;
 
 	return S_OK;
 }
@@ -172,7 +180,7 @@ ADV_API HRESULT AVTest(AVULONG nSimulationId)
 {
 	CLogTime lt;
 	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr);
+	GetConnStrings(NULL, NULL, &pConnStr, NULL);
 	try
 	{
 		HRESULT h;
@@ -198,7 +206,7 @@ ADV_API HRESULT AVDelete(AVULONG nSimulationId)
 {
 	CLogTime lt;
 	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr);
+	GetConnStrings(NULL, NULL, &pConnStr, NULL);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -216,7 +224,7 @@ ADV_API HRESULT AVDeleteAll()
 {
 	CLogTime lt;
 	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr);
+	GetConnStrings(NULL, NULL, &pConnStr, NULL);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -234,7 +242,7 @@ ADV_API HRESULT AVDropTables()
 {
 	CLogTime lt;
 	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr);
+	GetConnStrings(NULL, NULL, &pConnStr, NULL);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -252,7 +260,7 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 {
 	CLogTime lt;
 	AVSTRING pConsoleConn, pVisConn;
-	GetConnStrings(&pConsoleConn, NULL, &pVisConn);
+	GetConnStrings(&pConsoleConn, NULL, &pVisConn, NULL);
 	
 	try
 	{
@@ -286,7 +294,7 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 	CLogTime ltall, lt;
 	AVSTRING pVisConn;
 	AVSTRING pRepConn;
-	GetConnStrings(NULL, &pRepConn, &pVisConn);
+	GetConnStrings(NULL, &pRepConn, &pVisConn, NULL);
 	
 	try
 	{
@@ -321,7 +329,7 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)
 {
 	CLogTime lt;
 	AVSTRING pConsoleConn;
-	GetConnStrings(&pConsoleConn, NULL, NULL);
+	GetConnStrings(&pConsoleConn, NULL, NULL, NULL);
 
 	try
 	{
@@ -351,3 +359,22 @@ ADV_API HRESULT AVIFC8(AVULONG nSimulationId, char *pIFCPathName)
 	return AVIFC(nSimulationId, wIFCPathName);
 }
 
+#pragma warning (disable: 4996)
+ADV_API HRESULT AVCreateTicket(AVSTRING strUserName, AVSTRING strBuf)
+{
+	CLogTime lt;
+	AVSTRING pUsersConn;
+	AVSTRING pVisConn;
+	GetConnStrings(NULL, NULL, &pVisConn, &pUsersConn);
+	try
+	{
+		DWORD dwStatus = STATUS_OK;
+
+		HRESULT h = CProjectSrv::CreateTicket(pVisConn, strUserName, strBuf);
+		if WARNED(h) dwStatus = STATUS_WARNING;
+
+		lt.Log(L"AVCreateTicket");
+		return Logf(dwStatus, L"AVCreateTicket(\"%s\")", strUserName);
+	}
+	STD_CATCH(L"AVCreateTicket()", 0);
+}

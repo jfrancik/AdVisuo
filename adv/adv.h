@@ -25,7 +25,7 @@
 // Recommended usage (pseudo-code):
 //
 // Call this once for the system installation:
-//	AVSetConnStrings(pConsoleConnectionString, pReportsConnectionString, pVisualisationConnectionString)
+//	AVSetConnStrings(pConsoleConnectionString, pReportsConnectionString, pVisualisationConnectionString, pUsersConnectionString)
 //	AVSetScalingFactor(fScalingFactor)	// this is not necessary unless a non-standard scaling factor is used
 //
 //
@@ -74,8 +74,8 @@ ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog = true, bool bPri
 // or again in unlikely case the parameters change.
 
 // Configures the database connection strings for the Console and Visualisation databases
-ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation);
-ADV_API HRESULT AVSetConnStrings8(char *pConnConsole, char *pConnReports, char *pConnVisualisation);
+ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation, AVSTRING pConnUsers);
+ADV_API HRESULT AVSetConnStrings8(char *pConnConsole, char *pConnReports, char *pConnVisualisation, char *pConnUsers);
 
 // Configures the database connection strings for the Console and Visualisation databases
 // Use "%s" sequence in the pConn string: it will be replaced by appropriate database names:
@@ -151,6 +151,10 @@ ADV_API HRESULT AVDeleteAll();
 // Drops tables in the VISUALISATION database - may be used to re-initialize
 // Returns standard error codes in case of database/connection errors - check with FAILED(...) macro
 ADV_API HRESULT AVDropTables();
+
+// Drops tables in the VISUALISATION database - may be used to re-initialize
+// Returns standard error codes in case of database/connection errors - check with FAILED(...) macro
+ADV_API HRESULT AVCreateTicket(AVSTRING strUserName, AVSTRING strBuf);
 
 
 //// Parameters:
