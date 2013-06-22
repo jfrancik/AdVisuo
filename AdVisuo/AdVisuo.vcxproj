@@ -139,6 +139,7 @@
     <ClCompile Include="AdVisuoView.cpp" />
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="DlgDownload.cpp" />
+    <ClCompile Include="DlgLogin.cpp" />
     <ClCompile Include="DlgMat.cpp" />
     <ClCompile Include="DlgRepBug.cpp" />
     <ClCompile Include="DlgScript.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="..\CommonFiles\Box.h" />
     <ClInclude Include="Block.h" />
     <ClInclude Include="DlgDownload.h" />
+    <ClInclude Include="DlgLogin.h" />
     <ClInclude Include="DlgMat.h" />
     <ClInclude Include="DlgRepBug.h" />
     <ClInclude Include="DlgScript.h" />
@@ -208,6 +210,14 @@
     <ClInclude Include="_base.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="html\bg-login-form.png" />
+    <None Include="html\bg-login-header.png" />
+    <None Include="html\btn-login.png" />
+    <None Include="html\connection.html" />
+    <None Include="html\Default.css" />
+    <None Include="html\login.html" />
+    <None Include="html\splash1.png" />
+    <None Include="html\splash2.png" />
     <None Include="res\AdVisuo.ico" />
     <None Include="res\AdVisuo.rc2" />
     <None Include="res\AdVisuoDoc.ico" />

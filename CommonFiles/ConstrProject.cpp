@@ -29,6 +29,7 @@ void CProjectConstr::Construct()
 	m_pElemSite = CreateElement(NULL, GetElement(), CElem::ELEM_SITE, (LPOLESTR)GetProjectInfo(PRJ_BUILDING_NAME).c_str(), 0, Vector(0));
 
 	if (!m_pElem) return;
+	if (GetLiftGroupsCount() == 0) return;
 
 	BOX _box = GetLiftGroup(0)->GetTotalAreaBox();
 

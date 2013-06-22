@@ -25,7 +25,7 @@ namespace advsrv
     {
         //static string strConn = "Provider=SQLOLEDB;Data Source=KATEPC\\SQLEXPRESS;Initial Catalog=Adsimulo_Visualisation;Integrated Security=SSPI;";
 
-        private string GetConnStr()
+        private string GetVisConnStr()
         {
             RegistryKey ourKey = Registry.LocalMachine.OpenSubKey("Software\\LerchBates\\AdVisuo\\ServerModule");
             string str = ourKey.GetValue("VisualisationConnectionString").ToString();
@@ -51,12 +51,13 @@ namespace advsrv
             return Convert.ToBase64String(inArray);
         }
 
-        [WebMethod(Description = "Returns the Connection String.")]
+        [WebMethod(Description = "Creates and returns a valid ticket for the given username and password, or empty string if unauthorised.")]
         public string  AVCreateTicket(string strUsername, string strPassword)
         {
             // open connection
             OleDbConnection connUsers = new OleDbConnection(GetUsersConnStr());
-            OleDbCommand cmdSelect = new OleDbCommand("SELECT m.Password, m.PasswordSalt FROM aspnet_Users u, aspnet_Membership m WHERE u.UserId=m.UserId AND u.UserName='" + strUsername + "'", connUsers);
+            OleDbCommand cmdSelect = new OleDbCommand("SELECT m.Password, m.PasswordSalt FROM aspnet_Users u, aspnet_Membership m WHERE u.UserId=m.UserId AND u.UserName=?", connUsers);
+            cmdSelect.Parameters.AddWithValue("u.UserName", strUsername);
             connUsers.Open();
             OleDbDataReader reader = cmdSelect.ExecuteReader();
 
@@ -78,7 +79,7 @@ namespace advsrv
                 string strTicket = Convert.ToBase64String(bytes);
 
                 // store ticket
-                OleDbConnection connVis = new OleDbConnection(GetConnStr());
+                OleDbConnection connVis = new OleDbConnection(GetVisConnStr());
                 OleDbCommand cmdInsert = new OleDbCommand("INSERT INTO AVTickets (UserId, Ticket, TimeStamp) VALUES (?, ?, CURRENT_TIMESTAMP)", connVis);
                 cmdInsert.Parameters.AddWithValue("UserId", strUsername);
                 cmdInsert.Parameters.AddWithValue("Ticket", strTicket);
@@ -102,14 +103,70 @@ namespace advsrv
                 return "";
             }
         }
-        
-        
-        [WebMethod(Description = "Returns the Connection String.")]
-        public string AVConnStr()
+
+        [WebMethod(Description = "Validates ticket - returns number of seconds left for the valid ticket or 0 if expired or not found")]
+        public int AVValidateTicket(string strUsername, string strTicket)
         {
-            return GetConnStr();
+            if (strTicket == "")
+                return 0;
+            // open connection
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
+            OleDbCommand cmdSelect = new OleDbCommand("SELECT TimeStamp FROM AVTickets WHERE UserId=? AND Ticket=?", conn);
+            cmdSelect.Parameters.AddWithValue("UserId", strUsername);
+            cmdSelect.Parameters.AddWithValue("Ticket", strTicket);
+            conn.Open();
+            OleDbDataReader reader = cmdSelect.ExecuteReader();
+
+            if (reader.Read())
+            {
+                DateTime stamp = reader.GetDateTime(0);
+                reader.Close();
+
+                double validity = 120;
+                double secs = (DateTime.Now - stamp).TotalSeconds;
+                if (secs > validity)
+                    return 0;
+                else
+                    return (int)(validity - secs);
+            }
+            else
+            {
+                reader.Close();
+                return 0;
+            }
         }
-        
+
+        [WebMethod(Description = "Validates ticket - returns number of seconds left for the valid ticket or 0 if expired or not found")]
+        public string AVRevalidateTicket(string strUsername, string strTicket)
+        {
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return "";
+
+            // create a new ticket
+            RandomNumberGenerator gen = RandomNumberGenerator.Create();
+            byte[] bytes = new byte[20];
+            gen.GetBytes(bytes);
+            strTicket = Convert.ToBase64String(bytes);
+
+            // store ticket
+            OleDbConnection connVis = new OleDbConnection(GetVisConnStr());
+            OleDbCommand cmdInsert = new OleDbCommand("INSERT INTO AVTickets (UserId, Ticket, TimeStamp) VALUES (?, ?, CURRENT_TIMESTAMP)", connVis);
+            cmdInsert.Parameters.AddWithValue("UserId", strUsername);
+            cmdInsert.Parameters.AddWithValue("Ticket", strTicket);
+            connVis.Open();
+
+            try
+            {
+                cmdInsert.ExecuteNonQuery();
+            }
+            catch (OleDbException ex)
+            {
+                strTicket = "";
+            }
+
+            return strTicket;
+        }
+
         [WebMethod(Description = "Returns system version.")]
         public int AVVersion()
         {
@@ -117,9 +174,12 @@ namespace advsrv
         }
 
         [WebMethod(Description = "Returns project index.")]
-        public DataSet AVIndex()
+        public DataSet AVIndex(string strUsername, string strTicket)
         {
-            OleDbConnection conn = new OleDbConnection(GetConnStr());
+//            if (AVValidateTicket(strUsername, strTicket) == 0)
+ //               return null;
+
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
             OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVProjects", conn);
             myDataAdapter.Fill(myDataSet, "AVProject");
@@ -127,9 +187,12 @@ namespace advsrv
         }
 
         [WebMethod(Description = "Returns project information")]
-        public DataSet AVProject(int nSimulationId)
+        public DataSet AVProject(string strUsername, string strTicket, int nSimulationId)
         {
-            OleDbConnection conn = new OleDbConnection(GetConnStr());
+ //           if (AVValidateTicket(strUsername, strTicket) == 0)
+   //             return null;
+
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
             OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVProjects WHERE SimulationId=" + nSimulationId + " ORDER BY ID", conn);
             myDataAdapter.Fill(myDataSet, "AVProject");
@@ -137,9 +200,12 @@ namespace advsrv
         }
 
         [WebMethod(Description = "Returns lift group structure")]
-        public DataSet AVLiftGroups(int nProjectId)
+        public DataSet AVLiftGroups(string strUsername, string strTicket, int nProjectId)
         {
-            OleDbConnection conn = new OleDbConnection(GetConnStr());
+//            if (AVValidateTicket(strUsername, strTicket) == 0)
+  //              return null;
+
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
             OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVLiftGroups WHERE ProjectID=" + nProjectId + " ORDER BY ID", conn);
             myDataAdapter.Fill(myDataSet, "AVLiftGroup");
@@ -147,9 +213,12 @@ namespace advsrv
         }
         
         [WebMethod(Description = "Returns floor structure for a lift group")]
-        public DataSet AVFloors(int nLiftGroupId)
+        public DataSet AVFloors(string strUsername, string strTicket, int nLiftGroupId)
         {
-            OleDbConnection conn = new OleDbConnection(GetConnStr());
+//            if (AVValidateTicket(strUsername, strTicket) == 0)
+  //              return null;
+
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
             OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVFloors WHERE LiftGroupId=" + nLiftGroupId + " ORDER BY ID", conn);
             myDataAdapter.Fill(myDataSet, "AVFloor");
@@ -157,9 +226,12 @@ namespace advsrv
         }
 
         [WebMethod(Description = "Returns shaft structure for a lift group")]
-        public DataSet AVShafts(int nLiftGroupId)
+        public DataSet AVShafts(string strUsername, string strTicket, int nLiftGroupId)
         {
-            OleDbConnection conn = new OleDbConnection(GetConnStr());
+//            if (AVValidateTicket(strUsername, strTicket) == 0)
+  //              return null;
+
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
             OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVShafts WHERE LiftGroupId=" + nLiftGroupId + " ORDER BY ID", conn);
             myDataAdapter.Fill(myDataSet, "AVShaft");
@@ -167,9 +239,12 @@ namespace advsrv
         }
 
         [WebMethod(Description = "Returns SIM package information")]
-        public DataSet AVSim(int nLiftGroupId)
+        public DataSet AVSim(string strUsername, string strTicket, int nLiftGroupId)
         {
-            OleDbConnection conn = new OleDbConnection(GetConnStr());
+//            if (AVValidateTicket(strUsername, strTicket) == 0)
+  //              return null;
+
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
             OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVSims WHERE LiftGroupId=" + nLiftGroupId + " ORDER BY ID", conn);
             myDataAdapter.Fill(myDataSet, "AVSim");
@@ -177,9 +252,12 @@ namespace advsrv
         }
 
         [WebMethod(Description = "Returns simulation data")]
-        public DataSet[] AVSimData(int nSimId, int timeFrom, int timeTo)
+        public DataSet[] AVSimData(string strUsername, string strTicket, int nSimId, int timeFrom, int timeTo)
         {
-            OleDbConnection conn = new OleDbConnection(GetConnStr());
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return null;
+
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet[] myDataSets = new DataSet[2];
             OleDbDataAdapter myDataAdapter;
 
@@ -212,9 +290,12 @@ namespace advsrv
         }
 
         [WebMethod(Description = "Returns simulation data for all sims/groups within a project")]
-        public DataSet[] AVPrjData(int nProjectId, int timeFrom, int timeTo)
+        public DataSet[] AVPrjData(string strUsername, string strTicket, int nProjectId, int timeFrom, int timeTo)
         {
-            OleDbConnection conn = new OleDbConnection(GetConnStr());
+//            if (AVValidateTicket(strUsername, strTicket) == 0)
+  //              return null;
+
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet[] myDataSets = new DataSet[2];
             OleDbDataAdapter myDataAdapter;
 

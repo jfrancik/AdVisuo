@@ -33,7 +33,8 @@ class CXMLRequest
 	HRESULT m_h;
 	_com_error m_com_error;
 
-	static std::wstring WAIT_FOR_RESPONSE;
+public:
+	static std::wstring ASYNC_RESPONSE;
 
 public:
 	CXMLRequest();
@@ -48,23 +49,11 @@ public:
 	bool ok()				{ return ready() && SUCCEEDED(m_h) && m_nStatus <= 299; }
 
 	// calls - generic
-	HRESULT call(std::wstring strFunction, std::wstring strRequest, std::wstring &strResponse = WAIT_FOR_RESPONSE);
-	HRESULT call(std::wstring strFunction, std::wstring strParam,  AVLONG val, std::wstring &strResponse = WAIT_FOR_RESPONSE);
-	HRESULT call(std::wstring strFunction, std::wstring strParam1, AVLONG val1, std::wstring strParam2, AVLONG val2, std::wstring &strResponse = WAIT_FOR_RESPONSE);
-	HRESULT call(std::wstring strFunction, std::wstring strParam1, AVLONG val1, std::wstring strParam2, AVLONG val2, std::wstring strParam3, AVLONG val3, std::wstring &strResponse = WAIT_FOR_RESPONSE);
-
-	// calls - helpers
-	HRESULT AVVersion(std::wstring &strResponse = WAIT_FOR_RESPONSE)						{ return call(L"AVVersion", L"", strResponse); }
-	HRESULT AVIndex(std::wstring &strResponse = WAIT_FOR_RESPONSE)							{ return call(L"AVIndex", L"", strResponse); }
-	HRESULT AVProject(AVLONG nSimulationId, std::wstring &strResponse = WAIT_FOR_RESPONSE)	{ return call(L"AVProject", L"nSimulationId", nSimulationId, strResponse); }
-	HRESULT AVLiftGroups(AVLONG nProjectId, std::wstring &strResponse = WAIT_FOR_RESPONSE)	{ return call(L"AVLiftGroups", L"nProjectId", nProjectId, strResponse); }
-	HRESULT AVFloors(AVLONG nLiftGroupId, std::wstring &strResponse = WAIT_FOR_RESPONSE)	{ return call(L"AVFloors", L"nLiftGroupId", nLiftGroupId, strResponse); }
-	HRESULT AVShafts(AVLONG nLiftGroupId, std::wstring &strResponse = WAIT_FOR_RESPONSE)	{ return call(L"AVShafts", L"nLiftGroupId", nLiftGroupId, strResponse); }
-	HRESULT AVSim(AVLONG nLiftGroupId, std::wstring &strResponse = WAIT_FOR_RESPONSE)		{ return call(L"AVSim", L"nLiftGroupId", nLiftGroupId, strResponse); }
-	HRESULT AVSimData(AVLONG nSimId, AVLONG timeFrom, AVLONG timeTo, std::wstring &strResponse = WAIT_FOR_RESPONSE)
-											{ return call(L"AVSimData", L"nSimId", nSimId, L"timeFrom", timeFrom, L"timeTo", timeTo, strResponse); }
-	HRESULT AVPrjData(AVLONG nProjectId, AVLONG timeFrom, AVLONG timeTo, std::wstring &strResponse = WAIT_FOR_RESPONSE)
-											{ return call(L"AVPrjData", L"nProjectId", nProjectId, L"timeFrom", timeFrom, L"timeTo", timeTo, strResponse); }
+	void setreq(std::wstring strRequest = L"");
+	void addreq(std::wstring strRequest);
+	void addparam(std::wstring strParam,  AVLONG val);
+	void addparam(std::wstring strParam,  std::wstring strVal);
+	HRESULT call(std::wstring strFunction, std::wstring &strResponse = ASYNC_RESPONSE);
 
 	// wait & get response
 	HRESULT wait(DWORD dwTimeout = INFINITE);
@@ -77,4 +66,25 @@ public:
 private:
 	HRESULT ExecWorkerThread();
 	friend UINT WorkerThread(void *p);
+};
+
+class CAVRequest : public CXMLRequest
+{
+	static std::wstring m_strUsername;
+	static std::wstring m_strTicket;
+public:
+	CAVRequest() : CXMLRequest()							{ }
+	CAVRequest(std::wstring strUrl) : CXMLRequest(strUrl)	{ }
+	virtual ~CAVRequest()									{ }
+
+	// calls - helpers
+	HRESULT AVVersion(std::wstring &strResponse = CXMLRequest::ASYNC_RESPONSE);
+	HRESULT AVIndex(std::wstring &strResponse = CXMLRequest::ASYNC_RESPONSE);
+	HRESULT AVProject(AVLONG nSimulationId, std::wstring &strResponse = CXMLRequest::ASYNC_RESPONSE);
+	HRESULT AVLiftGroups(AVLONG nProjectId, std::wstring &strResponse = CXMLRequest::ASYNC_RESPONSE);
+	HRESULT AVFloors(AVLONG nLiftGroupId, std::wstring &strResponse = CXMLRequest::ASYNC_RESPONSE);
+	HRESULT AVShafts(AVLONG nLiftGroupId, std::wstring &strResponse = CXMLRequest::ASYNC_RESPONSE);
+	HRESULT AVSim(AVLONG nLiftGroupId, std::wstring &strResponse = CXMLRequest::ASYNC_RESPONSE);
+	HRESULT AVSimData(AVLONG nSimId, AVLONG timeFrom, AVLONG timeTo, std::wstring &strResponse = CXMLRequest::ASYNC_RESPONSE);
+	HRESULT AVPrjData(AVLONG nProjectId, AVLONG timeFrom, AVLONG timeTo, std::wstring &strResponse = CXMLRequest::ASYNC_RESPONSE);
 };

@@ -1,0 +1,31 @@
+﻿
+body {background:url(res:/PNG/#346) no-repeat 0 0; color:#444;  font-family:Arial, Helvetica, Sans-Serif; text-align:left;font-size:12px; margin-top:3px;}
+
+h1 {font-size:2em; color:#fff; margin:0; padding:12px 0 0 250px; height:33px; width:454px; text-shadow:0 -1px 0px #1C8AA2;}
+
+/* Forms */
+.formrow {overflow:hidden; padding:5px 0 5px 0;}
+.formrow label {width: 150px; float: left; text-align: right; padding:0 14px 0 0; color: #fff; font-size: 1.1em; margin-top: 3px;}
+.formrow .textfield {width: 223px; border: 1px solid #5a5a5a;}
+.formrow input.numeric {width: 83px;}
+.formrow input.price {width: 123px;}
+
+/* Login */
+#login-container {margin:40px 0 0;}
+#login-content {width:490px; margin:auto;}
+#login-content #login-panel {width:498px; height:232px; background:url(res:/PNG/#343) no-repeat 0 0; color:#282828; position:relative;}
+#login-content .inner {width:430px; margin:0 auto; padding-top:39px; padding-left:39px;}
+#login-content .inner .formrow {clear:both; margin:0;}
+#login-content .inner .formrow label {display:block; width:95px; text-align:right; margin:6px 15px 0 0; font-size:0.9em; color:#282828; padding:0;}
+#login-content .inner .formrow .textfield {display:block; width:262px; float:left; padding:4px; font-size:1.4em; border:solid 1px #878787; background-color:#fff; color:#282828;}
+#login-content .inner .formrow span.required {font-size:1.4em;}
+#login-content .login-button {clear:both; margin:25px 0 0 110px;}
+#login-content .inner p.alert {font-size:0.9em; color:#282828; margin:10px 0 0 112px; font-weight:bold;}
+#login-content .inner p.alert a {color:#282828; text-decoration:underline;}
+#login-content .errormessages {position:absolute; top:5px; left:30px; padding:5px;}
+#login-content .errormessages h3 {margin:0; font-size:1.2em; color:#bd0000; background:url(../Images/Base/exclamation-diamond.png) no-repeat 0 0; padding-top:1px;}
+
+#idCopyright {color:Black; position:absolute; bottom:2px; }
+
+hr { background-color: #aaa;height: 0px;}
+

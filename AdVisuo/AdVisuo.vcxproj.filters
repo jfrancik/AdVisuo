@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Html">
+      <UniqueIdentifier>{346c8207-f8c2-4447-8edd-727f22f945ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdVisuo.cpp">
@@ -118,6 +121,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RibbonScenarioButton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgLogin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -242,6 +248,9 @@
     <ClInclude Include="RibbonScenarioButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DlgLogin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\AdVisuo.ico">
@@ -319,6 +328,30 @@
     </None>
     <None Include="res\logo2.bmp">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\Default.css">
+      <Filter>Html</Filter>
+    </None>
+    <None Include="html\login.html">
+      <Filter>Html</Filter>
+    </None>
+    <None Include="html\bg-login-header.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\bg-login-form.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\btn-login.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\splash1.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\splash2.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\connection.html">
+      <Filter>Html</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

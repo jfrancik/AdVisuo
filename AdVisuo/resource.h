@@ -77,10 +77,7 @@
 #define IDD_ADV_VIDEOCTRL               317
 #define IDR_RIBBON1                     318
 #define IDR_RIBBON                      318
-#define IDB_BITMAP2                     321
-#define IDB_DUPA2                       321
-#define IDB_LOGO2                       321
-#define IDB_LOGO3                       322
+#define IDR_HTML_DLGLOGIN               319
 #define IDD_ADV_ASPECT                  324
 #define IDS_SAVE_OPTION1                331
 #define IDS_DLGVIDEO_MESSAGE            331
@@ -95,8 +92,20 @@
 #define IDS_DLGVIDEO_MESSAGE2           337
 #define IDD_ADV_SCRIPT                  337
 #define IDD_ADV_SCRIPT_PROPERTIES       338
+#define IDD_ADV_LOGIN                   339
 #define IDB_BITMAP3                     340
 #define IDB_SCENARIOS                   340
+#define IDR_HTML_CSS					341
+#define IDR_HTML_PNG_HEADER				342
+#define IDR_HTML_PNG_FORM				343
+#define IDR_HTML_PNG_LOGIN				344
+#define IDR_HTML_PNG_SPLASH1			345
+#define IDR_HTML_PNG_SPLASH2			346
+#define IDR_HTML_PNG_CONNECTION			347
+#define IDR_HTML_DLGCONNECTION			348
+#define IDR_HTML_PNG_RESERVED_3			349
+#define IDR_HTML_PNG_RESERVED_4			350
+#define IDR_HTML_PNG_RESERVED_5			351
 #define IDC_EDIT1                       1000
 #define IDC_EDIT2                       1001
 #define IDC_EDIT3                       1002
@@ -174,6 +183,7 @@
 #define IDC_DATETIMEPICKER2             1087
 #define IDC_LOAD                        1087
 #define IDC_SAVE                        1088
+#define IDC_EDIT_USERNAME               1089
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_CAMERA_LAYOUT                32771
 #define ID_LAYOUT_1                     32772
@@ -288,9 +298,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        341
+#define _APS_NEXT_RESOURCE_VALUE        352
 #define _APS_NEXT_COMMAND_VALUE         32906
-#define _APS_NEXT_CONTROL_VALUE         1089
-#define _APS_NEXT_SYMED_VALUE           317
+#define _APS_NEXT_CONTROL_VALUE         1091
+#define _APS_NEXT_SYMED_VALUE           320
 #endif
 #endif

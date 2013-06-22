@@ -48,6 +48,9 @@ bool CCamera::Create(CEngine *pEngine, CProjectVis *pProject, AVULONG nId, AVULO
 	m_pEngine = pEngine;
 	m_pProject = pProject;
 
+	if (nLiftGroup >= pProject->GetLiftGroupsCount())
+		return false;
+
 	SetLiftGroup(nLiftGroup, false);
 	SetId(nId);
 	SetStorey(nStorey, false);

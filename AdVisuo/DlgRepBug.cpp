@@ -126,7 +126,8 @@ void CDlgReportBug::Report(int nReason, CString message)
 	try
 	{
 		http.setURL(url);
-		http.call(function, request, response);
+		http.setreq(request);
+		http.call(function, response);
 	}
 	catch(...)
 	{
@@ -174,7 +175,8 @@ void CDlgReportBug::OnOK()
 	try
 	{
 		http.setURL(url);
-		http.call(function, request, response);
+		http.setreq(request);
+		http.call(function, response);
 	}
 	catch (_com_error ce)
 	{

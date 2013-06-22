@@ -187,6 +187,9 @@ void CAdVisuoView::OnInitialUpdate()
 	GetProject()->Construct();
 	GetProject()->StoreConfig();
 
+	if (GetProject()->GetLiftGroupsCount() == 0)
+		return;
+
 	Debug(L"Initialising cameras...");
 	// initialise cameras
 	for (int i = 0; i < N_CAMERAS; i++) 
@@ -837,6 +840,8 @@ void CAdVisuoView::OnContextMenu(CWnd* pWnd, CPoint point)
 
 void CAdVisuoView::OnSelCamera(UINT nCmd)
 {
+	if (GetProject()->GetLiftGroupsCount() == 0) return;
+
 	AVLONG nCamera = nCmd - ID_SELCAMERA_1;
 	if (nCamera >= 0 && nCamera < N_CAMERAS)
 	{
@@ -847,6 +852,12 @@ void CAdVisuoView::OnSelCamera(UINT nCmd)
 
 void CAdVisuoView::OnUpdateSelCamera(CCmdUI *pCmdUI)
 {
+	if (GetProject()->GetLiftGroupsCount() == 0) 
+	{
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+
 	AVLONG nCamera = pCmdUI->m_nID - ID_SELCAMERA_1;
 	pCmdUI->SetCheck(m_screen.GetCurCamera() == nCamera);
 	if (nCamera >=0 && nCamera < N_CAMERAS && GetCamera(nCamera))
@@ -1023,6 +1034,8 @@ void CAdVisuoView::OnUpdateStoreyMenu(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(GetCurCamera() && GetCurCamera()->GetDescription() != CAMLOC_LIFT);
 
+	if (GetProject()->GetLiftGroupsCount() == 0) return;
+
 	CMFCRibbonButton *pButton = ((CMFCRibbonButton*)((CMFCRibbonCmdUI*)pCmdUI)->m_pUpdated);
 	if (pButton && pButton->IsKindOf(RUNTIME_CLASS(CMFCRibbonButton)))
 	{
@@ -1056,6 +1069,8 @@ void CAdVisuoView::OnUpdateCameraLiftMenu(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(GetCurCamera() != NULL);
 
+	if (GetProject()->GetLiftGroupsCount() == 0) return;
+
 	CMFCRibbonButton *pButton = ((CMFCRibbonButton*)((CMFCRibbonCmdUI*)pCmdUI)->m_pUpdated);
 	if (pButton && pButton->IsKindOf(RUNTIME_CLASS(CMFCRibbonButton)))
 	{
@@ -1084,6 +1099,8 @@ void CAdVisuoView::OnUpdateCameraLiftMenu(CCmdUI *pCmdUI)
 void CAdVisuoView::OnUpdateCameraGroupMenu(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(GetProject()->GetLiftGroupsCount() >= 2);
+
+	if (GetProject()->GetLiftGroupsCount() == 0) return;
 
 	CMFCRibbonButton *pButton = ((CMFCRibbonButton*)((CMFCRibbonCmdUI*)pCmdUI)->m_pUpdated);
 	if (pButton && pButton->IsKindOf(RUNTIME_CLASS(CMFCRibbonButton)))

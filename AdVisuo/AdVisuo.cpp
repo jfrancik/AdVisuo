@@ -25,6 +25,7 @@
 
 #include "DlgRepBug.h"
 #include "DlgDownload.h"
+#include "DlgLogin.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -307,6 +308,19 @@ BOOL CAdVisuoApp::OnIdle(LONG lCount)
 
 void CAdVisuoApp::OnFileDownload()
 {
+	CDlgLogin dlgLogin;
+
+	dlgLogin.m_strUsername = L"jarekf";
+	dlgLogin.m_strPassword = L"sv_penguin125";
+
+	if (dlgLogin.DoModal() ==IDOK)
+	{
+		AfxMessageBox(dlgLogin.m_strUsername);
+		AfxMessageBox(dlgLogin.m_strPassword);
+	}
+	else
+		return;
+
 	CDlgDownload dlg;
 
 	dlg.SetServers(m_servers);

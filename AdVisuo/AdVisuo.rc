@@ -867,6 +867,15 @@ BEGIN
     EDITTEXT        IDC_EDIT1,7,7,118,24,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
 END
 
+IDD_ADV_LOGIN DIALOGEX 0, 0, 403, 249
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW
+CAPTION "AdVisuo/AdSimulo Login"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_EDIT1,7,198,227,41,ES_MULTILINE | NOT WS_BORDER,WS_EX_TRANSPARENT
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -938,6 +947,14 @@ BEGIN
         RIGHTMARGIN, 125
         TOPMARGIN, 7
         BOTTOMMARGIN, 130
+    END
+
+    IDD_ADV_LOGIN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 396
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 242
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1025,6 +1042,33 @@ BEGIN
     0
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// HTML
+//
+
+IDR_HTML_DLGLOGIN       HTML                    "html/Login.html"
+IDR_HTML_DLGCONNECTION  HTML                    "html/Connection.html"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// CSS
+//
+
+IDR_HTML_CSS            CSS                     "html/Default.css"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// PNG
+//
+
+IDR_HTML_PNG_HEADER     PNG                     "html/bg-login-header.png"
+IDR_HTML_PNG_FORM       PNG                     "html/bg-login-form.png"
+IDR_HTML_PNG_LOGIN      PNG                     "html/btn-login.png"
+IDR_HTML_PNG_SPLASH1    PNG                     "html/splash1.png"
+IDR_HTML_PNG_SPLASH2    PNG                     "html/splash2.png"
+IDR_HTML_PNG_CONNECTION PNG                     "html/connection.png"
 
 /////////////////////////////////////////////////////////////////////////////
 //

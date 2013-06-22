@@ -127,7 +127,7 @@ void CDlgDownload::OnBnClickedRefresh()
 	// Download available projects
 	std::wstringstream str;
 	std::wstring response;
-	CXMLRequest http;
+	CAVRequest http;
 	try
 	{
 		http.setURL((LPCTSTR)url);

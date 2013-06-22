@@ -4,7 +4,7 @@
 #include "xmlrequest.h"
 #include <sstream>
 
-std::wstring CXMLRequest::WAIT_FOR_RESPONSE;
+std::wstring CXMLRequest::ASYNC_RESPONSE;
 
 UINT __cdecl WorkerThread(void *p)
 {
@@ -33,16 +33,41 @@ CXMLRequest::~CXMLRequest()
 	WaitForSingleObject(m_hEvCompleted, 5000);
 }
 
-HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strRequest, std::wstring &strResponse)
+void CXMLRequest::setreq(std::wstring strRequest)
+{
+	m_strRequest = strRequest;
+}
+
+void CXMLRequest::addreq(std::wstring strRequest)
+{
+	if (m_strRequest != L"")
+		m_strRequest += L"&";
+	m_strRequest += strRequest;
+}
+
+void CXMLRequest::addparam(std::wstring strParam,  AVLONG val)
+{
+	std::wstringstream s;
+	s << strParam << L"=" << val;
+	addreq(s.str());
+}
+
+void CXMLRequest::addparam(std::wstring strParam,  std::wstring strVal)
+{
+	std::wstringstream s;
+	s << strParam << L"=" << strVal;
+	addreq(s.str());
+}
+
+HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring &strResponse)
 {
 	if (m_strUrl.empty()) return (m_h = E_INVALIDARG);
 
 	m_strFunction = strFunction;
-	m_strRequest = strRequest;
 
 	SetEvent(m_hEvRequestSet);
 
-	if (&strResponse == &WAIT_FOR_RESPONSE)
+	if (&strResponse == &ASYNC_RESPONSE)
 		return S_OK;
 	else
 	{
@@ -51,27 +76,6 @@ HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strRequest, std
 			throw_exceptions();
 		return get_response(strResponse);
 	}
-}
-
-HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strParam, AVLONG val, std::wstring &strResponse)
-{
-	std::wstringstream s;
-	s << strParam << L"=" << val;
-	return call(strFunction, s.str(), strResponse);
-}
-
-HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strParam1, AVLONG val1, std::wstring strParam2, AVLONG val2, std::wstring &strResponse)
-{
-	std::wstringstream s;
-	s << strParam1 << L"=" << val1 << L"&" << strParam2 << L"=" << val2;
-	return call(strFunction, s.str(), strResponse);
-}
-
-HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring strParam1, AVLONG val1, std::wstring strParam2, AVLONG val2, std::wstring strParam3, AVLONG val3, std::wstring &strResponse)
-{
-	std::wstringstream s;
-	s << strParam1 << L"=" << val1 << L"&" << strParam2 << L"=" << val2 << L"&" << strParam3 << L"=" << val3;
-	return call(strFunction, s.str(), strResponse);
 }
 
 HRESULT CXMLRequest::wait(DWORD dwTimeout)
@@ -174,4 +178,91 @@ HRESULT CXMLRequest::ExecWorkerThread()
 	SetEvent(m_hEvCompleted);
 	CoUninitialize();
 	return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// CAVRequest
+
+std::wstring CAVRequest::m_strUsername = L"jarekf";
+std::wstring CAVRequest::m_strTicket = L"ticket";
+
+HRESULT CAVRequest::AVVersion(std::wstring &strResponse)
+{ 
+	setreq(); 
+	return call(L"AVVersion", strResponse); 
+}
+
+HRESULT CAVRequest::AVIndex(std::wstring &strResponse)
+{ 
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	return call(L"AVIndex", strResponse); 
+}
+
+HRESULT CAVRequest::AVProject(AVLONG nSimulationId, std::wstring &strResponse)
+{ 
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	addparam(L"nSimulationId", nSimulationId); 
+	return call(L"AVProject", strResponse); 
+}
+
+HRESULT CAVRequest::AVLiftGroups(AVLONG nProjectId, std::wstring &strResponse)
+{ 
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	addparam(L"nProjectId", nProjectId); 
+	return call(L"AVLiftGroups", strResponse); 
+}
+
+HRESULT CAVRequest::AVFloors(AVLONG nLiftGroupId, std::wstring &strResponse)	
+{ 
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	addparam(L"nLiftGroupId", nLiftGroupId); 
+	return call(L"AVFloors", strResponse); 
+}
+
+HRESULT CAVRequest::AVShafts(AVLONG nLiftGroupId, std::wstring &strResponse)	
+{ 
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	addparam(L"nLiftGroupId", nLiftGroupId);
+	return call(L"AVShafts", strResponse);
+}
+
+HRESULT CAVRequest::AVSim(AVLONG nLiftGroupId, std::wstring &strResponse)		
+{ 
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	addparam(L"nLiftGroupId", nLiftGroupId); 
+	return call(L"AVSim", strResponse); 
+}
+
+HRESULT CAVRequest::AVSimData(AVLONG nSimId, AVLONG timeFrom, AVLONG timeTo, std::wstring &strResponse)
+{ 
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	addparam(L"nSimId", nSimId);
+	addparam(L"timeFrom", timeFrom);
+	addparam(L"timeTo", timeTo);
+	return call(L"AVSimData", strResponse); 
+}
+
+HRESULT CAVRequest::AVPrjData(AVLONG nProjectId, AVLONG timeFrom, AVLONG timeTo, std::wstring &strResponse)
+{ 
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	addparam(L"nProjectId", nProjectId);
+	addparam(L"timeFrom", timeFrom);
+	addparam(L"timeTo", timeTo);
+	return call(L"AVPrjData", strResponse);
 }
