@@ -122,14 +122,21 @@ BOOL CAdVisuoApp::InitInstance()
 	LoadStdProfileSettings(8);  // Load standard INI file options
 
 	InitContextMenuManager();
-
 	InitKeyboardManager();
-
 	InitTooltipManager();
+
 	CMFCToolTipInfo ttParams;
 	ttParams.m_bVislManagerTheme = TRUE;
 	theApp.GetTooltipManager()->SetTooltipParams(AFX_TOOLTIP_TYPE_ALL,
 		RUNTIME_CLASS(CMFCToolTipCtrl), &ttParams);
+
+	// read server configuration
+	CSettingsStoreSP regSP;
+	CSettingsStore& reg = regSP.Create(FALSE, TRUE);
+	if (reg.Open(GetRegSectionPath(L"URL")))
+		reg.Read(L"servers", m_servers); 
+	if (m_servers.IsEmpty())
+		m_servers = L"217.33.230.53:8081;adsimulo.mylb.eu:8081";
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
@@ -162,9 +169,6 @@ BOOL CAdVisuoApp::InitInstance()
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
-//	if (__argc >= 3)
-//		m_strSimPathName = __targv[2];
-
 	if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileNew)
 		cmdInfo.m_nShellCommand = CCommandLineInfo::FileNothing;
 
@@ -172,12 +176,35 @@ BOOL CAdVisuoApp::InitInstance()
 	if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen &&
 	   (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
 	{
+		// load or download a file --- probably just showing an About plate
 		CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(cmdInfo.m_strFileName);
 		if (pDoc) pDoc->ResetTitle();
 	}
 	else
-	if (!ProcessShellCommand(cmdInfo))
-		return FALSE;
+	{
+		// ask for login details
+
+		CDlgLogin dlg(m_servers);
+		dlg.m_strUsername = "jarekf";
+		dlg.m_strPassword = "sv_penguin125";
+		if (dlg.DoModal() == IDOK)
+		{
+			// store configuration
+			m_url = dlg.m_strUrl;
+			m_servers = dlg.m_strServers;
+			CSettingsStoreSP regSP;
+			CSettingsStore& reg = regSP.Create(FALSE, FALSE);
+			if (reg.CreateKey(GetRegSectionPath(L"URL")))
+				reg.Write(L"servers", m_servers);
+
+			// process any further commands
+			if (!ProcessShellCommand(cmdInfo))
+				return FALSE;
+		}
+		else
+			return FALSE;
+	}
+
 
 	// The main window has been initialized, so show and update it
 	pMainFrame->ShowWindow(SW_SHOWMAXIMIZED);
@@ -308,28 +335,11 @@ BOOL CAdVisuoApp::OnIdle(LONG lCount)
 
 void CAdVisuoApp::OnFileDownload()
 {
-	CDlgLogin dlgLogin;
-
-	dlgLogin.m_strUsername = L"jarekf";
-	dlgLogin.m_strPassword = L"sv_penguin125";
-
-	if (dlgLogin.DoModal() ==IDOK)
-	{
-		AfxMessageBox(dlgLogin.m_strUsername);
-		AfxMessageBox(dlgLogin.m_strPassword);
-	}
-	else
-		return;
-
-	CDlgDownload dlg;
-
-	dlg.SetServers(m_servers);
+	CDlgDownload dlg(m_url);
 
 	if (dlg.DoModal() ==IDOK)
 	{
-		m_servers = dlg.GetServers();
 		CString url = dlg.GetURL();
-
 		CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
 //		if (pDoc) pDoc->ResetTitle();
 	}
@@ -372,4 +382,9 @@ void CAdVisuoApp::OnReportBug()
 	dlg.DoModal();
 }
 
-
+BOOL CAdVisuoApp::LoadWindowPlacement(CRect& rectNormalPosition, int& nFflags, int& nShowCmd)
+{
+	BOOL b = CWinAppEx::LoadWindowPlacement(rectNormalPosition, nFflags, nShowCmd);
+	nShowCmd = SW_HIDE;
+	return b;
+}

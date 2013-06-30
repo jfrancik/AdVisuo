@@ -8,11 +8,11 @@
 
 IMPLEMENT_DYNAMIC(CDlgDownload, CDialog)
 
-CDlgDownload::CDlgDownload(CWnd* pParent /*=NULL*/)
+CDlgDownload::CDlgDownload(CString server, CWnd* pParent /*=NULL*/)
 	: CDialog(CDlgDownload::IDD, pParent)
 {
-	m_server = _T("");
-	m_details = _T("");
+	m_strUrl = server;
+	m_details = L"";
 }
 
 CDlgDownload::~CDlgDownload()
@@ -25,8 +25,6 @@ CDlgDownload::~CDlgDownload()
 void CDlgDownload::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_CBString(pDX, IDC_COMBO1, m_server);
-	DDX_Control(pDX, IDC_COMBO1, m_combo);
 	DDX_Control(pDX, IDC_LIST1, m_list);
 	DDX_Text(pDX, IDC_DETAILS, m_details);
 }
@@ -34,8 +32,6 @@ void CDlgDownload::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CDlgDownload, CDialog)
 	ON_BN_CLICKED(IDOK, &CDlgDownload::OnBnClickedOk)
-	ON_BN_CLICKED(IDC_REFRESH, &CDlgDownload::OnBnClickedRefresh)
-	ON_CBN_SELCHANGE(IDC_COMBO1, &CDlgDownload::OnSelchangeCombo)
 	ON_NOTIFY(LVN_COLUMNCLICK, IDC_LIST1, &CDlgDownload::OnColumnclickList)
 	ON_NOTIFY(NM_CLICK, IDC_LIST1, &CDlgDownload::OnClickList)
 	ON_NOTIFY(NM_DBLCLK, IDC_LIST1, &CDlgDownload::OnDblclkList)
@@ -84,27 +80,13 @@ BOOL CDlgDownload::OnInitDialog()
 	m_bAscending[0] = false;
 	m_bAscending[1] = m_bAscending[2] = true;
 
-	// tokenize and initialise server names
-	int curPos = 0;
-	CString token = m_servers.Tokenize(_T(";"), curPos);
-	m_server = token;
-	while (token != _T(""))
-	{
-		m_combo.AddString(token);
-		token = m_servers.Tokenize(_T(";"), curPos);
-	};
 	UpdateData(0);
 
+
+
 	// post message for loading project titles
-	::PostMessage(m_hWnd, WM_COMMAND, MAKEWPARAM(IDC_REFRESH, BN_CLICKED), (LPARAM)0);
-
-	return TRUE;
-}
-
-void CDlgDownload::OnBnClickedRefresh()
-{
-	if (m_server.IsEmpty())
-		return;
+	if (m_strUrl.IsEmpty())
+		return true;
 
 	// show wait state...
 	CWaitCursor wait;
@@ -121,17 +103,15 @@ void CDlgDownload::OnBnClickedRefresh()
 	m_details = L"";
 	UpdateData(FALSE);
 
-	CString url;
-	url.Format(L"http://%s/advsrv.asmx", m_server);
-
 	// Download available projects
 	std::wstringstream str;
 	std::wstring response;
-	CAVRequest http;
+	CXMLRequest http;
 	try
 	{
-		http.setURL((LPCTSTR)url);
-		http.AVIndex(response);
+		http.setURL((LPCTSTR)m_strUrl);
+		http.AVIndex();
+		http.get_response(response);
 		CProjectVis::LoadIndexFromBuf(response.c_str(), m_prjs);
 		
 		m_list.DeleteAllItems();
@@ -158,7 +138,7 @@ void CDlgDownload::OnBnClickedRefresh()
 		m_list.SetItemState(0, LVIS_SELECTED, LVIS_SELECTED);
 		m_list.SetSelectionMark(0);
 
-		return;
+		return true;
 
 	}
 	catch (_prj_error pe)
@@ -184,13 +164,10 @@ void CDlgDownload::OnBnClickedRefresh()
 	m_list.DeleteAllItems();
 	Debug(str.str().c_str());
 	AfxMessageBox(str.str().c_str(), MB_OK | MB_ICONHAND);
+
+	return true;
 }
 
-
-void CDlgDownload::OnSelchangeCombo()
-{
-	::PostMessage(m_hWnd, WM_COMMAND, MAKEWPARAM(IDC_REFRESH, BN_CLICKED), (LPARAM)0);
-}
 
 void CDlgDownload::OnColumnclickList(NMHDR *pNMHDR, LRESULT *pResult)
 {
@@ -259,20 +236,7 @@ void CDlgDownload::OnBnClickedOk()
 	CProjectVis *pPrj = (CProjectVis*)m_list.GetItemData(nPos);
 	if (!pPrj) return;
 
-	m_servers = m_server;
-	for (int i = 0; i < min(m_combo.GetCount(), 5); i++)
-	{
-		CString txt;
-		m_combo.GetLBText(i, txt);
-
-		if (txt == m_server)
-			continue;
-
-		m_servers += ";";
-		m_servers += txt;
-	}
-
-	m_url.Format(L"http://%s/advsrv.asmx?request=%d", m_server, pPrj->GetSimulationId());
+	m_url.Format(L"http://%s/advsrv.asmx?request=%d", m_strUrl, pPrj->GetSimulationId());
 
 	CDialog::OnOK();
 }

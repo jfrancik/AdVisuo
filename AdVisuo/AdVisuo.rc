@@ -691,13 +691,10 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "Load",IDOK,226,221,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,280,221,50,14
-    LTEXT           "http://",IDC_STATIC,7,20,22,8
-    COMBOBOX        IDC_COMBO1,29,19,222,30,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Server URL address:",IDC_STATIC,7,7,67,8
     LTEXT           "Available projects:",IDC_STATIC,7,38,60,8
     LTEXT           "Project details:",IDC_STATIC,7,159,49,8
     LTEXT           "Static",IDC_DETAILS,7,168,323,46,SS_SUNKEN
-    PUSHBUTTON      "Load project titles",IDC_REFRESH,255,18,75,14
     CONTROL         "",IDC_LIST1,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,48,323,107
 END
 
@@ -873,7 +870,6 @@ EXSTYLE WS_EX_TOOLWINDOW
 CAPTION "AdVisuo/AdSimulo Login"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_EDIT1,7,198,227,41,ES_MULTILINE | NOT WS_BORDER,WS_EX_TRANSPARENT
 END
 
 
@@ -1048,8 +1044,7 @@ END
 // HTML
 //
 
-IDR_HTML_DLGLOGIN       HTML                    "html/Login.html"
-IDR_HTML_DLGCONNECTION  HTML                    "html/Connection.html"
+IDR_HTML_LOGIN          HTML                    "html/login.html"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1065,7 +1060,7 @@ IDR_HTML_CSS            CSS                     "html/Default.css"
 
 IDR_HTML_PNG_HEADER     PNG                     "html/bg-login-header.png"
 IDR_HTML_PNG_FORM       PNG                     "html/bg-login-form.png"
-IDR_HTML_PNG_LOGIN      PNG                     "html/btn-login.png"
+IDR_HTML_PNG_BUTTON     PNG                     "html/button.png"
 IDR_HTML_PNG_SPLASH1    PNG                     "html/splash1.png"
 IDR_HTML_PNG_SPLASH2    PNG                     "html/splash2.png"
 IDR_HTML_PNG_CONNECTION PNG                     "html/connection.png"

@@ -2,9 +2,8 @@
 
 #include "StdAfx.h"
 #include "xmlrequest.h"
+#include "../CommonFiles/XMLTools.h"
 #include <sstream>
-
-std::wstring CXMLRequest::ASYNC_RESPONSE;
 
 UINT __cdecl WorkerThread(void *p)
 {
@@ -59,23 +58,16 @@ void CXMLRequest::addparam(std::wstring strParam,  std::wstring strVal)
 	addreq(s.str());
 }
 
-HRESULT CXMLRequest::call(std::wstring strFunction, std::wstring &strResponse)
+void CXMLRequest::call(std::wstring strFunction)
 {
-	if (m_strUrl.empty()) return (m_h = E_INVALIDARG);
+	if (m_strUrl.empty())
+	{
+		m_h = E_INVALIDARG;
+		throw_exceptions();
+	}
 
 	m_strFunction = strFunction;
-
 	SetEvent(m_hEvRequestSet);
-
-	if (&strResponse == &ASYNC_RESPONSE)
-		return S_OK;
-	else
-	{
-		wait(); 
-		if (!ok())
-			throw_exceptions();
-		return get_response(strResponse);
-	}
 }
 
 HRESULT CXMLRequest::wait(DWORD dwTimeout)
@@ -83,10 +75,14 @@ HRESULT CXMLRequest::wait(DWORD dwTimeout)
 	return (WaitForSingleObject(m_hEvCompleted, dwTimeout) == WAIT_OBJECT_0) ? S_OK : E_FAIL;
 }
 
-HRESULT CXMLRequest::get_response(std::wstring &strResponse)
+void CXMLRequest::get_response(std::wstring &strResponse, DWORD dwTimeout)
 {
+	if (dwTimeout > 0)
+		wait(dwTimeout);
+
 	if (!ok())
 		throw_exceptions();
+	
 	strResponse = ready() ? m_strResponse : L"";
 
 	m_strResponse = L"";
@@ -96,11 +92,9 @@ HRESULT CXMLRequest::get_response(std::wstring &strResponse)
 	m_nReadyState = 0; 
 
 	SetEvent(m_hEvResponse);
-
-	return S_OK;
 }
 
-HRESULT CXMLRequest::ignore_response()
+void CXMLRequest::ignore_response()
 {
 	if (!ok())
 		throw_exceptions();
@@ -112,8 +106,26 @@ HRESULT CXMLRequest::ignore_response()
 	m_nReadyState = 0; 
 
 	SetEvent(m_hEvResponse);
+}
 
-	return S_OK;
+std::wstring CXMLRequest::unpack_as_string(std::wstring &strResponse, std::wstring defValue)
+{
+	xmltools::CXmlReader reader(strResponse.c_str());
+	reader.read_simple_type(L"string");
+	if (reader.find(L"string") == reader.end())
+		return defValue;
+	std::wstring str = reader[L"string"];
+	return str;
+}
+
+int CXMLRequest::unpack_as_int(std::wstring &strResponse, int defValue)
+{
+	xmltools::CXmlReader reader(strResponse.c_str());
+	reader.read_simple_type(L"int");
+	if (reader.find(L"int") == reader.end())
+		return defValue;
+	int i = reader[L"int"];
+	return i;
 }
 
 void CXMLRequest::throw_exceptions()
@@ -181,71 +193,143 @@ HRESULT CXMLRequest::ExecWorkerThread()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-// CAVRequest
+// Functions
 
-std::wstring CAVRequest::m_strUsername = L"jarekf";
-std::wstring CAVRequest::m_strTicket = L"ticket";
-
-HRESULT CAVRequest::AVVersion(std::wstring &strResponse)
+std::wstring CXMLRequest::AVGetAppName()
 { 
-	setreq(); 
-	return call(L"AVVersion", strResponse); 
+	std::wstring response;
+	setreq(L"keyName=APP_NAME");
+	call(L"AVGetStrStatus"); 
+	get_response(response);
+	return unpack_as_string(response);
 }
 
-HRESULT CAVRequest::AVIndex(std::wstring &strResponse)
+int CXMLRequest::AVGetRequiredVersion()
+{
+	std::wstring response;
+	setreq(L"keyName=VERSION_REQUIRED");
+	call(L"AVGetIntStatus"); 
+	get_response(response);
+	return unpack_as_int(response);
+}
+
+std::wstring CXMLRequest::AVGetRequiredVersionDate()
+{
+	std::wstring response;
+	setreq(L"keyName=VERSION_REQUIRED");
+	call(L"AVGetStrStatus"); 
+	get_response(response);
+	return unpack_as_string(response);
+}
+
+int CXMLRequest::AVGetLatestVersion()
+{ 
+	std::wstring response;
+	setreq(L"keyName=VERSION_LATEST");
+	call(L"AVGetIntStatus"); 
+	get_response(response);
+	return unpack_as_int(response);
+}
+
+std::wstring CXMLRequest::AVGetLatestVersionDate()
+{ 
+	std::wstring response;
+	setreq(L"keyName=VERSION_LATEST");
+	call(L"AVGetStrStatus"); 
+	get_response(response);
+	return unpack_as_string(response);
+}
+
+std::wstring CXMLRequest::AVGetLatestVersionDownloadPath()
+{
+	std::wstring response;
+	setreq(L"keyName=DOWNLOAD_PATH");
+	call(L"AVGetStrStatus"); 
+	get_response(response);
+	CString path;
+	path.Format(unpack_as_string(response).c_str(), AVGetLatestVersion());
+	return (LPCTSTR)path;
+}
+
+
+
+bool CXMLRequest::AVLogin(std::wstring strUsername, std::wstring strPassword)
+{
+	m_strUsername = strUsername;
+	std::wstring response;
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strPassword", strPassword);
+	call(L"AVCreateTicket");
+	get_response(response);
+	m_strTicket = unpack_as_string(response);
+	return m_strTicket.size() > 0;
+}
+
+bool CXMLRequest::AVIsAuthorised()
+{
+	return false;
+}
+
+bool CXMLRequest::AVExtendAuthorisation()
+{
+	return false;
+}
+
+void CXMLRequest::AVIndex()
 { 
 	setreq();
 	addparam(L"strUsername", m_strUsername);
 	addparam(L"strTicket", m_strTicket);
-	return call(L"AVIndex", strResponse); 
+	call(L"AVIndex"); 
 }
 
-HRESULT CAVRequest::AVProject(AVLONG nSimulationId, std::wstring &strResponse)
+void CXMLRequest::AVProject(AVLONG nSimulationId)
 { 
 	setreq();
 	addparam(L"strUsername", m_strUsername);
 	addparam(L"strTicket", m_strTicket);
 	addparam(L"nSimulationId", nSimulationId); 
-	return call(L"AVProject", strResponse); 
+	call(L"AVProject"); 
 }
 
-HRESULT CAVRequest::AVLiftGroups(AVLONG nProjectId, std::wstring &strResponse)
+void CXMLRequest::AVLiftGroups(AVLONG nProjectId)
 { 
 	setreq();
 	addparam(L"strUsername", m_strUsername);
 	addparam(L"strTicket", m_strTicket);
 	addparam(L"nProjectId", nProjectId); 
-	return call(L"AVLiftGroups", strResponse); 
+	call(L"AVLiftGroups"); 
 }
 
-HRESULT CAVRequest::AVFloors(AVLONG nLiftGroupId, std::wstring &strResponse)	
+void CXMLRequest::AVFloors(AVLONG nLiftGroupId)	
 { 
 	setreq();
 	addparam(L"strUsername", m_strUsername);
 	addparam(L"strTicket", m_strTicket);
 	addparam(L"nLiftGroupId", nLiftGroupId); 
-	return call(L"AVFloors", strResponse); 
+	call(L"AVFloors"); 
 }
 
-HRESULT CAVRequest::AVShafts(AVLONG nLiftGroupId, std::wstring &strResponse)	
+void CXMLRequest::AVShafts(AVLONG nLiftGroupId)	
 { 
 	setreq();
 	addparam(L"strUsername", m_strUsername);
 	addparam(L"strTicket", m_strTicket);
 	addparam(L"nLiftGroupId", nLiftGroupId);
-	return call(L"AVShafts", strResponse);
+	call(L"AVShafts");
 }
 
-HRESULT CAVRequest::AVSim(AVLONG nLiftGroupId, std::wstring &strResponse)		
+void CXMLRequest::AVSim(AVLONG nLiftGroupId)		
 { 
 	setreq();
 	addparam(L"strUsername", m_strUsername);
 	addparam(L"strTicket", m_strTicket);
 	addparam(L"nLiftGroupId", nLiftGroupId); 
-	return call(L"AVSim", strResponse); 
+	call(L"AVSim"); 
 }
 
-HRESULT CAVRequest::AVSimData(AVLONG nSimId, AVLONG timeFrom, AVLONG timeTo, std::wstring &strResponse)
+void CXMLRequest::AVSimData(AVLONG nSimId, AVLONG timeFrom, AVLONG timeTo)
 { 
 	setreq();
 	addparam(L"strUsername", m_strUsername);
@@ -253,10 +337,10 @@ HRESULT CAVRequest::AVSimData(AVLONG nSimId, AVLONG timeFrom, AVLONG timeTo, std
 	addparam(L"nSimId", nSimId);
 	addparam(L"timeFrom", timeFrom);
 	addparam(L"timeTo", timeTo);
-	return call(L"AVSimData", strResponse); 
+	call(L"AVSimData"); 
 }
 
-HRESULT CAVRequest::AVPrjData(AVLONG nProjectId, AVLONG timeFrom, AVLONG timeTo, std::wstring &strResponse)
+void CXMLRequest::AVPrjData(AVLONG nProjectId, AVLONG timeFrom, AVLONG timeTo)
 { 
 	setreq();
 	addparam(L"strUsername", m_strUsername);
@@ -264,5 +348,5 @@ HRESULT CAVRequest::AVPrjData(AVLONG nProjectId, AVLONG timeFrom, AVLONG timeTo,
 	addparam(L"nProjectId", nProjectId);
 	addparam(L"timeFrom", timeFrom);
 	addparam(L"timeTo", timeTo);
-	return call(L"AVPrjData", strResponse);
+	call(L"AVPrjData");
 }

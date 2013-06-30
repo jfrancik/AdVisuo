@@ -3,13 +3,13 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Adsimulo - Login</title>
+    <title>AdVisuo: Login</title>
     <link href="res:/CSS/#341" type="text/css" rel="stylesheet" />
 </head>
 
-<script language="ecmascript">
+<script type="text/javascript" language="ecmascript">
 
-    // Forbid user’s mouse selecting for the content (allow text selection in EditBox only)
+    // Forbid user's mouse selecting for the content (allow text selection in EditBox only)
     function onSelect1()
     {
         if (window.event.srcElement.tagName != "INPUT")
@@ -19,51 +19,151 @@
         }
     }
 
-    // Forbid IE context menu (allow in EditBox only)
-    function onContextMenu()
-    {
-        if (window.event.srcElement.tagName != "INPUT")
-        {
-            window.event.returnValue = false;
-            window.event.cancelBubble = true;
-            return false;
-        }
-    }
-
     // Install Context Menu and Mark handlers on HTML loading.
     function onLoad()
     {
-        // forbid cursor change (except "INPUT" entry box and "A" hyperlink) for HTML text.
+        document.onselectstart = onSelect1;
+
+        // set onclick for all button text labels
         var Objs = document.all;
         for (i = 0; i < Objs.length; i++)
-            if (Objs(i).tagName != "INPUT" && Objs(i).tagName != "A")
-                Objs(i).style.cursor = "default";
+        {
+            if (Objs(i).className == "button-text" || Objs(i).className == "button-text-2")
+                Objs(i).onclick = function (e) { this.previousSibling.previousSibling.fireEvent('onclick'); }
+        }
 
-        document.onselectstart = onSelect1;
-        document.oncontextmenu = onContextMenu;
+        // set event handler for the SELECT
+        var sel = document.getElementById("idUrlSel");
+        sel.onchange = function ()
+        {
+            if (this.selectedIndex == this.options.length - 1)
+            {
+                document.getElementById("idDivOther").style.display = "block";
+                document.getElementById("idUrlOther").value = "";
+            }
+            else
+            {
+                document.getElementById("idDivOther").style.display = "none";
+                document.getElementById("idUrlOther").value = this.options[this.selectedIndex].innerHTML;
+            }
+        }
+    }
+
+    function GotoLogin()
+    {
+        document.getElementById("idFailure").style.display = "none";
+        document.getElementById("idLogin").style.display = "block";
+        document.getElementById("idConnection").style.display = "none";
+        document.getElementById("idBadLogin").style.display = "none";
+    }
+
+    function GotoBadLogin()
+    {
+        document.getElementById("idFailure").style.display = "none";
+        document.getElementById("idLogin").style.display = "block";
+        document.getElementById("idConnection").style.display = "none";
+        document.getElementById("idBadLogin").style.display = "block";
+    }
+
+    function GotoFailure(title, txt)
+    {
+        document.getElementById("idFailure").style.display = "block";
+        document.getElementById("idLogin").style.display = "none";
+        document.getElementById("idConnection").style.display = "none";
+        document.getElementById("idFailureTitle").innerHTML = title;
+        document.getElementById("idFailureDesc").innerHTML = txt;
+    }
+
+    function GotoConnection(servers)
+    {
+        document.getElementById("idFailure").style.display = "none";
+        document.getElementById("idLogin").style.display = "none";
+        document.getElementById("idConnection").style.display = "block";
+        document.getElementById("idDivOther").style.display = "none";
+
+        // populate the SELECT
+        var arr = (servers + ";--- other ---").split(";");
+        var sel = document.getElementById("idUrlSel");
+        var inp = document.getElementById("idUrlOther");
+        sel.innerHTML = "";
+        inp.value = arr[0];
+        for (var i = 0; i < arr.length; i++)
+        {
+            var option = document.createElement("option");
+            option.text = arr[i];
+            try
+            {
+                // for IE earlier than version 8
+                sel.add(option, sel.options[null]);
+            }
+            catch (e)
+            {
+                sel.add(option, null);
+            }
+        }
     }
 </script>
 
 <body onload="onLoad();">
     <h1>AdVisuo v3.0</h1>
-    <div id="login-container">
-	    <div id="login-content">
-		    <div id="login-panel">
+    
+    <!-- Failure information -->
+    <div id="idFailure" class="failure-container">
+        <h2 id="idFailureTitle">Error</h2>
+        <div id="idFailureDesc">Descripttion</div>
+
+        <div>&nbsp;</div>
+
+        <div><input type="image" name="ConnButton" id="idAfterFailConn" class="conn-button" src="res:/PNG/#347" alt="Setup server connection" />
+        <a href="#" class="button-text-2">Setup server connection</a></div>
+
+        <div>&nbsp;</div>
+
+        <input type="image" name="CancelButton" id="idCancelButton" class="form-button" src="res:/PNG/#344" alt="Close" style="cursor:pointer;"/>
+        <div class="button-text" style="margin:-27px 0 0 0px"><b>Close</b></div>
+    </div><!--end info container-->
+
+    <!-- Login box -->
+    <div id="idLogin" class="form-container">
+	    <div class="form-content">
+		    <div class="form-panel">
 			    <div class="inner">
+                    <div id="idBadLogin" class="bad-login" style="position:absolute; left: 30px; top: 1em;">Your login attempt has failed. Please try again.</div>
 			        <div class="formrow">
 			            <label for="idUserName">Username</label>
-			            <input name="UserName" type="text" id="idUserName" class="textfield">
-			            <span id="ctrlLogin_UserNameRequired" title="Username is required" class="required" style="visibility:hidden;">*</span>
+			            <input name="UserName" type="text" id="idUserName" class="textfield" />
 			        </div>
 			        <div class="formrow">
 			            <label for="idPassword">Password</label>
-			            <input name="Password" type="password" id="idPassword" class="textfield">
-			            <span id="ctrlLogin_PasswordRequired" title="Password is required" class="required" style="visibility:hidden;">*</span>
+			            <input name="Password" type="password" id="idPassword" class="textfield" />
 			        </div>
-			        <input type="image" name="LoginButton" id="idLoginButton" class="login-button" src="res:/PNG/#344" alt="Log in">
-			        <input type="image" name="ConnButton" id="idConnButton" class="conn-button" src="res:/PNG/#347" alt="Setup server connection" style="padding-left:12em" />
 
-			        <p class="alert">Forgotten your details? <a href="mailto:Darren.Russell@lerchbates.eu?subject=Forgotten%20Password">Contact your administrator</a>.</p>
+			        <input type="image" name="LoginButton" id="idLoginButton" class="form-button" src="res:/PNG/#344" alt="Log in" />
+                    <div class="button-text" style="margin:-27px 0 0 110px"><b>Log in</b></div>
+                    <input type="image" name="ConnButton" id="idConnButton" class="conn-button" src="res:/PNG/#347" alt="Setup server connection" style="position:relative; left: 30em; bottom: 2.5em;" />
+			        <p class="alert" style="position:relative; left: 0em; bottom: 3em;" >Forgotten your details? <a href="mailto:Darren.Russell@lerchbates.eu?subject=Forgotten%20Password">Contact your administrator</a>.</p>
+			    </div>
+		    </div>
+	    </div><!--end login content-->
+    </div><!--end login container-->
+
+    <!-- Connection box -->
+    <div id="idConnection"  class="form-container">
+	    <div class="form-content">
+		    <div class="form-panel">
+			    <div class="inner">
+			        <div class="formrow">
+			            <label for="idUrlSel">Choose the URL:</label>
+			            <select name="UrlSel" id="idUrlSel" class="textfield">
+                        </select>
+			        </div>
+			        <div class="formrow" id="idDivOther" style="display:none">
+			            <label for="idUrlOther">Type the URL:</label>
+			            <input name="UrlOther" type="text" id="idUrlOther" class="textfield" />
+			        </div>
+
+        			<input type="image" name="ProceedButton" id="idProceedButton" class="form-button" src="res:/PNG/#344" alt="Proceed to Log in" style="position:absolute; left: 53px; bottom:40px;" />
+		        	<div class="button-text" style="position:absolute; left: 166px; bottom:35px"><b>Proceed</b></div>
 			    </div>
 		    </div>
 	    </div><!--end login content-->

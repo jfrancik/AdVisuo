@@ -164,6 +164,9 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	CString strUrl = url;
 	m_strUrl = strUrl;
 	AVULONG nId = 0;
+	CString strUserid;
+	CString strPassword;
+	CString strTicket;
 
 	if (url.Left(8).Compare(L"advisuo:") == 0)
 		url = CString(L"http:") + url.Mid(8);
@@ -184,6 +187,12 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 
 			if (name.Compare(L"request") == 0)
 				nId = _wtoi(val);
+			if (name.Compare(L"userid") == 0)
+				strUserid = val;
+			if (name.Compare(L"password") == 0)
+				strPassword = val;
+			if (name.Compare(L"ticket") == 0)
+				strTicket = val;
 		}
 	}
 	if (strUrl.Right(13) == "/GetAVProject") strUrl = strUrl.Left(strUrl.GetLength() - 13);
@@ -196,25 +205,30 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	{
 		m_http.setURL((LPCTSTR)strUrl);
 
-		m_http.AVProject(nId, response);
+		m_http.AVProject(nId);
+		m_http.get_response(response);
 		GetProject()->LoadFromBuf(response.c_str());
 
 		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
 		m_strPathName = GetTitle();
 
-		m_http.AVLiftGroups(GetProject()->GetId(), response);
+		m_http.AVLiftGroups(GetProject()->GetId());
+		m_http.get_response(response);
 		GetProject()->LoadFromBuf(response.c_str());
 
 		// load lift groups
 		for each (CLiftGroupVis *pGroup in GetProject()->GetLiftGroups())
 		{
-			m_http.AVFloors(pGroup->GetId(), response);
+			m_http.AVFloors(pGroup->GetId());
+			m_http.get_response(response);
 			GetProject()->LoadFromBuf(response.c_str());
 
-			m_http.AVShafts(pGroup->GetId(), response);
+			m_http.AVShafts(pGroup->GetId());
+			m_http.get_response(response);
 			GetProject()->LoadFromBuf(response.c_str());
 
-			m_http.AVSim(pGroup->GetId(), response);
+			m_http.AVSim(pGroup->GetId());
+			m_http.get_response(response);
 			GetProject()->LoadFromBuf(response.c_str());
 		}
 
@@ -265,7 +279,7 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 	{
 		// Process the most recently loaded data
 		std::wstring response;
-		m_http.get_response(response);
+		m_http.get_response(response, 0);
 		GetProject()->LoadFromBuf(response.c_str());
 		
 		m_timeLoaded += 60000;

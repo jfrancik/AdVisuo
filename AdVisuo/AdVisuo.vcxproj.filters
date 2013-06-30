@@ -251,6 +251,9 @@
     <ClInclude Include="DlgLogin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="_version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\AdVisuo.ico">
@@ -351,6 +354,21 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="html\connection.html">
+      <Filter>Html</Filter>
+    </None>
+    <None Include="html\connection.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\button.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\empty.html">
+      <Filter>Html</Filter>
+    </None>
+    <None Include="html\about.htm">
+      <Filter>Html</Filter>
+    </None>
+    <None Include="html\fail.html">
       <Filter>Html</Filter>
     </None>
   </ItemGroup>

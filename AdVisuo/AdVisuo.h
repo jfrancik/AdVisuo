@@ -39,6 +39,7 @@ private:
 	int m_nWalkMode;						// Walk or CCTV mode
 	int m_nColouringMode;					// Character Colouring Mode
 	CString m_servers;						// list of servers for the CDlgDownload
+	CString m_url;							// server where the sim is loaded from
 
 	ULONG m_nSessionId;
 
@@ -79,6 +80,7 @@ public:
 	virtual void AddToRecentFileList(LPCTSTR lpszPathName);
 	afx_msg void OnReportBug();
 	virtual int ExitInstance();
+	virtual BOOL LoadWindowPlacement(CRect& rectNormalPosition, int& nFflags, int& nShowCmd);
 };
 
 extern CAdVisuoApp theApp;

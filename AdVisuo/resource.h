@@ -69,15 +69,12 @@
 #define IDB_CAMERALARGE                 311
 #define IDB_BITMAP1                     312
 #define IDB_LOGO                        312
-#define IDR_HTML_DLGDOWNLOAD            313
 #define IDD_ADV_DOWNLOAD                315
-#define IDR_HTML_DLGDOWNLOAD1           316
 #define IDD_DIALOG1                     316
 #define IDD_ADV_VIDEO                   316
 #define IDD_ADV_VIDEOCTRL               317
 #define IDR_RIBBON1                     318
 #define IDR_RIBBON                      318
-#define IDR_HTML_DLGLOGIN               319
 #define IDD_ADV_ASPECT                  324
 #define IDS_SAVE_OPTION1                331
 #define IDS_DLGVIDEO_MESSAGE            331
@@ -95,17 +92,15 @@
 #define IDD_ADV_LOGIN                   339
 #define IDB_BITMAP3                     340
 #define IDB_SCENARIOS                   340
-#define IDR_HTML_CSS					341
-#define IDR_HTML_PNG_HEADER				342
-#define IDR_HTML_PNG_FORM				343
-#define IDR_HTML_PNG_LOGIN				344
-#define IDR_HTML_PNG_SPLASH1			345
-#define IDR_HTML_PNG_SPLASH2			346
-#define IDR_HTML_PNG_CONNECTION			347
-#define IDR_HTML_DLGCONNECTION			348
-#define IDR_HTML_PNG_RESERVED_3			349
-#define IDR_HTML_PNG_RESERVED_4			350
-#define IDR_HTML_PNG_RESERVED_5			351
+#define IDR_HTML_CSS                    341
+#define IDR_HTML_PNG_HEADER             342
+#define IDR_HTML_PNG_FORM               343
+#define IDR_HTML_PNG_BUTTON             344
+#define IDR_HTML_PNG_SPLASH1            345
+#define IDR_HTML_PNG_SPLASH2            346
+#define IDR_HTML_PNG_CONNECTION         347
+#define IDR_HTML_LOGIN                  355
+#define IDR_HTML_ABOUT                  357
 #define IDC_EDIT1                       1000
 #define IDC_EDIT2                       1001
 #define IDC_EDIT3                       1002
@@ -298,7 +293,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        352
+#define _APS_NEXT_RESOURCE_VALUE        358
 #define _APS_NEXT_COMMAND_VALUE         32906
 #define _APS_NEXT_CONTROL_VALUE         1091
 #define _APS_NEXT_SYMED_VALUE           320

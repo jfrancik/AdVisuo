@@ -116,6 +116,15 @@ bool CXmlReader::read()
 	return false;
 }
 
+bool CXmlReader::read_simple_type(LPCWSTR pType)
+{
+	std::wstring xstype = L"xs:";
+	xstype += pType;
+	m_name = pType;
+	m_schema[pType].from_type(xstype);
+	return read();
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CXmlWriter
 

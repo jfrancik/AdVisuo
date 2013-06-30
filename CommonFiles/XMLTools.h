@@ -25,6 +25,8 @@ public:
 	void operator >> (dbtools::CCollection &coll);
 	bool read();
 	bool read(dbtools::CCollection &coll)	{ read(); *this >> coll; }
+
+	bool read_simple_type(LPCOLESTR pType);
 };
 
 class CXmlWriter : public dbtools::CCollection

@@ -208,13 +208,21 @@
     <ClInclude Include="Screen.h" />
     <ClInclude Include="xmlrequest.h" />
     <ClInclude Include="_base.h" />
+    <ClInclude Include="_version.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="html\about.htm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
     <None Include="html\bg-login-form.png" />
     <None Include="html\bg-login-header.png" />
     <None Include="html\btn-login.png" />
+    <None Include="html\button.png" />
     <None Include="html\connection.html" />
+    <None Include="html\connection.png" />
     <None Include="html\Default.css" />
+    <None Include="html\empty.html" />
+    <None Include="html\fail.html" />
     <None Include="html\login.html" />
     <None Include="html\splash1.png" />
     <None Include="html\splash2.png" />

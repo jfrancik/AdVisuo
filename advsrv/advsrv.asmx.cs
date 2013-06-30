@@ -51,9 +51,45 @@ namespace advsrv
             return Convert.ToBase64String(inArray);
         }
 
+        [WebMethod(Description = "Returns status or version information (int information).")]
+        public int AVGetIntStatus(string keyName)
+        {
+            int res = -1;
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
+            OleDbCommand cmdSelect = new OleDbCommand("SELECT IntValue FROM AVStatus WHERE Name=?", conn);
+            cmdSelect.Parameters.AddWithValue("Name", keyName);
+            conn.Open();
+            OleDbDataReader reader = cmdSelect.ExecuteReader();
+            if (reader.Read())
+            {
+                res = reader.GetInt32(0);
+                reader.Close();
+            }
+            return res;
+        }
+
+        [WebMethod(Description = "Returns status (string information).")]
+        public string AVGetStrStatus(string keyName)
+        {
+            string res = "";
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
+            OleDbCommand cmdSelect = new OleDbCommand("SELECT Value FROM AVStatus WHERE Name=?", conn);
+            cmdSelect.Parameters.AddWithValue("Name", keyName);
+            conn.Open();
+            OleDbDataReader reader = cmdSelect.ExecuteReader();
+            if (reader.Read())
+            {
+                res = reader.GetString(0);
+                reader.Close();
+            }
+            return res;
+        }
+
         [WebMethod(Description = "Creates and returns a valid ticket for the given username and password, or empty string if unauthorised.")]
         public string  AVCreateTicket(string strUsername, string strPassword)
         {
+            System.Threading.Thread.Sleep(750);
+
             // open connection
             OleDbConnection connUsers = new OleDbConnection(GetUsersConnStr());
             OleDbCommand cmdSelect = new OleDbCommand("SELECT m.Password, m.PasswordSalt FROM aspnet_Users u, aspnet_Membership m WHERE u.UserId=m.UserId AND u.UserName=?", connUsers);
@@ -70,7 +106,10 @@ namespace advsrv
                 string ver = EncodePassword(strPassword, salt);
                 reader.Close();
                 if (ver != pswd)
+                {
+                    System.Threading.Thread.Sleep(1500);
                     return "";
+                }
 
                 // create ticket
                 RandomNumberGenerator gen = RandomNumberGenerator.Create();
@@ -92,6 +131,7 @@ namespace advsrv
                 catch (OleDbException ex)
                 {
                     strTicket = "";
+                    System.Threading.Thread.Sleep(1500);
                 }
 
                 return strTicket;
@@ -100,6 +140,7 @@ namespace advsrv
             {
                 // wrong user
                 reader.Close();
+                System.Threading.Thread.Sleep(1500);
                 return "";
             }
         }
@@ -167,17 +208,11 @@ namespace advsrv
             return strTicket;
         }
 
-        [WebMethod(Description = "Returns system version.")]
-        public int AVVersion()
-        {
-            return 110;
-        }
-
         [WebMethod(Description = "Returns project index.")]
         public DataSet AVIndex(string strUsername, string strTicket)
         {
 //            if (AVValidateTicket(strUsername, strTicket) == 0)
- //               return null;
+//                return null;
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
@@ -189,8 +224,8 @@ namespace advsrv
         [WebMethod(Description = "Returns project information")]
         public DataSet AVProject(string strUsername, string strTicket, int nSimulationId)
         {
- //           if (AVValidateTicket(strUsername, strTicket) == 0)
-   //             return null;
+//            if (AVValidateTicket(strUsername, strTicket) == 0)
+//                return null;
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
@@ -202,8 +237,8 @@ namespace advsrv
         [WebMethod(Description = "Returns lift group structure")]
         public DataSet AVLiftGroups(string strUsername, string strTicket, int nProjectId)
         {
-//            if (AVValidateTicket(strUsername, strTicket) == 0)
-  //              return null;
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return null;
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
@@ -215,8 +250,8 @@ namespace advsrv
         [WebMethod(Description = "Returns floor structure for a lift group")]
         public DataSet AVFloors(string strUsername, string strTicket, int nLiftGroupId)
         {
-//            if (AVValidateTicket(strUsername, strTicket) == 0)
-  //              return null;
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return null;
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
@@ -228,8 +263,8 @@ namespace advsrv
         [WebMethod(Description = "Returns shaft structure for a lift group")]
         public DataSet AVShafts(string strUsername, string strTicket, int nLiftGroupId)
         {
-//            if (AVValidateTicket(strUsername, strTicket) == 0)
-  //              return null;
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return null;
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
@@ -241,8 +276,8 @@ namespace advsrv
         [WebMethod(Description = "Returns SIM package information")]
         public DataSet AVSim(string strUsername, string strTicket, int nLiftGroupId)
         {
-//            if (AVValidateTicket(strUsername, strTicket) == 0)
-  //              return null;
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return null;
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
@@ -292,8 +327,8 @@ namespace advsrv
         [WebMethod(Description = "Returns simulation data for all sims/groups within a project")]
         public DataSet[] AVPrjData(string strUsername, string strTicket, int nProjectId, int timeFrom, int timeTo)
         {
-//            if (AVValidateTicket(strUsername, strTicket) == 0)
-  //              return null;
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return null;
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet[] myDataSets = new DataSet[2];

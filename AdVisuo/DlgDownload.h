@@ -10,11 +10,11 @@ class CDlgDownload : public CDialog
 {
 	DECLARE_DYNAMIC(CDlgDownload)
 private:
-	CString m_servers;
 	CString m_url;
+	CString m_strUrl;
 
 public:
-	CDlgDownload(CWnd* pParent = NULL);   // standard constructor
+	CDlgDownload(CString server, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgDownload();
 
 // Dialog Data
@@ -25,12 +25,8 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	void SetServers(CString servers)		{ m_servers = servers; }
-	CString GetServers()					{ return m_servers; }
 	CString GetURL()						{ return m_url; }
 
-	CString m_server;
-	CComboBox m_combo;
 	int m_nSort;			// sorting info
 	bool m_bAscending[3];
 
@@ -38,9 +34,7 @@ public:
 
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedOk();
-	afx_msg void OnBnClickedRefresh();
 	CListCtrl m_list;
-	afx_msg void OnSelchangeCombo();
 	afx_msg void OnColumnclickList(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnClickList(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnDblclkList(NMHDR *pNMHDR, LRESULT *pResult);

@@ -19,7 +19,7 @@ class CAdVisuoDoc : public CDocument
 	CProjectVis m_prj;		// The Project
 	HRESULT m_h;			// The result of m_sim.Load
 
-	CAVRequest m_http;		// XML HTTP Request object
+	CXMLRequest m_http;		// XML HTTP Request object
 	CString m_strStatus;	// status of internet connection
 	CString m_strResponse;	// response from the internet connection
 

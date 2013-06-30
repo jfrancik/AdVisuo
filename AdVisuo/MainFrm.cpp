@@ -44,6 +44,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
 //	ON_COMMAND(ID_TEST, &CMainFrame::OnTest)
 //	ON_UPDATE_COMMAND_UI(ID_TEST, &CMainFrame::OnUpdateTest)
 	ON_WM_GETMINMAXINFO()
+	ON_WM_WINDOWPOSCHANGING()
 END_MESSAGE_MAP()
 
 // CMainFrame construction/destruction
@@ -341,4 +342,10 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 		return 0;
 	else
 		return CMDIFrameWndEx::PreTranslateMessage(pMsg);
+}
+
+
+void CMainFrame::OnWindowPosChanging(WINDOWPOS* lpwndpos)
+{
+	CMDIFrameWndEx::OnWindowPosChanging(lpwndpos);
 }
