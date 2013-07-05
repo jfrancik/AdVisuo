@@ -315,7 +315,7 @@ void Debug(LPCTSTR fmt, ...)
 	if ((CMainFrame*)AfxGetMainWnd())
 	{
 		((CMainFrame*)AfxGetMainWnd())->m_wndOutput.OutDebugWindow(out);
-		((CMainFrame*)AfxGetMainWnd())->m_wndOutput.UpdateWindow();
+		((CAdVisuoApp*)AfxGetApp())->OutDebugText(out);
 	}
 }
 

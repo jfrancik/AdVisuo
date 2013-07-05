@@ -10,6 +10,13 @@
 
 #define VERSION_DATE	#__DATE__
 
+
+
+#define WIDEN2(x) L ## x
+#define WIDEN(x) WIDEN2(x)
+#define VERSION_DATE WIDEN(__DATE__)
+
+
 // revisions:
 // 00 - 09 - alpha or work in progress
 // 10 - 19 - beta

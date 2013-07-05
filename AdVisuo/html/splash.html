@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>AdVisuo: Splash</title>
+    <link href="res:/CSS/#341" type="text/css" rel="stylesheet" />
+</head>
+
+<script type="text/javascript" language="ecmascript">
+
+    // Forbid user's mouse selecting for the content (allow text selection in EditBox only)
+    function onSelect1()
+    {
+        if (window.event.srcElement.tagName != "INPUT")
+        {
+            window.event.returnValue = false;
+            window.event.cancelBubble = true;
+        }
+    }
+
+    // Install Context Menu and Mark handlers on HTML loading.
+    function onLoad()
+    {
+        document.onselectstart = onSelect1;
+    }
+</script>
+
+<body class="splash" onload="onLoad();">
+    <h1>AdVisuo v3.0</h1>
+    
+    <!-- Failure information -->
+    
+    <div id="idCopyright">
+        &copy; Copyright 2009-2013 Lerch Bates Limited
+    </div>
+
+</body>
+</html>

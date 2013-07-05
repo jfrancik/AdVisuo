@@ -4,6 +4,23 @@
 #include "xmlrequest.h"
 #include "../CommonFiles/XMLTools.h"
 #include <sstream>
+#include <iomanip>
+
+using namespace std;
+
+	static wstring _url_encoded(wstring &str)
+	{
+		wstringstream s;
+		s << setbase(16);
+		for each (wchar_t ch in str)
+		{
+			if (isalnum(ch) || ch == '_')
+				s << ch;
+			else
+				s << L"%" << setw(2) << setfill(L'0') << ((unsigned int)(unsigned char)ch);
+		}
+		return s.str();
+	}
 
 UINT __cdecl WorkerThread(void *p)
 {
@@ -11,54 +28,52 @@ UINT __cdecl WorkerThread(void *p)
 	return 0;
 }
 
-CXMLRequest::CXMLRequest() : m_hEvRequestSet(NULL), m_hEvCompleted(NULL), m_com_error(0)	
+CXMLRequest::CXMLRequest() : m_hEvRequestSet(NULL), m_hEvResponseRdy(NULL), m_com_error(0)	
 { 
-	m_hEvRequestSet = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_hEvCompleted = CreateEvent(NULL, FALSE, FALSE, NULL);
-	AfxBeginThread(WorkerThread, this);
-}
-
-CXMLRequest::CXMLRequest(std::wstring strUrl) : m_strUrl(strUrl), m_hEvRequestSet(NULL), m_hEvCompleted(NULL), m_com_error(0)	
-{ 
-	m_hEvRequestSet = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_hEvCompleted = CreateEvent(NULL, FALSE, FALSE, NULL);
-	AfxBeginThread(WorkerThread, this);
 }
 
 CXMLRequest::~CXMLRequest()
 {
 	m_strFunction = L"";
 	SetEvent(m_hEvRequestSet);
-	WaitForSingleObject(m_hEvCompleted, 5000);
+	WaitForSingleObject(m_hEvResponseRdy, 5000);
 }
 
-void CXMLRequest::setreq(std::wstring strRequest)
+void CXMLRequest::create()
+{
+	m_hEvRequestSet = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hEvResponseRdy = CreateEvent(NULL, FALSE, FALSE, NULL);
+	AfxBeginThread(WorkerThread, this);
+}
+
+void CXMLRequest::setreq(wstring strRequest)
 {
 	m_strRequest = strRequest;
 }
 
-void CXMLRequest::addreq(std::wstring strRequest)
+void CXMLRequest::addreq(wstring strRequest)
 {
 	if (m_strRequest != L"")
 		m_strRequest += L"&";
 	m_strRequest += strRequest;
 }
 
-void CXMLRequest::addparam(std::wstring strParam,  AVLONG val)
+void CXMLRequest::addparam(wstring strParam,  AVLONG val)
 {
-	std::wstringstream s;
+	wstringstream s;
 	s << strParam << L"=" << val;
 	addreq(s.str());
 }
 
-void CXMLRequest::addparam(std::wstring strParam,  std::wstring strVal)
+void CXMLRequest::addparam(wstring strParam,  wstring strVal)
 {
-	std::wstringstream s;
-	s << strParam << L"=" << strVal;
+	wstringstream s;
+	s << strParam << L"=" << _url_encoded(strVal);
+	wstring sss = s.str();
 	addreq(s.str());
 }
 
-void CXMLRequest::call(std::wstring strFunction)
+void CXMLRequest::call(wstring strFunction)
 {
 	if (m_strUrl.empty())
 	{
@@ -72,13 +87,12 @@ void CXMLRequest::call(std::wstring strFunction)
 
 HRESULT CXMLRequest::wait(DWORD dwTimeout)
 {
-	return (WaitForSingleObject(m_hEvCompleted, dwTimeout) == WAIT_OBJECT_0) ? S_OK : E_FAIL;
+	return (WaitForSingleObject(m_hEvResponseRdy, dwTimeout) == WAIT_OBJECT_0) ? S_OK : E_FAIL;
 }
 
-void CXMLRequest::get_response(std::wstring &strResponse, DWORD dwTimeout)
+void CXMLRequest::get_response(wstring &strResponse)
 {
-	if (dwTimeout > 0)
-		wait(dwTimeout);
+	wait(INFINITE);
 
 	if (!ok())
 		throw_exceptions();
@@ -90,8 +104,6 @@ void CXMLRequest::get_response(std::wstring &strResponse, DWORD dwTimeout)
 	m_nStatus = 0;
 	m_h = S_OK; 
 	m_nReadyState = 0; 
-
-	SetEvent(m_hEvResponse);
 }
 
 void CXMLRequest::ignore_response()
@@ -104,21 +116,19 @@ void CXMLRequest::ignore_response()
 	m_nStatus = 0;
 	m_h = S_OK; 
 	m_nReadyState = 0; 
-
-	SetEvent(m_hEvResponse);
 }
 
-std::wstring CXMLRequest::unpack_as_string(std::wstring &strResponse, std::wstring defValue)
+wstring CXMLRequest::unpack_as_string(wstring &strResponse, wstring defValue)
 {
 	xmltools::CXmlReader reader(strResponse.c_str());
 	reader.read_simple_type(L"string");
 	if (reader.find(L"string") == reader.end())
 		return defValue;
-	std::wstring str = reader[L"string"];
+	wstring str = reader[L"string"];
 	return str;
 }
 
-int CXMLRequest::unpack_as_int(std::wstring &strResponse, int defValue)
+int CXMLRequest::unpack_as_int(wstring &strResponse, int defValue)
 {
 	xmltools::CXmlReader reader(strResponse.c_str());
 	reader.read_simple_type(L"int");
@@ -145,7 +155,6 @@ HRESULT CXMLRequest::ExecWorkerThread()
 
 	CoInitialize(NULL);
 	MSXML2::IXMLHTTPRequestPtr ptrHttpRequest;
-
 	WaitForSingleObject(m_hEvRequestSet, INFINITE);
 	while (!m_strFunction.empty())
 	{
@@ -161,13 +170,13 @@ HRESULT CXMLRequest::ExecWorkerThread()
 			m_h = ptrHttpRequest->send(m_strRequest.c_str());
 			if (FAILED(m_h)) throw _com_error(m_h);
 
+			m_strRequest.clear();
+
 			// Read response and status
 			m_strResponse = ptrHttpRequest->responseText;
 			m_nReadyState = ptrHttpRequest->readyState;
 			m_strStatus = ptrHttpRequest->statusText;
 			m_nStatus = ptrHttpRequest->status;
-
-			WaitForSingleObject(m_hEvResponse, INFINITE);
 		}
 		catch(_com_error& e)
 		{
@@ -183,11 +192,11 @@ HRESULT CXMLRequest::ExecWorkerThread()
 		// End http session
 		if (ptrHttpRequest) ptrHttpRequest->abort();
 
-		SetEvent(m_hEvCompleted);
+		SetEvent(m_hEvResponseRdy);
 		WaitForSingleObject(m_hEvRequestSet, INFINITE);
 	}
 
-	SetEvent(m_hEvCompleted);
+	SetEvent(m_hEvResponseRdy);
 	CoUninitialize();
 	return 0;
 }
@@ -195,9 +204,9 @@ HRESULT CXMLRequest::ExecWorkerThread()
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
 
-std::wstring CXMLRequest::AVGetAppName()
+wstring CXMLRequest::AVGetAppName()
 { 
-	std::wstring response;
+	wstring response;
 	setreq(L"keyName=APP_NAME");
 	call(L"AVGetStrStatus"); 
 	get_response(response);
@@ -206,16 +215,16 @@ std::wstring CXMLRequest::AVGetAppName()
 
 int CXMLRequest::AVGetRequiredVersion()
 {
-	std::wstring response;
+	wstring response;
 	setreq(L"keyName=VERSION_REQUIRED");
 	call(L"AVGetIntStatus"); 
 	get_response(response);
 	return unpack_as_int(response);
 }
 
-std::wstring CXMLRequest::AVGetRequiredVersionDate()
+wstring CXMLRequest::AVGetRequiredVersionDate()
 {
-	std::wstring response;
+	wstring response;
 	setreq(L"keyName=VERSION_REQUIRED");
 	call(L"AVGetStrStatus"); 
 	get_response(response);
@@ -224,25 +233,25 @@ std::wstring CXMLRequest::AVGetRequiredVersionDate()
 
 int CXMLRequest::AVGetLatestVersion()
 { 
-	std::wstring response;
+	wstring response;
 	setreq(L"keyName=VERSION_LATEST");
 	call(L"AVGetIntStatus"); 
 	get_response(response);
 	return unpack_as_int(response);
 }
 
-std::wstring CXMLRequest::AVGetLatestVersionDate()
+wstring CXMLRequest::AVGetLatestVersionDate()
 { 
-	std::wstring response;
+	wstring response;
 	setreq(L"keyName=VERSION_LATEST");
 	call(L"AVGetStrStatus"); 
 	get_response(response);
 	return unpack_as_string(response);
 }
 
-std::wstring CXMLRequest::AVGetLatestVersionDownloadPath()
+wstring CXMLRequest::AVGetLatestVersionDownloadPath()
 {
-	std::wstring response;
+	wstring response;
 	setreq(L"keyName=DOWNLOAD_PATH");
 	call(L"AVGetStrStatus"); 
 	get_response(response);
@@ -251,12 +260,10 @@ std::wstring CXMLRequest::AVGetLatestVersionDownloadPath()
 	return (LPCTSTR)path;
 }
 
-
-
-bool CXMLRequest::AVLogin(std::wstring strUsername, std::wstring strPassword)
+bool CXMLRequest::AVLogin(wstring strUsername, wstring strPassword)
 {
 	m_strUsername = strUsername;
-	std::wstring response;
+	wstring response;
 	setreq();
 	addparam(L"strUsername", m_strUsername);
 	addparam(L"strPassword", strPassword);
@@ -266,18 +273,31 @@ bool CXMLRequest::AVLogin(std::wstring strUsername, std::wstring strPassword)
 	return m_strTicket.size() > 0;
 }
 
-bool CXMLRequest::AVIsAuthorised()
+int CXMLRequest::AVIsAuthorised()
 {
-	return false;
+	wstring response;
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	call(L"AVValidateTicket");
+	get_response(response);
+	return unpack_as_int(response);
 }
 
 bool CXMLRequest::AVExtendAuthorisation()
 {
-	return false;
+	wstring response;
+	setreq();
+	addparam(L"strUsername", m_strUsername);
+	addparam(L"strTicket", m_strTicket);
+	call(L"AVRevalidateTicket");
+	get_response(response);
+	m_strTicket = unpack_as_string(response);
+	return m_strTicket.size() > 0;
 }
 
 void CXMLRequest::AVIndex()
-{ 
+{
 	setreq();
 	addparam(L"strUsername", m_strUsername);
 	addparam(L"strTicket", m_strTicket);

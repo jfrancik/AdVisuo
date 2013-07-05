@@ -20,6 +20,7 @@
 #endif
 
 #include "resource.h"       // main symbols
+#include "XMLRequest.h"
 
 class CAdVisuoApp;
 
@@ -35,6 +36,10 @@ public:
 	CAdVisuoApp();
 
 private:
+	// global HTTP connection - used for authorisation
+public:
+	CXMLRequest m_http;
+
 	// global application modes
 	int m_nWalkMode;						// Walk or CCTV mode
 	int m_nColouringMode;					// Character Colouring Mode
@@ -42,6 +47,9 @@ private:
 	CString m_url;							// server where the sim is loaded from
 
 	ULONG m_nSessionId;
+
+	// debug output device (displayed in the splash window)
+	CListBox *m_pOutList;
 
 	CMultiDocTemplate* m_pAVDocTemplate;	// doc template
 
@@ -52,6 +60,8 @@ public:
 	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
 
 	ULONG GetSessionId()			{ return m_nSessionId; }
+
+	void CAdVisuoApp::OutDebugText(LPCTSTR lpszItem);
 
 	// SIM file paths - obsolete
 	//CString m_strSimPathName;	// simulation file pathname - if provided as a 2nd cmd line param

@@ -138,7 +138,6 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 		if (FAILED(h)) throw ERROR_FREEWILL;
 
 		// #FreeWill: create & initialise the renderer
-		Debug(L"Starting renderer...");
 		h = m_pFWDevice->CreateObject(L"Renderer", IID_IRenderer, (IFWUnknown**)&m_pRenderer);
 		if (FAILED(h)) throw ERROR_DIRECTX;
 		h = m_pRenderer->InitDisplay(hWnd, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));

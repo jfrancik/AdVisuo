@@ -6,6 +6,8 @@
 #include "stdafx.h"
 #include "AdVisuoDoc.h"
 #include "AdVisuoView.h"
+#include "AdVisuo.h"
+#include "DlgHtBase.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -27,6 +29,7 @@ CAdVisuoDoc::CAdVisuoDoc() : m_prj()
 {
 	m_h = S_FALSE;
 	m_timeLoaded = 0;
+	m_http.create();
 }
 
 CAdVisuoDoc::~CAdVisuoDoc()
@@ -63,57 +66,55 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
 	const LPCTSTR prefixA = L"advisuo://";
 	const LPCTSTR prefixH = L"http://";
+	
 	if (_wcsnicmp(lpszPathName, prefixA, wcslen(prefixA)) == 0 || _wcsnicmp(lpszPathName, prefixH, wcslen(prefixH)) == 0)
-	{
 		return OnDownloadDocument(lpszPathName);
-	}
-	else
+	
+	if (!CDocument::OnOpenDocument(lpszPathName))
+		return FALSE;
+
+	Debug(L"Loading simulation from file: %s", lpszPathName);
+
+	CWaitCursor wait;
+	DeleteContents();
+
+	std::wstringstream err;
+	try
 	{
-		if (!CDocument::OnOpenDocument(lpszPathName))
-			return FALSE;
+		GetProject()->LoadFromFile(lpszPathName);	// throws _prj_error and _com_error
 
-		Debug(L"Loading simulation from file: %s", lpszPathName);
+		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
+		m_timeLoaded = GetProject()->GetMaxSimulationTime();
 
-		CWaitCursor wait;
-		DeleteContents();
-
-		std::wstringstream err;
-		try
-		{
-			GetProject()->LoadFromFile(lpszPathName);	// throws _prj_error and _com_error
-
-			SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
-			m_timeLoaded = GetProject()->GetMaxSimulationTime();
-
-			m_h = S_OK;
-			Debug(L"File successfully loaded.");
-			SetModifiedFlag(FALSE);
-			return true;
-		}
-		catch (_prj_error pe)
-		{
-			err << "Error while analysing loaded data: " << pe.ErrorMessage() << ".";
-		}
-		catch (_com_error ce)
-		{
-			err << "System error while loading from " << lpszPathName << ":" << std::endl;
-			if ((wchar_t*)ce.Description())
-				err << ce.Description();
-			else
-				err << ce.ErrorMessage();
-		}
-		catch (dbtools::_value_error ve)
-		{
-			err << "Error while analysing downloaded data: " << ve.ErrorMessage() << ".";
-		}
-		catch(...)
-		{
-			err << L"Unidentified errors while loading from " << lpszPathName;
-		}
-		Debug(err.str().c_str());
-		AfxMessageBox(err.str().c_str(), MB_OK | MB_ICONHAND);
+		m_h = S_OK;
+		Debug(L"File successfully loaded.");
+		SetModifiedFlag(FALSE);
+	}
+	catch (_prj_error pe)
+	{
+		CDlgHtFailure dlg(pe, lpszPathName);
+		dlg.DoModal();
 		return false;
 	}
+	catch (_com_error ce)
+	{
+		CDlgHtFailure dlg(ce, lpszPathName);
+		dlg.DoModal();
+		return false;
+	}
+	catch (dbtools::_value_error ve)
+	{
+		CDlgHtFailure dlg(ve, lpszPathName);
+		dlg.DoModal();
+		return false;
+	}
+	catch(...)
+	{
+		CDlgHtFailure dlg(lpszPathName);
+		dlg.DoModal();
+		return false;
+	}
+	return true;
 }
 
 BOOL CAdVisuoDoc::OnSaveDocument(LPCTSTR lpszPathName)
@@ -129,37 +130,36 @@ BOOL CAdVisuoDoc::OnSaveDocument(LPCTSTR lpszPathName)
 
 		Debug(L"File successfully stored.");
 		SetModifiedFlag(FALSE);
-		return true;
 	}
 	catch (_prj_error pe)
 	{
-		err << "Error while preparing data to store: " << pe.ErrorMessage() << ".";
+		CDlgHtFailure dlg(pe, lpszPathName);
+		dlg.DoModal();
+		return false;
 	}
 	catch (_com_error ce)
 	{
-		err << "System error while storing to " << lpszPathName << ":" << std::endl;
-		if ((wchar_t*)ce.Description())
-			err << ce.Description();
-		else
-			err << ce.ErrorMessage();
+		CDlgHtFailure dlg(ce, lpszPathName);
+		dlg.DoModal();
+		return false;
 	}
 	catch (dbtools::_value_error ve)
 	{
-		err << "Error while analysing downloaded data: " << ve.ErrorMessage() << ".";
+		CDlgHtFailure dlg(ve, lpszPathName);
+		dlg.DoModal();
+		return false;
 	}
 	catch(...)
 	{
-		err << L"Unidentified errors while loading from " << lpszPathName;
+		CDlgHtFailure dlg(lpszPathName);
+		dlg.DoModal();
+		return false;
 	}
-	Debug(err.str().c_str());
-	AfxMessageBox(err.str().c_str(), MB_OK | MB_ICONHAND);
-	return false;
+	return true;
 }
 
 BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 {
-	Debug(L"Analysing URL: %s", url);
-
 	// Resolve the URL
 	CString strUrl = url;
 	m_strUrl = strUrl;
@@ -196,7 +196,8 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		}
 	}
 	if (strUrl.Right(13) == "/GetAVProject") strUrl = strUrl.Left(strUrl.GetLength() - 13);
-	Debug(L"Downloading project from %s with id=%d", strUrl, nId);
+	Debug(L"Downloading project from:");
+	Debug(L"%s (id=%d)", strUrl, nId);
 
 	// Initiate the download
 	std::wstringstream str;
@@ -204,6 +205,10 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	try
 	{
 		m_http.setURL((LPCTSTR)strUrl);
+		m_http.authorise((LPCTSTR)strUserid, (LPCTSTR)strTicket);
+
+		if (m_http.AVIsAuthorised() <= 0)
+			throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
 
 		m_http.AVProject(nId);
 		m_http.get_response(response);
@@ -235,41 +240,44 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		// first SIM data chunk
 		m_timeLoaded = GetProject()->GetMinSimulationTime();
 		m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
-		m_http.wait();
+		//m_http.wait();
 		OnSIMDataLoaded();
 
 		m_h = S_OK;
-		Debug(L"Downloading initiated successfully, more data transfered in background...");
+		Debug(L"Download initiated successfully, more data loading in background...");
 		SetModifiedFlag(TRUE);
-		return true;
 	}
 	catch (_prj_error pe)
 	{
-		str << "Error while analysing downloaded data: " << pe.ErrorMessage() << ".";
+		CDlgHtFailure dlg(pe, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
 	catch (_com_error ce)
 	{
-		str << "System error while downloading from " << m_http.URL() << ":" << std::endl;
-		if ((wchar_t*)ce.Description())
-			str << ce.Description();
-		else
-			str << ce.ErrorMessage();
+		CDlgHtFailure dlg(ce, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
 	catch (_xmlreq_error xe)
 	{
-		str << L"HTTP error " << xe.status() << L": " << xe.msg() << L" at " << m_http.URL() << L".";
+		CDlgHtFailure dlg(xe, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
 	catch (dbtools::_value_error ve)
 	{
-		str << "Error while analysing downloaded data: " << ve.ErrorMessage() << ".";
+		CDlgHtFailure dlg(ve, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
 	catch(...)
 	{
-		str << L"Unidentified errors while downloading from " << m_http.URL();
+		CDlgHtFailure dlg(m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
-	Debug(str.str().c_str());
-	AfxMessageBox(str.str().c_str(), MB_OK | MB_ICONHAND);
-	return false;
+	return true;
 }
 
 BOOL CAdVisuoDoc::OnSIMDataLoaded()
@@ -279,47 +287,51 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 	{
 		// Process the most recently loaded data
 		std::wstring response;
-		m_http.get_response(response, 0);
+		m_http.get_response(response);
 		GetProject()->LoadFromBuf(response.c_str());
 		
 		m_timeLoaded += 60000;
 
 		if (!IsDownloadComplete())
 		{
-			str << L"Simulation data download continued in background (" << m_timeLoaded << L").";
+			if (m_http.AVIsAuthorised() <= 0)
+				throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
 			m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
 		}
 
 		return true;
-
 	}
 	catch (_prj_error pe)
 	{
-		str << "Error while analysing downloaded data: " << pe.ErrorMessage() << ".";
+		CDlgHtFailure dlg(pe, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
 	catch (_com_error ce)
 	{
-		str << "System error while downloading from " << m_http.URL() << ":" << std::endl;
-		if ((wchar_t*)ce.Description())
-			str << ce.Description();
-		else
-			str << ce.ErrorMessage();
+		CDlgHtFailure dlg(ce, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
 	catch (_xmlreq_error xe)
 	{
-		str << L"HTTP error " << xe.status() << L": " << xe.msg() << L" at " << m_http.URL() << L".";
+		CDlgHtFailure dlg(xe, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
 	catch (dbtools::_value_error ve)
 	{
-		str << "Error while analysing downloaded data: " << ve.ErrorMessage() << ".";
+		CDlgHtFailure dlg(ve, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
 	catch(...)
 	{
-		str << L"Unidentified errors while downloading from " << m_http.URL();
+		CDlgHtFailure dlg(m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
 	}
-	Debug(str.str().c_str());
-	AfxMessageBox(str.str().c_str(), MB_OK | MB_ICONHAND);
-	return false;
+	return true;
 }
 
 void CAdVisuoDoc::Serialize(CArchive& ar)

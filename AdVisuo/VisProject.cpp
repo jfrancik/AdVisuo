@@ -47,6 +47,7 @@ std::wstring _prj_error::ErrorMessage()
 		case E_PRJ_FLOORS:		return L"inconsistent building structure: too many or too few floors";
 		case E_PRJ_LIFT_DECKS:	return L"inconsistent building structure: wrong number of lift decks";
 		case E_PRJ_FILE_STRUCT:	return L"data appear in wrong sequence within the simulation file";
+		case E_PRJ_NOT_AUTHORISED: return L"user not authorised to browse projects";
 		case E_PRJ_INTERNAL:	return L"internal error";
 		default:				return L"unidentified error";
 	}

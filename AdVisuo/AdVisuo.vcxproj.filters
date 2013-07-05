@@ -123,7 +123,13 @@
     <ClCompile Include="RibbonScenarioButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DlgLogin.cpp">
+    <ClCompile Include="DlgSplash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgHtBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgHtLogin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -248,10 +254,16 @@
     <ClInclude Include="RibbonScenarioButton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DlgLogin.h">
+    <ClInclude Include="_version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="_version.h">
+    <ClInclude Include="DlgSplash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgHtBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgHtLogin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -353,22 +365,13 @@
     <None Include="html\splash2.png">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="html\connection.html">
-      <Filter>Html</Filter>
-    </None>
     <None Include="html\connection.png">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="html\button.png">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="html\empty.html">
-      <Filter>Html</Filter>
-    </None>
-    <None Include="html\about.htm">
-      <Filter>Html</Filter>
-    </None>
-    <None Include="html\fail.html">
+    <None Include="html\splash.html">
       <Filter>Html</Filter>
     </None>
   </ItemGroup>

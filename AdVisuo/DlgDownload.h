@@ -10,11 +10,10 @@ class CDlgDownload : public CDialog
 {
 	DECLARE_DYNAMIC(CDlgDownload)
 private:
-	CString m_url;
-	CString m_strUrl;
+	ULONG m_nProjectId;
 
 public:
-	CDlgDownload(CString server, CWnd* pParent = NULL);   // standard constructor
+	CDlgDownload(std::vector<CProjectVis*> &prjs, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgDownload();
 
 // Dialog Data
@@ -25,12 +24,12 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	CString GetURL()						{ return m_url; }
+	ULONG GetProjectId()						{ return m_nProjectId; }
 
 	int m_nSort;			// sorting info
 	bool m_bAscending[3];
 
-	std::vector<CProjectVis*> m_prjs;	// sims
+	std::vector<CProjectVis*> &m_prjs;	// sims
 
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedOk();

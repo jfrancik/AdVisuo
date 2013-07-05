@@ -70,6 +70,17 @@
         document.getElementById("idFailure").style.display = "block";
         document.getElementById("idLogin").style.display = "none";
         document.getElementById("idConnection").style.display = "none";
+        document.getElementById("idFailureConnection").style.display = "none";
+        document.getElementById("idFailureTitle").innerHTML = title;
+        document.getElementById("idFailureDesc").innerHTML = txt;
+    }
+
+    function GotoFailureConn(title, txt)
+    {
+        document.getElementById("idFailure").style.display = "block";
+        document.getElementById("idLogin").style.display = "none";
+        document.getElementById("idConnection").style.display = "none";
+        document.getElementById("idFailureConnection").style.display = "block";
         document.getElementById("idFailureTitle").innerHTML = title;
         document.getElementById("idFailureDesc").innerHTML = txt;
     }
@@ -114,7 +125,7 @@
 
         <div>&nbsp;</div>
 
-        <div><input type="image" name="ConnButton" id="idAfterFailConn" class="conn-button" src="res:/PNG/#347" alt="Setup server connection" />
+        <div id="idFailureConnection"><input type="image" name="ConnButton" id="idAfterFailConn" class="conn-button" src="res:/PNG/#347" alt="Setup server connection" />
         <a href="#" class="button-text-2">Setup server connection</a></div>
 
         <div>&nbsp;</div>

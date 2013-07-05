@@ -139,10 +139,12 @@
     <ClCompile Include="AdVisuoView.cpp" />
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="DlgDownload.cpp" />
-    <ClCompile Include="DlgLogin.cpp" />
+    <ClCompile Include="DlgHtBase.cpp" />
+    <ClCompile Include="DlgHtLogin.cpp" />
     <ClCompile Include="DlgMat.cpp" />
     <ClCompile Include="DlgRepBug.cpp" />
     <ClCompile Include="DlgScript.cpp" />
+    <ClCompile Include="DlgSplash.cpp" />
     <ClCompile Include="DlgVideo.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="RibbonScenarioButton.cpp" />
@@ -181,10 +183,12 @@
     <ClInclude Include="..\CommonFiles\Box.h" />
     <ClInclude Include="Block.h" />
     <ClInclude Include="DlgDownload.h" />
-    <ClInclude Include="DlgLogin.h" />
+    <ClInclude Include="DlgHtBase.h" />
+    <ClInclude Include="DlgHtLogin.h" />
     <ClInclude Include="DlgMat.h" />
     <ClInclude Include="DlgRepBug.h" />
     <ClInclude Include="DlgScript.h" />
+    <ClInclude Include="DlgSplash.h" />
     <ClInclude Include="DlgVideo.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="RibbonScenarioButton.h" />
@@ -211,19 +215,14 @@
     <ClInclude Include="_version.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="html\about.htm">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
     <None Include="html\bg-login-form.png" />
     <None Include="html\bg-login-header.png" />
     <None Include="html\btn-login.png" />
     <None Include="html\button.png" />
-    <None Include="html\connection.html" />
     <None Include="html\connection.png" />
     <None Include="html\Default.css" />
-    <None Include="html\empty.html" />
-    <None Include="html\fail.html" />
     <None Include="html\login.html" />
+    <None Include="html\splash.html" />
     <None Include="html\splash1.png" />
     <None Include="html\splash2.png" />
     <None Include="res\AdVisuo.ico" />

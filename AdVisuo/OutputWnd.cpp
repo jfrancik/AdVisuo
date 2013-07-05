@@ -85,10 +85,6 @@ int COutputWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 //	ASSERT(bNameValid);
 //	m_wndTabs.AddTab(&m_wndOutputFind, strTabName, (UINT)2);
 
-	// Fill output tabs with some dummy text (nothing magic here)
-	OutDebugWindow(L"AdVisuo Module started (a part of AdSimulo system). Copyright (C) 2009-2013 by Lerch Bates");
-	OutDebugWindow(L"Version 2.041.30613 (Pre-Release) - 13 June 2013");
-
 	return 0;
 }
 
@@ -133,6 +129,8 @@ void COutputWnd::OutDebugWindow(LPCTSTR lpszItem)
 	int n = rect.Height() / m_wndOutputDebug.GetItemHeight(0) - 2;
 	n = m_wndOutputDebug.GetCount() - n;
 	m_wndOutputDebug.SetTopIndex(n);
+
+	UpdateWindow();
 }
 
 void COutputWnd::OutFindWindow(LPCTSTR lpszItem)

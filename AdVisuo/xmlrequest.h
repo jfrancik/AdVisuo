@@ -23,9 +23,9 @@ class CXMLRequest
 	std::wstring m_strRequest;
 
 	// event handlers
-	HANDLE m_hEvRequestSet;
-	HANDLE m_hEvResponse;
-	HANDLE m_hEvCompleted;
+	HANDLE m_hEvRequestSet;		// set by the client when a request is set
+	HANDLE m_hEvResponseRdy;	// request completed - response ready to be read
+	//HANDLE m_hEvResponse;		// 
 	
 	// status information
 	long m_nReadyState;
@@ -41,11 +41,16 @@ class CXMLRequest
 
 public:
 	CXMLRequest();
-	CXMLRequest(std::wstring strUrl);
 	virtual ~CXMLRequest();
+
+	void create();
 
 	void setURL(std::wstring strUrl)			{ m_strUrl = strUrl; }
 	void authorise_from(CXMLRequest &req)		{ m_strUsername = req.m_strUsername; m_strTicket = req.m_strTicket; }
+	void authorise(std::wstring strUsername, std::wstring strTicket)
+												{ m_strUsername = strUsername; m_strTicket = strTicket; }
+	std::wstring get_username()					{ return m_strUsername; }
+	std::wstring get_ticket()					{ return m_strTicket; }
 
 	// status
 	std::wstring URL()		{ return m_strUrl; }
@@ -61,7 +66,7 @@ public:
 
 	// wait & get response
 	HRESULT wait(DWORD dwTimeout = INFINITE);
-	void get_response(std::wstring &strResponse, DWORD dwTimeout = INFINITE);
+	void get_response(std::wstring &strResponse);
 	void ignore_response();
 
 	// unpack value
@@ -80,7 +85,7 @@ public:
 	std::wstring AVGetAppName();
 
 	bool AVLogin(std::wstring strUsername, std::wstring strPassword);
-	bool AVIsAuthorised();
+	int AVIsAuthorised();
 	bool AVExtendAuthorisation();
 
 	void AVIndex();

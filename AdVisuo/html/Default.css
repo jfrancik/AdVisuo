@@ -1,5 +1,6 @@
 ﻿
 body {background:url(res:/PNG/#346) no-repeat 0 0; color:#444;  font-family:Arial, Helvetica, Sans-Serif; text-align:left;font-size:12px; margin-top:3px;}
+.splash {background:url(res:/PNG/#345) no-repeat 0 0; }
 
 h1 {cursor:default; font-size:2em; color:#fff; margin:0; padding:12px 0 0 250px; height:33px; width:454px; text-shadow:0 -1px 0px #1C8AA2;}
 h2 {cursor:default; }

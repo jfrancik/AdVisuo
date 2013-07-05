@@ -20,6 +20,7 @@ public:
 		E_PRJ_FLOORS, 
 		E_PRJ_LIFT_DECKS,
 		E_PRJ_FILE_STRUCT,
+		E_PRJ_NOT_AUTHORISED,
 		E_PRJ_INTERNAL };
 	_prj_error(enum ERROR_CODES err_code)	{ _error = err_code; }
 	enum ERROR_CODES Error()				{ return _error; }

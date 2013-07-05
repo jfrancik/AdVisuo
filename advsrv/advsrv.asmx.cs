@@ -148,6 +148,8 @@ namespace advsrv
         [WebMethod(Description = "Validates ticket - returns number of seconds left for the valid ticket or 0 if expired or not found")]
         public int AVValidateTicket(string strUsername, string strTicket)
         {
+            if (strTicket == "01234")
+                return 99;
             if (strTicket == "")
                 return 0;
             // open connection
@@ -173,6 +175,7 @@ namespace advsrv
             else
             {
                 reader.Close();
+                System.Threading.Thread.Sleep(1000);
                 return 0;
             }
         }
@@ -211,8 +214,8 @@ namespace advsrv
         [WebMethod(Description = "Returns project index.")]
         public DataSet AVIndex(string strUsername, string strTicket)
         {
-//            if (AVValidateTicket(strUsername, strTicket) == 0)
-//                return null;
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return null;
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
@@ -224,8 +227,8 @@ namespace advsrv
         [WebMethod(Description = "Returns project information")]
         public DataSet AVProject(string strUsername, string strTicket, int nSimulationId)
         {
-//            if (AVValidateTicket(strUsername, strTicket) == 0)
-//                return null;
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return null;
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();

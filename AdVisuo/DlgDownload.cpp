@@ -8,11 +8,11 @@
 
 IMPLEMENT_DYNAMIC(CDlgDownload, CDialog)
 
-CDlgDownload::CDlgDownload(CString server, CWnd* pParent /*=NULL*/)
-	: CDialog(CDlgDownload::IDD, pParent)
+CDlgDownload::CDlgDownload(std::vector<CProjectVis*> &prjs, CWnd* pParent /*=NULL*/)
+	: m_prjs(prjs), CDialog(CDlgDownload::IDD, pParent)
 {
-	m_strUrl = server;
 	m_details = L"";
+	m_nProjectId = 0;
 }
 
 CDlgDownload::~CDlgDownload()
@@ -84,86 +84,33 @@ BOOL CDlgDownload::OnInitDialog()
 
 
 
-	// post message for loading project titles
-	if (m_strUrl.IsEmpty())
-		return true;
-
 	// show wait state...
 	CWaitCursor wait;
 	m_list.DeleteAllItems();
 
-	for each (CProjectVis *pPrj in m_prjs)
-		delete pPrj;
-	m_prjs.clear();
 
-	ShowWindow(SW_SHOW);
-	UpdateWindow();
-
-	UpdateData();
-	m_details = L"";
-	UpdateData(FALSE);
-
-	// Download available projects
-	std::wstringstream str;
-	std::wstring response;
-	CXMLRequest http;
-	try
+	for (unsigned i = 0; i < m_prjs.size(); i++)
 	{
-		http.setURL((LPCTSTR)m_strUrl);
-		http.AVIndex();
-		http.get_response(response);
-		CProjectVis::LoadIndexFromBuf(response.c_str(), m_prjs);
-		
-		m_list.DeleteAllItems();
-		for (unsigned i = 0; i < m_prjs.size(); i++)
-		{
-			CProjectVis *pPrj = m_prjs[i];
-			LV_ITEM lvItem;
-			lvItem.mask = LVIF_TEXT;
-			wchar_t buf[1025];
-			lvItem.cchTextMax = 1024;
-			_snwprintf_s(buf, 80, L"%d", pPrj->GetSimulationId());
-			lvItem.iItem = m_list.InsertItem(0, buf);
-			m_list.SetItemData(lvItem.iItem, (DWORD_PTR)pPrj);
-			lvItem.iSubItem = 1;
-			_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
-			lvItem.pszText = buf;
-			m_list.SetItem(&lvItem);
-			lvItem.iSubItem = 2;
-			_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME).c_str());
-			lvItem.pszText = buf;
-			m_list.SetItem(&lvItem);
-		}
-		m_list.SortItems(CompareFunc, m_bAscending[m_nSort] ? m_nSort : 100 + m_nSort);
-		m_list.SetItemState(0, LVIS_SELECTED, LVIS_SELECTED);
-		m_list.SetSelectionMark(0);
-
-		return true;
-
+		CProjectVis *pPrj = m_prjs[i];
+		LV_ITEM lvItem;
+		lvItem.mask = LVIF_TEXT;
+		wchar_t buf[1025];
+		lvItem.cchTextMax = 1024;
+		_snwprintf_s(buf, 80, L"%d", pPrj->GetSimulationId());
+		lvItem.iItem = m_list.InsertItem(0, buf);
+		m_list.SetItemData(lvItem.iItem, (DWORD_PTR)pPrj);
+		lvItem.iSubItem = 1;
+		_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
+		lvItem.pszText = buf;
+		m_list.SetItem(&lvItem);
+		lvItem.iSubItem = 2;
+		_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME).c_str());
+		lvItem.pszText = buf;
+		m_list.SetItem(&lvItem);
 	}
-	catch (_prj_error pe)
-	{
-		str << "Error while analysing downloaded data: " << pe.ErrorMessage() << ".";
-	}
-	catch (_com_error ce)
-	{
-		str << "System error while downloading from " << http.URL() << ":" << std::endl;
-		if ((wchar_t*)ce.Description())
-			str << ce.Description();
-		else
-			str << ce.ErrorMessage();
-	}
-	catch (_xmlreq_error xe)
-	{
-		str << L"HTTP error " << xe.status() << L": " << xe.msg() << L" at " << http.URL() << L".";
-	}
-	catch(...)
-	{
-		str << L"Unidentified errors while downloading from " << http.URL();
-	}
-	m_list.DeleteAllItems();
-	Debug(str.str().c_str());
-	AfxMessageBox(str.str().c_str(), MB_OK | MB_ICONHAND);
+	m_list.SortItems(CompareFunc, m_bAscending[m_nSort] ? m_nSort : 100 + m_nSort);
+	m_list.SetItemState(0, LVIS_SELECTED, LVIS_SELECTED);
+	m_list.SetSelectionMark(0);
 
 	return true;
 }
@@ -236,8 +183,9 @@ void CDlgDownload::OnBnClickedOk()
 	CProjectVis *pPrj = (CProjectVis*)m_list.GetItemData(nPos);
 	if (!pPrj) return;
 
-	m_url.Format(L"http://%s/advsrv.asmx?request=%d", m_strUrl, pPrj->GetSimulationId());
+	m_nProjectId = pPrj->GetSimulationId();
 
+	AfxGetApp()->m_pMainWnd = NULL;
 	CDialog::OnOK();
 }
 

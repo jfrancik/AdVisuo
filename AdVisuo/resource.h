@@ -75,6 +75,8 @@
 #define IDD_ADV_VIDEOCTRL               317
 #define IDR_RIBBON1                     318
 #define IDR_RIBBON                      318
+#define IDR_HTML_DLGSPLASH              320
+#define IDR_HTML_SPLASH                 320
 #define IDD_ADV_ASPECT                  324
 #define IDS_SAVE_OPTION1                331
 #define IDS_DLGVIDEO_MESSAGE            331
@@ -92,6 +94,8 @@
 #define IDD_ADV_LOGIN                   339
 #define IDB_BITMAP3                     340
 #define IDB_SCENARIOS                   340
+#define IDD_ADV_LOGIN1                  340
+#define IDD_ADV_SPLASH                  340
 #define IDR_HTML_CSS                    341
 #define IDR_HTML_PNG_HEADER             342
 #define IDR_HTML_PNG_FORM               343
@@ -179,6 +183,7 @@
 #define IDC_LOAD                        1087
 #define IDC_SAVE                        1088
 #define IDC_EDIT_USERNAME               1089
+#define IDC_DEBUG                       1092
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_CAMERA_LAYOUT                32771
 #define ID_LAYOUT_1                     32772
@@ -295,7 +300,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        358
 #define _APS_NEXT_COMMAND_VALUE         32906
-#define _APS_NEXT_CONTROL_VALUE         1091
-#define _APS_NEXT_SYMED_VALUE           320
+#define _APS_NEXT_CONTROL_VALUE         1093
+#define _APS_NEXT_SYMED_VALUE           321
 #endif
 #endif
