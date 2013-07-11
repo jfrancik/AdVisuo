@@ -64,7 +64,22 @@ void CDlgHtBase::DoNonModal(unsigned nTimeout)
 		if (!AfxGetApp()->PumpMessage()) 
 		{ 
 			::PostQuitMessage(0); 
-			break; 
+			return; 
+		}
+	}
+}
+
+void CDlgHtBase::Sleep(ULONG nTime)
+{
+	DWORD t = ::GetTickCount();
+	while (::GetTickCount() <= t + nTime)
+	{
+		MSG msg;
+		::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
+		if (!AfxGetApp()->PumpMessage()) 
+		{ 
+			::PostQuitMessage(0); 
+			return; 
 		}
 	}
 }
@@ -167,6 +182,19 @@ HCURSOR CDlgHtBase::OnQueryDragIcon()
 }
 
 ////////////////////////////////////////////////////////////////////////
+// _version_error
+
+std::wstring _version_error::ErrorMessage()
+{
+	std::wstringstream str;
+	str << L"Version of AdVisuo you are using is outdated and not compatible<br />with the server software.<br /><br />";
+	str << L"Currently used version: " << VERSION_MAJOR << L"." << VERSION_MINOR  << L"." << VERSION_REV << L" (" << __DATE__ << L")<br />";
+	str << L"Version required:       " << nVersionReq/10000 << L"." << (nVersionReq%10000) / 100  << L"." << nVersionReq%100 << L" (" << (LPCTSTR)strVerDate << L")<br />";
+	str << L"<a href='" << (LPCTSTR)strDownloadPath << "'>Download the latest version</a>";
+	return str.str();
+}
+
+////////////////////////////////////////////////////////////////////////
 // CDlgHtFailure
 
 IMPLEMENT_DYNCREATE(CDlgHtFailure, CDlgHtBase)
@@ -176,9 +204,9 @@ CDlgHtFailure::CDlgHtFailure() : CDlgHtBase(IDD, IDH)
 	m_fnLoadComplHandle = [this]() { };
 }
 
-CDlgHtFailure::CDlgHtFailure(int nVersionReq, CString strVerDate, CString strDownloadPath) : CDlgHtBase(IDD, IDH)
+CDlgHtFailure::CDlgHtFailure(_version_error &ve, CString url) : CDlgHtBase(IDD, IDH)
 { 
-	m_fnLoadComplHandle = [this, nVersionReq, strVerDate, strDownloadPath]() { GotoFailure(nVersionReq, strVerDate, strDownloadPath); };
+	m_fnLoadComplHandle = [this, ve, url]() { _version_error _ve = ve; GotoFailure(_ve, url); };
 }
 
 CDlgHtFailure::CDlgHtFailure(_prj_error &pe, CString url) : CDlgHtBase(IDD, IDH)
@@ -210,6 +238,7 @@ BEGIN_MESSAGE_MAP(CDlgHtFailure, CDlgHtBase)
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CDlgHtFailure)
+	DHTML_EVENT_ONCLICK(_T("idCancelButton"), OnButtonCancel)
 END_DHTML_EVENT_MAP()
 
 BEGIN_DISPATCH_MAP(CDlgHtFailure, CDlgHtBase)
@@ -223,14 +252,9 @@ void CDlgHtFailure::OnGotoFailure(CString title, CString text)
 	SetWindowText(CString(L"AdVisuo ") + title);
 }
 
-void CDlgHtFailure::GotoFailure(int nVersionReq, CString strVerDate, CString strDownloadPath)
+void CDlgHtFailure::GotoFailure(_version_error &ve, CString url)
 {
-	std::wstringstream str;
-	str << L"Version of AdVisuo you are using is outdated and not compatible<br />with the server software.<br /><br />";
-	str << L"Currently used version: " << VERSION_MAJOR << L"." << VERSION_MINOR  << L"." << VERSION_REV << L" (" << __DATE__ << L")<br />";
-	str << L"Version required:       " << nVersionReq/10000 << L"." << (nVersionReq%10000) / 100  << L"." << nVersionReq%100 << L" (" << (LPCTSTR)strVerDate << L")<br />";
-	str << L"<a href='" << (LPCTSTR)strDownloadPath << "'>Download the latest version</a>";
-	OnGotoFailure(L"VERSION MISMATCH", str.str().c_str());
+	OnGotoFailure(L"VERSION MISMATCH", ve.ErrorMessage().c_str());
 }
 
 void CDlgHtFailure::GotoFailure(_prj_error &pe, CString url)

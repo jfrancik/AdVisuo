@@ -94,6 +94,14 @@ struct AVCOLOR
 };
 #define _FWCOLOR(c) (*(FWCOLOR*)&(c))
 
+// Global Access
+
+class CAdVisuoApp;
+inline CAdVisuoApp *AVGetApp()			{ return (CAdVisuoApp*)AfxGetApp(); }
+
+class CMainFrame;
+inline CMainFrame *AVGetMainWnd()		{ return (CMainFrame*)AfxGetMainWnd(); }
+
 // Colours
 #define AVCOLOR2COLORREF(c)	RGB((unsigned)((c).r*255.0f), (unsigned)((c).g*255.0f), (unsigned)((c).b*255.0f))
 

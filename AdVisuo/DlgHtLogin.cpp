@@ -78,14 +78,12 @@ void CDlgHtLogin::GotoLogin()
 		std::wstring path = m_pHttp->AVGetLatestVersionDownloadPath();
 
 		if (VERSION < verreq)
-			GotoFailure(verreq, date.c_str(), path.c_str());
-		else
-		{
-			// the only successful way to the login!
-			m_state = LOGIN;
-			ExecJS(L"GotoLogin()");
-			SetWindowText(L"AdVisuo Login");
-		}
+			throw _version_error(verreq, date.c_str(), path.c_str());
+
+		// the only successful way to the login!
+		m_state = LOGIN;
+		ExecJS(L"GotoLogin()");
+		SetWindowText(L"AdVisuo Login");
 	}
 	catch (_com_error ce)
 	{
@@ -94,6 +92,10 @@ void CDlgHtLogin::GotoLogin()
 	catch (_xmlreq_error xe)
 	{
 		GotoFailure(xe, m_pHttp->URL().c_str());
+	}
+	catch (_version_error ve)
+	{
+		GotoFailure(ve, m_pHttp->URL().c_str());
 	}
 	catch(...)
 	{
@@ -148,6 +150,10 @@ void CDlgHtLogin::OnOK()
 		catch (_xmlreq_error xe)
 		{
 			GotoFailure(xe, m_pHttp->URL().c_str());
+		}
+		catch (_version_error ve)
+		{
+			GotoFailure(ve, m_pHttp->URL().c_str());
 		}
 		catch(...)
 		{

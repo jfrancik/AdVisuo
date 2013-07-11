@@ -8,6 +8,7 @@
 #include "AdVisuoView.h"
 #include "AdVisuo.h"
 #include "DlgHtBase.h"
+#include "_version.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -165,7 +166,6 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	m_strUrl = strUrl;
 	AVULONG nId = 0;
 	CString strUserid;
-	CString strPassword;
 	CString strTicket;
 
 	if (url.Left(8).Compare(L"advisuo:") == 0)
@@ -189,8 +189,6 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 				nId = _wtoi(val);
 			if (name.Compare(L"userid") == 0)
 				strUserid = val;
-			if (name.Compare(L"password") == 0)
-				strPassword = val;
 			if (name.Compare(L"ticket") == 0)
 				strTicket = val;
 		}
@@ -205,10 +203,17 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	try
 	{
 		m_http.setURL((LPCTSTR)strUrl);
-		m_http.authorise((LPCTSTR)strUserid, (LPCTSTR)strTicket);
-
+		AVGetApp()->Authorise(strUrl, strUserid, strTicket);
+		AVGetApp()->GetAuthorisation(&m_http);
 		if (m_http.AVIsAuthorised() <= 0)
 			throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
+
+		std::wstring appname = m_http.AVGetAppName();
+		int verreq = m_http.AVGetRequiredVersion();
+		std::wstring date = m_http.AVGetRequiredVersionDate();
+		std::wstring path = m_http.AVGetLatestVersionDownloadPath();
+		if (VERSION < verreq)
+			throw _version_error(verreq, date.c_str(), path.c_str());
 
 		m_http.AVProject(nId);
 		m_http.get_response(response);
@@ -265,6 +270,12 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		dlg.DoModal();
 		return false;
 	}
+	catch (_version_error ve)
+	{
+		CDlgHtFailure dlg(ve, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
+	}
 	catch (dbtools::_value_error ve)
 	{
 		CDlgHtFailure dlg(ve, m_http.URL().c_str());
@@ -294,6 +305,7 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 
 		if (!IsDownloadComplete())
 		{
+			AVGetApp()->GetAuthorisation(&m_http);
 			if (m_http.AVIsAuthorised() <= 0)
 				throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
 			m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
@@ -316,6 +328,12 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 	catch (_xmlreq_error xe)
 	{
 		CDlgHtFailure dlg(xe, m_http.URL().c_str());
+		dlg.DoModal();
+		return false;
+	}
+	catch (_version_error ve)
+	{
+		CDlgHtFailure dlg(ve, m_http.URL().c_str());
 		dlg.DoModal();
 		return false;
 	}

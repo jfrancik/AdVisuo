@@ -26,6 +26,9 @@ public:
 
 	// Non-modal display
 	void DoNonModal(unsigned nTimeout = 10000);
+
+	// Sleep
+	void Sleep(ULONG nTime);
 	
 	// Button Handlers
 	virtual void OnOK();
@@ -60,13 +63,23 @@ public:
 	afx_msg HCURSOR OnQueryDragIcon();
 };
 
+class _version_error
+{
+	int nVersionReq;
+	CString strVerDate;
+	CString strDownloadPath;
+public:
+	_version_error(int _nVersionReq, CString _strVerDate, CString _strDownloadPath)	: nVersionReq(_nVersionReq), strVerDate(_strVerDate), strDownloadPath(_strDownloadPath) { }
+	std::wstring ErrorMessage();
+};
+
 class CDlgHtFailure: public CDlgHtBase
 {
 	DECLARE_DYNCREATE(CDlgHtFailure)
 
 public:
 	CDlgHtFailure();
-	CDlgHtFailure(int nVersionReq, CString strVerDate, CString strDownloadPath);
+	CDlgHtFailure(_version_error &ve, CString url);
 	CDlgHtFailure(_prj_error &pe, CString url);
 	CDlgHtFailure(_com_error &ce, CString url);
 	CDlgHtFailure(_xmlreq_error &xe, CString url);
@@ -77,7 +90,7 @@ public:
 	// Built-in Failure Messages
 	virtual void OnGotoFailure(CString title, CString text);	// generic & virtual...
 	
-	void GotoFailure(int nVersionReq, CString strVerDate, CString strDownloadPath);
+	void GotoFailure(_version_error &ve, CString url);
 	void GotoFailure(_prj_error &pe, CString url);
 	void GotoFailure(_com_error &ce, CString url);
 	void GotoFailure(_xmlreq_error &xe, CString url);
@@ -92,4 +105,3 @@ protected:
 	DECLARE_DHTML_EVENT_MAP()
 	DECLARE_DISPATCH_MAP()
 };
-

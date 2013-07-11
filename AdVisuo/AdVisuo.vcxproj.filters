@@ -123,13 +123,13 @@
     <ClCompile Include="RibbonScenarioButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DlgSplash.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DlgHtBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DlgHtLogin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgHtAbout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -257,13 +257,13 @@
     <ClInclude Include="_version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DlgSplash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DlgHtBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DlgHtLogin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DlgHtAbout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

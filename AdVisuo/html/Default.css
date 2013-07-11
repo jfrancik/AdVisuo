@@ -36,7 +36,7 @@ div {cursor:default;}
 
 .bad-login { margin:0; font-size:1.2em; color:#bd0000; }
 
-#idCopyright {color:Black; position:absolute; bottom:2px; }
+#idCopyright {color:Black; position:absolute; bottom:4px; }
 
 #idLoginButton {cursor:pointer; }
 #idConnButton {cursor:pointer; }

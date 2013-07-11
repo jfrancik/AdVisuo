@@ -2,7 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by AdVisuo.rc
 //
-#define IDD_ABOUTBOX                    100
 #define IDP_OLE_INIT_FAILED             100
 #define IDB_BUTTONS                     113
 #define IDR_POPUP_EDIT                  119
@@ -97,6 +96,7 @@
 #define IDD_ADV_LOGIN1                  340
 #define IDD_ADV_SPLASH                  340
 #define IDR_HTML_CSS                    341
+#define IDD_ADV_ABOUT                   341
 #define IDR_HTML_PNG_HEADER             342
 #define IDR_HTML_PNG_FORM               343
 #define IDR_HTML_PNG_BUTTON             344

@@ -311,23 +311,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Dialog
-//
-
-IDD_ABOUTBOX DIALOGEX 0, 0, 204, 108
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About AdVisuo"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
-BEGIN
-    LTEXT           "",IDC_STATIC,48,7,149,74,0,WS_EX_CLIENTEDGE
-    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "AdSimulo Project\nAdVisuo 2.041.30613\nPre-release 13 June 2013\npowered by FreeWill+\n\nCopyright (C) 2009-13 by Lerch Bates\nPortions Copyright by Kingston University and Openboard Media",IDC_STATIC,54,12,135,64,SS_NOPREFIX
-    DEFPUSHBUTTON   "OK",IDOK,77,87,50,14,WS_GROUP
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Version
 //
 
@@ -363,25 +346,6 @@ BEGIN
         VALUE "Translation", 0x809, 1252
     END
 END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
-BEGIN
-    IDD_ABOUTBOX, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 197
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 101
-    END
-END
-#endif    // APSTUDIO_INVOKED
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -864,16 +828,24 @@ BEGIN
     EDITTEXT        IDC_EDIT1,7,7,118,24,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_ADV_LOGIN DIALOGEX 0, 0, 403, 249
+IDD_ADV_LOGIN DIALOGEX 0, 0, 405, 251
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "AdVisuo"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
 END
 
-IDD_ADV_SPLASH DIALOGEX 0, 0, 403, 249
+IDD_ADV_SPLASH DIALOGEX 0, 0, 405, 251
 STYLE DS_SETFONT | WS_POPUP | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW
+FONT 8, "Microsoft Sans Serif", 400, 0, 0x0
+BEGIN
+    LISTBOX         IDC_DEBUG,7,139,220,103,LBS_NOSEL | NOT WS_BORDER | WS_TABSTOP,WS_EX_TRANSPARENT
+END
+
+IDD_ADV_ABOUT DIALOGEX 0, 0, 405, 251
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About AdVisuo..."
 FONT 8, "Microsoft Sans Serif", 400, 0, 0x0
 BEGIN
     LISTBOX         IDC_DEBUG,7,139,220,103,LBS_NOSEL | NOT WS_BORDER | WS_TABSTOP,WS_EX_TRANSPARENT
@@ -961,6 +933,14 @@ BEGIN
     END
 
     IDD_ADV_SPLASH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 396
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 242
+    END
+
+    IDD_ADV_ABOUT, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 396

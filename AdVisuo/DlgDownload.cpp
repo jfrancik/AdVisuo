@@ -185,7 +185,8 @@ void CDlgDownload::OnBnClickedOk()
 
 	m_nProjectId = pPrj->GetSimulationId();
 
-	AfxGetApp()->m_pMainWnd = NULL;
+	if (AfxGetApp()->m_pMainWnd == this)
+		AfxGetApp()->m_pMainWnd = NULL;
 	CDialog::OnOK();
 }
 

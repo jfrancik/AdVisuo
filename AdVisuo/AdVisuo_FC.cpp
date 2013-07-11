@@ -27,7 +27,6 @@
 #include "DlgRepBug.h"
 #include "DlgDownload.h"
 #include "DlgHtLogin.h"
-#include "DlgHtAbout.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -204,14 +203,6 @@ BOOL CAdVisuoApp::InitInstance()
 		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen &&
 		   (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
 		{
-			// Load a file from the Command Line
-			CDlgHtSplash *pSplash = new CDlgHtSplash;
-			pSplash->DoNonModal();
-			pSplash->Sleep(400);
-
-			// prepare "debug" info
-			m_pOutList = (CListBox*)(pSplash->GetDlgItem(IDC_DEBUG));
-			for (int i = 0; i < 10; i++) OutDebugText(L"");
 			Debug(L"AdVisuo module started - a part of AdSimulo system.");
 			Debug(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
 
@@ -221,105 +212,55 @@ BOOL CAdVisuoApp::InitInstance()
 
 			m_url = m_http.URL().c_str();
 			if (pDoc) pDoc->ResetTitle();
-
-			// wait a moment
-			pSplash->Sleep(250);
-
-			// The main window has been initialized, so show and update it
-			pMainFrame->ShowWindow(SW_RESTORE);
-			pMainFrame->ShowWindow(SW_MAXIMIZE);
-			pMainFrame->UpdateWindow();
-
-			// wait a moment
-			pSplash->Sleep(500);
-
-			// close the splash window
-			m_pOutList = NULL;
-			pSplash->EndDialog(IDOK);
-			delete pSplash;
-
-			AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 		}
 		else
 		{
-			// ask for login details
-			CDlgHtLogin dlg(&m_http, m_servers);
-			m_pMainWnd = &dlg;
-#ifdef _DEBUG
-			dlg.m_strUsername = "jarekf";
-			dlg.m_strPassword = "sv_penguin125";
-#endif
-			if (dlg.DoModal() == IDOK)
+			// store configuration
+			m_url = L"http://217.33.230.53:8081/advsrv.asmx";
+			m_servers = L"217.33.230.53:8081";
+			CSettingsStoreSP regSP;
+			CSettingsStore& reg = regSP.Create(FALSE, FALSE);
+			if (reg.CreateKey(GetRegSectionPath(L"URL")))
+				reg.Write(L"servers", m_servers);
+
+			// Download available projects
+			std::vector<CProjectVis*> prjs;
+			std::wstring response;
+				
+			m_http.setURL((LPCTSTR)(m_url));
+			m_http.authorise(L"dummy", L"01234");
+
+			if (m_http.AVIsAuthorised() <= 0)
+				throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
+			
+			std::wstring appname = m_http.AVGetAppName();
+			int verreq = m_http.AVGetRequiredVersion();
+			std::wstring date = m_http.AVGetRequiredVersionDate();
+			std::wstring path = m_http.AVGetLatestVersionDownloadPath();
+			if (VERSION < verreq)
+				throw _version_error(verreq, date.c_str(), path.c_str());
+			
+			m_http.AVIndex();
+			m_http.get_response(response);
+			CProjectVis::LoadIndexFromBuf(response.c_str(), prjs);
+			
+			// show Index Dialog
+			CDlgDownload dlg(prjs);
+			if (dlg.DoModal() ==IDOK)
 			{
-				m_pMainWnd = pMainFrame;
+				CWaitCursor wait;
 
-				// store configuration
-				m_url = dlg.m_strUrl;
-				m_servers = dlg.m_strServers;
-				CSettingsStoreSP regSP;
-				CSettingsStore& reg = regSP.Create(FALSE, FALSE);
-				if (reg.CreateKey(GetRegSectionPath(L"URL")))
-					reg.Write(L"servers", m_servers);
-
-				// Download available projects
-				std::vector<CProjectVis*> prjs;
-				std::wstring response;
-				
-				m_http.setURL((LPCTSTR)(m_url));
-
-				if (m_http.AVIsAuthorised() <= 0)
-					throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
-				m_http.AVIndex();
-				m_http.get_response(response);
-				CProjectVis::LoadIndexFromBuf(response.c_str(), prjs);
+				// prepare "debug" info
+				Debug(L"AdVisuo module started - a part of AdSimulo system.");
+				Debug(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
 			
-				// show Index Dialog
-				CDlgDownload dlg(prjs);
-				m_pMainWnd = &dlg;
-				if (dlg.DoModal() ==IDOK)
-				{
-					m_pMainWnd = pMainFrame;
-					CWaitCursor wait;
-
-					CDlgHtSplash *pSplash = new CDlgHtSplash;
-					pSplash->DoNonModal(1000);
-					pSplash->Sleep(400);
-
-					// prepare "debug" info
-					m_pOutList = (CListBox*)(pSplash->GetDlgItem(IDC_DEBUG));
-					for (int i = 0; i < 10; i++) OutDebugText(L"");
-					Debug(L"AdVisuo module started - a part of AdSimulo system.");
-					Debug(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
-			
-					CString url;
-					url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlg.GetProjectId(), m_http.get_username().c_str(), m_http.get_ticket().c_str());
+				CString url;
+				url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlg.GetProjectId(), m_http.get_username().c_str(), m_http.get_ticket().c_str());
 				
-					CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
-					// if (pDoc) pDoc->ResetTitle();
+				CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
+				// if (pDoc) pDoc->ResetTitle();
 
-					if (!pDoc) return FALSE;
-
-					// wait a moment
-					pSplash->Sleep(250);
-
-					// The main window has been initialized, so show and update it
-					pMainFrame->ShowWindow(SW_RESTORE);
-					pMainFrame->ShowWindow(SW_MAXIMIZE);
-					pMainFrame->UpdateWindow();
-
-					// wait a moment
-					pSplash->Sleep(500);
-
-					// close the splash window
-					m_pOutList = NULL;
-					pSplash->CloseWindow();
-					delete pSplash;
-
-					AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
-				}
-				else
-					return FALSE;
+				if (!pDoc) return FALSE;
 			}
 			else
 				return FALSE;
@@ -377,11 +318,44 @@ int CAdVisuoApp::ExitInstance()
 	return CWinAppEx::ExitInstance();
 }
 
+
+
+
+// CAboutDlg dialog used for App About
+
+class CAboutDlg : public CDialog
+{
+public:
+	CAboutDlg();
+
+// Dialog Data
+	enum { IDD = IDD_ABOUTBOX };
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+// Implementation
+protected:
+	DECLARE_MESSAGE_MAP()
+};
+
+CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
+{
+}
+
+void CAboutDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+}
+
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
+END_MESSAGE_MAP()
+
 // App command to run the dialog
 void CAdVisuoApp::OnAppAbout()
 {
 	if (((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen()) return;
-	CDlgHtAbout aboutDlg;
+	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
 }
 
@@ -501,22 +475,24 @@ void CAdVisuoApp::OnFileDownload()
 		dlg.DoModal();
 		return;
 	}
-	
+
+			
+			
 	CDlgDownload dlg(prjs);
 
 	if (dlg.DoModal() ==IDOK)
 	{
 		CWaitCursor wait;
 		
-		CDlgHtSplash *pSplash = new CDlgHtSplash;
-		pSplash->DoNonModal(1000);
-		pSplash->Sleep(400);
+//		static CDlgSplash splash;
+//		splash.DoNonModal(1000);
+//		splash.Sleep(400);
 
-		// prepare "debug" info
-		m_pOutList = (CListBox*)(pSplash->GetDlgItem(IDC_DEBUG));
-		for (int i = 0; i < 10; i++) OutDebugText(L"");
-		Debug(L"AdVisuo module started - a part of AdSimulo system.");
-		Debug(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
+//		// prepare "debug" info
+//		m_pOutList = (CListBox*)(splash.GetDlgItem(IDC_DEBUG));
+//		for (int i = 0; i < 10; i++) OutDebugText(L"");
+//		Debug(L"AdVisuo module started - a part of AdSimulo system.");
+//		Debug(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
 			
 		CString url;
 		url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlg.GetProjectId(), m_http.get_username().c_str(), m_http.get_ticket().c_str());
@@ -527,14 +503,13 @@ void CAdVisuoApp::OnFileDownload()
 		if (!pDoc) return;
 
 		// wait a moment
-		pSplash->Sleep(750);
+//		splash.Sleep(750);
 
 		// close the splash window
-		m_pOutList = NULL;
-		pSplash->EndDialog(IDOK);
-		delete pSplash;
+//		m_pOutList = NULL;
+//		splash.EndDialog(IDOK);
 
-		AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+//		AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	}
 }
 
@@ -578,7 +553,7 @@ void CAdVisuoApp::OnReportBug()
 BOOL CAdVisuoApp::LoadWindowPlacement(CRect& rectNormalPosition, int& nFflags, int& nShowCmd)
 {
 	BOOL b = CWinAppEx::LoadWindowPlacement(rectNormalPosition, nFflags, nShowCmd);
-	nShowCmd = SW_HIDE;
+//	nShowCmd = SW_HIDE;
 	return b;
 }
 

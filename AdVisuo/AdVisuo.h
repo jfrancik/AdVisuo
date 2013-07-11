@@ -32,12 +32,7 @@ inline CAdVisuoApp *GetAdVisuoApp()		{ return (CAdVisuoApp*)AfxGetApp(); }
 
 class CAdVisuoApp : public CWinAppEx
 {
-public:
-	CAdVisuoApp();
-
-private:
 	// global HTTP connection - used for authorisation
-public:
 	CXMLRequest m_http;
 
 	// global application modes
@@ -54,14 +49,25 @@ public:
 	CMultiDocTemplate* m_pAVDocTemplate;	// doc template
 
 public:
+	UINT  m_nAppLook;
+	BOOL  m_bHiColorIcons;
+
+public:
+	CAdVisuoApp();
+
 	AVULONG GetWalkMode()			{ return (ULONG)m_nWalkMode; }
 	void SetWalkMode(AVULONG n)		{ m_nWalkMode = n; }
 	AVULONG GetColouringMode()		{ return (ULONG)m_nColouringMode; }
 	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
 
+	void CAdVisuoApp::OutDebugText(LPCTSTR lpszItem);
+
+	void Authorise(CString url, CString username, CString ticket);
+	void RefreshAuthorisation();
+	void GetAuthorisation(CXMLRequest *pHttp);
+	
 	ULONG GetSessionId()			{ return m_nSessionId; }
 
-	void CAdVisuoApp::OutDebugText(LPCTSTR lpszItem);
 
 	// SIM file paths - obsolete
 	//CString m_strSimPathName;	// simulation file pathname - if provided as a 2nd cmd line param
@@ -71,10 +77,6 @@ public:
 // Overrides
 public:
 	virtual BOOL InitInstance();
-
-// Implementation
-	UINT  m_nAppLook;
-	BOOL  m_bHiColorIcons;
 
 	virtual void PreLoadState();
 	virtual void LoadCustomState();
