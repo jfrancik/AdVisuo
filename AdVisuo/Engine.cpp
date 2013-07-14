@@ -132,7 +132,7 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 	try
 	{
 		// #FreeWill: create the FreeWill device
-		Debug(L"Initialising FreeWill+ system...");
+		OutText(L"Initialising FreeWill+ system...");
 		HRESULT h;
 		h = CoCreateInstance(CLSID_FWDevice, NULL, CLSCTX_INPROC_SERVER, IID_IFWDevice, (void**)&m_pFWDevice);
 		if (FAILED(h)) throw ERROR_FREEWILL;
@@ -171,7 +171,7 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 		m_pScene->PutRenderer(m_pRenderer);
 
 		// #Load the Scene
-		Debug(L"Loading biped model...");
+		OutText(L"Loading biped model...");
 		IFileLoader *pLoader;
 		m_pFWDevice->CreateObject(L"FileLoader", IID_IFileLoader, (IFWUnknown**)&pLoader);
 		ISceneObject *pBip01 = NULL;
@@ -235,7 +235,7 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 			m_pRenderer->SetCallback(FW_CB_LOSTDEVICE, _on_lost_device, 0, pLDO);
 			m_pRenderer->SetCallback(FW_CB_RESETDEVICE, _on_reset_device, 0, pLDO);
 		}
-		Debug(L"FreeWill+ initialised successfully...");
+		OutText(L"FreeWill+ initialised successfully...");
 	}
 	catch (eError e)
 	{

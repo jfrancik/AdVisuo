@@ -37,7 +37,6 @@
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 
-
 #include <afxdisp.h>        // MFC Automation classes
 
 
@@ -62,55 +61,9 @@
 #include <sstream>
 #include <afxdhtml.h>
 
-///////////////////////////////////////////////////////////////
-// AdVisuo Specials
+// Base AdVisuo Definitions
+#include "_base.h"
 
-// Debug Output Function
-void Debug(LPCTSTR fmt, ...);
-
-#define AVULONG ULONG
-#define AVLONG LONG
-#define AVFLOAT FLOAT
-#define AVSTRING LPOLESTR
-//#define AVCOLOR FWCOLOR
-struct AVVECTOR
-{
-	AVFLOAT x;
-	AVFLOAT y;
-	AVFLOAT z;
-};
-struct AVSIZE
-{
-	AVSIZE(AVFLOAT x = 0, AVFLOAT y = 0) : x(x), y(y) { }
-	AVFLOAT x;
-	AVFLOAT y;
-};
-struct AVCOLOR
-{
-	AVFLOAT r;
-	AVFLOAT g;
-	AVFLOAT b;
-	AVFLOAT a;
-};
-#define _FWCOLOR(c) (*(FWCOLOR*)&(c))
-
-// Global Access
-
-class CAdVisuoApp;
-inline CAdVisuoApp *AVGetApp()			{ return (CAdVisuoApp*)AfxGetApp(); }
-
-class CMainFrame;
-inline CMainFrame *AVGetMainWnd()		{ return (CMainFrame*)AfxGetMainWnd(); }
-
-// Colours
-#define AVCOLOR2COLORREF(c)	RGB((unsigned)((c).r*255.0f), (unsigned)((c).g*255.0f), (unsigned)((c).b*255.0f))
-
-// Standard Models Path
-extern std::wstring _stdPathModels;
-#define STD_PATH(str)	((AVSTRING)(_stdPathModels + (str)).c_str())
-
-// Max Number of Lifts
-#define LIFT_MAXNUM	100
 
 #ifdef _UNICODE
 #if defined _M_IX86
@@ -124,17 +77,3 @@ extern std::wstring _stdPathModels;
 #endif
 #endif
 
-/////////////////////////////////////////////////////////////
-// Max Number of Lift Decks and Doors
-
-#define DECK_NUM	2
-#define MAX_DOORS	6
-
-/////////////////////////////////////////////////////////////
-// AdVisuo specific includes
-
-#include "../CommonFiles/Vector.h"
-#include "../CommonFiles/Box.h"
-
-
-#pragma warning (disable:4800)

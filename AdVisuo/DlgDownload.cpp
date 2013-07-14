@@ -50,7 +50,7 @@ END_MESSAGE_MAP()
 		{
 			case 0: nRes = pPrj1->GetSimulationId() < pPrj2->GetSimulationId() ? -1 : (pPrj1->GetSimulationId() > pPrj2->GetSimulationId() ? 1 : 0); break;
 			case 1: nRes = wcscmp(pPrj1->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str(), pPrj2->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); break;
-			case 2: nRes = wcscmp(pPrj1->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME).c_str(), pPrj2->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME).c_str()); break;
+			case 2: nRes = wcscmp(pPrj1->GetProjectInfo(CProjectVis::PRJ_SIMULATION_NAME).c_str(), pPrj2->GetProjectInfo(CProjectVis::PRJ_SIMULATION_NAME).c_str()); break;
 		}
 		return lParamSort < 100 ? nRes : -nRes;
 	}
@@ -69,8 +69,8 @@ BOOL CDlgDownload::OnInitDialog()
 	m_list.SetExtendedStyle(m_list.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_INFOTIP | LVS_EX_LABELTIP);
 
 	m_list.InsertColumn(0, L"id");
-	m_list.InsertColumn(1, L"Project Title");
-	m_list.InsertColumn(2, L"Building");
+	m_list.InsertColumn(1, L"Project");
+	m_list.InsertColumn(2, L"Simulation");
 
 	m_list.SetColumnWidth(0, 35);
 	m_list.SetColumnWidth(1, 250);
@@ -104,7 +104,7 @@ BOOL CDlgDownload::OnInitDialog()
 		lvItem.pszText = buf;
 		m_list.SetItem(&lvItem);
 		lvItem.iSubItem = 2;
-		_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME).c_str());
+		_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_SIMULATION_NAME).c_str());
 		lvItem.pszText = buf;
 		m_list.SetItem(&lvItem);
 	}
@@ -142,11 +142,11 @@ void CDlgDownload::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 	CProjectVis *pPrj = (CProjectVis*)m_list.GetItemData(pNMLV->iItem);
 	m_details.Format(
 		L"Project: %s\n\r"
-		L"Building: %s (%d lift groups)\n\r"
+		L"Simulation: %s (%d lift groups)\n\r"
 		L"Client: %s%s%s%s%s"
 		, 
 		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME), L"<untitled project>"),
-		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_BUILDING_NAME), L"lift group name"), pPrj->GetLiftGroupsCount(),
+		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_SIMULATION_NAME), L"---"), pPrj->GetLiftGroupsCount(),
 		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COMPANY), L"<unknown>"), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_CITY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_POST_CODE)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTRY))
 		);
 

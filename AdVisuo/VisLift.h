@@ -3,7 +3,6 @@
 #pragma once
 
 #include "../CommonFiles/BaseSimClasses.h"
-#include "_base.h"
 
 class CSimVis;
 class CEngine;

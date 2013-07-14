@@ -8,7 +8,7 @@
 
 // CDlgHtAbout dialog
 
-class CDlgHtAbout : public CDlgHtBase
+class CDlgHtAbout : public CDlgHtBase, public IOutTextSink
 {
 	DECLARE_DYNCREATE(CDlgHtAbout)
 
@@ -16,7 +16,12 @@ public:
 	CDlgHtAbout(UINT nIDTemplate = IDD, UINT nHtmlResID = IDH, CWnd* pParent = NULL) : CDlgHtBase(nIDTemplate, nHtmlResID, pParent)		{}
 	virtual ~CDlgHtAbout()	{}
 
+// OutTextSink
+	virtual void OutText(LPCTSTR lpszItem);
+
 // Overrides
+	virtual void OnOK();
+	virtual void OnCancel();
 	HRESULT OnButtonOK(IHTMLElement *pElement);
 	HRESULT OnButtonCancel(IHTMLElement *pElement);
 
@@ -40,6 +45,9 @@ class CDlgHtSplash : public CDlgHtAbout
 public:
 	CDlgHtSplash(UINT nIDTemplate = IDD, UINT nHtmlResID = IDH, CWnd* pParent = NULL) : CDlgHtAbout(nIDTemplate, nHtmlResID, pParent)		{}
 	virtual ~CDlgHtSplash()	{}
+
+// OutTextSink
+	virtual void OutText(LPCTSTR lpszItem);
 
 // Dialog Data
 	enum { IDD = IDD_ADV_SPLASH, IDH = IDR_HTML_DLGSPLASH };

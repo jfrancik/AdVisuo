@@ -14,9 +14,14 @@ void CDlgHtAbout::DoDataExchange(CDataExchange* pDX)
 	CDlgHtBase::DoDataExchange(pDX);
 }
 
+void CDlgHtAbout::OutText(LPCTSTR lpszItem)
+{
+}
+
 BOOL CDlgHtAbout::OnInitDialog()
 {
 	CDlgHtBase::OnInitDialog();
+	RegisterOutTextSink(this);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -42,10 +47,39 @@ HRESULT CDlgHtAbout::OnButtonCancel(IHTMLElement* /*pElement*/)
 	return S_OK;
 }
 
+void CDlgHtAbout::OnOK()
+{
+	UnRegisterOutTextSink(this);
+	CDlgHtBase::OnOK();
+}
+
+void CDlgHtAbout::OnCancel()
+{
+	UnRegisterOutTextSink(this);
+	CDlgHtBase::OnCancel();
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////
 // CDlgHtSplash dialog
 
 IMPLEMENT_DYNCREATE(CDlgHtSplash, CDlgHtAbout)
+
+void CDlgHtSplash::OutText(LPCTSTR lpszItem)
+{
+	if (!IsWindow(m_hWnd)) return;
+
+	CListBox *pList = (CListBox*)(GetDlgItem(IDC_DEBUG));
+	
+	pList->AddString(lpszItem);
+	CRect rect; pList->GetClientRect(rect);
+	int n = rect.Height() / pList->GetItemHeight(0) - 2;
+	n = pList->GetCount() - n;
+	pList->SetTopIndex(n);
+
+	pList->UpdateWindow();
+}
 
 BOOL CDlgHtSplash::OnInitDialog()
 {

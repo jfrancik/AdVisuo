@@ -4,7 +4,6 @@
 
 #include "../CommonFiles/BaseSimClasses.h"
 #include "../CommonFiles/XMLTools.h"
-#include "_base.h"
 
 class CSimVis;
 class CEngine;

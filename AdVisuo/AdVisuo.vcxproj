@@ -167,6 +167,7 @@
     </ClCompile>
     <ClCompile Include="Screen.cpp" />
     <ClCompile Include="xmlrequest.cpp" />
+    <ClCompile Include="_base.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CommonFiles\BaseLiftGroup.h" />
@@ -212,7 +213,6 @@
     <ClInclude Include="Screen.h" />
     <ClInclude Include="xmlrequest.h" />
     <ClInclude Include="_base.h" />
-    <ClInclude Include="_version.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="html\bg-login-form.png" />

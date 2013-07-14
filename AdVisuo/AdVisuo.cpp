@@ -15,7 +15,6 @@
 //
 
 #include "stdafx.h"
-#include "_version.h"
 #include "afxwinappex.h"
 #include "AdVisuo.h"
 #include "MainFrm.h"
@@ -53,7 +52,6 @@ END_MESSAGE_MAP()
 CAdVisuoApp::CAdVisuoApp()
 {
 	m_bHiColorIcons = TRUE;
-	m_pOutList = NULL;
 
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -210,10 +208,9 @@ BOOL CAdVisuoApp::InitInstance()
 			pSplash->Sleep(400);
 
 			// prepare "debug" info
-			m_pOutList = (CListBox*)(pSplash->GetDlgItem(IDC_DEBUG));
-			for (int i = 0; i < 10; i++) OutDebugText(L"");
-			Debug(L"AdVisuo module started - a part of AdSimulo system.");
-			Debug(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
+			for (int i = 0; i < 10; i++) pSplash->OutText(L"");
+			OutText(L"AdVisuo module started - a part of AdSimulo system.");
+			OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
 
 			// open document
 			CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(cmdInfo.m_strFileName);
@@ -234,8 +231,7 @@ BOOL CAdVisuoApp::InitInstance()
 			pSplash->Sleep(500);
 
 			// close the splash window
-			m_pOutList = NULL;
-			pSplash->EndDialog(IDOK);
+			pSplash->OnOK();
 			delete pSplash;
 
 			AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -286,10 +282,9 @@ BOOL CAdVisuoApp::InitInstance()
 					pSplash->Sleep(400);
 
 					// prepare "debug" info
-					m_pOutList = (CListBox*)(pSplash->GetDlgItem(IDC_DEBUG));
-					for (int i = 0; i < 10; i++) OutDebugText(L"");
-					Debug(L"AdVisuo module started - a part of AdSimulo system.");
-					Debug(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
+					for (int i = 0; i < 10; i++) pSplash->OutText(L"");
+					OutText(L"AdVisuo module started - a part of AdSimulo system.");
+					OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
 			
 					CString url;
 					url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlg.GetProjectId(), m_http.get_username().c_str(), m_http.get_ticket().c_str());
@@ -311,8 +306,7 @@ BOOL CAdVisuoApp::InitInstance()
 					pSplash->Sleep(500);
 
 					// close the splash window
-					m_pOutList = NULL;
-					pSplash->CloseWindow();
+					pSplash->OnOK();
 					delete pSplash;
 
 					AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -373,7 +367,7 @@ BOOL CAdVisuoApp::InitInstance()
 
 int CAdVisuoApp::ExitInstance()
 {
-	CDlgReportBug::Report(2);
+	//CDlgReportBug::Report(2);
 	return CWinAppEx::ExitInstance();
 }
 
@@ -513,10 +507,9 @@ void CAdVisuoApp::OnFileDownload()
 		pSplash->Sleep(400);
 
 		// prepare "debug" info
-		m_pOutList = (CListBox*)(pSplash->GetDlgItem(IDC_DEBUG));
-		for (int i = 0; i < 10; i++) OutDebugText(L"");
-		Debug(L"AdVisuo module started - a part of AdSimulo system.");
-		Debug(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
+		for (int i = 0; i < 10; i++) pSplash->OutText(L"");
+		OutText(L"AdVisuo module started - a part of AdSimulo system.");
+		OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
 			
 		CString url;
 		url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlg.GetProjectId(), m_http.get_username().c_str(), m_http.get_ticket().c_str());
@@ -530,8 +523,7 @@ void CAdVisuoApp::OnFileDownload()
 		pSplash->Sleep(750);
 
 		// close the splash window
-		m_pOutList = NULL;
-		pSplash->EndDialog(IDOK);
+		pSplash->OnOK();
 		delete pSplash;
 
 		AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -582,15 +574,3 @@ BOOL CAdVisuoApp::LoadWindowPlacement(CRect& rectNormalPosition, int& nFflags, i
 	return b;
 }
 
-void CAdVisuoApp::OutDebugText(LPCTSTR lpszItem)
-{
-	if (!m_pOutList) return;
-	
-	m_pOutList->AddString(lpszItem);
-	CRect rect; m_pOutList->GetClientRect(rect);
-	int n = rect.Height() / m_pOutList->GetItemHeight(0) - 2;
-	n = m_pOutList->GetCount() - n;
-	m_pOutList->SetTopIndex(n);
-
-	m_pOutList->UpdateWindow();
-}

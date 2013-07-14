@@ -8,7 +8,6 @@
 #include "AdVisuoView.h"
 #include "AdVisuo.h"
 #include "DlgHtBase.h"
-#include "_version.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -74,7 +73,7 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	if (!CDocument::OnOpenDocument(lpszPathName))
 		return FALSE;
 
-	Debug(L"Loading simulation from file: %s", lpszPathName);
+	OutText(L"Loading simulation from file: %s", lpszPathName);
 
 	CWaitCursor wait;
 	DeleteContents();
@@ -88,7 +87,7 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		m_timeLoaded = GetProject()->GetMaxSimulationTime();
 
 		m_h = S_OK;
-		Debug(L"File successfully loaded.");
+		OutText(L"File successfully loaded.");
 		SetModifiedFlag(FALSE);
 	}
 	catch (_prj_error pe)
@@ -120,7 +119,7 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 BOOL CAdVisuoDoc::OnSaveDocument(LPCTSTR lpszPathName)
 {
-	Debug(L"Storing simulation to file: %s", L"unknown");
+	OutText(L"Storing simulation to file: %s", L"unknown");
 
 	CWaitCursor wait;
 
@@ -129,7 +128,7 @@ BOOL CAdVisuoDoc::OnSaveDocument(LPCTSTR lpszPathName)
 	{
 		GetProject()->StoreToFile(lpszPathName);
 
-		Debug(L"File successfully stored.");
+		OutText(L"File successfully stored.");
 		SetModifiedFlag(FALSE);
 	}
 	catch (_prj_error pe)
@@ -194,8 +193,8 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		}
 	}
 	if (strUrl.Right(13) == "/GetAVProject") strUrl = strUrl.Left(strUrl.GetLength() - 13);
-	Debug(L"Downloading project from:");
-	Debug(L"%s (id=%d)", strUrl, nId);
+	OutText(L"Downloading project from:");
+	OutText(L"%s (id=%d)", strUrl, nId);
 
 	// Initiate the download
 	std::wstringstream str;
@@ -249,7 +248,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		OnSIMDataLoaded();
 
 		m_h = S_OK;
-		Debug(L"Download initiated successfully, more data loading in background...");
+		OutText(L"Download initiated successfully, more data loading in background...");
 		SetModifiedFlag(TRUE);
 	}
 	catch (_prj_error pe)
@@ -315,38 +314,38 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 	}
 	catch (_prj_error pe)
 	{
-		CDlgHtFailure dlg(pe, m_http.URL().c_str());
-		dlg.DoModal();
+		AfxMessageBox(CDlgHtFailure::GetFailureTitle(pe));
+		AfxMessageBox(CDlgHtFailure::GetFailureString(pe, m_http.URL().c_str()));
 		return false;
 	}
 	catch (_com_error ce)
 	{
-		CDlgHtFailure dlg(ce, m_http.URL().c_str());
-		dlg.DoModal();
+		AfxMessageBox(CDlgHtFailure::GetFailureTitle(ce));
+		AfxMessageBox(CDlgHtFailure::GetFailureString(ce, m_http.URL().c_str()));
 		return false;
 	}
 	catch (_xmlreq_error xe)
 	{
-		CDlgHtFailure dlg(xe, m_http.URL().c_str());
-		dlg.DoModal();
+		AfxMessageBox(CDlgHtFailure::GetFailureTitle(xe));
+		AfxMessageBox(CDlgHtFailure::GetFailureString(xe, m_http.URL().c_str()));
 		return false;
 	}
 	catch (_version_error ve)
 	{
-		CDlgHtFailure dlg(ve, m_http.URL().c_str());
-		dlg.DoModal();
+		AfxMessageBox(CDlgHtFailure::GetFailureTitle(ve));
+		AfxMessageBox(CDlgHtFailure::GetFailureString(ve, m_http.URL().c_str()));
 		return false;
 	}
 	catch (dbtools::_value_error ve)
 	{
-		CDlgHtFailure dlg(ve, m_http.URL().c_str());
-		dlg.DoModal();
+		AfxMessageBox(CDlgHtFailure::GetFailureTitle(ve));
+		AfxMessageBox(CDlgHtFailure::GetFailureString(ve, m_http.URL().c_str()));
 		return false;
 	}
 	catch(...)
 	{
-		CDlgHtFailure dlg(m_http.URL().c_str());
-		dlg.DoModal();
+		AfxMessageBox(CDlgHtFailure::GetFailureTitle());
+		AfxMessageBox(CDlgHtFailure::GetFailureString(m_http.URL().c_str()));
 		return false;
 	}
 	return true;

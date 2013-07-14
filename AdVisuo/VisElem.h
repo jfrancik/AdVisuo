@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "_base.h"
 #include "../CommonFiles/ConstrProject.h"
 #include "../CommonFiles/XMLTools.h"
 #include <vector>

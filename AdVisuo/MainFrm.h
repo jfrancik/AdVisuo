@@ -63,7 +63,6 @@ public:
 
 	CMFCRibbonBaseElement *GetCmdButton(UINT nCmd)		{ CArray<CMFCRibbonBaseElement* ,CMFCRibbonBaseElement*> arButtons; m_wndRibbonBar.GetElementsByID(nCmd, arButtons); return arButtons.GetCount() ? arButtons[0] : NULL; }
 
-	friend void Debug(LPCTSTR lpszItem, ...);
 	afx_msg void OnViewOutputwnd();
 	afx_msg void OnUpdateViewOutputwnd(CCmdUI *pCmdUI);
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);

@@ -6,7 +6,6 @@
 #include "DlgHtLogin.h"
 #include "XMLRequest.h"
 #include "VisProject.h"		// for _prj_error
-#include "_version.h"
 
 // CDlgHtLogin dialog
 
@@ -73,6 +72,8 @@ void CDlgHtLogin::GotoLogin()
 	{
 		m_pHttp->setURL((LPCTSTR)m_strUrl);
 		std::wstring appname = m_pHttp->AVGetAppName();
+		if (appname != L"AdVisuo")
+			throw _prj_error(_prj_error::E_PRJ_INTERNAL);
 		int verreq = m_pHttp->AVGetRequiredVersion();
 		std::wstring date = m_pHttp->AVGetRequiredVersionDate();
 		std::wstring path = m_pHttp->AVGetLatestVersionDownloadPath();
@@ -84,6 +85,10 @@ void CDlgHtLogin::GotoLogin()
 		m_state = LOGIN;
 		ExecJS(L"GotoLogin()");
 		SetWindowText(L"AdVisuo Login");
+	}
+	catch (_prj_error pe)
+	{
+		GotoFailure(pe, m_pHttp->URL().c_str());
 	}
 	catch (_com_error ce)
 	{

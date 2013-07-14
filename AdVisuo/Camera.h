@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "_base.h"
 #include "../CommonFiles/Box.h"
 #include "VisElem.h"
 #include "VisLiftGroup.h"

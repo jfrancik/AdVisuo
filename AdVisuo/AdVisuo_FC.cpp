@@ -27,6 +27,7 @@
 #include "DlgRepBug.h"
 #include "DlgDownload.h"
 #include "DlgHtLogin.h"
+#include "DlgHtAbout.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -314,48 +315,18 @@ BOOL CAdVisuoApp::InitInstance()
 
 int CAdVisuoApp::ExitInstance()
 {
-	CDlgReportBug::Report(2);
+	//CDlgReportBug::Report(2);
 	return CWinAppEx::ExitInstance();
 }
 
 
 
 
-// CAboutDlg dialog used for App About
-
-class CAboutDlg : public CDialog
-{
-public:
-	CAboutDlg();
-
-// Dialog Data
-	enum { IDD = IDD_ABOUTBOX };
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-// Implementation
-protected:
-	DECLARE_MESSAGE_MAP()
-};
-
-CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
-{
-}
-
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
-{
-	CDialog::DoDataExchange(pDX);
-}
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
-END_MESSAGE_MAP()
-
 // App command to run the dialog
 void CAdVisuoApp::OnAppAbout()
 {
 	if (((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen()) return;
-	CAboutDlg aboutDlg;
+	CDlgHtAbout aboutDlg;
 	aboutDlg.DoModal();
 }
 

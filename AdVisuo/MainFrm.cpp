@@ -182,7 +182,6 @@ void CMainFrame::Dump(CDumpContext& dc) const
 }
 #endif //_DEBUG
 
-
 // CMainFrame message handlers
 
 void CMainFrame::OnWindowManager()
@@ -301,22 +300,6 @@ void CMainFrame::OnViewOutputwnd()
 void CMainFrame::OnUpdateViewOutputwnd(CCmdUI *pCmdUI)
 {
 	pCmdUI->SetCheck(m_wndOutput.IsWindowVisible());
-}
-
-
-void Debug(LPCTSTR fmt, ...)
-{
-	WCHAR out[1024];
-	va_list body;
-	va_start(body, fmt);
-	vswprintf(out, 1024, fmt, body);
-	va_end(body);
-	TRACE(out); TRACE("\n");
-	if ((CMainFrame*)AfxGetMainWnd())
-	{
-		((CMainFrame*)AfxGetMainWnd())->m_wndOutput.OutDebugWindow(out);
-		((CAdVisuoApp*)AfxGetApp())->OutDebugText(out);
-	}
 }
 
 // makes min max info more relaxed in full screen mode

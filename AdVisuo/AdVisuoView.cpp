@@ -168,7 +168,7 @@ void CAdVisuoView::OnInitialUpdate()
 		::PostQuitMessage(100);
 		return;
 	}
-	Debug(L"Initialising video subsystems.");
+	OutText(L"Initialising video subsystems.");
 
 	GetProject()->SetEngine(&m_engine);
 
@@ -182,7 +182,7 @@ void CAdVisuoView::OnInitialUpdate()
 	OnAdjustViewSize();
 
 	// initialise the simulation
-	Debug(L"Creating building structure...");
+	OutText(L"Creating building structure...");
 	m_engine.InitMats(GetProject()->GetMaxStoreyCount(), GetProject()->GetMaxBasementStoreyCount(), GetProject()->GetMaxShaftCount());
 	GetProject()->Construct();
 	GetProject()->StoreConfig();
@@ -190,7 +190,7 @@ void CAdVisuoView::OnInitialUpdate()
 	if (GetProject()->GetLiftGroupsCount() == 0)
 		return;
 
-	Debug(L"Initialising cameras...");
+	OutText(L"Initialising cameras...");
 	// initialise cameras
 	for (int i = 0; i < N_CAMERAS; i++) 
 	{
@@ -237,7 +237,7 @@ void CAdVisuoView::OnInitialUpdate()
 	GetCamera(6)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(6)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	- ID_CAMERA - 1);
 	GetCamera(7)->MoveTo(CAMLOC_STOREY, nStorey); GetCamera(7)->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT	- ID_CAMERA - 1);
 
-	Debug(L"Building created, ready for rendering.");
+	OutText(L"Building created, ready for rendering.");
 
 	// setup modes
 	SetWalkMode(GetAdVisuoApp()->GetWalkMode());
@@ -385,7 +385,7 @@ void CAdVisuoView::Rewind(AVULONG nMSec)
 void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 {
 	// #FreeWill: Push the time info into the engine
-	if (m_engine.IsPlaying())
+	if (m_engine.IsPlaying() && !m_bLock)
 	{
 		AVLONG nTime = m_engine.GetPlayTime();
 		m_script.Proceed(nTime);
@@ -548,7 +548,7 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 
 	try
 	{
-		m_engine.Stop();
+//		m_engine.Stop();
 		m_engine.StartTargetToVideo(CSize(nResX, nResY), lpszFilename, nFPS);
 
 		// first frame - to initialise
@@ -603,6 +603,7 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 				m_engine.SetTargetToScreen();
 				m_engine.BeginFrame();
 				RenderScene();
+				RenderHUD(bShowClock, true, bShowCaptions, false, t);
 				m_engine.EndFrame();
 			}
 		}
@@ -1151,9 +1152,9 @@ void CAdVisuoView::OnUpdateScenarioMenu(CCmdUI *pCmdUI)
 ///////////////////////////////////////////////////////////////////////////////////////
 // Actions
 
-void CAdVisuoView::OnActionPlay()	{ if ( m_engine.IsPlaying()) return; Play();  Debug(L"Visualisation started..."); }
-void CAdVisuoView::OnActionPause()	{ if (!m_engine.IsPlaying()) return; Pause(); Debug(m_engine.IsPaused() ? L"Visualisation paused..." : L"Visualisation resumed..."); }
-void CAdVisuoView::OnActionStop()	{ if (!m_engine.IsPlaying()) return; Stop();  Debug(L"Visualisation stopped..."); }
+void CAdVisuoView::OnActionPlay()	{ if ( m_engine.IsPlaying()) return; Play();  OutText(L"Visualisation started..."); }
+void CAdVisuoView::OnActionPause()	{ if (!m_engine.IsPlaying()) return; Pause(); OutText(m_engine.IsPaused() ? L"Visualisation paused..." : L"Visualisation resumed..."); }
+void CAdVisuoView::OnActionStop()	{ if (!m_engine.IsPlaying()) return; Stop();  OutText(L"Visualisation stopped..."); }
 
 void CAdVisuoView::OnActionSlowdown()		{ m_engine.SlowDown(); }
 void CAdVisuoView::OnActionSpeedup()		{ m_engine.SpeedUp(); }

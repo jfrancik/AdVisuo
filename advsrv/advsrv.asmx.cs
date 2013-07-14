@@ -165,7 +165,7 @@ namespace advsrv
                 DateTime stamp = reader.GetDateTime(0);
                 reader.Close();
 
-                double validity = 120;
+                double validity = 12;
                 double secs = (DateTime.Now - stamp).TotalSeconds;
                 if (secs > validity)
                     return 0;

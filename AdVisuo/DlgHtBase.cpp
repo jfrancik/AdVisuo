@@ -5,7 +5,6 @@
 #include "AdVisuo.h"
 #include "DlgHtBase.h"
 #include "VisProject.h"		// for _prj_error
-#include "_version.h"
 
 // CDlgHtBase/CDlgHtFailure dialog
 
@@ -93,7 +92,7 @@ void CDlgHtBase::OnOK()
 	// enable being the application main window
 	if (AfxGetApp()->m_pMainWnd == this)
 		AfxGetApp()->m_pMainWnd = NULL;
-	EndDialog(IDOK);
+	CDHtmlDialog::OnOK();
 }
 
 void CDlgHtBase::OnCancel()
@@ -101,7 +100,7 @@ void CDlgHtBase::OnCancel()
 	// enable being the application main window
 	if (AfxGetApp()->m_pMainWnd == this)
 		AfxGetApp()->m_pMainWnd = NULL;
-	EndDialog(IDCANCEL);
+	CDHtmlDialog::OnCancel();
 }
 
 HRESULT CDlgHtBase::OnButtonCancel(IHTMLElement* /*pElement*/)
@@ -252,19 +251,19 @@ void CDlgHtFailure::OnGotoFailure(CString title, CString text)
 	SetWindowText(CString(L"AdVisuo ") + title);
 }
 
-void CDlgHtFailure::GotoFailure(_version_error &ve, CString url)
+CString CDlgHtFailure::GetFailureString(_version_error &ve, CString url)
 {
-	OnGotoFailure(L"VERSION MISMATCH", ve.ErrorMessage().c_str());
+	return ve.ErrorMessage().c_str();
 }
 
-void CDlgHtFailure::GotoFailure(_prj_error &pe, CString url)
+CString CDlgHtFailure::GetFailureString(_prj_error &pe, CString url)
 {
 	std::wstringstream str;
-	str << L"AdVisuo internal error:<br />" << pe.ErrorMessage() << L";<br />loading from " << (LPCTSTR)url << L".";
-	OnGotoFailure(L"INTERNAL ERROR", str.str().c_str());
+	str << L"AdVisuo internal error:<br />" << pe.ErrorMessage() << L"<br />while loading from " << (LPCTSTR)url << L".";
+	return str.str().c_str();
 }
 
-void CDlgHtFailure::GotoFailure(_com_error &ce, CString url)
+CString CDlgHtFailure::GetFailureString(_com_error &ce, CString url)
 {
 	std::wstringstream str;
 	str << "System cannot access server side service at:<br />" << (LPCTSTR)url << ".<br/>&nbsp;<br/>";
@@ -276,27 +275,31 @@ void CDlgHtFailure::GotoFailure(_com_error &ce, CString url)
 
 	CString s = str.str().c_str();
 	s.TrimRight();
-	OnGotoFailure(L"CONNECTION ERROR", s);
+	return s;
 }
 
-void CDlgHtFailure::GotoFailure(_xmlreq_error &xe, CString url)
+CString CDlgHtFailure::GetFailureString(_xmlreq_error &xe, CString url)
 {
 	std::wstringstream str;
 	str << L"HTTP error " << xe.status() << L": " << xe.msg() << L"<br />at " << (LPCTSTR)url << L".";
-	OnGotoFailure(L"HTTP ERROR", str.str().c_str());
+	return str.str().c_str();
 }
 
-void CDlgHtFailure::GotoFailure(dbtools::_value_error &ve, CString url)
+CString CDlgHtFailure::GetFailureString(dbtools::_value_error &ve, CString url)
 {
 	std::wstringstream str;
-	str << L"AdVisuo internal error:<br />" << ve.ErrorMessage() << L";<br />loading from " << (LPCTSTR)url << L".";
-	OnGotoFailure(L"INTERNAL ERROR", str.str().c_str());
+	str << L"AdVisuo internal error:<br />" << ve.ErrorMessage() << L"<br />while loading from " << (LPCTSTR)url << L".";
+	return str.str().c_str();
 }
 
-void CDlgHtFailure::GotoFailure(CString url)
+CString CDlgHtFailure::GetFailureString(CString url)
 {
 	std::wstringstream str;
 	str << L"Unidentified error while downloading from " << url;
-	OnGotoFailure(L"CONNECTION ERROR", str.str().c_str());
+	return str.str().c_str();
 }
+
+
+
+
 

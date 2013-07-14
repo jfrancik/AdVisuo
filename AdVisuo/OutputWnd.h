@@ -37,7 +37,7 @@ protected:
 	friend class CMainFrame;
 };
 
-class COutputWnd : public CDockablePane
+class COutputWnd : public CDockablePane, public IOutTextSink
 {
 // Construction
 public:
@@ -59,6 +59,8 @@ public:
 	void OutDebugWindow(LPCTSTR lpszItem);
 	void OutFindWindow(LPCTSTR lpszItem);
 
+	void OutText(LPCTSTR lpszItem)	{ OutDebugWindow(lpszItem); }
+
 protected:
 	void AdjustHorzScroll(CListBox& wndListBox);
 
@@ -71,7 +73,5 @@ protected:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 
 	DECLARE_MESSAGE_MAP()
-
-	friend class CMainFrame;
 };
 

@@ -82,6 +82,7 @@ std::wstring CProject::GetProjectInfo(PRJ_INFO what)
 	switch (what)
 	{
 		case PRJ_PROJECT_NAME: return ME[L"ProjectName"];
+		case PRJ_SIMULATION_NAME: return ME[L"Name"];
 		case PRJ_BUILDING_NAME: return ME[L"BuildingName"];
 		case PRJ_LANGUAGE: return ME[L"Language"];
 		case PRJ_UNITS: return ME[L"MeasurementUnits"];

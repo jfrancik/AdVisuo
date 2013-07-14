@@ -337,6 +337,7 @@ CDataBase::SELECT::SELECT(CDataBase &db, const wchar_t *query)
 	if FAILED(m_h) throw m_h;
 	if (g_bVerbose) wprintf(L"%ls\n", query);
 	m_h = m_recordset->Open(query, ((ADODB::_ConnectionPtr&)db).GetInterfacePtr(), ADODB::adOpenForwardOnly, ADODB::adLockReadOnly, ADODB::adCmdText);
+
 	if FAILED(m_h) throw m_h;
 }
 

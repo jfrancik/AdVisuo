@@ -90,12 +90,26 @@ public:
 	// Built-in Failure Messages
 	virtual void OnGotoFailure(CString title, CString text);	// generic & virtual...
 	
-	void GotoFailure(_version_error &ve, CString url);
-	void GotoFailure(_prj_error &pe, CString url);
-	void GotoFailure(_com_error &ce, CString url);
-	void GotoFailure(_xmlreq_error &xe, CString url);
-	void GotoFailure(dbtools::_value_error &ve, CString url);
-	void GotoFailure(CString url);
+	static CString GetFailureTitle(_version_error &ve)			{ return L"VERSION MISMATCH"; }
+	static CString GetFailureTitle(_prj_error &pe)				{ return L"INTERNAL ERROR"; }
+	static CString GetFailureTitle(_com_error &ce)				{ return L"CONNECTION ERROR"; }
+	static CString GetFailureTitle(_xmlreq_error &xe)			{ return L"HTTP ERROR"; }
+	static CString GetFailureTitle(dbtools::_value_error &ve)	{ return L"INTERNAL ERROR"; }
+	static CString GetFailureTitle()							{ return L"ERROR"; }
+
+	static CString GetFailureString(_version_error &ve, CString url);
+	static CString GetFailureString(_prj_error &pe, CString url);
+	static CString GetFailureString(_com_error &ce, CString url);
+	static CString GetFailureString(_xmlreq_error &xe, CString url);
+	static CString GetFailureString(dbtools::_value_error &ve, CString url);
+	static CString GetFailureString(CString url);
+
+	void GotoFailure(_version_error &ve, CString url)			{ OnGotoFailure(GetFailureTitle(ve), GetFailureString(ve, url)); }
+	void GotoFailure(_prj_error &pe, CString url)				{ OnGotoFailure(GetFailureTitle(pe), GetFailureString(pe, url)); }
+	void GotoFailure(_com_error &ce, CString url)				{ OnGotoFailure(GetFailureTitle(ce), GetFailureString(ce, url)); }
+	void GotoFailure(_xmlreq_error &xe, CString url)			{ OnGotoFailure(GetFailureTitle(xe), GetFailureString(xe, url)); }
+	void GotoFailure(dbtools::_value_error &ve, CString url)	{ OnGotoFailure(GetFailureTitle(ve), GetFailureString(ve, url)); }
+	void GotoFailure(CString url)								{ OnGotoFailure(GetFailureTitle(  ), GetFailureString(url)); }
 
 // Dialog Data
 	enum { IDD = IDD_ADV_LOGIN, IDH = IDR_HTML_LOGIN };

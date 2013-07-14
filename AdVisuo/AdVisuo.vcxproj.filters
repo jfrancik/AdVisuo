@@ -132,6 +132,9 @@
     <ClCompile Include="DlgHtAbout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="_base.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdVisuo.h">
@@ -252,9 +255,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RibbonScenarioButton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DlgHtBase.h">

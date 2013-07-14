@@ -32,6 +32,7 @@ COutputWnd::COutputWnd()
 
 COutputWnd::~COutputWnd()
 {
+	UnRegisterOutTextSink(this);
 }
 
 BEGIN_MESSAGE_MAP(COutputWnd, CDockablePane)
@@ -85,6 +86,9 @@ int COutputWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 //	ASSERT(bNameValid);
 //	m_wndTabs.AddTab(&m_wndOutputFind, strTabName, (UINT)2);
 
+	// Register to receive output
+	RegisterOutTextSink(this);
+
 	return 0;
 }
 
@@ -122,15 +126,18 @@ void COutputWnd::OutBuildWindow(LPCTSTR lpszItem)
 
 void COutputWnd::OutDebugWindow(LPCTSTR lpszItem)
 {
-	m_wndOutputDebug.AddString(lpszItem);
-	AdjustHorzScroll(m_wndOutputDebug);
+	if (IsWindow(m_wndOutputDebug.m_hWnd))
+	{
+		m_wndOutputDebug.AddString(lpszItem);
+		AdjustHorzScroll(m_wndOutputDebug);
 
-	CRect rect; GetClientRect(rect);
-	int n = rect.Height() / m_wndOutputDebug.GetItemHeight(0) - 2;
-	n = m_wndOutputDebug.GetCount() - n;
-	m_wndOutputDebug.SetTopIndex(n);
+		CRect rect; GetClientRect(rect);
+		int n = rect.Height() / m_wndOutputDebug.GetItemHeight(0) - 2;
+		n = m_wndOutputDebug.GetCount() - n;
+		m_wndOutputDebug.SetTopIndex(n);
 
-	UpdateWindow();
+		m_wndOutputDebug.UpdateWindow();
+	}
 }
 
 void COutputWnd::OutFindWindow(LPCTSTR lpszItem)

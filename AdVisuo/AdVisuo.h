@@ -43,9 +43,6 @@ class CAdVisuoApp : public CWinAppEx
 
 	ULONG m_nSessionId;
 
-	// debug output device (displayed in the splash window)
-	CListBox *m_pOutList;
-
 	CMultiDocTemplate* m_pAVDocTemplate;	// doc template
 
 public:
@@ -59,8 +56,6 @@ public:
 	void SetWalkMode(AVULONG n)		{ m_nWalkMode = n; }
 	AVULONG GetColouringMode()		{ return (ULONG)m_nColouringMode; }
 	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
-
-	void CAdVisuoApp::OutDebugText(LPCTSTR lpszItem);
 
 	void Authorise(CString url, CString username, CString ticket);
 	void RefreshAuthorisation();
