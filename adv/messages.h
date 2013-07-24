@@ -445,13 +445,22 @@
 #define WARNING_PASSENGER_4              0x40000025L
 
 //
+// MessageId: WARNING_TOO_MANY_REOPENINGS
+//
+// MessageText:
+//
+// Too many door reopenings. %1 door cycles at %2 will be truncated to %3.
+//
+#define WARNING_TOO_MANY_REOPENINGS      0x40000026L
+
+//
 // MessageId: ERROR_CONVERSION
 //
 // MessageText:
 //
 // Bad data conversion.
 //
-#define ERROR_CONVERSION                 0x80000026L
+#define ERROR_CONVERSION                 0x80000027L
 
 
 #endif  //__MESSAGES_H__

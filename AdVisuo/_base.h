@@ -112,11 +112,13 @@ void UnRegisterOutTextSink(IOutTextSink*);
 ///////////////////////////////////////////////////////////////
 // Global Access
 
+// AdVisuo app
 class CAdVisuoApp;
-inline CAdVisuoApp *AVGetApp()			{ return (CAdVisuoApp*)AfxGetApp(); }
+inline CAdVisuoApp *AVGetApp()					{ return (CAdVisuoApp*)AfxGetApp(); }
 
+// AdVisuo mainframe
 class CMainFrame;
-inline CMainFrame *AVGetMainWnd()		{ return (CMainFrame*)AfxGetMainWnd(); }
+inline CMainFrame *AVGetMainWnd()				{ return (CMainFrame*)AfxGetMainWnd(); }
 
 // Standard Models Path
 extern std::wstring _stdPathModels;
@@ -137,7 +139,6 @@ extern std::wstring _stdPathModels;
 
 #include "../CommonFiles/Vector.h"
 #include "../CommonFiles/Box.h"
-
 
 #pragma warning (disable:4800)
 

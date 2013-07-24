@@ -25,6 +25,10 @@ class CAdVisuoDoc : public CDocument
 
 	AVLONG m_timeLoaded;	// streamed loading: time loaded
 
+	// data used by delayed Failure Dialog Box
+	CString m_strFailureTitle;
+	CString m_strFailureText;
+
 protected: // create from serialization only
 	CAdVisuoDoc();
 	DECLARE_DYNCREATE(CAdVisuoDoc)
@@ -42,7 +46,7 @@ public:
 
 	AVLONG GetLoadedTime()					{ return m_timeLoaded; }
 
-	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); m_strPathName = GetTitle(); }
+	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_NAME).c_str()); m_strPathName = GetTitle(); }
 
 	// Open/New/Download Operations
 	virtual BOOL OnNewDocument();
@@ -62,6 +66,7 @@ public:
 	virtual void SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU = TRUE);
 	virtual void OnCloseDocument();
 	virtual BOOL SaveModified();
+	afx_msg void OnOtherFailure();
 };
 
 

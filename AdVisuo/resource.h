@@ -74,7 +74,6 @@
 #define IDD_ADV_VIDEOCTRL               317
 #define IDR_RIBBON1                     318
 #define IDR_RIBBON                      318
-#define IDR_HTML_DLGSPLASH              320
 #define IDR_HTML_SPLASH                 320
 #define IDD_ADV_ASPECT                  324
 #define IDS_SAVE_OPTION1                331
@@ -98,13 +97,19 @@
 #define IDR_HTML_CSS                    341
 #define IDD_ADV_ABOUT                   341
 #define IDR_HTML_PNG_HEADER             342
+#define IDD_ADV_LOGIN2                  342
+#define IDD_ADV_SELECT                  342
 #define IDR_HTML_PNG_FORM               343
 #define IDR_HTML_PNG_BUTTON             344
 #define IDR_HTML_PNG_SPLASH1            345
 #define IDR_HTML_PNG_SPLASH2            346
 #define IDR_HTML_PNG_CONNECTION         347
+#define IDR_HTML_PNG_SPLASH3            348
 #define IDR_HTML_LOGIN                  355
+#define IDR_HTML_SPLASH1                356
 #define IDR_HTML_ABOUT                  357
+#define IDR_HTML_ABOUT1                 358
+#define IDR_HTML_SELECT                 358
 #define IDC_EDIT1                       1000
 #define IDC_EDIT2                       1001
 #define IDC_EDIT3                       1002
@@ -293,13 +298,14 @@
 #define ID_CAMERA_GROUPLEFT             32903
 #define ID_SELTENANCY                   32904
 #define ID_TENANCY_MENU                 32905
+#define ID_OTHER_FAILURE                32906
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        358
-#define _APS_NEXT_COMMAND_VALUE         32906
+#define _APS_NEXT_COMMAND_VALUE         32907
 #define _APS_NEXT_CONTROL_VALUE         1093
 #define _APS_NEXT_SYMED_VALUE           321
 #endif

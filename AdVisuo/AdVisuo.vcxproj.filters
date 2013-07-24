@@ -135,6 +135,9 @@
     <ClCompile Include="_base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DlgHtSelect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdVisuo.h">
@@ -266,6 +269,9 @@
     <ClInclude Include="DlgHtAbout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DlgHtSelect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\AdVisuo.ico">
@@ -374,6 +380,14 @@
     <None Include="html\splash.html">
       <Filter>Html</Filter>
     </None>
+    <None Include="html\html_png.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\splash3.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\about.html" />
+    <None Include="html\select.html" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AdVisuo.rc">

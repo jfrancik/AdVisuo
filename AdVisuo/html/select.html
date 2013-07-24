@@ -1,0 +1,305 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>AdVisuo: Login</title>
+    <link href="res:/CSS/#341" type="text/css" rel="stylesheet" />
+</head>
+
+<script type="text/javascript" language="ecmascript">
+
+    // Forbid user's mouse selecting for the content (allow text selection in EditBox only)
+    function onSelect1()
+    {
+        if (window.event.srcElement.tagName != "INPUT")
+        {
+            window.event.returnValue = false;
+            window.event.cancelBubble = true;
+        }
+    }
+
+    function onLoad()
+    {
+        // Install Context Menu
+        document.onselectstart = onSelect1;
+
+        // initialise project items
+        for (i = 0; i < document.all.length; i++)
+            if (document.all(i).className == "SelectPrjItem")
+                document.all(i).onclick = function () { selectProject(this); }
+
+        // initialise project folders
+        for (i = 0; i < document.all.length; i++)
+            if (document.all(i).className == "SelectFolder")
+                document.all(i).onclick = function () { selectFolder(this); }
+
+        // select the first folder
+        for (i = 0; i < document.all.length; i++)
+            if (document.all(i).className == "SelectFolder")
+            {
+                selectFolder(document.all(i));
+                break;
+            }
+    }
+
+    function selectFolder(a)
+    {
+        var folderName = a.innerText;
+
+        // un-select all other items
+        var Objs = document.all;
+        for (i = 0; i < Objs.length; i++)
+            if (Objs(i).className == "SelectFolder selected")
+                Objs(i).className = "SelectFolder";
+
+        // select the clicked item
+        a.className = "SelectFolder selected";
+
+        // display the folder name in the folder selector
+        document.getElementById("idFolderSelector").innerText = folderName + " ▼";
+
+        // filter projects...
+        var Objs = document.all;
+        var sel = null;
+        var num = 0;
+        for (i = 0; i < Objs.length; i++)
+            if (Objs(i).className == "SelectPrjItem selected" || Objs(i).className == "SelectPrjItem")
+            {
+                var tabRow = Objs(i);
+
+                // check project's folder - set display depending on its value
+                var cells = tabRow.getElementsByTagName("TD");
+                for (j = 0; j < cells.length; j++)
+                    if (cells[j].className == "folder")
+                        if (cells[j].innerHTML == folderName)
+                        {
+                            num++;
+                            tabRow.style.display = "block";
+                            if (sel == null || tabRow.className == "SelectPrjItem selected")
+                                sel = tabRow;
+                        }
+                        else
+                            tabRow.style.display = "none";
+                    }
+
+        if (num == 0)
+            document.getElementById("idProjectDetails").style.display = "none";
+        else
+            document.getElementById("idProjectDetails").style.display = "block";
+
+        // select the first project
+        if (sel != null)
+            selectProject(sel);
+    }
+
+    function selectProject(tabRow)
+    {
+        // un-select all other rows
+        var Objs = document.all;
+        for (i = 0; i < Objs.length; i++)
+            if (Objs(i).style.display == "block" && Objs(i).className == "SelectPrjItem selected")
+                Objs(i).className = "SelectPrjItem";
+
+        // select the clicked row
+        tabRow.className = "SelectPrjItem selected";
+
+        // remember project id
+        var cells = tabRow.getElementsByTagName("TD");
+        for (i = 0; i < cells.length; i++)
+            if (cells[i].className == "id")
+                document.getElementById("idProjectId").value = cells[i].innerHTML;
+    }
+</script>
+
+<body class="select" onload="onLoad();">
+
+    <div class="select-panel">
+
+        <table style="padding-top:15px;width:85%">
+            <tr>
+                <td style="width:220px;">
+                    <div id="idSelectFolder">
+			            <ul>
+				            <li><a id="idFolderSelector"></a>
+                                <ul>
+					                <li><a class="SelectFolder">Development</a></li>
+                                    <li><a class="SelectFolder">Lerch Bates UK</a></li>
+                                    <li><a class="SelectFolder">Demo</a></li>
+                                    <li><a class="SelectFolder">Lerch Bates Fr</a></li>
+                                    <li><a class="SelectFolder">Foster&amp;Partners</a></li>
+                                    <li><a class="SelectFolder">Training</a></li>
+				                </ul>
+                            </li>
+			            </ul>
+		            </div>
+                </td>
+            
+                <td>
+                    <input id="MainContentNested_txtSearchBasic" class="TxtSearchBasic" type="search" />
+                    <input type="submit" name="ctl00$MainContentNested$btnBasicSearch" value="Search" id="MainContentNested_btnBasicSearch" class="RoundedButton SearchButton" />
+                </td>
+            </tr>
+        </table>
+
+        <div id="idProjectDetails" class="SelectDetailsHeader">
+            <span style="font-size:2em;">Project details</span>
+            <input type="submit" value="Open" name="OpenButton" id="idOpenButton" style="position:absolute; right: 30px; top:0;" class="RoundedButton" />
+            <hr />
+        </div>
+
+        <!-- list of projects -->
+        <div style="position:absolute;width:850px;top:50px;left:15px;padding-top:25px;">
+            <table class="SelectPrjListPanel" style="width:50%;">
+                <thead>
+				<tr>
+					<th scope="col" style="width:110px;"><a class="selected" href="#">Created Date ▼</a></th>
+                    <th scope="col"><a href="#">Project Name</a></th>
+                    <th scope="col" style="width:90px;"><a href="#">Project No.</a>
+                    </th>
+				</tr>
+                </thead>
+                <tbody>
+                <tr class="SelectPrjItem">
+					<td>08/04/2013 21:52</td>
+                    <td>Kingston Towers</td>
+                    <td>1
+                        <div class="SelectDetailsPanel">
+                            <p><span>Project Name</span>Kingston Towers</p>
+                            <p><span>Project No.</span>1</p>
+                            <p><span>Lift designer</span>Jarek Francik</p>
+                            <p><span>Checked By</span>Jarek Francik</p>
+                            <p><span>Client Name</span>Jarek Francik</p>
+                            <p><span>Building Name</span>Kingston Towers</p>
+                            <p><span>City</span>Kingston upon Thames</p>
+                            <p><span>State/County</span>Surrey</p>
+                            <p><span>Country</span>United Kingdom</p>
+                            <p><span>LB Region/District</span>London</p>
+                            <p><span>Postal/Zip Code</span>KT1 2HS</p>
+                            <hr/>
+                            <p><span>Created by</span>Jarek Francik</p>
+                            <p><span>Created date</span>08/04/2013 21:52:57</p>
+                            <p><span>Modified by</span>Jarek Francik</p>
+                            <p><span>Modified date</span>24/05/2013 18:36:05</p>
+		                </div>
+                    </td>
+                    <td class="id">50</td>
+                    <td class="folder">Development</td>
+				</tr>
+                <tr class="SelectPrjItem">
+					<td>09/04/2013 23:46</td>
+                    <td>Low Tower</td>
+                    <td>34234/434/434
+                        <div class="SelectDetailsPanel">
+                            <p><span>Project Name</span>Low Tower</p>
+                            <p><span>Project No.</span>34234/434/434</p>
+                            <p><span>Lift designer</span>Brian Ashby</p>
+                            <p><span>Checked By</span>Jarek Francik</p>
+                            <p><span>Client Name</span>Jarek Francik</p>
+                            <p><span>Building Name</span>Kingston Towers</p>
+                            <p><span>City</span>Kingston upon Thames</p>
+                            <p><span>State/County</span>Surrey</p>
+                            <p><span>Country</span>United Kingdom</p>
+                            <p></p>
+                            <p><span>Postal/Zip Code</span>KT1 2HS</p>
+                            <hr/>
+                            <p></p>
+                            <p><span>Created by</span>Jarek Francik</p>
+                            <p><span>Created date</span>08/04/2013 21:52:57</p>
+                            <p><span>Modified by</span>Jarek Francik</p>
+                            <p><span>Modified date</span>24/05/2013 18:36:05</p>
+		                </div>
+                    </td>
+                    <td class="id">51</td>
+                    <td class="folder">Development</td>
+				</tr>
+                <tr class="SelectPrjItem">
+					<td>12/04/1913 23:46</td>
+                    <td>One more project</td>
+                    <td>733
+                        <div class="SelectDetailsPanel">
+                            <p><span>Project Name</span>One more project</p>
+                            <p><span>Project No.</span>733</p>
+                            <p><span>Lift designer</span>Luziano Pavarotti</p>
+                            <p><span>Checked By</span>Jarek Francik</p>
+                            <p><span>Client Name</span></p>
+                            <p><span>Building Name</span>Some Building</p>
+                            <p><span>City</span></p>
+                            <p><span>State/County</span>Isle of Wight</p>
+                            <p><span>Country</span>United Kingdom</p>
+                            <p></p>
+                            <p><span>Postal/Zip Code</span>KT1 2HS</p>
+                            <hr/>
+                            <p></p>
+                            <p><span>Created by</span>Jarek Francik</p>
+                            <p><span>Created date</span>08/04/2013 21:52:57</p>
+                            <p><span>Modified by</span>Jarek Francik</p>
+                            <p><span>Modified date</span>24/05/2013 18:36:05</p>
+		                </div>
+                    </td>
+                    <td class="id">52</td>
+                    <td class="folder">Development</td>
+				</tr>
+                <tr class="SelectPrjItem">
+					<td>12/04/1913 23:46</td>
+                    <td>One more project</td>
+                    <td>733
+                        <div class="SelectDetailsPanel">
+                            <p><span>Project Name</span>First of LB-UK</p>
+                            <p><span>Project No.</span>733</p>
+                            <p><span>Lift designer</span>Luziano Pavarotti</p>
+                            <p><span>Checked By</span>Jarek Francik</p>
+                            <p><span>Client Name</span></p>
+                            <p><span>Building Name</span>Some Building</p>
+                            <p><span>City</span></p>
+                            <p><span>State/County</span>Isle of Wight</p>
+                            <p><span>Country</span>United Kingdom</p>
+                            <p></p>
+                            <p><span>Postal/Zip Code</span>KT1 2HS</p>
+                            <hr/>
+                            <p></p>
+                            <p><span>Created by</span>Jarek Francik</p>
+                            <p><span>Created date</span>08/04/2013 21:52:57</p>
+                            <p><span>Modified by</span>Jarek Francik</p>
+                            <p><span>Modified date</span>24/05/2013 18:36:05</p>
+		                </div>
+                    </td>
+                    <td class="id">60</td>
+                    <td class="folder">Lerch Bates UK</td>
+				</tr>
+                <tr class="SelectPrjItem">
+					<td>12/04/1913 23:46</td>
+                    <td>One more project</td>
+                    <td>733
+                        <div class="SelectDetailsPanel">
+                            <p><span>Project Name</span>Second of LB-UK</p>
+                            <p><span>Project No.</span>733</p>
+                            <p><span>Lift designer</span>Luziano Pavarotti</p>
+                            <p><span>Checked By</span>Jarek Francik</p>
+                            <p><span>Client Name</span></p>
+                            <p><span>Building Name</span>Some Building</p>
+                            <p><span>City</span></p>
+                            <p><span>State/County</span>Isle of Wight</p>
+                            <p><span>Country</span>United Kingdom</p>
+                            <p></p>
+                            <p><span>Postal/Zip Code</span>KT1 2HS</p>
+                            <hr/>
+                            <p></p>
+                            <p><span>Created by</span>Jarek Francik</p>
+                            <p><span>Created date</span>08/04/2013 21:52:57</p>
+                            <p><span>Modified by</span>Jarek Francik</p>
+                            <p><span>Modified date</span>24/05/2013 18:36:05</p>
+		                </div>
+                    </td>
+                    <td class="id">61</td>
+                    <td class="folder">Lerch Bates UK</td>
+				</tr>
+                </tbody>
+			</table>
+        </div>  <!-- list of projects -->
+
+        <input type="hidden" id="idProjectId" />
+
+    </div>
+</body>
+</html>

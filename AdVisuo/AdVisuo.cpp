@@ -24,9 +24,10 @@
 #include "AdVisuoView.h"
 
 #include "DlgRepBug.h"
-#include "DlgDownload.h"
 #include "DlgHtLogin.h"
 #include "DlgHtAbout.h"
+#include "DlgHtSelect.h"
+#include "DlgDownload.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -60,26 +61,6 @@ CAdVisuoApp::CAdVisuoApp()
 // The one and only CAdVisuoApp object
 
 CAdVisuoApp theApp;
-
-// Authorisatipon infrastructure
-
-void CAdVisuoApp::Authorise(CString url, CString username, CString ticket)
-{
-	m_http.setURL((LPCTSTR)url);
-	m_http.authorise((LPCTSTR)username, (LPCTSTR)ticket);
-}
-
-void CAdVisuoApp::RefreshAuthorisation()
-{
-	m_http.AVExtendAuthorisation();
-}
-
-void CAdVisuoApp::GetAuthorisation(CXMLRequest *pHttp)
-{
-	pHttp->authorise_from(m_http);
-}
-
-
 
 // CAdVisuoApp initialization
 
@@ -168,19 +149,6 @@ BOOL CAdVisuoApp::InitInstance()
 		return FALSE;
 	AddDocTemplate(m_pAVDocTemplate);
 
-	// create main MDI Frame window
-	CMainFrame* pMainFrame = new CMainFrame;
-	m_pMainWnd = pMainFrame;
-	if (!pMainFrame || !pMainFrame->LoadFrame(IDR_MAINFRAME))
-	{
-		delete pMainFrame;
-		return FALSE;
-	}
-	// call DragAcceptFiles only if there's a suffix
-	//  In an MDI app, this should occur immediately after setting m_pMainWnd
-	// Enable drag/drop open
-	m_pMainWnd->DragAcceptFiles();
-
 	// Enable DDE Execute open
 	EnableShellOpen();
 	RegisterShellFileTypes(TRUE);
@@ -198,126 +166,28 @@ BOOL CAdVisuoApp::InitInstance()
 		// initialise HTTP Request object
 		m_http.create();
 
-		// Process advisuo: URL link...
-		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen &&
-		   (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
-		{
-			// Load a file from the Command Line
-			CDlgHtSplash *pSplash = new CDlgHtSplash;
-			pSplash->DoNonModal();
-			pSplash->Sleep(400);
-
-			// prepare "debug" info
-			for (int i = 0; i < 10; i++) pSplash->OutText(L"");
-			OutText(L"AdVisuo module started - a part of AdSimulo system.");
-			OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
-
-			// open document
-			CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(cmdInfo.m_strFileName);
-			if (!pDoc) return FALSE;
-
-			m_url = m_http.URL().c_str();
-			if (pDoc) pDoc->ResetTitle();
-
-			// wait a moment
-			pSplash->Sleep(250);
-
-			// The main window has been initialized, so show and update it
-			pMainFrame->ShowWindow(SW_RESTORE);
-			pMainFrame->ShowWindow(SW_MAXIMIZE);
-			pMainFrame->UpdateWindow();
-
-			// wait a moment
-			pSplash->Sleep(500);
-
-			// close the splash window
-			pSplash->OnOK();
-			delete pSplash;
-
-			AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-		}
+		// Process advisuo: URL link or ask through Login...
+		CString url;
+		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen && (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
+			url = cmdInfo.m_strFileName;
 		else
 		{
-			// ask for login details
-			CDlgHtLogin dlg(&m_http, m_servers);
-			m_pMainWnd = &dlg;
-#ifdef _DEBUG
-			dlg.m_strUsername = "jarekf";
-			dlg.m_strPassword = "sv_penguin125";
-#endif
-			if (dlg.DoModal() == IDOK)
-			{
-				m_pMainWnd = pMainFrame;
-
-				// store configuration
-				m_url = dlg.m_strUrl;
-				m_servers = dlg.m_strServers;
-				CSettingsStoreSP regSP;
-				CSettingsStore& reg = regSP.Create(FALSE, FALSE);
-				if (reg.CreateKey(GetRegSectionPath(L"URL")))
-					reg.Write(L"servers", m_servers);
-
-				// Download available projects
-				std::vector<CProjectVis*> prjs;
-				std::wstring response;
-				
-				m_http.setURL((LPCTSTR)(m_url));
-
-				if (m_http.AVIsAuthorised() <= 0)
-					throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
-				m_http.AVIndex();
-				m_http.get_response(response);
-				CProjectVis::LoadIndexFromBuf(response.c_str(), prjs);
-			
-				// show Index Dialog
-				CDlgDownload dlg(prjs);
-				m_pMainWnd = &dlg;
-				if (dlg.DoModal() ==IDOK)
-				{
-					m_pMainWnd = pMainFrame;
-					CWaitCursor wait;
-
-					CDlgHtSplash *pSplash = new CDlgHtSplash;
-					pSplash->DoNonModal(1000);
-					pSplash->Sleep(400);
-
-					// prepare "debug" info
-					for (int i = 0; i < 10; i++) pSplash->OutText(L"");
-					OutText(L"AdVisuo module started - a part of AdSimulo system.");
-					OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
-			
-					CString url;
-					url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlg.GetProjectId(), m_http.get_username().c_str(), m_http.get_ticket().c_str());
-				
-					CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
-					// if (pDoc) pDoc->ResetTitle();
-
-					if (!pDoc) return FALSE;
-
-					// wait a moment
-					pSplash->Sleep(250);
-
-					// The main window has been initialized, so show and update it
-					pMainFrame->ShowWindow(SW_RESTORE);
-					pMainFrame->ShowWindow(SW_MAXIMIZE);
-					pMainFrame->UpdateWindow();
-
-					// wait a moment
-					pSplash->Sleep(500);
-
-					// close the splash window
-					pSplash->OnOK();
-					delete pSplash;
-
-					AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
-				}
-				else
-					return FALSE;
-			}
-			else
-				return FALSE;
+			if (!AskLogin()) return false;
+			if (!AskProject(url)) return false;
 		}
+
+		// create main MDI Frame window
+		CMainFrame *pMainframe = new CMainFrame; 
+		if (!pMainframe || !pMainframe->LoadFrame(IDR_MAINFRAME))
+		{
+			delete pMainframe;
+			return FALSE;
+		}
+		m_pMainWnd = pMainframe;
+		m_pMainWnd->DragAcceptFiles();
+
+		// Load the project with all decorations (splash windows, debuf info etc...)
+		if (!InitProject(url)) return false;
 	}
 	catch (_prj_error pe)
 	{
@@ -339,7 +209,7 @@ BOOL CAdVisuoApp::InitInstance()
 	}
 	catch (_version_error ve)
 	{
-		CDlgHtFailure dlg(ve, m_http.URL().c_str());
+		CDlgHtFailure dlg(ve, m_http.getURL().c_str());
 		dlg.DoModal();
 		return false;
 	}
@@ -359,10 +229,103 @@ BOOL CAdVisuoApp::InitInstance()
 	// report session id
 	m_nSessionId = rand() * (RAND_MAX + 1) + rand();
 
-	// report to site
-//	CDlgReportBug::Report(1);
+	return true;
+}
+
+bool CAdVisuoApp::AskLogin()
+{
+	// Display the Login dialog box
+	CDlgHtLogin dlgLogin(&m_http, m_servers);
+	auto pPrevFrame = m_pMainWnd;
+	m_pMainWnd = &dlgLogin;
+#ifdef _DEBUG
+	dlgLogin.m_strUsername = "jarekf";
+	dlgLogin.m_strPassword = "sv_penguin125";
+	//dlgLogin.m_bAutoLogin = true;
+#endif
+	if (dlgLogin.DoModal() != IDOK)
+		return false;
+	m_pMainWnd = pPrevFrame;
 	
-	return TRUE;
+	// store configuration
+	m_url = dlgLogin.m_strUrl;
+	m_servers = dlgLogin.m_strServers;
+	CSettingsStoreSP regSP;
+	CSettingsStore& reg = regSP.Create(FALSE, FALSE);
+	if (reg.CreateKey(GetRegSectionPath(L"URL")))
+		reg.Write(L"servers", m_servers);
+
+	return true;
+}
+
+bool CAdVisuoApp::AskProject(CString &url)
+{
+	// Download available projects
+	std::vector<CProjectVis*> prjs;
+	std::wstring response;
+	m_http.setURL((LPCTSTR)(m_url));
+	if (m_http.AVIsAuthorised() <= 0)
+		throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
+	m_http.AVIndex();
+	m_http.get_response(response);
+	CProjectVis::LoadIndexFromBuf(response.c_str(), prjs);
+			
+	// show Select Dialog
+	CDlgDownload dlgSelect(prjs);
+	//CDlgHtSelect dlgSelect(&prjs);
+	auto pPrevFrame = m_pMainWnd;
+	m_pMainWnd = &dlgSelect;
+	if (dlgSelect.DoModal() != IDOK)
+		return false;
+	//dlgSelect.m_nProjectId = 51;
+	m_pMainWnd = pPrevFrame;
+
+	std::wstring strUsername;
+	std::wstring strTicket;
+	m_http.get_authorisation_data(strUsername, strTicket);
+	url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlgSelect.GetProjectId(), strUsername.c_str(), strTicket.c_str());
+	return true;
+}
+
+bool CAdVisuoApp::InitProject(CString url)
+{
+	CWaitCursor wait;
+
+	// Show Splash Window
+	CDlgHtSplash *pSplash = new CDlgHtSplash;
+	pSplash->DoNonModal();
+	pSplash->Sleep(400);
+
+	// prepare "debug" info
+	for (int i = 0; i < 10; i++) pSplash->OutText(L"");
+	OutText(L"AdVisuo module started - a part of AdSimulo system.");
+	OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
+			
+	// open document
+	CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
+	if (!pDoc) return FALSE;
+
+	m_url = m_http.getURL().c_str();
+	if (pDoc) pDoc->ResetTitle();
+
+	// wait a moment
+	pSplash->Sleep(250);
+
+	// The main window has been initialized, so show and update it
+	m_pMainWnd->ShowWindow(SW_RESTORE);
+	m_pMainWnd->ShowWindow(SW_MAXIMIZE);
+	m_pMainWnd->UpdateWindow();
+
+	// wait a moment
+	pSplash->Sleep(500);
+
+	// close the splash window
+	pSplash->OnOK();
+	delete pSplash;
+
+	AVGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+	return true;
 }
 
 int CAdVisuoApp::ExitInstance()
@@ -374,7 +337,7 @@ int CAdVisuoApp::ExitInstance()
 // App command to run the dialog
 void CAdVisuoApp::OnAppAbout()
 {
-	if (((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen()) return;
+	if (AVGetMainWnd()->IsFullScreen()) return;
 	CDlgHtAbout aboutDlg;
 	aboutDlg.DoModal();
 }
@@ -479,7 +442,7 @@ void CAdVisuoApp::OnFileDownload()
 	}
 	catch (_version_error ve)
 	{
-		CDlgHtFailure dlg(ve, m_http.URL().c_str());
+		CDlgHtFailure dlg(ve, m_http.getURL().c_str());
 		dlg.DoModal();
 		return;
 	}
@@ -496,9 +459,9 @@ void CAdVisuoApp::OnFileDownload()
 		return;
 	}
 	
-	CDlgDownload dlg(prjs);
+	CDlgHtSelect dlgSelect(&prjs);
 
-	if (dlg.DoModal() ==IDOK)
+	if (dlgSelect.DoModal() ==IDOK)
 	{
 		CWaitCursor wait;
 		
@@ -512,7 +475,10 @@ void CAdVisuoApp::OnFileDownload()
 		OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
 			
 		CString url;
-		url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlg.GetProjectId(), m_http.get_username().c_str(), m_http.get_ticket().c_str());
+		std::wstring strUsername;
+		std::wstring strTicket;
+		m_http.get_authorisation_data(strUsername, strTicket);
+		url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlgSelect.GetProjectId(), strUsername.c_str(), strTicket.c_str());
 				
 		CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
 		// if (pDoc) pDoc->ResetTitle();
@@ -526,20 +492,20 @@ void CAdVisuoApp::OnFileDownload()
 		pSplash->OnOK();
 		delete pSplash;
 
-		AfxGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+		AVGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	}
 }
 
 
 void CAdVisuoApp::OnUpdateFileDownload(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
+	pCmdUI->Enable(!AVGetMainWnd()->IsFullScreen());
 }
 
 
 void CAdVisuoApp::OnUpdateFileOpen(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
+	pCmdUI->Enable(!AVGetMainWnd()->IsFullScreen());
 }
 
 

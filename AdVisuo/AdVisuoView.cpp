@@ -240,8 +240,8 @@ void CAdVisuoView::OnInitialUpdate()
 	OutText(L"Building created, ready for rendering.");
 
 	// setup modes
-	SetWalkMode(GetAdVisuoApp()->GetWalkMode());
-	SetColouringMode(GetAdVisuoApp()->GetColouringMode());
+	SetWalkMode(AVGetApp()->GetWalkMode());
+	SetColouringMode(AVGetApp()->GetColouringMode());
 	
 	// first render cycle
 	m_engine.BeginFrame();
@@ -275,7 +275,7 @@ void CAdVisuoView::OnAdjustCameras()
 
 void CAdVisuoView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/)
 {
-	if (((CMDIFrameWnd*)(AfxGetApp()->m_pMainWnd))->MDIGetActive() == GetParentFrame())
+	if (AVGetMainWnd()->MDIGetActive() == GetParentFrame())
 	{
 		OnScanKey();
 		InvalidateRect(NULL, FALSE);
@@ -305,13 +305,13 @@ void CAdVisuoView::OnResetDevice()
 void CAdVisuoView::SetWalkMode(AVULONG n)
 {
 	m_nWalkMode = n;
-	GetAdVisuoApp()->SetWalkMode(m_nWalkMode);
+	AVGetApp()->SetWalkMode(m_nWalkMode);
 }
 
 void CAdVisuoView::SetColouringMode(AVULONG n)
 {
 	m_nColouringMode = n;
-	GetAdVisuoApp()->SetColouringMode(m_nColouringMode);
+	AVGetApp()->SetColouringMode(m_nColouringMode);
 
 	for each (CLiftGroupVis *pGroup in GetProject()->GetLiftGroups())
 		for each (CSimVis *pSim in pGroup->GetSims())
@@ -422,16 +422,16 @@ BOOL CAdVisuoView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 		ScreenToClient(&pt);
 
 		if (m_hud.HitTest(pt) != CHUD::HIT_NONE)
-			SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+			SetCursor(AVGetApp()->LoadStandardCursor(IDC_ARROW));
 		else
 		{
 			m_screen.HitTest(pt, hit, nDummy, nDummy);
 			switch (hit)
 			{
-			case CScreen::HIT_VIEW:	SetCursor(AfxGetApp()->LoadStandardCursor(IDC_CROSS)); break;
-			case CScreen::HIT_XDIV:	SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZEWE)); break;
-			case CScreen::HIT_YDIV:	SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZENS)); break;
-			case CScreen::HIT_XYDIV:SetCursor(AfxGetApp()->LoadStandardCursor(IDC_SIZEALL)); break;
+			case CScreen::HIT_VIEW:	SetCursor(AVGetApp()->LoadStandardCursor(IDC_CROSS)); break;
+			case CScreen::HIT_XDIV:	SetCursor(AVGetApp()->LoadStandardCursor(IDC_SIZEWE)); break;
+			case CScreen::HIT_YDIV:	SetCursor(AVGetApp()->LoadStandardCursor(IDC_SIZENS)); break;
+			case CScreen::HIT_XYDIV:SetCursor(AVGetApp()->LoadStandardCursor(IDC_SIZEALL)); break;
 			default: return CView::OnSetCursor(pWnd, nHitTest, message);
 			}
 		}
@@ -520,7 +520,7 @@ void CAdVisuoView::RenderHUD(bool bHUDPanel, bool bHUDClockOnly, bool bHUDCaptio
 
 		// draw HUD panel
 		m_hud.SetItemStatus(CHUD::HIT_PLAY, m_engine.IsPlaying() && !m_engine.IsPaused() ? 2 : 0);
-		m_hud.SetItemStatus(CHUD::HIT_FULL_SCREEN, ((CMDIFrameWndEx*)::AfxGetMainWnd())->IsFullScreen() ? 2 : 0);
+		m_hud.SetItemStatus(CHUD::HIT_FULL_SCREEN, ::AVGetMainWnd()->IsFullScreen() ? 2 : 0);
 		m_hud.SetTime(nTime);
 		m_hud.SetLoadedTime(GetDocument()->GetLoadedTime());
 		if (bHUDClockOnly) m_hud.Hide();
@@ -566,7 +566,7 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 		m_engine.EndFrame();
 		t += 1000 / nFPS;
 
-		AfxGetMainWnd()->SetActiveWindow();
+		AVGetMainWnd()->SetActiveWindow();
 
 		// all other frames
 		for (t; t <= nTimeTo; t += m_engine.GetAccel() * 1000 / nFPS)
@@ -1255,7 +1255,7 @@ void CAdVisuoView::OnUpdateViewAspect(CCmdUI *pCmdUI)
 
 void CAdVisuoView::OnViewFullScreen()
 {
-	CMDIFrameWndEx *pMainWnd = (CMDIFrameWndEx*)::AfxGetMainWnd();
+	CMDIFrameWndEx *pMainWnd = ::AVGetMainWnd();
 	ASSERT(pMainWnd->IsKindOf(RUNTIME_CLASS(CMDIFrameWndEx)));
 
 	if (!pMainWnd->IsFullScreen())
@@ -1298,7 +1298,7 @@ void CAdVisuoView::OnViewFullScreen()
 
 void CAdVisuoView::OnUpdateViewFullScreen(CCmdUI *pCmdUI)
 {
-	CMDIFrameWndEx *pMainWnd = (CMDIFrameWndEx*)::AfxGetMainWnd();
+	CMDIFrameWndEx *pMainWnd = ::AVGetMainWnd();
 	ASSERT(pMainWnd->IsKindOf(RUNTIME_CLASS(CMDIFrameWndEx)));
 	pCmdUI->Enable(TRUE);
 	pCmdUI->SetCheck(pMainWnd->IsFullScreen());
@@ -1377,7 +1377,7 @@ void CAdVisuoView::OnActionRender()
 //	if (dlg.m_timeTo == 0) dlg.m_timeTo = 0x7fffffff;
 
 	// Stop GUI, display VideoCtrl window
-	AfxGetMainWnd()->EnableWindow(FALSE);
+	AVGetMainWnd()->EnableWindow(FALSE);
 	CDlgVideoCtrl ctrl(this);
 	ctrl.Create(IDD_ADV_VIDEOCTRL);
 	ctrl.SetWindowPos(&CWnd::wndTopMost, 15, 120, 0, 0, SWP_NOSIZE);
@@ -1397,8 +1397,8 @@ void CAdVisuoView::OnActionRender()
 		ShellExecute(m_hWnd, L"open", dlg.GetPath(), NULL, NULL, SW_SHOW);
 
 	ctrl.DestroyWindow();
-	AfxGetMainWnd()->EnableWindow(TRUE);
-	AfxGetMainWnd()->SetActiveWindow();
+	AVGetMainWnd()->EnableWindow(TRUE);
+	AVGetMainWnd()->SetActiveWindow();
 }
 
 void CAdVisuoView::OnActionSavestill()
@@ -1410,13 +1410,13 @@ void CAdVisuoView::OnActionSavestill()
 
 void CAdVisuoView::OnUpdateActionRender(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!m_engine.IsPlaying() && !((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
+	pCmdUI->Enable(!m_engine.IsPlaying() && !AVGetMainWnd()->IsFullScreen());
 	pCmdUI->SetCheck(m_engine.IsPlaying());
 }
 
 void CAdVisuoView::OnUpdateActionSavestill(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
+	pCmdUI->Enable(!AVGetMainWnd()->IsFullScreen());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

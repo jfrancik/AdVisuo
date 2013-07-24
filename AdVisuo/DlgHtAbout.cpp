@@ -5,32 +5,62 @@
 #include "AdVisuo.h"
 #include "DlgHtAbout.h"
 
-// CDlgHtAbout dialog
+// CDlgHtOutText dialog
 
-IMPLEMENT_DYNCREATE(CDlgHtAbout, CDlgHtBase)
-
-void CDlgHtAbout::DoDataExchange(CDataExchange* pDX)
-{
-	CDlgHtBase::DoDataExchange(pDX);
-}
-
-void CDlgHtAbout::OutText(LPCTSTR lpszItem)
-{
-}
-
-BOOL CDlgHtAbout::OnInitDialog()
+BOOL CDlgHtOutText::OnInitDialog()
 {
 	CDlgHtBase::OnInitDialog();
 	RegisterOutTextSink(this);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-BEGIN_MESSAGE_MAP(CDlgHtAbout, CDlgHtBase)
+BEGIN_MESSAGE_MAP(CDlgHtOutText, CDlgHtBase)
+END_MESSAGE_MAP()
+
+BEGIN_DHTML_EVENT_MAP(CDlgHtOutText)
+	DHTML_EVENT_ONCLICK(_T("idCancelButton"), OnButtonCancel)
+	DHTML_EVENT_ONCLICK(_T("CancelButton"), OnButtonCancel)
+END_DHTML_EVENT_MAP()
+
+void CDlgHtOutText::OnOK()
+{
+	UnRegisterOutTextSink(this);
+	CDlgHtBase::OnOK();
+}
+
+void CDlgHtOutText::OnCancel()
+{
+	UnRegisterOutTextSink(this);
+	CDlgHtBase::OnCancel();
+}
+
+// CDlgHtAbout dialog
+
+IMPLEMENT_DYNCREATE(CDlgHtAbout, CDlgHtOutText)
+
+CDlgHtAbout::CDlgHtAbout(UINT nIDTemplate, UINT nHtmlResID, CWnd* pParent) : CDlgHtOutText(nIDTemplate, nHtmlResID, pParent)
+{
+	m_fnLoadComplHandle = [this]() { ShowVersion(VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE); };
+}
+
+void CDlgHtAbout::OutText(LPCTSTR lpszItem)
+{
+}
+
+void CDlgHtAbout::ShowVersion(AVULONG nMajor, AVULONG nMinor, AVULONG nRel, CString date)
+{
+	std::wstringstream str;
+	str << L"showVer(" << nMajor << L", " << nMinor << L", " << nRel << L", \"" << (LPCTSTR)date << L"\")";
+	ExecJS(str.str().c_str());
+}
+
+
+BEGIN_MESSAGE_MAP(CDlgHtAbout, CDlgHtOutText)
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CDlgHtAbout)
-	DHTML_EVENT_ONCLICK(_T("ButtonOK"), OnButtonOK)
-	DHTML_EVENT_ONCLICK(_T("ButtonCancel"), OnButtonCancel)
+	DHTML_EVENT_ONCLICK(_T("idCancelButton"), OnButtonCancel)
+	DHTML_EVENT_ONCLICK(_T("CancelButton"), OnButtonCancel)
 END_DHTML_EVENT_MAP()
 
 // CDlgHtAbout message handlers
@@ -47,24 +77,10 @@ HRESULT CDlgHtAbout::OnButtonCancel(IHTMLElement* /*pElement*/)
 	return S_OK;
 }
 
-void CDlgHtAbout::OnOK()
-{
-	UnRegisterOutTextSink(this);
-	CDlgHtBase::OnOK();
-}
-
-void CDlgHtAbout::OnCancel()
-{
-	UnRegisterOutTextSink(this);
-	CDlgHtBase::OnCancel();
-}
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////
 // CDlgHtSplash dialog
 
-IMPLEMENT_DYNCREATE(CDlgHtSplash, CDlgHtAbout)
+IMPLEMENT_DYNCREATE(CDlgHtSplash, CDlgHtOutText)
 
 void CDlgHtSplash::OutText(LPCTSTR lpszItem)
 {
@@ -83,7 +99,7 @@ void CDlgHtSplash::OutText(LPCTSTR lpszItem)
 
 BOOL CDlgHtSplash::OnInitDialog()
 {
-	CDlgHtAbout::OnInitDialog();
+	CDlgHtOutText::OnInitDialog();
 
 	SetWindowLong(m_hWnd, GWL_EXSTYLE, GetWindowLong(m_hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
 	SetLayeredWindowAttributes(RGB(255, 0, 0), 128, LWA_COLORKEY);
@@ -91,7 +107,7 @@ BOOL CDlgHtSplash::OnInitDialog()
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-BEGIN_MESSAGE_MAP(CDlgHtSplash, CDlgHtAbout)
+BEGIN_MESSAGE_MAP(CDlgHtSplash, CDlgHtOutText)
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CDlgHtSplash)

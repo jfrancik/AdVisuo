@@ -31,6 +31,10 @@ inline DWORD Log(DWORD dwEventID, _com_error &ce)	{ return Logf(dwEventID, ce, L
 DWORD Logf(DWORD dwEventID, bool bGetOn, DWORD PassengerId, DWORD Time, DWORD Floor, DWORD Lift, DWORD Deck, LPCTSTR fmt, ...);
 inline DWORD Log(DWORD dwEventID, bool bGetOn, DWORD PassengerId, DWORD Time, DWORD Floor, DWORD Lift, DWORD Deck)
 													{ return Logf(dwEventID, bGetOn, PassengerId, Time, Floor, Lift, Deck, L""); }
+// Reopenings specific warning
+DWORD Logf(DWORD dwEventID, DWORD nReopenings, DWORD Time, DWORD nTruncatedVal, LPCTSTR fmt, ...);
+inline DWORD Log(DWORD dwEventID, DWORD nReopenings, DWORD Time, DWORD nTruncatedVal)
+													{ return Logf(dwEventID, nReopenings, Time, nTruncatedVal, L""); }
 
 class CLogTime
 {

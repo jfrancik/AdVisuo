@@ -582,8 +582,8 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 		BOX boxDoor0 = GetShaft()->GetBoxCarDoor(0) - GetShaft()->GetLiftPos(0);
 		AVFLOAT door[] = { boxDoor0.Left() - box.LeftExt(), boxDoor0.Width(), boxDoor0.Height() };
 
-		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT_FLOOR,   L"Floor",     iShaft, box.LowerSlab());
-		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT_CEILING, L"Ceiling",   iShaft, box.UpperSlab());
+		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT_FLOOR,   L"Floor %d",     iShaft + 1000*iDeck, box.LowerSlab());
+		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT_CEILING, L"Ceiling %d",   iShaft + 1000*iDeck, box.UpperSlab());
 
 		// Door
 		AVFLOAT fGap = nShaftLine ? 5 * fScale : -5 * fScale;
@@ -597,7 +597,7 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 				pElem = GetProject()->CreateElement(GetLiftGroup(), m_ppDecks[iDeck], CElem::ELEM_BONE, L"Car Door %d", iPanel * 2 + iIndex, Vector(0));
 				BOX box = boxDoor0; box.SetFront(box.Front() + fGap); box.SetRear(box.Rear() - fGap); 
 				box = box.Door(GetShaft()->GetDoorType(), GetShaft()->GetDoorPanelsCount(), iIndex, iPanel, true, nShaftLine ? true : false);
-				pElem->BuildWall(CElem::WALL_LIFT_DOOR, L"Car Door %d", iPanel * 2 + iIndex, box);
+				pElem->BuildWall(CElem::WALL_LIFT_DOOR, L"Car Door %d", iDeck * 100 + iPanel * 2 + iIndex, box);
 			}
 		}
 
@@ -606,30 +606,30 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 		{
 			BOX box = boxDoor0.RightWall(); 
 			box.SetDepth(-100 * fScale);
-			m_ppDecks[iDeck]->BuildModel(CElem::MODEL_JAMB, L"Car Door Jamb", iShaft, box, -F_PI_2);
+			m_ppDecks[iDeck]->BuildModel(CElem::MODEL_JAMB, L"Car Door Jamb %d", iShaft + 1000*iDeck, box, -F_PI_2);
 		}
 		if (nShaftLine == 0 && GetShaft()->GetDoorType() == 2 || nShaftLine == 1 && GetShaft()->GetDoorType() == 1)
 		{
 			BOX box = boxDoor0.LeftWall(); box.SetDepth(-100 * fScale);
-			m_ppDecks[iDeck]->BuildModel(CElem::MODEL_JAMB, L"Car Door Jamb", iShaft, box, F_PI_2);
+			m_ppDecks[iDeck]->BuildModel(CElem::MODEL_JAMB, L"Car Door Jamb %d", iShaft + 1000*iDeck, box, F_PI_2);
 		}
 
 		// Heading
 		BOX boxH = boxDoor0.DoorExtended(GetShaft()->GetDoorType(), GetShaft()->GetDoorPanelsCount(), 100 * fScale, nShaftLine ? true : false);
 		boxH.Move(0, 0, boxH.Height()); boxH.SetHeight(100 * fScale);
-		m_ppDecks[iDeck]->BuildModel(CElem::MODEL_HEADING, L"Car Door Heading", iShaft, boxH);
+		m_ppDecks[iDeck]->BuildModel(CElem::MODEL_HEADING, L"Car Door Heading %d", iShaft + 1000*iDeck, boxH);
 
 		// Sill
 		AVFLOAT fAngle = GetShaft()->GetShaftLine() ? 0 : F_PI;
 		BOX boxA = boxDoor0.DoorExtended(GetShaft()->GetDoorType(), GetShaft()->GetDoorPanelsCount(), 100 * fScale, nShaftLine ? true : false);
 		boxA.Move(0, 0, -100 * fScale); boxA.SetHeight(100 * fScale);
-		m_ppDecks[iDeck]->BuildModel(CElem::MODEL_SILL_CAR, L"Car Door Sill", iShaft, boxA, fAngle);
+		m_ppDecks[iDeck]->BuildModel(CElem::MODEL_SILL_CAR, L"Car Door Sill %d", iShaft + 1000*iDeck, boxA, fAngle);
 
 		// Wall
-		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"FrontWall", iShaft, box.FrontWall(), Vector(0), 1, door);
-		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"RearWall",  iShaft, box.RearWall(), Vector(0, 0, F_PI));
-		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"LeftWall",  iShaft, box.LeftWall(), Vector(0, 0, F_PI_2));
-		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"RightWall", iShaft, box.RightWall(), Vector(0, 0, -F_PI_2));
+		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"FrontWall %d", iShaft + 1000*iDeck, box.FrontWall(), Vector(0), 1, door);
+		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"RearWall %d",  iShaft + 1000*iDeck, box.RearWall(), Vector(0, 0, F_PI));
+		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"LeftWall %d",  iShaft + 1000*iDeck, box.LeftWall(), Vector(0, 0, F_PI_2));
+		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT,  L"RightWall %d", iShaft + 1000*iDeck, box.RightWall(), Vector(0, 0, -F_PI_2));
 
 		// Handrail
 		if (iDeck == GetShaft()->GetDeckCount() - 1)
@@ -637,7 +637,7 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 			BOX boxHR = box;
 			boxHR.Move(0, 0, box.Height() + box.UpperThickness());
 			boxHR.SetHeight(fScale * 1000);
-			m_ppDecks[iDeck]->BuildModel(CElem::MODEL_HANDRAIL, L"Handrail", iShaft, boxHR, fAngle);
+			m_ppDecks[iDeck]->BuildModel(CElem::MODEL_HANDRAIL, L"Handrail", iShaft + 1000*iDeck, boxHR, fAngle);
 		}
 	}
 }

@@ -81,20 +81,34 @@ std::wstring CProject::GetProjectInfo(PRJ_INFO what)
 {
 	switch (what)
 	{
-		case PRJ_PROJECT_NAME: return ME[L"ProjectName"];
-		case PRJ_SIMULATION_NAME: return ME[L"Name"];
-		case PRJ_BUILDING_NAME: return ME[L"BuildingName"];
-		case PRJ_LANGUAGE: return ME[L"Language"];
-		case PRJ_UNITS: return ME[L"MeasurementUnits"];
-		case PRJ_COMPANY: return ME[L"ClientCompany"];
-		case PRJ_CITY: return ME[L"City"];
-		case PRJ_LB_RGN: return ME[L"LBRegionDistrict"];
-		case PRJ_COUNTY: return ME[L"County"];
-		case PRJ_DESIGNER: return ME[L"LiftDesigner"];
-		case PRJ_COUNTRY: return ME[L"Country"];
-		case PRJ_CHECKED_BY: return ME[L"CheckedBy"];
-		case PRJ_POST_CODE: return ME[L"PostalZipCode"];
-		default: return L"(unknown)";
+		case PRJ_NAME:			return ME[L"ProjectName"];
+		case PRJ_NUMBER:		return ME[L"ProjectNo"];
+		case PRJ_LIFT_DESIGNER:	return ME[L"LiftDesigner"]; 
+		case PRJ_CHECKED_BY:	return ME[L"CheckedBy"];
+		case PRJ_CLIENT_NAME:	return ME[L"ClientCompanyName"];
+		case PRJ_BUILDING_NAME:	return ME[L"BuildingName"];
+		case PRJ_CITY:			return ME[L"City"];
+		case PRJ_COUNTY:		return ME[L"StateCounty"];
+		case PRJ_COUNTRY:		return ME[L"Country"];
+		case PRJ_LB_RGN:		return ME[L"LBRegionDistrict"];
+		case PRJ_POST_CODE:		return ME[L"PostalZipCode"];
+
+		case PRJ_FOLDER_NAME:	return ME[L"ProjectFolderName"];
+
+		case PRJ_CREATED_BY:	return ME[L"CreatedBy"];
+		case PRJ_CREATED_DATE:	return ME[L"CreatedDate"];
+		case PRJ_MODIFIED_BY:	return ME[L"LastModifiedBy"];
+		case PRJ_MODIFIED_DATE:	return ME[L"LastModifiedDate"];
+		
+		case SIM_NAME:			return ME[L"SimName"];
+		case SIM_COMMENTS:		return ME[L"SimComments"];
+
+		case SIM_CREATED_BY:	return ME[L"SimCreatedBy"];
+		case SIM_CREATED_DATE:	return ME[L"SimCreatedDate"];
+		case SIM_MODIFIED_BY:	return ME[L"SimLastModifiedBy"];
+		case SIM_MODIFIED_DATE:	return ME[L"SimLastModifiedDate"];
+
+		default:				return L"(unknown)";
 	}
 }
 

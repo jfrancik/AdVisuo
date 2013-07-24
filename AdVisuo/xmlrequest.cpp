@@ -29,7 +29,8 @@ UINT __cdecl WorkerThread(void *p)
 }
 
 CXMLRequest::CXMLRequest() : m_hEvRequestSet(NULL), m_hEvResponseRdy(NULL), m_com_error(0)	
-{ 
+{
+	m_pAuthSource = NULL;
 }
 
 CXMLRequest::~CXMLRequest()
@@ -44,6 +45,33 @@ void CXMLRequest::create()
 	m_hEvRequestSet = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_hEvResponseRdy = CreateEvent(NULL, FALSE, FALSE, NULL);
 	AfxBeginThread(WorkerThread, this);
+}
+
+void CXMLRequest::take_authorisation_from(CXMLRequest *pSource)
+{ 
+	m_pAuthSource = pSource; 
+}
+
+void CXMLRequest::set_authorisation_data(std::wstring strUsername, std::wstring strTicket)
+{
+	if (m_pAuthSource)
+		m_pAuthSource->set_authorisation_data(strUsername, strTicket);
+	else
+	{
+		m_strUsername = strUsername;
+		m_strTicket = strTicket;
+	}
+}
+
+void CXMLRequest::get_authorisation_data(std::wstring &strUsername, std::wstring &strTicket)
+{
+	if (m_pAuthSource)
+		m_pAuthSource->get_authorisation_data(strUsername, strTicket);
+	else
+	{
+		strUsername = m_strUsername;
+		strTicket = m_strTicket;
+	}
 }
 
 void CXMLRequest::setreq(wstring strRequest)
@@ -72,6 +100,16 @@ void CXMLRequest::addparam(wstring strParam,  wstring strVal)
 	wstring sss = s.str();
 	addreq(s.str());
 }
+
+void CXMLRequest::addparam_authorisation()
+{
+	wstring strUsername;
+	wstring strTicket;
+	get_authorisation_data(strUsername, strTicket);
+	addparam(L"strUsername", strUsername);
+	addparam(L"strTicket", strTicket);
+}
+
 
 void CXMLRequest::call(wstring strFunction)
 {
@@ -262,23 +300,24 @@ wstring CXMLRequest::AVGetLatestVersionDownloadPath()
 
 bool CXMLRequest::AVLogin(wstring strUsername, wstring strPassword)
 {
-	m_strUsername = strUsername;
 	wstring response;
 	setreq();
-	addparam(L"strUsername", m_strUsername);
+	addparam(L"strUsername", strUsername);
 	addparam(L"strPassword", strPassword);
 	call(L"AVCreateTicket");
 	get_response(response);
-	m_strTicket = unpack_as_string(response);
-	return m_strTicket.size() > 0;
+	wstring strTicket = unpack_as_string(response);
+	if (strTicket.size() == 0)
+		return false;
+	set_authorisation_data(strUsername, strTicket);
+	return true;
 }
 
 int CXMLRequest::AVIsAuthorised()
 {
 	wstring response;
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	call(L"AVValidateTicket");
 	get_response(response);
 	return unpack_as_int(response);
@@ -288,27 +327,31 @@ bool CXMLRequest::AVExtendAuthorisation()
 {
 	wstring response;
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	call(L"AVRevalidateTicket");
 	get_response(response);
-	m_strTicket = unpack_as_string(response);
-	return m_strTicket.size() > 0;
+
+	wstring strUsername;
+	wstring strTicket;
+	get_authorisation_data(strUsername, strTicket);
+	strTicket = unpack_as_string(response);
+	if (strTicket.size() == 0)
+		return false;
+	set_authorisation_data(strUsername, strTicket);
+	return true;
 }
 
 void CXMLRequest::AVIndex()
 {
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	call(L"AVIndex"); 
 }
 
 void CXMLRequest::AVProject(AVLONG nSimulationId)
 { 
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	addparam(L"nSimulationId", nSimulationId); 
 	call(L"AVProject"); 
 }
@@ -316,8 +359,7 @@ void CXMLRequest::AVProject(AVLONG nSimulationId)
 void CXMLRequest::AVLiftGroups(AVLONG nProjectId)
 { 
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	addparam(L"nProjectId", nProjectId); 
 	call(L"AVLiftGroups"); 
 }
@@ -325,8 +367,7 @@ void CXMLRequest::AVLiftGroups(AVLONG nProjectId)
 void CXMLRequest::AVFloors(AVLONG nLiftGroupId)	
 { 
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	addparam(L"nLiftGroupId", nLiftGroupId); 
 	call(L"AVFloors"); 
 }
@@ -334,8 +375,7 @@ void CXMLRequest::AVFloors(AVLONG nLiftGroupId)
 void CXMLRequest::AVShafts(AVLONG nLiftGroupId)	
 { 
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	addparam(L"nLiftGroupId", nLiftGroupId);
 	call(L"AVShafts");
 }
@@ -343,8 +383,7 @@ void CXMLRequest::AVShafts(AVLONG nLiftGroupId)
 void CXMLRequest::AVSim(AVLONG nLiftGroupId)		
 { 
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	addparam(L"nLiftGroupId", nLiftGroupId); 
 	call(L"AVSim"); 
 }
@@ -352,8 +391,7 @@ void CXMLRequest::AVSim(AVLONG nLiftGroupId)
 void CXMLRequest::AVSimData(AVLONG nSimId, AVLONG timeFrom, AVLONG timeTo)
 { 
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	addparam(L"nSimId", nSimId);
 	addparam(L"timeFrom", timeFrom);
 	addparam(L"timeTo", timeTo);
@@ -363,8 +401,7 @@ void CXMLRequest::AVSimData(AVLONG nSimId, AVLONG timeFrom, AVLONG timeTo)
 void CXMLRequest::AVPrjData(AVLONG nProjectId, AVLONG timeFrom, AVLONG timeTo)
 { 
 	setreq();
-	addparam(L"strUsername", m_strUsername);
-	addparam(L"strTicket", m_strTicket);
+	addparam_authorisation();
 	addparam(L"nProjectId", nProjectId);
 	addparam(L"timeFrom", timeFrom);
 	addparam(L"timeTo", timeTo);

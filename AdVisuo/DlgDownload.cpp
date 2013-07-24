@@ -3,7 +3,6 @@
 #include "stdafx.h"
 #include "DlgDownload.h"
 #include "VisProject.h"
-#include "XMLRequest.h"
 
 
 IMPLEMENT_DYNAMIC(CDlgDownload, CDialog)
@@ -49,8 +48,8 @@ END_MESSAGE_MAP()
 		switch (lParamSort % 100)
 		{
 			case 0: nRes = pPrj1->GetSimulationId() < pPrj2->GetSimulationId() ? -1 : (pPrj1->GetSimulationId() > pPrj2->GetSimulationId() ? 1 : 0); break;
-			case 1: nRes = wcscmp(pPrj1->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str(), pPrj2->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str()); break;
-			case 2: nRes = wcscmp(pPrj1->GetProjectInfo(CProjectVis::PRJ_SIMULATION_NAME).c_str(), pPrj2->GetProjectInfo(CProjectVis::PRJ_SIMULATION_NAME).c_str()); break;
+			case 1: nRes = wcscmp(pPrj1->GetProjectInfo(CProjectVis::PRJ_NAME).c_str(), pPrj2->GetProjectInfo(CProjectVis::PRJ_NAME).c_str()); break;
+			case 2: nRes = wcscmp(pPrj1->GetProjectInfo(CProjectVis::SIM_NAME).c_str(), pPrj2->GetProjectInfo(CProjectVis::SIM_NAME).c_str()); break;
 		}
 		return lParamSort < 100 ? nRes : -nRes;
 	}
@@ -100,11 +99,11 @@ BOOL CDlgDownload::OnInitDialog()
 		lvItem.iItem = m_list.InsertItem(0, buf);
 		m_list.SetItemData(lvItem.iItem, (DWORD_PTR)pPrj);
 		lvItem.iSubItem = 1;
-		_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
+		_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_NAME).c_str());
 		lvItem.pszText = buf;
 		m_list.SetItem(&lvItem);
 		lvItem.iSubItem = 2;
-		_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::PRJ_SIMULATION_NAME).c_str());
+		_snwprintf_s(buf, 1024, L"%ls", (LPWSTR)pPrj->GetProjectInfo(CProjectVis::SIM_NAME).c_str());
 		lvItem.pszText = buf;
 		m_list.SetItem(&lvItem);
 	}
@@ -145,13 +144,13 @@ void CDlgDownload::OnItemchangedList(NMHDR *pNMHDR, LRESULT *pResult)
 		L"Simulation: %s (%d lift groups)\n\r"
 		L"Client: %s%s%s%s%s"
 		, 
-		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME), L"<untitled project>"),
-		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_SIMULATION_NAME), L"---"), pPrj->GetLiftGroupsCount(),
-		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COMPANY), L"<unknown>"), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_CITY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_POST_CODE)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTRY))
+		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_NAME), L"<untitled project>"),
+		_hlpStr(pPrj->GetProjectInfo(CProjectVis::SIM_NAME), L"---"), pPrj->GetLiftGroupsCount(),
+		_hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_CLIENT_NAME), L"<unknown>"), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_CITY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_POST_CODE)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTY)), _hlpStr(pPrj->GetProjectInfo(CProjectVis::PRJ_COUNTRY))
 		);
 
 	CString str;
-	if (!pPrj->GetProjectInfo(CProjectVis::PRJ_DESIGNER).empty())	 { str.Format(L"\n\rDesigned by: %s", pPrj->GetProjectInfo(CProjectVis::PRJ_DESIGNER).c_str()); m_details += str; }
+	if (!pPrj->GetProjectInfo(CProjectVis::PRJ_LIFT_DESIGNER).empty())	 { str.Format(L"\n\rDesigned by: %s", pPrj->GetProjectInfo(CProjectVis::PRJ_LIFT_DESIGNER).c_str()); m_details += str; }
 	if (!pPrj->GetProjectInfo(CProjectVis::PRJ_CHECKED_BY).empty()) { str.Format(L"\n\rChecked by: %s", pPrj->GetProjectInfo(CProjectVis::PRJ_CHECKED_BY).c_str()); m_details += str; }
 
 	UpdateData(0);

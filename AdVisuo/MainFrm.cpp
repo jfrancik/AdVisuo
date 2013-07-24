@@ -84,6 +84,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 
 	SetTimer(100, 1000 / 50, NULL);
+	SetTimer(101, 1000 * 60, NULL);
 
 	// enable Visual Studio 2005 style docking window behavior
 	CDockingManager::SetDockingMode(DT_SMART);
@@ -284,7 +285,16 @@ void CMainFrame::OnTimer(UINT_PTR nIDEvent)
 //	CMDIFrameWndEx::OnTimer(nIDEvent);
 	//CMFCRibbonPanelLayout::UpdateStatus();
 
-	SendMessageToDescendants(WM_IDLEUPDATECMDUI, (WPARAM)TRUE, 0, TRUE, TRUE);
+	switch (nIDEvent)
+	{
+	case 100:
+		SendMessageToDescendants(WM_IDLEUPDATECMDUI, (WPARAM)TRUE, 0, TRUE, TRUE);
+		break;
+	case 101:
+		MessageBeep(MB_OK);
+		AVGetApp()->GetAuthorisationAgent()->AVExtendAuthorisation();
+		break;
+	}
 }
 
 void CMainFrame::OnViewOutputwnd()

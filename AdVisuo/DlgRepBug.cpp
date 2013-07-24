@@ -61,9 +61,9 @@ BOOL CDlgReportBug::OnInitDialog()
 
 	CString str;
 	if (pDoc)
-		str.Format(L"%s\r\nSession id: %d", pDoc->GetDiagnosticMessage(), ((CAdVisuoApp*)AfxGetApp())->GetSessionId());
+		str.Format(L"%s\r\nSession id: %d", pDoc->GetDiagnosticMessage(), AVGetApp()->GetSessionId());
 	else
-		str.Format(L"No document loaded.\r\nSession id: %d", ((CAdVisuoApp*)AfxGetApp())->GetSessionId());
+		str.Format(L"No document loaded.\r\nSession id: %d", AVGetApp()->GetSessionId());
 	
 	if (m_msg.IsEmpty())
 		m_system = str;
@@ -116,7 +116,7 @@ wstring urlencode(wstring &c)
 void CDlgReportBug::Report(int nReason, CString message)
 {
 	CString req;
-	req.Format(L"reason=%d&id=%d&msg=%s", nReason, ((CAdVisuoApp*)AfxGetApp())->GetSessionId(), urlencode((wstring)message));
+	req.Format(L"reason=%d&id=%d&msg=%s", nReason, AVGetApp()->GetSessionId(), urlencode((wstring)message));
 	wstring url, function, request;
 	url = L"http://francik.name/advisuo";
 	function = L"report.php";
@@ -192,13 +192,13 @@ void CDlgReportBug::OnOK()
 	}
 	catch (_xmlreq_error xe)
 	{
-		str << L"HTTP error " << xe.status() << L": " << xe.msg() << L" at " << http.URL() << L".";
+		str << L"HTTP error " << xe.status() << L": " << xe.msg() << L" at " << http.getURL() << L".";
 		AfxMessageBox(str.str().c_str(), MB_ICONEXCLAMATION);
 		return;
 	}
 	catch(...)
 	{
-		str << L"Unidentified errors while downloading from " << http.URL();
+		str << L"Unidentified errors while downloading from " << http.getURL();
 		AfxMessageBox(str.str().c_str(), MB_ICONEXCLAMATION);
 		return;
 	}

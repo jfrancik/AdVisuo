@@ -38,6 +38,7 @@ class CXMLRequest
 	// authorisation details
 	std::wstring m_strUsername;
 	std::wstring m_strTicket;
+	CXMLRequest *m_pAuthSource;
 
 public:
 	CXMLRequest();
@@ -46,14 +47,15 @@ public:
 	void create();
 
 	void setURL(std::wstring strUrl)			{ m_strUrl = strUrl; }
-	void authorise_from(CXMLRequest &req)		{ m_strUsername = req.m_strUsername; m_strTicket = req.m_strTicket; }
-	void authorise(std::wstring strUsername, std::wstring strTicket)
-												{ m_strUsername = strUsername; m_strTicket = strTicket; }
-	std::wstring get_username()					{ return m_strUsername; }
-	std::wstring get_ticket()					{ return m_strTicket; }
+	std::wstring getURL()						{ return m_strUrl; }
+
+	// Authorisation
+
+	void take_authorisation_from(CXMLRequest *pSource);
+	void set_authorisation_data(std::wstring strUsername, std::wstring strTicket);
+	void get_authorisation_data(std::wstring &strUsername, std::wstring &strTicket);
 
 	// status
-	std::wstring URL()		{ return m_strUrl; }
 	bool ready()			{ return m_nReadyState == 4; }
 	bool ok()				{ return ready() && SUCCEEDED(m_h) && m_nStatus <= 299; }
 
@@ -62,6 +64,7 @@ public:
 	void addreq(std::wstring strRequest);
 	void addparam(std::wstring strParam,  AVLONG val);
 	void addparam(std::wstring strParam,  std::wstring strVal);
+	void addparam_authorisation();
 	void call(std::wstring strFunction);
 
 	// wait & get response

@@ -79,6 +79,7 @@ class CDlgHtFailure: public CDlgHtBase
 
 public:
 	CDlgHtFailure();
+	CDlgHtFailure(CString strTitle, CString strFailure);
 	CDlgHtFailure(_version_error &ve, CString url);
 	CDlgHtFailure(_prj_error &pe, CString url);
 	CDlgHtFailure(_com_error &ce, CString url);

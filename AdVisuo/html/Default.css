@@ -1,6 +1,8 @@
-﻿
-body {background:url(res:/PNG/#346) no-repeat 0 0; color:#444;  font-family:Arial, Helvetica, Sans-Serif; text-align:left;font-size:12px; margin-top:3px;}
+﻿body {color:#444;  font-family:Arial, Helvetica, Sans-Serif; text-align:left;font-size:12px; margin-top:3px; overflow:hidden;}
+.login {background:url(res:/PNG/#346) no-repeat 0 0; }
 .splash {background:url(res:/PNG/#345) no-repeat 0 0; }
+.about {background:url(res:/PNG/#348) no-repeat 0 0; }
+.select { }
 
 h1 {cursor:default; font-size:2em; color:#fff; margin:0; padding:12px 0 0 250px; height:33px; width:454px; text-shadow:0 -1px 0px #1C8AA2;}
 h2 {cursor:default; }
@@ -9,7 +11,18 @@ div {cursor:default;}
 .failure-container {display:none;}
 .failure-container {margin:40px 0 0; font-size:12pt; color:#282828; }
 
-/* Forms */
+.about-container {margin:130px 0 0; font-size:12pt; color:#282828; }
+
+/* Buttons */
+
+.RoundedButton {padding: 6px 12px 6px 12px; cursor: pointer; border: 1px solid #666666;  text-decoration: none; text-align: center; background: #555555; font-weight: bold; color: #eeeeee; border-radius: 8px; }
+.RoundedButton:hover { border-color: #ffaf0f!important; background: #f58400!important;}
+.RoundedButton:active  { color:Orange!important;}
+                  
+.SearchButton { float:left; margin-left:1px!important; margin-top:1px!important; border-radius: 0 8px 8px 0!important; }
+
+/**** LOGIN ****/
+
 .formrow {overflow:hidden; padding:5px 0 5px 0;}
 .formrow label {width: 150px; float: left; text-align: right; padding:0 14px 0 0; color: #fff; font-size: 1.1em; margin-top: 3px;}
 .formrow .textfield {width: 223px; border: 1px solid #5a5a5a;}
@@ -21,26 +34,70 @@ div {cursor:default;}
 .form-container {margin:40px 0 0;}
 .form-content {width:490px; margin:auto;}
 .form-content .form-panel {width:498px; height:232px; background:url(res:/PNG/#343) no-repeat 0 0; color:#282828; position:relative;}
-.form-content .inner {width:430px; margin:0 auto; padding-top:39px; padding-left:39px;}
+.form-content .inner {width:430px; margin:0 auto; padding-top:39px; padding-left:39px; position:relative;}
 .form-content .inner .formrow {clear:both; margin:0;}
 .form-content .inner .formrow label {display:block; width:95px; text-align:right; margin:6px 15px 0 0; font-size:0.9em; color:#282828; padding:0;}
 .form-content .inner .formrow .textfield {display:block; width:262px; float:left; padding:4px; font-size:1.4em; border:solid 1px #878787; background-color:#fff; color:#282828;}
 .form-content .inner .formrow span.required {font-size:1.4em;}
-.form-content .form-button {clear:both; margin:25px 0 0 110px;}
-.form-content .inner p.alert {font-size:0.9em; color:#282828; margin:10px 0 0 112px; font-weight:bold;}
-.form-content .inner p.alert a {color:#282828; text-decoration:underline;}
+.form-content .form-button { margin:25px 0 0 110px;}
+.form-content .inner .alert {font-size:0.9em; color:#282828; margin:10px 0 0 112px; font-weight:bold;}
+.form-content .inner .alert a {color:#282828; text-decoration:underline;}
 .form-content .errormessages {position:absolute; top:5px; left:30px; padding:5px;}
 .form-content .errormessages h3 {margin:0; font-size:1.2em; color:#bd0000; background:url(../Images/Base/exclamation-diamond.png) no-repeat 0 0; padding-top:1px;}
-
-.button-text {width:88px; height:28px; text-align:center; vertical-align:middle; color:White; font-size:12px; cursor:pointer }
 
 .bad-login { margin:0; font-size:1.2em; color:#bd0000; }
 
 #idCopyright {color:Black; position:absolute; bottom:4px; }
 
-#idLoginButton {cursor:pointer; }
-#idConnButton {cursor:pointer; }
-#idProceedButton {cursor:pointer; }
-
 hr { background-color: #aaa;height: 0px;}
 
+
+/**** SELECT ****/
+
+/* Console */
+.select-panel {width:850px; min-height:600px; overflow: auto; padding: 0px 0px 0px 0px;float:none; }
+
+/* Drop-Down menu */
+#idSelectFolder ul { float:right;  }
+#idSelectFolder ul { list-style:none;margin:0;padding:0;width:auto; }
+#idSelectFolder a { text-decoration:none;white-space:nowrap;display:block; }
+#idSelectFolder ul {outline:none;float:right;}
+#idSelectFolder li .selected{color:orange!important;}
+#idSelectFolder > ul {outline:none!important; z-index:255; }
+#idSelectFolder > ul > li{cursor:default; height: 25px; text-decoration: none; text-align: center; background: white;border:1px solid #aaa;position: relative; width: auto; float: left;border-radius:8px 0 0 8px;}
+#idSelectFolder > ul > li > a, 
+#idSelectFolder > ul > li > a:active {outline:none;margin-left:1px; color: orange; font-size:1.3em;  font-family: Segoe UI, Arial, sans-serif;font-weight: bold;text-decoration:none;padding:2px 8px 3px 8px;}
+#idSelectFolder > ul:active {outline:none;}
+#idSelectFolder ul > li > ul { display: none; position: absolute; z-index:255; top: 100%; left: 0px; margin-left:8px; box-shadow:1.7px 2px 2px #777777; border-radius: 0 0 8px 8px; }
+#idSelectFolder ul > li:hover > ul { display: block; }
+#idSelectFolder ul > li > ul > li{border-top:1px solid #aaa;border-left:1px solid #aaa;border-right:1px solid #aaa;background: white;font-size:1.1em!important;}
+#idSelectFolder ul > li > ul > li:last-child {border-radius: 0 0 8px 8px;}
+#idSelectFolder ul > li > ul > li > a{color: #777;font-family: Segoe UI, Arial, sans-serif;text-decoration: none;text-align:left;padding:6px 15px 6px 8px;cursor:pointer;}
+#idSelectFolder ul > li > ul > li:hover {  border-color: #ffaf0f; background: #f58400;}
+#idSelectFolder ul > li > ul > li > a:active  { color: orange;}
+
+/* Search Tool */
+
+.TxtSearchBasic {width:380px;font-weight: normal!important;font-size:1.2em; height: 23px; margin: 2px 0 0 -3px;float:left; border: 1px solid #5a5a5a; }
+
+/* Table */
+
+.SelectPrjListPanel { border-collapse:collapse;border:solid 1px #DBDFE6; }
+.SelectPrjListPanel thead tr { border:solid 1px #DBDFE6;vertical-align:middle;height:27px; }
+.SelectPrjListPanel tbody tr { background-color:#fff;color:#444; border:solid 1px #DBDFE6;vertical-align:middle;height:27px;cursor:pointer; }
+.SelectPrjListPanel tbody .selected { background-color: #f58400!important; color:#444; }
+.SelectPrjListPanel td { text-align:left; padding:  3px 5px 3px 5px;font-size: 1em;border-spacing:0px;border-left:0px;border-right:0px;}  
+.SelectPrjListPanel th { text-align:left; background: #4A4A4A;font-size: 1.1em;color: #fff;margin-bottom:0px;margin-top:0px;padding:2px;font-family: Segoe UI, Arial, sans-serif;font-weight:bold; border-left:0px;border-right:0px; }
+.SelectPrjListPanel th > a { display:inline-block; width:100%;color: #fff;text-decoration:none; padding: 3px 5px 3px 5px; }
+.SelectPrjListPanel th > a:hover { color: Orange; }
+.SelectPrjListPanel th .selected { color: Orange!important; }
+
+.SelectPrjItem { display: none; }
+.SelectPrjItem > td.id { display: none; }
+.SelectPrjItem > td.folder { display: none; }
+
+.SelectDetailsHeader { width:310px; margin: 0 0 20px 8px; padding: 0 30px 0 30px; position:absolute; right:25px; top:90px; z-index:250; }
+.SelectDetailsPanel  { width:310px; margin: 0 0 20px 8px; padding: 0 30px 0 30px; position:absolute; right:25px; top:25px; padding-top:55px; border:1px solid #aaa; border-radius: 8px; }
+.SelectDetailsPanel span { display:inline-block; width:140px; }
+.SelectDetailsPanel { display:none; }
+.selected .SelectDetailsPanel { display:block!important; }

@@ -178,13 +178,13 @@ std::wstring CValue::as_sql_type()
 {
 	switch (type)
 	{
-	case V_NULL:	return L"nvarchar(255)";
+	case V_NULL:	return L"nvarchar(511)";
 	case V_INT:		return L"int";
 	case V_BOOL:	return L"bit";
 	case V_FLOAT:	return L"float";	// L"decimal(9,2)";
 	case V_DATE:	return L"datetime";
-	case V_STRING:	return L"nvarchar(255)";
-	case V_SYMBOL:	return (s == L"CURRENT_TIMESTAMP") ? L"datetime" : L"nvarchar(255)";
+	case V_STRING:	return L"nvarchar(511)";
+	case V_SYMBOL:	return (s == L"CURRENT_TIMESTAMP") ? L"datetime" : L"nvarchar(511)";
 	default:		return L"";
 	}
 }
@@ -245,7 +245,7 @@ void CValue::from_type(std::wstring type)
 		throw _value_error(_value_error::E_VALUE_BAD_XS_TYPE);
 }
 
-static wstring replace_substring(wstring str, wstring substr, wstring rplcm)
+static wstring replace_substring(wstring str, wstring substr, wstring rplcm, ULONG nMaxChars)
 {
 	int i = str.find(substr, 0);
 	while(i >= 0)
@@ -253,7 +253,7 @@ static wstring replace_substring(wstring str, wstring substr, wstring rplcm)
 		str.replace(i, substr.length(), rplcm);
 		i = str.find(substr, i + rplcm.length());
 	}
-	return str;
+	return str.substr(0, nMaxChars);
 }
 
 wstring CValue::escaped()
@@ -261,7 +261,7 @@ wstring CValue::escaped()
 	if (type == V_STRING)
 	{
 		wstringstream str;
-		str << L"'" << replace_substring(*this, L"'", L"''") << L"'";
+		str << L"'" << replace_substring(*this, L"'", L"''", 511) << L"'";
 		return str.str();
 	}
 	else

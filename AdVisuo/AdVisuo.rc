@@ -237,6 +237,7 @@ BEGIN
         MENUITEM "Status Pane 2",               ID_STATUSBAR_PANE2
         MENUITEM "Report Bug",                  ID_REPORT_BUG
         MENUITEM "Materials",                   ID_VIEW_MATERIALS
+        MENUITEM "Failure",                     ID_OTHER_FAILURE
     END
     POPUP "HUD"
     BEGIN
@@ -848,7 +849,13 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About AdVisuo..."
 FONT 8, "Microsoft Sans Serif", 400, 0, 0x0
 BEGIN
-    LISTBOX         IDC_DEBUG,7,139,220,103,LBS_NOSEL | NOT WS_BORDER | WS_TABSTOP,WS_EX_TRANSPARENT
+END
+
+IDD_ADV_SELECT DIALOGEX 0, 0, 575, 345
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "AdVisuo: Select Project"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
 END
 
 
@@ -947,6 +954,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 242
     END
+
+    IDD_ADV_SELECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 566
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 336
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -1041,6 +1056,8 @@ END
 
 IDR_HTML_LOGIN          HTML                    "html/login.html"
 IDR_HTML_SPLASH         HTML                    "html/splash.html"
+IDR_HTML_ABOUT          HTML                    "html/about.html"
+IDR_HTML_SELECT         HTML                    "html/select.html"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1060,6 +1077,7 @@ IDR_HTML_PNG_BUTTON     PNG                     "html/button.png"
 IDR_HTML_PNG_SPLASH1    PNG                     "html/splash1.png"
 IDR_HTML_PNG_SPLASH2    PNG                     "html/splash2.png"
 IDR_HTML_PNG_CONNECTION PNG                     "html/connection.png"
+IDR_HTML_PNG_SPLASH3    PNG                     "html/splash3.png"
 
 /////////////////////////////////////////////////////////////////////////////
 //

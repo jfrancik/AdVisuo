@@ -4,7 +4,6 @@
 #include "BaseSimClasses.h"
 #include "dbtools.h"
 #include <string>
-//#include <sstream>
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CSim
@@ -84,6 +83,16 @@ std::wstring JOURNEY::StringifyDoorCycles()
 	std::wstringstream s;
 	for (AVULONG iDeck = 0; iDeck < DECK_NUM; iDeck++)
 	{
+		AVULONG nDoorCycles = m_doorcycles[iDeck].size();
+		AVULONG nMaxDoorCycles = 6;
+		if (nDoorCycles > nMaxDoorCycles)
+		{
+#ifndef __ADVISUO_EXE
+			Log(WARNING_TOO_MANY_REOPENINGS, nDoorCycles, m_timeGo, nMaxDoorCycles);
+#endif
+			nDoorCycles = nMaxDoorCycles;
+		}
+
 		s << m_doorcycles[iDeck].size() << L" ";
 		for (AVULONG iCycle = 0; iCycle < m_doorcycles[iDeck].size(); iCycle++)
 			s << m_doorcycles[iDeck][iCycle];

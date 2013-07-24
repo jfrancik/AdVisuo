@@ -206,6 +206,37 @@ DWORD Logf(DWORD dwEventID, bool bGetOn, DWORD PassengerId, DWORD Time, DWORD Fl
 	return OLE_S_FIRST + dwEventID;
 }
 
+DWORD Logf(DWORD dwEventID, DWORD nReopenings, DWORD Time, DWORD nTruncatedVal, LPCTSTR fmt, ...)
+{
+	WCHAR out[1024];
+	va_list body;
+	va_start(body, fmt);
+	vswprintf(out, 1024, fmt, body);
+	va_end(body);
+
+	WORD wType;
+	if (dwEventID >= 0x80000000L) wType = EVENTLOG_ERROR_TYPE;
+	else if (dwEventID >= 0x40000000L) wType = EVENTLOG_WARNING_TYPE;
+	else wType = EVENTLOG_SUCCESS;
+	
+	WCHAR num[16][5];
+	wsprintf(num[0], L"%d", nReopenings);
+	wsprintf(num[1], L"%d", Time);
+	wsprintf(num[2], L"%d", nTruncatedVal);
+
+	const wchar_t* msgs[3];
+	msgs[0] = num[0];
+	msgs[1] = num[1];
+	msgs[2] = num[2];
+	HANDLE hSrc = RegisterEventSource(NULL, L"AdVisuo");
+	if (g_bRegEvents) ReportEvent(hSrc, wType, CAT_ADV_DLL, dwEventID, NULL, 3, 0, msgs, NULL);
+	DeregisterEventSource(hSrc);
+
+	if (g_bOnScreen) _PrintMessage(dwEventID, msgs[0], msgs[1], msgs[2]);
+
+	return OLE_S_FIRST + dwEventID;
+}
+
 CLogTime::CLogTime()
 {
 	m_nTime = ::GetTickCount();

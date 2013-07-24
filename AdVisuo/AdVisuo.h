@@ -24,8 +24,6 @@
 
 class CAdVisuoApp;
 
-inline CAdVisuoApp *GetAdVisuoApp()		{ return (CAdVisuoApp*)AfxGetApp(); }
-
 // CAdVisuoApp:
 // See AdVisuo.cpp for the implementation of this class
 //
@@ -57,21 +55,18 @@ public:
 	AVULONG GetColouringMode()		{ return (ULONG)m_nColouringMode; }
 	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
 
-	void Authorise(CString url, CString username, CString ticket);
-	void RefreshAuthorisation();
-	void GetAuthorisation(CXMLRequest *pHttp);
-	
+	CXMLRequest *GetAuthorisationAgent()	{ return &m_http; }
+
 	ULONG GetSessionId()			{ return m_nSessionId; }
-
-
-	// SIM file paths - obsolete
-	//CString m_strSimPathName;	// simulation file pathname - if provided as a 2nd cmd line param
-	//LPCOLESTR GetSimPathName()	{ return m_strSimPathName.IsEmpty() ? NULL : m_strSimPathName; }
-	//void ResetSimPathName()		{ m_strSimPathName.Empty(); }
 
 // Overrides
 public:
 	virtual BOOL InitInstance();
+
+	// tools within InitInstance:
+	bool AskLogin();					// Displays Login dialog box
+	bool AskProject(CString &url);		// Ask user to select the project to download
+	bool InitProject(CString name);		// Loads the project with all decorations (splash windows, debuf info etc...)
 
 	virtual void PreLoadState();
 	virtual void LoadCustomState();
@@ -80,6 +75,7 @@ public:
 	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
 
+public:
 	virtual BOOL OnIdle(LONG lCount);
 	afx_msg void OnFileDownload();
 	afx_msg void OnUpdateFileDownload(CCmdUI *pCmdUI);

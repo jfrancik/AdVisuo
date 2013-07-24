@@ -136,8 +136,12 @@ void CDlgHtBase::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 
 	// wait to see the empty page
 	MSG msg;
-	while (::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) 
+	DWORD t = ::GetTickCount();
+	while (::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) && ::GetTickCount() <= t + 2000) 
 	{ 
+		if (msg.message == WM_PAINT)
+			break;
+
 		if (!AfxGetApp()->PumpMessage()) 
 		{ 
 			::PostQuitMessage(0); 
@@ -201,6 +205,11 @@ IMPLEMENT_DYNCREATE(CDlgHtFailure, CDlgHtBase)
 CDlgHtFailure::CDlgHtFailure() : CDlgHtBase(IDD, IDH)
 { 
 	m_fnLoadComplHandle = [this]() { };
+}
+
+CDlgHtFailure::CDlgHtFailure(CString strTitle, CString strFailure) : CDlgHtBase(IDD, IDH)
+{
+	m_fnLoadComplHandle = [this, strTitle, strFailure]() { OnGotoFailure(strTitle, strFailure); };
 }
 
 CDlgHtFailure::CDlgHtFailure(_version_error &ve, CString url) : CDlgHtBase(IDD, IDH)

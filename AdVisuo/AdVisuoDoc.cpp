@@ -20,6 +20,7 @@ IMPLEMENT_DYNCREATE(CAdVisuoDoc, CDocument)
 BEGIN_MESSAGE_MAP(CAdVisuoDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE, &CAdVisuoDoc::OnUpdateFileSave)
 	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE_AS, &CAdVisuoDoc::OnUpdateFileSave)
+	ON_COMMAND(ID_OTHER_FAILURE, &CAdVisuoDoc::OnOtherFailure)
 END_MESSAGE_MAP()
 
 
@@ -83,7 +84,7 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	{
 		GetProject()->LoadFromFile(lpszPathName);	// throws _prj_error and _com_error
 
-		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
+		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_NAME).c_str());
 		m_timeLoaded = GetProject()->GetMaxSimulationTime();
 
 		m_h = S_OK;
@@ -201,9 +202,15 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	std::wstring response;
 	try
 	{
-		m_http.setURL((LPCTSTR)strUrl);
-		AVGetApp()->Authorise(strUrl, strUserid, strTicket);
-		AVGetApp()->GetAuthorisation(&m_http);
+		// set-up the master autorisation/http object
+		CXMLRequest *pMaster = AVGetApp()->GetAuthorisationAgent();
+		pMaster->set_authorisation_data((LPCTSTR)strUserid, (LPCTSTR)strTicket);
+		pMaster->setURL((LPCTSTR)strUrl);
+
+		// prepare my own copy
+		m_http.setURL(pMaster->getURL());
+		m_http.take_authorisation_from(pMaster);
+		
 		if (m_http.AVIsAuthorised() <= 0)
 			throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
 
@@ -218,7 +225,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		m_http.get_response(response);
 		GetProject()->LoadFromBuf(response.c_str());
 
-		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_PROJECT_NAME).c_str());
+		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_NAME).c_str());
 		m_strPathName = GetTitle();
 
 		m_http.AVLiftGroups(GetProject()->GetId());
@@ -253,37 +260,37 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	}
 	catch (_prj_error pe)
 	{
-		CDlgHtFailure dlg(pe, m_http.URL().c_str());
+		CDlgHtFailure dlg(pe, m_http.getURL().c_str());
 		dlg.DoModal();
 		return false;
 	}
 	catch (_com_error ce)
 	{
-		CDlgHtFailure dlg(ce, m_http.URL().c_str());
+		CDlgHtFailure dlg(ce, m_http.getURL().c_str());
 		dlg.DoModal();
 		return false;
 	}
 	catch (_xmlreq_error xe)
 	{
-		CDlgHtFailure dlg(xe, m_http.URL().c_str());
+		CDlgHtFailure dlg(xe, m_http.getURL().c_str());
 		dlg.DoModal();
 		return false;
 	}
 	catch (_version_error ve)
 	{
-		CDlgHtFailure dlg(ve, m_http.URL().c_str());
+		CDlgHtFailure dlg(ve, m_http.getURL().c_str());
 		dlg.DoModal();
 		return false;
 	}
 	catch (dbtools::_value_error ve)
 	{
-		CDlgHtFailure dlg(ve, m_http.URL().c_str());
+		CDlgHtFailure dlg(ve, m_http.getURL().c_str());
 		dlg.DoModal();
 		return false;
 	}
 	catch(...)
 	{
-		CDlgHtFailure dlg(m_http.URL().c_str());
+		CDlgHtFailure dlg(m_http.getURL().c_str());
 		dlg.DoModal();
 		return false;
 	}
@@ -304,7 +311,7 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 
 		if (!IsDownloadComplete())
 		{
-			AVGetApp()->GetAuthorisation(&m_http);
+			m_http.take_authorisation_from(AVGetApp()->GetAuthorisationAgent());
 			if (m_http.AVIsAuthorised() <= 0)
 				throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
 			m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
@@ -314,41 +321,53 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 	}
 	catch (_prj_error pe)
 	{
-		AfxMessageBox(CDlgHtFailure::GetFailureTitle(pe));
-		AfxMessageBox(CDlgHtFailure::GetFailureString(pe, m_http.URL().c_str()));
+		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(pe);
+		m_strFailureText  = CDlgHtFailure::GetFailureString(pe, m_http.getURL().c_str());
+		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
 		return false;
 	}
 	catch (_com_error ce)
 	{
-		AfxMessageBox(CDlgHtFailure::GetFailureTitle(ce));
-		AfxMessageBox(CDlgHtFailure::GetFailureString(ce, m_http.URL().c_str()));
+		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(ce);
+		m_strFailureText  = CDlgHtFailure::GetFailureString(ce, m_http.getURL().c_str());
+		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
 		return false;
 	}
 	catch (_xmlreq_error xe)
 	{
-		AfxMessageBox(CDlgHtFailure::GetFailureTitle(xe));
-		AfxMessageBox(CDlgHtFailure::GetFailureString(xe, m_http.URL().c_str()));
+		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(xe);
+		m_strFailureText  = CDlgHtFailure::GetFailureString(xe, m_http.getURL().c_str());
+		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
 		return false;
 	}
 	catch (_version_error ve)
 	{
-		AfxMessageBox(CDlgHtFailure::GetFailureTitle(ve));
-		AfxMessageBox(CDlgHtFailure::GetFailureString(ve, m_http.URL().c_str()));
+		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(ve);
+		m_strFailureText  = CDlgHtFailure::GetFailureString(ve, m_http.getURL().c_str());
+		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
 		return false;
 	}
 	catch (dbtools::_value_error ve)
 	{
-		AfxMessageBox(CDlgHtFailure::GetFailureTitle(ve));
-		AfxMessageBox(CDlgHtFailure::GetFailureString(ve, m_http.URL().c_str()));
+		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(ve);
+		m_strFailureText  = CDlgHtFailure::GetFailureString(ve, m_http.getURL().c_str());
+		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
 		return false;
 	}
 	catch(...)
 	{
-		AfxMessageBox(CDlgHtFailure::GetFailureTitle());
-		AfxMessageBox(CDlgHtFailure::GetFailureString(m_http.URL().c_str()));
+		m_strFailureTitle = CDlgHtFailure::GetFailureTitle();
+		m_strFailureText  = CDlgHtFailure::GetFailureString(m_http.getURL().c_str());
+		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
 		return false;
 	}
 	return true;
+}
+
+void CAdVisuoDoc::OnOtherFailure()
+{
+	CDlgHtFailure dlg(m_strFailureTitle, m_strFailureText);
+	dlg.DoModal();
 }
 
 void CAdVisuoDoc::Serialize(CArchive& ar)
@@ -395,7 +414,7 @@ void CAdVisuoDoc::SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU)
 
 	// add it to the file MRU list
 	if (bAddToMRU)
-		AfxGetApp()->AddToRecentFileList(m_strPathName);
+		AVGetApp()->AddToRecentFileList(m_strPathName);
 
 	ASSERT_VALID(this);
 }
@@ -460,3 +479,5 @@ BOOL CAdVisuoDoc::SaveModified()
 	}
 	return TRUE;    // keep going
 }
+
+

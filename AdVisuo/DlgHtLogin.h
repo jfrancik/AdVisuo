@@ -18,6 +18,7 @@ public:
 	CString m_strPassword;
 	CString m_strServers;
 	CString m_strUrl;
+	bool m_bAutoLogin;		// automatic login for speed-up in the debugging mode only
 
 	CXMLRequest *m_pHttp;
 

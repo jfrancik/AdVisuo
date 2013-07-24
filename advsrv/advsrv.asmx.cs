@@ -32,6 +32,13 @@ namespace advsrv
             return str;
         }
 
+        private string GetConsoleConnStr()
+        {
+            RegistryKey ourKey = Registry.LocalMachine.OpenSubKey("Software\\LerchBates\\AdVisuo\\ServerModule");
+            string str = ourKey.GetValue("ConsoleConnectionString").ToString();
+            return str;
+        }
+
         private string GetUsersConnStr()
         {
             RegistryKey ourKey = Registry.LocalMachine.OpenSubKey("Software\\LerchBates\\AdVisuo\\ServerModule");
@@ -86,7 +93,7 @@ namespace advsrv
         }
 
         [WebMethod(Description = "Creates and returns a valid ticket for the given username and password, or empty string if unauthorised.")]
-        public string  AVCreateTicket(string strUsername, string strPassword)
+        public string AVCreateTicket(string strUsername, string strPassword)
         {
             System.Threading.Thread.Sleep(750);
 
@@ -165,7 +172,7 @@ namespace advsrv
                 DateTime stamp = reader.GetDateTime(0);
                 reader.Close();
 
-                double validity = 12;
+                double validity = 120;
                 double secs = (DateTime.Now - stamp).TotalSeconds;
                 if (secs > validity)
                     return 0;
@@ -175,7 +182,7 @@ namespace advsrv
             else
             {
                 reader.Close();
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(2000);
                 return 0;
             }
         }
@@ -211,6 +218,27 @@ namespace advsrv
             return strTicket;
         }
 
+        // returns list of folder indexes - available for the given user - e.g. (4,6,1,2)
+        private string _folders(string strUsername)
+        {
+            // open connection
+            OleDbConnection conn = new OleDbConnection(GetConsoleConnStr());
+            OleDbCommand cmdSelect = new OleDbCommand("SELECT ProjectFolderId FROM UserPermissionsForFolders WHERE UserName=? ORDER BY Priority", conn);
+            cmdSelect.Parameters.AddWithValue("UserName", strUsername);
+            conn.Open();
+            OleDbDataReader reader = cmdSelect.ExecuteReader();
+
+            string str = "";
+            while (reader.Read())
+            {
+                int n = reader.GetInt32(0);
+                if (str.Length > 0) str += ",";
+                str += n.ToString();
+            }
+            reader.Close();
+            return "(" + str + ")";
+        }
+
         [WebMethod(Description = "Returns project index.")]
         public DataSet AVIndex(string strUsername, string strTicket)
         {
@@ -219,7 +247,7 @@ namespace advsrv
 
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
             DataSet myDataSet = new DataSet();
-            OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVProjects", conn);
+            OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVProjects WHERE ProjectFolderId IN " + _folders(strUsername), conn);
             myDataAdapter.Fill(myDataSet, "AVProject");
             return myDataSet;
         }
@@ -249,7 +277,7 @@ namespace advsrv
             myDataAdapter.Fill(myDataSet, "AVLiftGroup");
             return myDataSet;
         }
-        
+
         [WebMethod(Description = "Returns floor structure for a lift group")]
         public DataSet AVFloors(string strUsername, string strTicket, int nLiftGroupId)
         {

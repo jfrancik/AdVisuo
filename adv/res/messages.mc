@@ -344,6 +344,13 @@ Deck: %6
 .
 
 MessageId       = +1
+SymbolicName    = WARNING_TOO_MANY_REOPENINGS
+Severity		= Warning
+Language        = English
+Too many door reopenings. %1 door cycles at %2 will be truncated to %3.
+.
+
+MessageId       = +1
 SymbolicName    = ERROR_CONVERSION
 Severity		= Error
 Language        = English

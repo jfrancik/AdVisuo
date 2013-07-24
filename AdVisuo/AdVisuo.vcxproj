@@ -141,6 +141,7 @@
     <ClCompile Include="DlgDownload.cpp" />
     <ClCompile Include="DlgHtBase.cpp" />
     <ClCompile Include="DlgHtLogin.cpp" />
+    <ClCompile Include="DlgHtSelect.cpp" />
     <ClCompile Include="DlgMat.cpp" />
     <ClCompile Include="DlgRepBug.cpp" />
     <ClCompile Include="DlgScript.cpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="DlgDownload.h" />
     <ClInclude Include="DlgHtBase.h" />
     <ClInclude Include="DlgHtLogin.h" />
+    <ClInclude Include="DlgHtSelect.h" />
     <ClInclude Include="DlgMat.h" />
     <ClInclude Include="DlgRepBug.h" />
     <ClInclude Include="DlgScript.h" />
@@ -215,16 +217,20 @@
     <ClInclude Include="_base.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="html\about.html" />
     <None Include="html\bg-login-form.png" />
     <None Include="html\bg-login-header.png" />
     <None Include="html\btn-login.png" />
     <None Include="html\button.png" />
     <None Include="html\connection.png" />
     <None Include="html\Default.css" />
+    <None Include="html\html_png.png" />
     <None Include="html\login.html" />
+    <None Include="html\select.html" />
     <None Include="html\splash.html" />
     <None Include="html\splash1.png" />
     <None Include="html\splash2.png" />
+    <None Include="html\splash3.png" />
     <None Include="res\AdVisuo.ico" />
     <None Include="res\AdVisuo.rc2" />
     <None Include="res\AdVisuoDoc.ico" />

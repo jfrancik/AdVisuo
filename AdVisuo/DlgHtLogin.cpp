@@ -17,6 +17,7 @@ CDlgHtLogin::CDlgHtLogin(CXMLRequest *pHttp, CString strServers, CWnd* pParent /
 	m_pHttp = pHttp;
 	m_state = INIT;
 	m_strServers = strServers;
+	m_bAutoLogin = false;
 	int curPos = 0;
 	m_strUrl.Format(L"http://%s/advsrv.asmx", m_strServers.Tokenize(_T(";"), curPos));
 	m_fnLoadComplHandle = [this] { GotoLogin(); };
@@ -85,26 +86,31 @@ void CDlgHtLogin::GotoLogin()
 		m_state = LOGIN;
 		ExecJS(L"GotoLogin()");
 		SetWindowText(L"AdVisuo Login");
+
+#ifdef _DEBUG
+		if (!m_strPassword.IsEmpty() && m_bAutoLogin)
+			OnOK();
+#endif
 	}
 	catch (_prj_error pe)
 	{
-		GotoFailure(pe, m_pHttp->URL().c_str());
+		GotoFailure(pe, m_pHttp->getURL().c_str());
 	}
 	catch (_com_error ce)
 	{
-		GotoFailure(ce, m_pHttp->URL().c_str());
+		GotoFailure(ce, m_pHttp->getURL().c_str());
 	}
 	catch (_xmlreq_error xe)
 	{
-		GotoFailure(xe, m_pHttp->URL().c_str());
+		GotoFailure(xe, m_pHttp->getURL().c_str());
 	}
 	catch (_version_error ve)
 	{
-		GotoFailure(ve, m_pHttp->URL().c_str());
+		GotoFailure(ve, m_pHttp->getURL().c_str());
 	}
 	catch(...)
 	{
-		GotoFailure(m_pHttp->URL().c_str());
+		GotoFailure(m_pHttp->getURL().c_str());
 	}
 }
 
@@ -150,19 +156,19 @@ void CDlgHtLogin::OnOK()
 		}
 		catch (_com_error ce)
 		{
-			GotoFailure(ce, m_pHttp->URL().c_str());
+			GotoFailure(ce, m_pHttp->getURL().c_str());
 		}
 		catch (_xmlreq_error xe)
 		{
-			GotoFailure(xe, m_pHttp->URL().c_str());
+			GotoFailure(xe, m_pHttp->getURL().c_str());
 		}
 		catch (_version_error ve)
 		{
-			GotoFailure(ve, m_pHttp->URL().c_str());
+			GotoFailure(ve, m_pHttp->getURL().c_str());
 		}
 		catch(...)
 		{
-			GotoFailure(m_pHttp->URL().c_str());
+			GotoFailure(m_pHttp->getURL().c_str());
 		}
 		break;
 	case CONNECTION:
