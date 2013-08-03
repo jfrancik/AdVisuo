@@ -27,7 +27,6 @@
 #include "DlgHtLogin.h"
 #include "DlgHtAbout.h"
 #include "DlgHtSelect.h"
-#include "DlgDownload.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -137,7 +136,7 @@ BOOL CAdVisuoApp::InitInstance()
 	if (reg.Open(GetRegSectionPath(L"URL")))
 		reg.Read(L"servers", m_servers); 
 	if (m_servers.IsEmpty())
-		m_servers = L"217.33.230.53:8081;adsimulo.mylb.eu:8081";
+		m_servers = L"adsimulodev.mylb.eu:8081";
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
@@ -160,7 +159,7 @@ BOOL CAdVisuoApp::InitInstance()
 	if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileNew)
 		cmdInfo.m_nShellCommand = CCommandLineInfo::FileNothing;
 
-	// load a project (from the command line or interactively)
+	// load a simulation (from the command line or interactively)
 	try
 	{
 		// initialise HTTP Request object
@@ -173,8 +172,16 @@ BOOL CAdVisuoApp::InitInstance()
 		else
 		{
 			if (!AskLogin()) return false;
-			if (!AskProject(url)) return false;
+			AVULONG nSimulationId = SelectSimulation();
+			if (!nSimulationId) return false;
+			url = URLFromSimulationId(nSimulationId);
 		}
+
+		// configure and save m_servers setting
+		CSettingsStoreSP regSP;
+		CSettingsStore& reg = regSP.Create(FALSE, FALSE);
+		if (reg.CreateKey(GetRegSectionPath(L"URL")))
+			reg.Write(L"servers", m_servers);
 
 		// create main MDI Frame window
 		CMainFrame *pMainframe = new CMainFrame; 
@@ -186,8 +193,8 @@ BOOL CAdVisuoApp::InitInstance()
 		m_pMainWnd = pMainframe;
 		m_pMainWnd->DragAcceptFiles();
 
-		// Load the project with all decorations (splash windows, debuf info etc...)
-		if (!InitProject(url)) return false;
+		// Load the simulation with all decorations (splash windows, debug info etc...)
+		if (!InitSimulation(url)) return false;
 	}
 	catch (_prj_error pe)
 	{
@@ -250,56 +257,99 @@ bool CAdVisuoApp::AskLogin()
 	// store configuration
 	m_url = dlgLogin.m_strUrl;
 	m_servers = dlgLogin.m_strServers;
-	CSettingsStoreSP regSP;
-	CSettingsStore& reg = regSP.Create(FALSE, FALSE);
-	if (reg.CreateKey(GetRegSectionPath(L"URL")))
-		reg.Write(L"servers", m_servers);
 
 	return true;
 }
 
-bool CAdVisuoApp::AskProject(CString &url)
+AVULONG CAdVisuoApp::SelectSimulation(AVULONG nProjectId, AVULONG nSimulationId, bool bGotoSimulations)
 {
-	// Download available projects
-	std::vector<CProjectVis*> prjs;
-	std::wstring response;
-	m_http.setURL((LPCTSTR)(m_url));
-	if (m_http.AVIsAuthorised() <= 0)
-		throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
-	m_http.AVIndex();
-	m_http.get_response(response);
-	CProjectVis::LoadIndexFromBuf(response.c_str(), prjs);
-			
-	// show Select Dialog
-	CDlgDownload dlgSelect(prjs);
-	//CDlgHtSelect dlgSelect(&prjs);
-	auto pPrevFrame = m_pMainWnd;
-	m_pMainWnd = &dlgSelect;
-	if (dlgSelect.DoModal() != IDOK)
-		return false;
-	//dlgSelect.m_nProjectId = 51;
-	m_pMainWnd = pPrevFrame;
+	CWaitCursor wait;
+	try
+	{
+		// Download available projects
+	
+		m_http.setURL((LPCTSTR)m_url);
+		if (m_http.AVIsAuthorised() <= 0)
+			throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
 
+		// show Select Dialog
+		CDlgHtSelect dlgSelect(nProjectId, nSimulationId, bGotoSimulations);
+		dlgSelect.Load(m_http);
+
+		auto pPrevFrame = m_pMainWnd;
+		if (!m_pMainWnd || !m_pMainWnd->IsWindowVisible())
+			m_pMainWnd = &dlgSelect;
+		int nRes = dlgSelect.DoModal();
+		m_pMainWnd = pPrevFrame;
+		if (nRes != IDOK)
+			return 0;
+		else
+			return dlgSelect.GetSimulationId();
+	}			
+	catch (_prj_error pe)
+	{
+		CDlgHtFailure dlg(pe, m_url);
+		dlg.DoModal();
+		return 0;
+	}
+	catch (_com_error ce)
+	{
+		CDlgHtFailure dlg(ce, m_url);
+		dlg.DoModal();
+		return 0;
+	}
+	catch (_xmlreq_error xe)
+	{
+		CDlgHtFailure dlg(xe, m_url);
+		dlg.DoModal();
+		return 0;
+	}
+	catch (_version_error ve)
+	{
+		CDlgHtFailure dlg(ve, m_http.getURL().c_str());
+		dlg.DoModal();
+		return 0;
+	}
+	catch (dbtools::_value_error ve)
+	{
+		CDlgHtFailure dlg(ve, m_url);
+		dlg.DoModal();
+		return 0;
+	}
+	catch(...)
+	{
+		CDlgHtFailure dlg(m_url);
+		dlg.DoModal();
+		return 0;
+	}
+}
+
+CString CAdVisuoApp::URLFromSimulationId(AVULONG nSimulationId)
+{
 	std::wstring strUsername;
 	std::wstring strTicket;
 	m_http.get_authorisation_data(strUsername, strTicket);
-	url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlgSelect.GetProjectId(), strUsername.c_str(), strTicket.c_str());
-	return true;
+	CString url;
+	url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, nSimulationId, strUsername.c_str(), strTicket.c_str());
+	return url;
 }
 
-bool CAdVisuoApp::InitProject(CString url)
+bool CAdVisuoApp::InitSimulation(CString url)
 {
 	CWaitCursor wait;
 
 	// Show Splash Window
 	CDlgHtSplash *pSplash = new CDlgHtSplash;
-	pSplash->DoNonModal();
+	pSplash->DoNonModal(1000);
 	pSplash->Sleep(400);
 
 	// prepare "debug" info
 	for (int i = 0; i < 10; i++) pSplash->OutText(L"");
-	OutText(L"AdVisuo module started - a part of AdSimulo system.");
-	OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
+	if (!m_pMainWnd->IsWindowVisible())
+	{
+		OutText(L"AdVisuo module started - a part of AdSimulo system.");
+		OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
+	}
 			
 	// open document
 	CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
@@ -311,13 +361,16 @@ bool CAdVisuoApp::InitProject(CString url)
 	// wait a moment
 	pSplash->Sleep(250);
 
-	// The main window has been initialized, so show and update it
-	m_pMainWnd->ShowWindow(SW_RESTORE);
-	m_pMainWnd->ShowWindow(SW_MAXIMIZE);
-	m_pMainWnd->UpdateWindow();
+	if (!m_pMainWnd->IsWindowVisible())
+	{
+		// If the main window hasn't been shown yet (starting program!), show and update it
+		m_pMainWnd->ShowWindow(SW_RESTORE);
+		m_pMainWnd->ShowWindow(SW_MAXIMIZE);
+		m_pMainWnd->UpdateWindow();
 
-	// wait a moment
-	pSplash->Sleep(500);
+		// wait a moment
+		pSplash->Sleep(500);
+	}
 
 	// close the splash window
 	pSplash->OnOK();
@@ -326,6 +379,13 @@ bool CAdVisuoApp::InitProject(CString url)
 	AVGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
 	return true;
+}
+
+bool CAdVisuoApp::LoadSimulation(AVULONG nProjectId, AVULONG nSimulationId, bool bGotoSimulations)
+{
+	nSimulationId = SelectSimulation(nProjectId, nSimulationId, bGotoSimulations);
+	if (!nSimulationId) return false;
+	return InitSimulation(URLFromSimulationId(nSimulationId));
 }
 
 int CAdVisuoApp::ExitInstance()
@@ -411,89 +471,7 @@ BOOL CAdVisuoApp::OnIdle(LONG lCount)
 
 void CAdVisuoApp::OnFileDownload()
 {
-	// Download available projects
-	std::vector<CProjectVis*> prjs;
-	std::wstring response;
-	try
-	{
-		CWaitCursor wait;
-		m_http.setURL((LPCTSTR)m_url);
-		m_http.AVIndex();
-		m_http.get_response(response);
-		CProjectVis::LoadIndexFromBuf(response.c_str(), prjs);
-	}
-	catch (_prj_error pe)
-	{
-		CDlgHtFailure dlg(pe, m_url);
-		dlg.DoModal();
-		return;
-	}
-	catch (_com_error ce)
-	{
-		CDlgHtFailure dlg(ce, m_url);
-		dlg.DoModal();
-		return;
-	}
-	catch (_xmlreq_error xe)
-	{
-		CDlgHtFailure dlg(xe, m_url);
-		dlg.DoModal();
-		return;
-	}
-	catch (_version_error ve)
-	{
-		CDlgHtFailure dlg(ve, m_http.getURL().c_str());
-		dlg.DoModal();
-		return;
-	}
-	catch (dbtools::_value_error ve)
-	{
-		CDlgHtFailure dlg(ve, m_url);
-		dlg.DoModal();
-		return;
-	}
-	catch(...)
-	{
-		CDlgHtFailure dlg(m_url);
-		dlg.DoModal();
-		return;
-	}
-	
-	CDlgHtSelect dlgSelect(&prjs);
-
-	if (dlgSelect.DoModal() ==IDOK)
-	{
-		CWaitCursor wait;
-		
-		CDlgHtSplash *pSplash = new CDlgHtSplash;
-		pSplash->DoNonModal(1000);
-		pSplash->Sleep(400);
-
-		// prepare "debug" info
-		for (int i = 0; i < 10; i++) pSplash->OutText(L"");
-		OutText(L"AdVisuo module started - a part of AdSimulo system.");
-		OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
-			
-		CString url;
-		std::wstring strUsername;
-		std::wstring strTicket;
-		m_http.get_authorisation_data(strUsername, strTicket);
-		url.Format(L"%s?request=%d&userid=%s&ticket=%s", m_url, dlgSelect.GetProjectId(), strUsername.c_str(), strTicket.c_str());
-				
-		CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
-		// if (pDoc) pDoc->ResetTitle();
-
-		if (!pDoc) return;
-
-		// wait a moment
-		pSplash->Sleep(750);
-
-		// close the splash window
-		pSplash->OnOK();
-		delete pSplash;
-
-		AVGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-	}
+	LoadSimulation();
 }
 
 

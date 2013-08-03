@@ -50,6 +50,42 @@ void CDlgHtBase::ExecJS(CString function)
 	h = pWnd->execScript(function.AllocSysString(), language.AllocSysString(), &vEmpty);
 }
 
+void CDlgHtBase::WriteDoc(LPCTSTR pBuf)
+{
+	WriteDoc(SysAllocString(pBuf));
+}
+
+void CDlgHtBase::WriteDoc(BSTR bstr)
+{
+	CComPtr<IHTMLDocument2> pDoc;
+	HRESULT h = GetDHtmlDocument(&pDoc);
+	if (FAILED(h) || !pDoc) return;
+
+	// Creates a new one-dimensional array
+	SAFEARRAY *psaStrings = SafeArrayCreateVector(VT_VARIANT, 0, 1);
+	if (psaStrings == NULL) return;
+	VARIANT *param;
+	h = SafeArrayAccessData(psaStrings, (LPVOID*)&param);
+	param->vt = VT_BSTR;
+	param->bstrVal = bstr;
+	h = SafeArrayUnaccessData(psaStrings);
+
+	IDispatch *pDispatch = NULL;
+	h = pDoc->open(CComBSTR("text/html"), CComVariant("replace"), CComVariant(), CComVariant(), &pDispatch);
+	if (SUCCEEDED(h))
+	{
+		//pDoc2->Release();
+		IHTMLDocument2 *pDoc2 = NULL;
+		pDispatch->QueryInterface(&pDoc2);
+		pDispatch->Release();
+		pDoc2->put_charset(CComBSTR("windows-1250"));
+		h = pDoc2->write(psaStrings);
+		pDoc2->close();
+	}
+
+	SafeArrayDestroy(psaStrings);
+}
+
 void CDlgHtBase::DoNonModal(unsigned nTimeout)
 {
 	Create(m_lpszTemplateName);
@@ -304,7 +340,7 @@ CString CDlgHtFailure::GetFailureString(dbtools::_value_error &ve, CString url)
 CString CDlgHtFailure::GetFailureString(CString url)
 {
 	std::wstringstream str;
-	str << L"Unidentified error while downloading from " << url;
+	str << L"Unidentified error while downloading from " << (LPCTSTR)url;
 	return str.str().c_str();
 }
 

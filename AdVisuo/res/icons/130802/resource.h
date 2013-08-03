@@ -297,20 +297,21 @@
 #define ID_TMP_GROUP3                   32897
 #define ID_CAMERA_GROUPRIGHT            32898
 #define ID_CAMERA_GROUP_LEFT            32899
+#define ID_BUTTON2                      32900
 #define ID_SCENARIO_MENU                32900
+#define ID_TENANCY                      32900
 #define ID_CAMERA_GROUP_MENU            32901
 #define ID_CAMERA_GROUPLEFT             32903
 #define ID_SELTENANCY                   32904
 #define ID_TENANCY_MENU                 32905
 #define ID_OTHER_FAILURE                32906
-#define ID_FILE_SIMULATION              32907
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        358
-#define _APS_NEXT_COMMAND_VALUE         32908
+#define _APS_NEXT_COMMAND_VALUE         32907
 #define _APS_NEXT_CONTROL_VALUE         1093
 #define _APS_NEXT_SYMED_VALUE           321
 #endif

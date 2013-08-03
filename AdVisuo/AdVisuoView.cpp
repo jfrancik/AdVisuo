@@ -120,6 +120,8 @@ BEGIN_MESSAGE_MAP(CAdVisuoView, CView)
 	ON_UPDATE_COMMAND_UI(ID_CHARACTER_CURRENTWAITINGTIME, &CAdVisuoView::OnUpdateCharacterCurrentwaitingtime)
 	ON_COMMAND(ID_CHARACTER_EXPECTEDWAITINGTIME, &CAdVisuoView::OnCharacterExpectedwaitingtime)
 	ON_UPDATE_COMMAND_UI(ID_CHARACTER_EXPECTEDWAITINGTIME, &CAdVisuoView::OnUpdateCharacterExpectedwaitingtime)
+	ON_COMMAND(ID_FILE_SIMULATION, &CAdVisuoView::OnFileSimulation)
+	ON_COMMAND(ID_FILE_DOWNLOAD, &CAdVisuoView::OnFileDownload)
 END_MESSAGE_MAP()
 
 // CAdVisuoView construction/destruction
@@ -1498,9 +1500,22 @@ void CAdVisuoView::OnRecRecord()
 	m_instRec.Record();
 }
 
-
 void CAdVisuoView::OnRecPlay()
 {
 	AVLONG a = 0;
 	m_instRec.Play(a);
+}
+
+void CAdVisuoView::OnFileSimulation()
+{
+	AVULONG nProjectId = (*GetProject())[L"ProjectId"];
+	AVULONG nSimId = GetProject()->GetSimulationId();
+	AVGetApp()->LoadSimulation(nProjectId, nSimId, true);
+}
+
+void CAdVisuoView::OnFileDownload()
+{
+	AVULONG nProjectId = (*GetProject())[L"ProjectId"];
+	AVULONG nSimId = GetProject()->GetSimulationId();
+	AVGetApp()->LoadSimulation(nProjectId, nSimId, false);
 }

@@ -291,7 +291,6 @@ void CMainFrame::OnTimer(UINT_PTR nIDEvent)
 		SendMessageToDescendants(WM_IDLEUPDATECMDUI, (WPARAM)TRUE, 0, TRUE, TRUE);
 		break;
 	case 101:
-		MessageBeep(MB_OK);
 		AVGetApp()->GetAuthorisationAgent()->AVExtendAuthorisation();
 		break;
 	}

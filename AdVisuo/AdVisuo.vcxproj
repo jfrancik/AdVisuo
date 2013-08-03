@@ -138,7 +138,6 @@
     <ClCompile Include="AdVisuoRenderer.cpp" />
     <ClCompile Include="AdVisuoView.cpp" />
     <ClCompile Include="Block.cpp" />
-    <ClCompile Include="DlgDownload.cpp" />
     <ClCompile Include="DlgHtBase.cpp" />
     <ClCompile Include="DlgHtLogin.cpp" />
     <ClCompile Include="DlgHtSelect.cpp" />
@@ -184,7 +183,6 @@
     <ClInclude Include="AdVisuoView.h" />
     <ClInclude Include="..\CommonFiles\Box.h" />
     <ClInclude Include="Block.h" />
-    <ClInclude Include="DlgDownload.h" />
     <ClInclude Include="DlgHtBase.h" />
     <ClInclude Include="DlgHtLogin.h" />
     <ClInclude Include="DlgHtSelect.h" />
@@ -217,6 +215,9 @@
     <ClInclude Include="_base.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\AdVisuo Setup\uninstall.vbs">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="html\about.html" />
     <None Include="html\bg-login-form.png" />
     <None Include="html\bg-login-header.png" />
@@ -227,6 +228,8 @@
     <None Include="html\html_png.png" />
     <None Include="html\login.html" />
     <None Include="html\select.html" />
+    <None Include="html\select.xslt" />
+    <None Include="html\select2.xslt" />
     <None Include="html\splash.html" />
     <None Include="html\splash1.png" />
     <None Include="html\splash2.png" />

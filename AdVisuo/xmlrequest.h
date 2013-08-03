@@ -91,6 +91,7 @@ public:
 	int AVIsAuthorised();
 	bool AVExtendAuthorisation();
 
+	void AVFolders();
 	void AVIndex();
 	void AVProject(AVLONG nSimulationId);
 	void AVLiftGroups(AVLONG nProjectId);

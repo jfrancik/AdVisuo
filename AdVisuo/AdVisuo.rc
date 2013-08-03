@@ -316,8 +316,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,20,1,0
- PRODUCTVERSION 2,20,1,0
+ FILEVERSION 3,0,1,0
+ PRODUCTVERSION 3,0,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -334,12 +334,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "LerchBates"
             VALUE "FileDescription", "LerchBates AdVisuo Client"
-            VALUE "FileVersion", "2.20.1.0"
+            VALUE "FileVersion", "3.0.1.0"
             VALUE "InternalName", "AdVisuo.exe"
             VALUE "LegalCopyright", " (c) Lerch Bates 2009-2013.  All rights reserved."
             VALUE "OriginalFilename", "AdVisuo.exe"
             VALUE "ProductName", "LerchBates AdVisuo Client"
-            VALUE "ProductVersion", "2.20.1.0"
+            VALUE "ProductVersion", "3.0.1.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -1058,6 +1058,8 @@ IDR_HTML_LOGIN          HTML                    "html/login.html"
 IDR_HTML_SPLASH         HTML                    "html/splash.html"
 IDR_HTML_ABOUT          HTML                    "html/about.html"
 IDR_HTML_SELECT         HTML                    "html/select.html"
+IDR_XSLT_SELECT_PRJ     HTML                    "html\\select.xslt"
+IDR_XSLT_SELECT_SIM     HTML                    "html\\select2.xslt"
 
 /////////////////////////////////////////////////////////////////////////////
 //

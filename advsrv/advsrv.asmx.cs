@@ -218,6 +218,21 @@ namespace advsrv
             return strTicket;
         }
 
+        [WebMethod(Description = "Returns index of project folders.")]
+        public DataSet AVFolders(string strUsername, string strTicket)
+        {
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return null;
+
+            OleDbConnection conn = new OleDbConnection(GetConsoleConnStr());
+            OleDbCommand cmdSelect = new OleDbCommand("SELECT f.ProjectFolderId, f.Name, u.Priority FROM ProjectFolders f, UserPermissionsForFolders u WHERE f.ProjectFolderId = u.ProjectFolderId AND u.UserName=? ORDER BY u.Priority", conn);
+            cmdSelect.Parameters.AddWithValue("UserName", strUsername);
+            DataSet myDataSet = new DataSet();
+            OleDbDataAdapter myDataAdapter = new OleDbDataAdapter(cmdSelect);
+            myDataAdapter.Fill(myDataSet, "AVFolder");
+            return myDataSet;
+        }
+
         // returns list of folder indexes - available for the given user - e.g. (4,6,1,2)
         private string _folders(string strUsername)
         {

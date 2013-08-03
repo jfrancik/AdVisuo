@@ -168,38 +168,56 @@ void CProjectVis::LoadIndex(xmltools::CXmlReader reader, std::vector<CProjectVis
 		}
 }
 
+void CProjectVis::LoadFolders(xmltools::CXmlReader reader, std::vector<std::wstring> &folders)
+{
+	while (reader.read())
+		if (reader.getName() == L"AVFolder")
+		{
+			std::wstring str = reader[L"Name"];
+			folders.push_back(str);
+		}
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Store as XML
 
 void CProjectVis::Store(xmltools::CXmlWriter writer)
 {
 	writer.write(L"AVProject", *this);
-	for (AVULONG i = 0; i < GetLiftGroupsCount(); i++)
+	for (AVULONG iGroup = 0; iGroup < GetLiftGroupsCount(); iGroup++)
 	{
-		writer.write(L"AVLiftGroup", *GetLiftGroup(i));
+		CLiftGroupVis *pGroup = GetLiftGroup(iGroup);
+		writer.write(L"AVLiftGroup", *pGroup);
 	
-		for (ULONG i = 0; i < GetLiftGroup(i)->GetShaftCount(); i++)
-			writer.write(L"AVShaft", *GetLiftGroup(i)->GetShaft(i));
+		for (ULONG iShaft = 0; iShaft < pGroup->GetShaftCount(); iShaft++)
+			writer.write(L"AVShaft", *pGroup->GetShaft(iShaft));
 
-		for (ULONG i = 0; i < GetLiftGroup(i)->GetStoreyCount(); i++)
-			writer.write(L"AVFloor", *GetLiftGroup(i)->GetStorey(i));
+		for (ULONG iStorey = 0; iStorey < pGroup->GetStoreyCount(); iStorey++)
+			writer.write(L"AVFloor", *pGroup->GetStorey(iStorey));
 
-		for (ULONG i = 0; i < GetLiftGroup(i)->GetSim(0)->GetLiftCount(); i++)
-			for (ULONG j = 0; j < GetLiftGroup(i)->GetSim(0)->GetLift(i)->GetJourneyCount(); j++)
-			{
-				JOURNEY *pJ = GetLiftGroup(i)->GetSim(0)->GetLift(i)->GetJourney(j);
-				writer[L"LiftID"] = GetLiftGroup(i)->GetSim(0)->GetLift(i)->GetId();
-				writer[L"ShaftFrom"] = pJ->m_shaftFrom;
-				writer[L"ShaftTo"] = pJ->m_shaftTo;
-				writer[L"FloorFrom"] = pJ->m_floorFrom;
-				writer[L"FloorTo"] = pJ->m_floorTo;
-				writer[L"TimeGo"] = pJ->m_timeGo;
-				writer[L"TimeDest"] = pJ->m_timeDest;
-				writer[L"DC"] = pJ->StringifyDoorCycles();
-				writer.write(L"AVJourney");
-			}
+		for (ULONG iSim = 0; iSim < pGroup->GetSimCount(); iSim++)
+		{
+			writer.write(L"AVSim", *pGroup->GetSim(iSim));
 
-		for (ULONG i = 0; i < GetLiftGroup(i)->GetSim(0)->GetPassengerCount(); i++)
-			writer.write(L"AVPassenger", *GetLiftGroup(i)->GetSim(0)->GetPassenger(i));
+			for (ULONG iLift = 0; iLift < pGroup->GetSim(iSim)->GetLiftCount(); iLift++)
+				for (ULONG iJourney = 0; iJourney < pGroup->GetSim(iSim)->GetLift(iLift)->GetJourneyCount(); iJourney++)
+				{
+					JOURNEY *pJ = pGroup->GetSim(iSim)->GetLift(iLift)->GetJourney(iJourney);
+					writer.clear();
+					writer[L"SimID"] = pGroup->GetSim(iSim)->GetId();
+					writer[L"LiftID"] = pGroup->GetSim(iSim)->GetLift(iLift)->GetId();
+					writer[L"ShaftFrom"] = pJ->m_shaftFrom;
+					writer[L"ShaftTo"] = pJ->m_shaftTo;
+					writer[L"FloorFrom"] = pJ->m_floorFrom;
+					writer[L"FloorTo"] = pJ->m_floorTo;
+					writer[L"TimeGo"] = pJ->m_timeGo;
+					writer[L"TimeDest"] = pJ->m_timeDest;
+					writer[L"DC"] = pJ->StringifyDoorCycles();
+					writer.write(L"AVJourney");
+				}
+
+			for (ULONG iPassenger = 0; iPassenger < pGroup->GetSim(iSim)->GetPassengerCount(); iPassenger++)
+				writer.write(L"AVPassenger", *pGroup->GetSim(iSim)->GetPassenger(iPassenger));
+		}
 	}
 }

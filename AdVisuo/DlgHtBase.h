@@ -24,6 +24,10 @@ public:
 	// Javascript Bounding
 	void ExecJS(CString function);
 
+	// 
+	void WriteDoc(LPCTSTR pBuf);
+	void WriteDoc(BSTR bstr);
+
 	// Non-modal display
 	void DoNonModal(unsigned nTimeout = 10000);
 

@@ -111,9 +111,6 @@
     <ClCompile Include="DlgVideo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DlgDownload.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DlgMat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -240,9 +237,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DlgVideo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DlgDownload.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DlgMat.h">
@@ -387,7 +381,10 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="html\about.html" />
+    <None Include="..\AdVisuo Setup\uninstall.vbs" />
     <None Include="html\select.html" />
+    <None Include="html\select.xslt" />
+    <None Include="html\select2.xslt" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AdVisuo.rc">

@@ -63,10 +63,12 @@ public:
 public:
 	virtual BOOL InitInstance();
 
-	// tools within InitInstance:
-	bool AskLogin();					// Displays Login dialog box
-	bool AskProject(CString &url);		// Ask user to select the project to download
-	bool InitProject(CString name);		// Loads the project with all decorations (splash windows, debuf info etc...)
+	// tools:
+	bool AskLogin();								// Displays Login dialog box
+	AVULONG SelectSimulation(AVULONG nProjectId = 0, AVULONG nSimulationId = 0, bool bGotoSimulations = false);	// Displays Project dialog
+	CString URLFromSimulationId(AVULONG nSimulationId);
+	bool InitSimulation(CString name);					// Loads the project with all decorations (splash windows, debuf info etc...)
+	bool LoadSimulation(AVULONG nProjectId = 0, AVULONG nSimulationId = 0, bool bGotoSimulations = false);
 
 	virtual void PreLoadState();
 	virtual void LoadCustomState();

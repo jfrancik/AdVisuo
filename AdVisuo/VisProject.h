@@ -33,7 +33,7 @@ class CProjectVis : public CProjectConstr
 {
 	CEngine *m_pEngine;
 public:
-	CProjectVis()							{ }
+	CProjectVis()							{ m_pEngine = NULL; }
 	virtual ~CProjectVis()					{ }
 
 	// Implementation
@@ -63,4 +63,8 @@ public:
 	static void LoadIndexFromBuf(LPCOLESTR pBuf, std::vector<CProjectVis*> &prjs)		{ LoadIndex(pBuf, prjs); }
 	static void LoadIndexFromFile(LPCOLESTR pFileName, std::vector<CProjectVis*> &prjs)	{ LoadIndex((std::wstring)pFileName, prjs); }
 	static void LoadIndex(xmltools::CXmlReader reader, std::vector<CProjectVis*>&);
+
+	static void LoadFoldersFromBuf(LPCOLESTR pBuf, std::vector<std::wstring> &folders)			{ LoadFolders(pBuf, folders); }
+	static void LoadFoldersFromFile(LPCOLESTR pFileName, std::vector<std::wstring> &folders)	{ LoadFolders((std::wstring)pFileName, folders); }
+	static void LoadFolders(xmltools::CXmlReader reader, std::vector<std::wstring> &folders);
 };

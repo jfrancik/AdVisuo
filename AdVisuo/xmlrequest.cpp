@@ -341,6 +341,13 @@ bool CXMLRequest::AVExtendAuthorisation()
 	return true;
 }
 
+void CXMLRequest::AVFolders()
+{
+	setreq();
+	addparam_authorisation();
+	call(L"AVFolders"); 
+}
+
 void CXMLRequest::AVIndex()
 {
 	setreq();

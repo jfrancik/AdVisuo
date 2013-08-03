@@ -36,6 +36,9 @@ class CXmlWriter : public dbtools::CCollection
     CComPtr<IXmlWriter> m_pWriter;
 	int m_nLevel;
 
+	HGLOBAL m_hMem;
+	LPVOID m_pLockedData;
+
 protected:
 	void writeHeaders();
  	void writeElement(LPCTSTR name, LPCTSTR val){ HRESULT h = m_pWriter->WriteElementString(NULL, name, NULL, val); if (FAILED(h)) throw _com_error(h); }
@@ -47,8 +50,8 @@ protected:
 	void writeEnd(int nLevel)					{ while (nLevel < m_nLevel) writeEnd(); }
 
 public:
-	CXmlWriter(LPCOLESTR pBuf, size_t nSize);
-	CXmlWriter(std::wstring strFName);
+	CXmlWriter(LPTSTR encoding, size_t nSize);	// write to mem buffer
+	CXmlWriter(std::wstring strFName);			// write to a file
 	~CXmlWriter();
 
 	std::wstring getName()					{ return m_name; }
@@ -57,8 +60,13 @@ public:
 	void reset()							{ clear(); m_schema.clear(); m_name = L""; }
 
 	void operator << (dbtools::CCollection &coll);
+	void write(LPCTSTR name, LPCTSTR val)						{ writeElement(name, val); }
+	void write(LPCTSTR name, int val)							{ std::wstringstream s; s << val; writeElement(name, s.str().c_str()); }
 	void write(std::wstring name);
 	void write(std::wstring name, dbtools::CCollection &coll)	{ clear(); *this << coll; write(name); }
+
+	LPVOID LockBuffer();
+	void UnlockBuffer();
 };
 
 }	// namespace XMLTools

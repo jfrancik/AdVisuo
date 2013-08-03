@@ -240,6 +240,9 @@ protected:
 	afx_msg void OnUpdateRecScript(CCmdUI *pCmdUI);
 	afx_msg void OnRecRecord();
 	afx_msg void OnRecPlay();
+public:
+	afx_msg void OnFileSimulation();
+	afx_msg void OnFileDownload();
 };
    
 

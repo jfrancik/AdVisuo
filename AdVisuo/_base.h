@@ -5,7 +5,7 @@
 ///////////////////////////////////////////////////////////////
 // Versioning
 
-#define VERSION 22001	// 2.20.00
+#define VERSION 30001	// 3.00.01
 
 #define VERSION_MAJOR	(VERSION / 10000)
 #define VERSION_MINOR	((VERSION % 10000) / 100)

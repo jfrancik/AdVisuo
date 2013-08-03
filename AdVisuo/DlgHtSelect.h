@@ -6,26 +6,59 @@
 
 #include "DlgHtBase.h"
 class CProjectVis;
+class CXMLRequest;
+namespace xmltools { class CXmlWriter; }
 
 class CDlgHtSelect : public CDlgHtBase
 {
 	DECLARE_DYNCREATE(CDlgHtSelect)
 
-public:
-	std::vector<CProjectVis*> *m_pPrjs;		// projects
-	ULONG m_nProjectId;						// selection
+	std::vector<std::wstring> m_folders;
+	std::vector<CProjectVis*> m_prjs;
+
+	AVULONG m_nSortModePrj, m_nSortModeSim;
+	bool m_bSortAscPrj, m_bSortAscSim;
+
+	AVULONG m_nSimulationToShow;
 
 public:
-	CDlgHtSelect(std::vector<CProjectVis*> *pPrjs = NULL, CWnd* pParent = NULL);   // standard constructor
+	ULONG m_nProjectId;			// selection (project id)
+	ULONG m_nSimulationId;		// selection (simulation id)
+
+public:
+	CDlgHtSelect(AVULONG nProjectId = 0, AVULONG nSimulationId = 0, bool bGotoSimulations = false, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgHtSelect();
 
+	void Load(CXMLRequest &http);
+
 	ULONG GetProjectId()			{ return m_nProjectId; }
+	ULONG GetSimulationId()			{ return m_nSimulationId; }
+
+	// generates content for a list of projects
+	CString GenContent();
+	CString GenContent(AVULONG nProjectId);
+	CString GenContent(xmltools::CXmlWriter &writer, AVULONG nXslRes);
+
+	// Functions
+	void GotoProjects(AVULONG nProjectId);
+	void GotoSimulations(AVULONG nProjectId, AVULONG nSimulationId);
+
+	void SelectProject(AVULONG nProjectId);
+	void SelectSimulation(AVULONG nSimulationId);
 
 	// Button Handlers
 	virtual void OnOK();
 	virtual void OnCancel();
 	HRESULT OnButtonCancel(IHTMLElement *pElement);
-	HRESULT OnButtonOpen(IHTMLElement *pElement);
+	HRESULT OnButtonOpenProject(IHTMLElement *pElement);
+	HRESULT OnButtonOpenSimulation(IHTMLElement *pElement);
+	HRESULT OnButtonBack(IHTMLElement *pElement);
+
+	HRESULT OnButtonSortPrjDate(IHTMLElement *pElement);
+	HRESULT OnButtonSortPrjName(IHTMLElement *pElement);
+	HRESULT OnButtonSortPrjNo(IHTMLElement *pElement);
+	HRESULT OnButtonSortSimDate(IHTMLElement *pElement);
+	HRESULT OnButtonSortSimName(IHTMLElement *pElement);
 
 // Dialog Data
 	enum { IDD = IDD_ADV_SELECT, IDH = IDR_HTML_SELECT };
@@ -37,4 +70,7 @@ protected:
 	DECLARE_DHTML_EVENT_MAP()
 	DECLARE_DISPATCH_MAP()
 public:
+	virtual BOOL OnInitDialog();
+	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };

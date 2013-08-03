@@ -93,11 +93,13 @@ hr { background-color: #aaa;height: 0px;}
 .SelectPrjListPanel th .selected { color: Orange!important; }
 
 .SelectPrjItem { display: none; }
-.SelectPrjItem > td.id { display: none; }
+.SelectPrjItem > td.idProject { display: none; }
+.SelectPrjItem > td.idSimulation { display: none; }
 .SelectPrjItem > td.folder { display: none; }
 
 .SelectDetailsHeader { width:310px; margin: 0 0 20px 8px; padding: 0 30px 0 30px; position:absolute; right:25px; top:90px; z-index:250; }
 .SelectDetailsPanel  { width:310px; margin: 0 0 20px 8px; padding: 0 30px 0 30px; position:absolute; right:25px; top:25px; padding-top:55px; border:1px solid #aaa; border-radius: 8px; }
-.SelectDetailsPanel span { display:inline-block; width:140px; }
+.SelectDetailsPanel span.label { display:inline-block; width:140px; }
+.SelectDetailsPanel span.date { margin-left:-4px; }
 .SelectDetailsPanel { display:none; }
 .selected .SelectDetailsPanel { display:block!important; }

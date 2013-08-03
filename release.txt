@@ -1,0 +1,11 @@
+To release a new version:
+
+1. Increase version at _base.h
+2. Increase version at VERSION_INFO resource
+3. Increase version in Setup Properties - this will change Product Code
+4. Update Product Code in uninstall.vbs
+5. Change the filename as AdVisuo30101.msi (for version 3.01.01)
+
+6. Upload and modify the download link
+
+7. Update the database

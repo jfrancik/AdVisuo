@@ -128,21 +128,20 @@ bool CXmlReader::read_simple_type(LPCWSTR pType)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CXmlWriter
 
-CXmlWriter::CXmlWriter(LPCOLESTR pBuf, size_t nSize) : CCollection()
+CXmlWriter::CXmlWriter(LPTSTR encoding, size_t nSize) : CCollection()
 {
-	ASSERT(FALSE);
-	// this function does not work well - needs to be fixed
-
     HRESULT h;
     CComPtr<IStream> pStream;
-	CComPtr<IXmlReaderInput> pReaderInput;
+	CComPtr<IXmlWriterOutput> pWriterOutput;
 
-	HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE, nSize);
+	m_hMem = ::GlobalAlloc(GMEM_MOVEABLE, nSize);
+	m_pLockedData = NULL;
 
-	h = CreateStreamOnHGlobal(hMem, FALSE, &pStream); if (FAILED(h)) throw _com_error(h);
+	h = CreateStreamOnHGlobal(m_hMem, FALSE, &pStream); if (FAILED(h)) throw _com_error(h);
 	h = CreateXmlWriter(__uuidof(IXmlWriter), (void**) &m_pWriter, NULL); if (FAILED(h)) throw _com_error(h);
-    h = m_pWriter->SetProperty(XmlWriterProperty_Indent, TRUE); if (FAILED(h)) throw _com_error(h);
-    h = m_pWriter->SetOutput(pStream); if (FAILED(h)) throw _com_error(h);
+	h = CreateXmlWriterOutputWithEncodingName(pStream, NULL, encoding, &pWriterOutput);
+	h = m_pWriter->SetProperty(XmlWriterProperty_Indent, TRUE); if (FAILED(h)) throw _com_error(h);
+    h = m_pWriter->SetOutput(pWriterOutput); if (FAILED(h)) throw _com_error(h);
 
 	m_nLevel = 0;
 	writeHeaders();
@@ -152,6 +151,9 @@ CXmlWriter::CXmlWriter(std::wstring strFName) : CCollection()
 {
     HRESULT h;
     CComPtr<IStream> pFileStream;
+
+	m_hMem = NULL;
+	m_pLockedData = NULL;
 
 	h = SHCreateStreamOnFile(strFName.c_str(), STGM_CREATE | STGM_WRITE, &pFileStream); if (FAILED(h)) throw _com_error(h);
     h = CreateXmlWriter(__uuidof(IXmlWriter), (void**) &m_pWriter, NULL); if (FAILED(h)) throw _com_error(h);
@@ -171,7 +173,10 @@ void CXmlWriter::writeHeaders()
 {
 	HRESULT h = m_pWriter->WriteStartDocument(XmlStandalone_Omit); if (FAILED(h)) throw _com_error(h);
 	writeStart(L"AdVisuo-Saved-Project");
-	writeElement(L"AdVisuo-Client-Version", L"1.00");
+
+	std::wstringstream str;
+	str << VERSION_MAJOR << L"." << VERSION_MINOR  << L"." << VERSION_REV << L" (" << __DATE__ << L")";
+	writeElement(L"AdVisuo-Client-Version", str.str().c_str());
 }
 
 void CXmlWriter::operator << (CCollection &coll)
@@ -210,3 +215,19 @@ void CXmlWriter::write(wstring name)
 	writeEnd();
 }
 
+LPVOID CXmlWriter::LockBuffer()
+{
+	if (!m_hMem) return NULL;
+
+	writeEnd(0);
+	m_pWriter->Flush();
+	m_pLockedData = ::GlobalLock(m_hMem);
+	return m_pLockedData;
+}
+
+void CXmlWriter::UnlockBuffer()
+{
+	if (!m_pLockedData) return;
+	::GlobalUnlock(m_hMem);
+	m_pLockedData = NULL;
+}
