@@ -39,6 +39,6 @@ public:
 	void PopState();
 	void Invalidate();
 
-	HMESH AddMesh(AVSTRING strName);
 	void Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale = 1.0f, AVFLOAT fTexScale = 1.0f);
+	void _Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale = 1.0f, AVFLOAT fTexScale = 1.0f);
 };

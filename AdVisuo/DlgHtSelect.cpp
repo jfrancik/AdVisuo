@@ -236,7 +236,6 @@ CString CDlgHtSelect::GenContent()
 	// find the module name - for the CSS link
 	HINSTANCE hInstance = AfxGetResourceHandle();
 	ASSERT(hInstance != NULL);
-	CString strResourceURL;
 	wchar_t lpszModule[_MAX_PATH];
 	DWORD dm = GetModuleFileName(hInstance, lpszModule, _MAX_PATH);
 	ASSERT(dm);
@@ -297,7 +296,6 @@ CString CDlgHtSelect::GenContent(AVULONG nProjectId)
 	// find the module name - for the CSS link
 	HINSTANCE hInstance = AfxGetResourceHandle();
 	ASSERT(hInstance != NULL);
-	CString strResourceURL;
 	wchar_t lpszModule[_MAX_PATH];
 	DWORD dm = GetModuleFileName(hInstance, lpszModule, _MAX_PATH);
 	ASSERT(dm);
@@ -382,7 +380,7 @@ void CDlgHtSelect::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 void CDlgHtSelect::OnTimer(UINT_PTR nIDEvent)
 {
 	if (nIDEvent == 100)
-		AVGetApp()->GetAuthorisationAgent()->AVExtendAuthorisation();
+		AVGetApp()->ExtendAuthorisation();
 
 	CDlgHtBase::OnTimer(nIDEvent);
 }

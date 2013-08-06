@@ -3,6 +3,7 @@
 .splash {background:url(res:/PNG/#345) no-repeat 0 0; }
 .about {background:url(res:/PNG/#348) no-repeat 0 0; }
 .select { }
+.rep {background:url(res:/PNG/#346) no-repeat 0 0; }
 
 h1 {cursor:default; font-size:2em; color:#fff; margin:0; padding:12px 0 0 250px; height:33px; width:454px; text-shadow:0 -1px 0px #1C8AA2;}
 h2 {cursor:default; }
@@ -10,8 +11,9 @@ div {cursor:default;}
 
 .failure-container {display:none;}
 .failure-container {margin:40px 0 0; font-size:12pt; color:#282828; }
-
 .about-container {margin:130px 0 0; font-size:12pt; color:#282828; }
+.rep-container {margin:40px 0 0; font-size:12pt; color:#282828; }
+.rep-buttons-container { position:absolute; bottom:8px; margin:40px 0 0; font-size:12pt; color:#282828; }
 
 /* Buttons */
 

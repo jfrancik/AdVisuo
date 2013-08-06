@@ -243,6 +243,8 @@ protected:
 public:
 	afx_msg void OnFileSimulation();
 	afx_msg void OnFileDownload();
+	afx_msg void OnUpdateFileDownload(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateFileSimulation(CCmdUI *pCmdUI);
 };
    
 

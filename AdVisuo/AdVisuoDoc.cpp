@@ -39,17 +39,17 @@ CAdVisuoDoc::~CAdVisuoDoc()
 
 CString CAdVisuoDoc::GetDiagnosticMessage()
 {
-	CString str;
-	str.Format(L"Project id: [%d] %s\r\nPath: %s", GetProject()->GetId(), GetTitle(), m_strUrl.IsEmpty() ? m_strPathName : m_strUrl);
-
 	POSITION pos = GetFirstViewPosition();
 	CAdVisuoView *pView = (CAdVisuoView*)GetNextView(pos);
 	if (pView)
-	{
-		str += "\r\n";
-		str += pView->GetEngine()->GetDiagnosticMessage();
-	}
-	return str;
+		return pView->GetEngine()->GetDiagnosticMessage();
+	else
+		return L"";
+}
+
+CString CAdVisuoDoc::GetPathInfo()
+{
+	return m_strUrl.IsEmpty() ? m_strPathName : m_strUrl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

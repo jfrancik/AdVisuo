@@ -56,6 +56,7 @@ public:
 	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
 
 	CXMLRequest *GetAuthorisationAgent()	{ return &m_http; }
+	bool IsLogged()					{ return m_http.logged(); }
 
 	ULONG GetSessionId()			{ return m_nSessionId; }
 
@@ -69,6 +70,14 @@ public:
 	CString URLFromSimulationId(AVULONG nSimulationId);
 	bool InitSimulation(CString name);					// Loads the project with all decorations (splash windows, debuf info etc...)
 	bool LoadSimulation(AVULONG nProjectId = 0, AVULONG nSimulationId = 0, bool bGotoSimulations = false);
+
+	void ExtendAuthorisation();
+
+	bool Report(AVULONG nSimulationId, AVSTRING strPath, AVULONG nCat, AVSTRING strUserDesc, AVSTRING strDiagnostic, AVSTRING strErrorMsg);
+	
+	void LoadRemoteServerConfig(CString strDefault);
+	void AddRemoteServer(CString url);
+	void SaveRemoteServerConfig();
 
 	virtual void PreLoadState();
 	virtual void LoadCustomState();

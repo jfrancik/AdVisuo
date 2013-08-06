@@ -109,13 +109,11 @@
 #define IDR_HTML_SPLASH1                356
 #define IDR_HTML_ABOUT                  357
 #define IDR_HTML_SELECT                 358
-#define IDR_XSLT_SELECT                 359
-#define IDR_HTML_SPLASH2                359
-#define IDR_JS_SELECT                   359
 #define IDR_XSLT_SELECT_PRJ             359
-#define IDR_XSLT_SELECT1                360
 #define IDR_XSLT_SELECT_SIM             360
-#define IDR_XSLT_SELECT2                360
+#define IDR_MESH_BUFFER                 361
+#define IDR_HTML_LOGIN1                 361
+#define IDR_HTML_REP                    361
 #define IDC_EDIT1                       1000
 #define IDC_EDIT2                       1001
 #define IDC_EDIT3                       1002
@@ -309,7 +307,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        358
+#define _APS_NEXT_RESOURCE_VALUE        362
 #define _APS_NEXT_COMMAND_VALUE         32908
 #define _APS_NEXT_CONTROL_VALUE         1093
 #define _APS_NEXT_SYMED_VALUE           321

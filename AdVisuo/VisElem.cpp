@@ -126,61 +126,48 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	switch (nModelId)
 	{
 	case MODEL_MACHINE:
+
 		break;
-		box.SetDepth(-box.Depth());
-		box.Grow(0.9f, 0.9f, 0.9f);
-		//BuildWall(WALL_BEAM, strName, nIndex, box);
+
 		{
-		OLECHAR _name[257];
-		_snwprintf_s(_name, 256, L"Machine %d", nIndex);
+			AVSTRING pName;
+			switch (nParam)
+			{	
+			case 1: pName = L"machine138.mesh"; break;
+			case 2: pName = L"machine30t.mesh"; break;
+			case 3: pName = L"machine40t.mesh"; break;
+			case 4: pName = L"machine70t.mesh"; break;
+			}
 
-		HBONE pNewBone = NULL;
-		m_pBone->CreateChild(_name, &pNewBone);
+			OLECHAR _name[257];
+			_snwprintf_s(_name, 256, L"Machine %d", nIndex);
 
+			HBONE pNewBone = NULL;
+			m_pBone->CreateChild(_name, &pNewBone);
 
-
-
-		LPOLESTR pLabel;
-		pNewBone->GetLabel(&pLabel);
-		Load((LPOLESTR)(_stdPathModels + L"bunny.obj").c_str(), pLabel, 700, 100);
+			LPOLESTR pLabel;
+			pNewBone->GetLabel(&pLabel);
+			_Load(pName, pLabel, 40, 100);
 		
-		fw::ITransform *pT = NULL;
-		pNewBone->CreateCompatibleTransform(&pT);
-		pT->FromRotationX(M_PI/2);
-		AVVECTOR vec = box.CentreLower();
-		pT->MulTranslationVector((fw::FWVECTOR*)(&vec));
-		pNewBone->PutLocalTransform(pT);
-		pT->Release();
-		pNewBone->Release();
+			fw::ITransform *pT = NULL;
+			pNewBone->CreateCompatibleTransform(&pT);
+			pT->FromIdentity();
+			pT->FromRotationZ(M_PI/2);
+			AVVECTOR vec = box.CentreLower();
+			vec.z = 40;
+			pT->MulTranslationVector((fw::FWVECTOR*)(&vec));
+			pNewBone->PutLocalTransform(pT);
+			pT->Release();
+			pNewBone->Release();
 
-	//IMaterial *pMaterial = NULL;
-	//ITexture *pTexture = NULL;
-	//GetEngine()->GetRenderer()->CreateTexture(&pTexture);
-	//pTexture->LoadFromFile((LPOLESTR)(LPCOLESTR)(_stdPathModels + L"dafoldil.jpg").c_str());
-	//pTexture->SetUVTile(1, 1);
-	//GetEngine()->GetRenderer()->FWDevice()->CreateObject(L"Material", IID_IMaterial, (IFWUnknown**)&pMaterial);
-	//pMaterial->SetTexture(0, pTexture);
-	//IKineChild *pChild = NULL;
-	//m_pBone->GetChild(L"main", &pChild);
-	//HMESH pMesh = NULL;
-	//pChild->QueryInterface(&pMesh);
-	//pMesh->SetMaterial(pMaterial);
-	//pMesh->Release();
-	//pChild->Release();
-	//pMaterial->Release();
-	//pTexture->Release();
+			break;
 		}
 
-
-		break;
 	case MODEL_OVERSPEED:
 		f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		centre = box.CentreLower();
 		BuildWall(WALL_BEAM, strName, nIndex, __helper(centre, 7, f*30, 30));
 		break;
-
-
-
 
 		//f = (GetLiftGroup()->GetShaft(nIndex)->GetShaftLine() == 0) ? -1 : 1;
 		//box.SetDepth(-box.Depth() / 2);		// adjustment to avoid collision with the guide rail
@@ -272,15 +259,6 @@ void CElemVis::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	}
 }
 
-HMESH CElemVis::AddMesh(AVSTRING strName)
-{
-	HMESH pMesh = NULL;
-	GetObject()->NewMesh(strName, &pMesh);
-	pMesh->Open(NULL, NULL);
-	pMesh->InitAdvNormalSupport(0);
-	return pMesh;
-}
-
 void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFLOAT fTexScale)
 {
 	HMESH pVMesh = NULL;
@@ -315,16 +293,22 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 
 			if (pFMesh)
 			{
-				pFMesh->InitAdvVertexBlending(0.01f, 0);
 				for (AVULONG i = 0; i < nVertex; i++)
-					pFMesh->AddBlendWeight(i, 1.0f, strBone);
+				{
+					pFMesh->SetBoneName(i, 0, strBone); 
+					pFMesh->SetBoneWeight(i, 0, 1.0f); 
+				}
 				pFMesh->Close();
 				pFMesh = NULL;
 				nVertexBase += nVertex;
 				nVertex = 0;
 			}
 			if (pVMesh == NULL)
-				pVMesh = AddMesh(L"temporary");
+			{
+				GetObject()->NewMesh(L"temporary", &pVMesh);
+				pVMesh->Open(NULL, NULL);
+				pVMesh->InitAdvNormalSupport(0);
+			}
 
 			pVMesh->SetVertexXYZ(nVertex, a * fScale, b * fScale, c * fScale);
 			double l = sqrt(a * a + b * b + c * c);
@@ -362,11 +346,73 @@ void CElemVis::Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFL
 	
 	if (pFMesh)
 	{
-		pFMesh->InitAdvVertexBlending(0.01f, 0);
 		for (AVULONG i = 0; i < nVertex; i++)
-			pFMesh->AddBlendWeight(i, 1.0f, strBone);
+		{
+			pFMesh->SetBoneName(i, 0, strBone); 
+			pFMesh->SetBoneWeight(i, 0, 1.0f); 
+		}
 		pFMesh->Close();
 	}
+}
+
+
+void CElemVis::_Load(AVSTRING strFilename, AVSTRING strBone, AVFLOAT fScale, AVFLOAT fTexScale)
+{
+	HRSRC hRes = ::FindResource(NULL, strFilename, RT_RCDATA);
+	HGLOBAL hGlob = ::LoadResource(NULL, hRes);
+	BYTE *pRes = (BYTE*)::LockResource(hGlob);
+	DWORD nSize = SizeofResource(NULL, hRes);
+
+	struct VERTEX
+	{
+		float	x, y, z;
+		float	nx, ny, nz;
+	};
+
+	int *pInts = (int*)pRes;
+
+	int nVertices		= pInts[0];
+	int nIndices		= pInts[1];
+	int startVertex		= pInts[2];
+	int startIndex		= pInts[3];
+	int primitiveCount	= pInts[4];
+	VERTEX *pVertices   = (VERTEX*)(pRes + 5 * sizeof(int));
+	int *pIndices		= (int*)(pRes + 5 * sizeof(int) + nVertices * sizeof(*pVertices));
+
+	HMESH pMesh = NULL;
+	GetObject()->NewMesh(L"temporary", &pMesh);
+	pMesh->Open(NULL, NULL);
+	pMesh->InitAdvNormalSupport(0);
+
+
+	AVULONG nVertex = 0;
+	for (int i = 0; i < nVertices; i++)
+	{
+		VERTEX *p = pVertices + startVertex + i;
+
+		pMesh->SetVertexXYZ(nVertex, p->x * fScale, p->y * fScale, p->z * fScale);
+		pMesh->AddNormal(&nVertex, p->nx, p->ny, p->nz);
+		//pVMesh->SetVertexTextureUV(nVertex, 0, sqrt(a*a+c*c) * fTexScale, b * fTexScale);
+		nVertex++;
+	}
+
+	for (AVULONG i = 0; i < nVertex; i++)
+	{
+		pMesh->SetBoneName(i, 0, strBone); 
+		pMesh->SetBoneWeight(i, 0, 1.0f); 
+	}
+
+	AVULONG nFace = 0;
+	for (int i = 0; i < nIndices; i += 3)
+	{
+		int a = pIndices[startIndex + i];
+		int b = pIndices[startIndex + i + 1];
+		int c = pIndices[startIndex + i + 2];
+		pMesh->SetFace(nFace, a, b, c);
+		nFace++;
+	}
+	
+	pMesh->Close();
 }
 
 void CElemVis::Move(AVVECTOR vec)

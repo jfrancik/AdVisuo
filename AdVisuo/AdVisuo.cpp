@@ -23,7 +23,7 @@
 #include "AdVisuoDoc.h"
 #include "AdVisuoView.h"
 
-#include "DlgRepBug.h"
+#include "DlgHtRepBug.h"
 #include "DlgHtLogin.h"
 #include "DlgHtAbout.h"
 #include "DlgHtSelect.h"
@@ -131,12 +131,7 @@ BOOL CAdVisuoApp::InitInstance()
 		RUNTIME_CLASS(CMFCToolTipCtrl), &ttParams);
 
 	// read server configuration
-	CSettingsStoreSP regSP;
-	CSettingsStore& reg = regSP.Create(FALSE, TRUE);
-	if (reg.Open(GetRegSectionPath(L"URL")))
-		reg.Read(L"servers", m_servers); 
-	if (m_servers.IsEmpty())
-		m_servers = L"adsimulodev.mylb.eu:8081";
+	LoadRemoteServerConfig(L"adsimulodev.mylb.eu:8081");
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
@@ -165,23 +160,37 @@ BOOL CAdVisuoApp::InitInstance()
 		// initialise HTTP Request object
 		m_http.create();
 
+		// for debug start mode
+#ifdef _DEBUG
+		//cmdInfo.m_nShellCommand = CCommandLineInfo::FileOpen;
+		//cmdInfo.m_strFileName = "http://adsimulodev.mylb.eu:8081/advsrv.asmx?request=51&userid=jarekf&ticket=fh4qrOXaydjk0FGraUSaWN3UrSc=";
+		//cmdInfo.m_strFileName = "http://localhost:5204/advsrv.asmx?request=51&userid=jarekf&ticket=tl1GVsQwvZwsZeSCKhPG5bv3i5w=";
+		//cmdInfo.m_strFileName = "c:\\Users\\jarek\\Desktop\\Low Tower.avx";
+#endif
+
 		// Process advisuo: URL link or ask through Login...
 		CString url;
 		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen && (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
+		{
 			url = cmdInfo.m_strFileName;
+			AddRemoteServer(url);
+			SaveRemoteServerConfig();
+		}
+		else
+		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen)
+		{
+			url = cmdInfo.m_strFileName;
+			AfxMessageBox(L"Loading from a local file this application will have limited functionality!");
+		}
 		else
 		{
 			if (!AskLogin()) return false;
+			SaveRemoteServerConfig();
 			AVULONG nSimulationId = SelectSimulation();
 			if (!nSimulationId) return false;
 			url = URLFromSimulationId(nSimulationId);
 		}
 
-		// configure and save m_servers setting
-		CSettingsStoreSP regSP;
-		CSettingsStore& reg = regSP.Create(FALSE, FALSE);
-		if (reg.CreateKey(GetRegSectionPath(L"URL")))
-			reg.Write(L"servers", m_servers);
 
 		// create main MDI Frame window
 		CMainFrame *pMainframe = new CMainFrame; 
@@ -388,9 +397,59 @@ bool CAdVisuoApp::LoadSimulation(AVULONG nProjectId, AVULONG nSimulationId, bool
 	return InitSimulation(URLFromSimulationId(nSimulationId));
 }
 
+void CAdVisuoApp::ExtendAuthorisation()
+{
+	if (!m_http.logged())
+		return;
+	try
+	{
+		m_http.AVExtendAuthorisation();
+	}
+	catch(...)
+	{
+		CDlgHtFailure dlg(L"unspecified source.");
+		dlg.DoModal();
+	}
+}
+
+bool CAdVisuoApp::Report(AVULONG nSimulationId, AVSTRING strPath, AVULONG nCat, AVSTRING strUserDesc, AVSTRING strDiagnostic, AVSTRING strErrorMsg)
+{
+	CXMLRequest http;
+	http.create();
+	http.setURL(L"http://adsimulodev.mylb.eu:8081/advsrv.asmx");
+
+	std::wstring strUsername, strTicket;
+	m_http.get_authorisation_data(strUsername, strTicket);
+
+	try
+	{
+		http.AVReportIssue(m_http.getURL(), strUsername, strTicket, VERSION, nSimulationId, strPath, nCat, strUserDesc, strDiagnostic, strErrorMsg);
+		std::wstring response;
+		http.get_response(response);
+	}
+	catch (_com_error ce)
+	{
+		CDlgHtFailure dlg(ce, http.getURL().c_str());
+		dlg.DoModal();
+		return false;
+	}
+	catch (_xmlreq_error xe)
+	{
+		CDlgHtFailure dlg(xe, http.getURL().c_str());
+		dlg.DoModal();
+		return false;
+	}
+	catch(...)
+	{
+		CDlgHtFailure dlg(http.getURL().c_str());
+		dlg.DoModal();
+		return false;
+	}
+	return true;
+}
+
 int CAdVisuoApp::ExitInstance()
 {
-	//CDlgReportBug::Report(2);
 	return CWinAppEx::ExitInstance();
 }
 
@@ -413,56 +472,76 @@ void CAdVisuoApp::PreLoadState()
 	GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT);
 }
 
+void CAdVisuoApp::LoadRemoteServerConfig(CString strDefault)
+{
+	CSettingsStoreSP regSP;
+	CSettingsStore& reg = regSP.Create(FALSE, TRUE);
+	if (reg.Open(GetRegSectionPath(L"URL")))
+		reg.Read(L"servers", m_servers); 
+	if (m_servers.IsEmpty())
+		m_servers = strDefault;
+}
+
+void CAdVisuoApp::AddRemoteServer(CString url)
+{
+	int i;
+
+	i = url.Find(L"://");
+	if (i > 0) url = url.Mid(i + 3);
+
+	i = url.Find(L'/');
+	if (i > 0) url = url.Left(i);
+	
+	int curPos = 0;
+	int nCount = 1;
+	CString servers = url;
+	CString token = m_servers.Tokenize(_T(";"), curPos);
+	while (nCount < 5 && token != _T(""))
+	{
+		if (token != url)
+		{
+			servers += ";";
+			servers += token;
+			nCount++;
+		}
+		token = m_servers.Tokenize(_T(";"), curPos);
+	};
+	m_servers = servers;
+
+}
+
+void CAdVisuoApp::SaveRemoteServerConfig()
+{
+	CSettingsStoreSP regSP;
+	CSettingsStore& reg = regSP.Create(FALSE, FALSE);
+	if (reg.CreateKey(GetRegSectionPath(L"URL")))
+		reg.Write(L"servers", m_servers);
+}
+
 void CAdVisuoApp::LoadCustomState()
 {
+	CSettingsStoreSP regSP;
+	CSettingsStore& reg = regSP.Create(FALSE, TRUE);
+	if (reg.Open(GetRegSectionPath(L"AdVisuo")))
 	{
-		CSettingsStoreSP regSP;
-		CSettingsStore& reg = regSP.Create(FALSE, TRUE);
-		if (reg.Open(GetRegSectionPath(L"AdVisuo")))
-		{
-			reg.Read(L"NavigationMode", m_nWalkMode);
-			reg.Read(L"ColouringMode", m_nColouringMode);
-		}
+		reg.Read(L"NavigationMode", m_nWalkMode);
+		reg.Read(L"ColouringMode", m_nColouringMode);
 	}
-m_nWalkMode = 2;	// ghost mode only now...
-	{
-		CSettingsStoreSP regSP;
-		CSettingsStore& reg = regSP.Create(FALSE, TRUE);
-		if (reg.Open(GetRegSectionPath(L"URL")))
-		{
-			reg.Read(L"servers", m_servers); 
-		}
-		else
-		{
-			m_servers = L"217.33.230.52:8081;adsimulo.mylb.eu:8081;localhost:7984";
-		}
-	}
+	m_nWalkMode = 2;	// ghost mode only now...
 }
 
 void CAdVisuoApp::SaveCustomState()
 {
+	CSettingsStoreSP regSP;
+	CSettingsStore& reg = regSP.Create(FALSE, FALSE);
+	if (reg.CreateKey(GetRegSectionPath(L"AdVisuo")))
 	{
-		CSettingsStoreSP regSP;
-		CSettingsStore& reg = regSP.Create(FALSE, FALSE);
-		if (reg.CreateKey(GetRegSectionPath(L"AdVisuo")))
-		{
-			reg.Write(L"NavigationMode", m_nWalkMode);
-			reg.Write(L"ColouringMode", m_nColouringMode);
-		}
-	}
-	{
-		CSettingsStoreSP regSP;
-		CSettingsStore& reg = regSP.Create(FALSE, FALSE);
-		if (reg.CreateKey(GetRegSectionPath(L"URL")))
-		{
-			reg.Write(L"servers", m_servers);
-		}
+		reg.Write(L"NavigationMode", m_nWalkMode);
+		reg.Write(L"ColouringMode", m_nColouringMode);
 	}
 }
 
 // CAdVisuoApp message handlers
-
-
 
 BOOL CAdVisuoApp::OnIdle(LONG lCount)
 {
@@ -477,7 +556,10 @@ void CAdVisuoApp::OnFileDownload()
 
 void CAdVisuoApp::OnUpdateFileDownload(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(!AVGetMainWnd()->IsFullScreen());
+	if (IsLogged())
+		pCmdUI->Enable(!AVGetMainWnd()->IsFullScreen());
+	else
+		pCmdUI->Enable(FALSE);
 }
 
 
@@ -507,7 +589,7 @@ void CAdVisuoApp::AddToRecentFileList(LPCTSTR lpszPathName)
 
 void CAdVisuoApp::OnReportBug()
 {
-	CDlgReportBug dlg;
+	CDlgHtRepBug dlg;
 	dlg.DoModal();
 }
 

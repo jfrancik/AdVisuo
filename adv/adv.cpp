@@ -11,6 +11,7 @@
 #include "SrvProject.h"
 #include "IfcProject.h"
 #include "ATLComTime.h"
+#include "IFCBuilder.h"
 
 #define WARNED(hr) (((DWORD)(hr)) >= 0x40000000L)
 
@@ -357,6 +358,18 @@ ADV_API HRESULT AVIFC8(AVULONG nSimulationId, char *pIFCPathName)
 	USES_CONVERSION;
 	CA2W wIFCPathName(pIFCPathName);
 	return AVIFC(nSimulationId, wIFCPathName);
+}
+
+ADV_API HRESULT AVSaveIFCMesh(AVSTRING strIFCPathName, AVSTRING strMeshPathName)
+{
+	CIfcBuilder *pBuilder = new CIfcBuilder(strIFCPathName);
+	if (pBuilder) pBuilder->SaveAsMesh(strMeshPathName);
+	return S_OK;
+}
+
+ADV_API HRESULT AVSaveIFCMesh8(char *strIFCPathName, char *strMeshPathName)
+{
+	return S_OK;
 }
 
 #pragma warning (disable: 4996)

@@ -20,6 +20,26 @@ CLiftGroup *CProjectIfc::CreateLiftGroup(AVULONG nIndex)
 	bool bBrep = true;
 	bool bPresentation = false;
 
+	extern TCHAR g_pMainPath[MAX_PATH];
+
+	static char *IFCPath(LPCTSTR pIFCName)
+	{
+		CString path = g_pMainPath;
+		int i;
+		i = path.ReverseFind('\\');
+		if (i >= 0) path = path.Left(i);
+		i = path.ReverseFind('\\');
+		if (i >= 0) path = path.Left(i);
+
+		path += L"\\ifcfiles\\";
+		path += pIFCName;
+
+		static char buf[MAX_PATH];
+		WideCharToMultiByte(CP_UTF8, 0, path, -1, buf, MAX_PATH, NULL, NULL);
+
+		return buf;
+	}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CElemIfc
 
@@ -42,7 +62,7 @@ CElemIfc::CElemIfc(CProject *pProject, CLiftGroup *pLiftGroup, CElem *pParent, A
 
 	switch (nElemId)
 	{
-	case ELEM_PROJECT:	m_pBone = new CIFCProject("c:\\ifc\\IFC2X3_TC1.exp", "MILLI"); break;
+	case ELEM_PROJECT:	m_pBone = new CIFCProject(IFCPath(L"IFC2X3_TC1.exp"), "MILLI"); break;
 	case ELEM_SITE:		m_pBone = new CIFCSite((CIFCProject*)pParentBone, &matrix); break;
 	case ELEM_LIFTGROUP:m_pBone = new CIFCBuilding((CIFCSite*)pParentBone, &matrix); break;
 	case ELEM_STOREY:	m_pBone = new CIFCStorey((CIFCBuilding*)pParentBone, &matrix); break;
@@ -144,24 +164,24 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	case MODEL_MACHINE:
 		switch (nParam)
 		{	
-		case 1: p = new CIfcBuilder("c:\\IFC\\machine138.ifc"); break;
-		case 2: p = new CIfcBuilder("c:\\IFC\\machine30t.ifc"); break;
-		case 3: p = new CIfcBuilder("c:\\IFC\\machine40t.ifc"); break;
-		case 4: p = new CIfcBuilder("c:\\IFC\\machine70t.ifc"); break;
+		case 1: p = new CIfcBuilder(L"machine138.ifc"); break;
+		case 2: p = new CIfcBuilder(L"machine30t.ifc"); break;
+		case 3: p = new CIfcBuilder(L"machine40t.ifc"); break;
+		case 4: p = new CIfcBuilder(L"machine70t.ifc"); break;
 		}
 		if (!p) return;
 		p->build(this, nModelId, strName, 0, centre, fRot);
 		delete p;
 		break;
 	case MODEL_OVERSPEED:
-		p = new CIfcBuilder("c:\\IFC\\overspeed.ifc"); 
+		p = new CIfcBuilder(L"overspeed.ifc"); 
 		if (!p) return;
 		centre = box.CentreLower();
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
 		break;
 	case MODEL_CONTROL_PANEL:
-		p = new CIfcBuilder("c:\\IFC\\panel700.ifc");	// control panel
+		p = new CIfcBuilder(L"panel700.ifc");	// control panel
 		if (!p) return;
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
@@ -169,16 +189,16 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	case MODEL_DRIVE_PANEL:
 		switch (nParam)
 		{	
-		case 1: p = new CIfcBuilder("c:\\IFC\\panel1000.ifc"); break;
-		case 2: p = new CIfcBuilder("c:\\IFC\\panel1500.ifc"); break;
-		case 3: p = new CIfcBuilder("c:\\IFC\\panel1700.ifc"); break;
+		case 1: p = new CIfcBuilder(L"panel1000.ifc"); break;
+		case 2: p = new CIfcBuilder(L"panel1500.ifc"); break;
+		case 3: p = new CIfcBuilder(L"panel1700.ifc"); break;
 		}
 		if (!p) return;
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
 		break;
 	case MODEL_GROUP_PANEL:
-		p = new CIfcBuilder("c:\\IFC\\panel700.ifc"); break;
+		p = new CIfcBuilder(L"panel700.ifc"); break;
 		if (!p) return;
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
@@ -186,16 +206,16 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	case MODEL_ISOLATOR:
 		switch (nParam)
 		{	
-		case 1: p = new CIfcBuilder("c:\\IFC\\panel1000.ifc"); break;
-		case 2: p = new CIfcBuilder("c:\\IFC\\panel1250.ifc"); break;
-		case 3: p = new CIfcBuilder("c:\\IFC\\panel1600.ifc"); break;
+		case 1: p = new CIfcBuilder(L"panel1000.ifc"); break;
+		case 2: p = new CIfcBuilder(L"panel1250.ifc"); break;
+		case 3: p = new CIfcBuilder(L"panel1600.ifc"); break;
 		}
 		if (!p) return;
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
 		break;
 	case MODEL_CWT:
-		//p = new CIfcBuilder("c:\\IFC\\cwt.ifc"); 
+		//p = new CIfcBuilder(L"cwt.ifc"); 
 		//if (!p) return;
 		//p->build(this, nModelId, strName, nIndex, centre, fRot);
 		//delete p;
@@ -203,13 +223,13 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		BuildWall(WALL_CWT, strName, nIndex, box, Vector(0, 0, fRot));
 		break;
 	case MODEL_RAIL:
-		p = new CIfcBuilder("c:\\IFC\\rail.ifc"); 
+		p = new CIfcBuilder(L"rail.ifc"); 
 		if (!p) return;
 		p->build(this, nModelId, strName, nIndex, box, fRot);
 		delete p;
 		break;
 	case MODEL_BUFFER_CAR:
-		p = new CIfcBuilder("c:\\IFC\\buffer.ifc"); 
+		p = new CIfcBuilder(L"buffer.ifc"); 
 		if (!p) return;
 		box = BOX(box.CentreX() - fParam1/2, box.CentreY() - fParam1/2, 0, fParam1, fParam1, fParam2);
 		if (nParam == 1)
@@ -225,7 +245,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		break;
 	case MODEL_BUFFER_CWT:
 		b = abs(box.Width()) > abs(box.Depth());
-		p = new CIfcBuilder("c:\\IFC\\buffer.ifc"); 
+		p = new CIfcBuilder(L"buffer.ifc"); 
 		if (!p) return;
 		box = BOX(box.CentreX() - fParam1/2, box.CentreY() - fParam1/2, 0, fParam1, fParam1, fParam2);
 		if (nParam == 1)
@@ -240,7 +260,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		delete p;
 		break;
 	case MODEL_PULLEY:
-		p = new CIfcBuilder("c:\\IFC\\pulley.ifc"); 
+		p = new CIfcBuilder(L"pulley.ifc"); 
 		if (!p) return;
 		box.Move(0, 0, 500 * fScale);
 		centre = box.CentreLower();
@@ -248,7 +268,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		delete p;
 		break;
 	case MODEL_LIGHT:
-		p = new CIfcBuilder("c:\\IFC\\light.ifc"); 
+		p = new CIfcBuilder(L"light.ifc"); 
 		if (!p) return;
 		centre.y = box.Rear() + ((fRot > 0) ? p->Height() : -p->Height());
 

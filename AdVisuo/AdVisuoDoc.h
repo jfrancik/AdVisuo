@@ -36,6 +36,7 @@ public:
 	virtual ~CAdVisuoDoc();
 
 	CString GetDiagnosticMessage();
+	CString GetPathInfo();
 
 	// Attributes and Basic Operations
 	CProjectVis *GetProject()				{ return &m_prj; }

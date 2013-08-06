@@ -90,18 +90,18 @@ public:
 	INSTANCE m_hModel, *m_h;
 
 	CRevitFile() : m_hModel(NULL), m_h(NULL)				{  }
-	CRevitFile(char *pFilename) : m_hModel(NULL), m_h(NULL)	{ Open(pFilename); }
-	~CRevitFile()											{ Open(NULL); }
+	CRevitFile(char *pIfcFile, char *pExpFile) : m_hModel(NULL), m_h(NULL)	{ Open(pIfcFile, pExpFile); }
+	~CRevitFile()											{ Open(NULL, NULL); }
 	operator bool()											{ return m_hModel != NULL && m_h != NULL; }
 
 	INSTANCE GetModel()										{ return m_hModel; }
 
-	bool Open(char *pFilename)
+	bool Open(char *pIfcFile, char *pExpFile)
 	{
 		if (m_hModel) sdaiCloseModel(m_hModel);
-		if (pFilename)
+		if (pIfcFile)
 		{
-			m_hModel = sdaiOpenModelBN(0, pFilename, "c:\\ifc\\IFC2X3_TC1.exp");
+			m_hModel = sdaiOpenModelBN(0, pIfcFile, pExpFile);
 			if (m_hModel) m_h = sdaiGetEntityExtentBN(m_hModel, "IFCBUILDINGELEMENTPROXY");
 		}
 		else
@@ -109,13 +109,11 @@ public:
 		return *this;
 	}
 
-	INSTANCE GetInstance(int nIndex, bool bRepresentation = true)
+	void GetInstance(int nIndex, INSTANCE &h, INSTANCE &hRep)
 	{
-		if (!*this) return 0;
-		INSTANCE h;
+		if (!*this) return;
 		engiGetAggrElement(m_h, nIndex, sdaiINSTANCE, &h);
-		if (bRepresentation && h) sdaiGetAttrBN(h, "Representation", sdaiINSTANCE, &h);
-		return h;
+		if (h) sdaiGetAttrBN(h, "Representation", sdaiINSTANCE, &hRep);
 	}
 };
 

@@ -2,7 +2,7 @@
 
 #include "StdAfx.h"
 #include "Engine.h"
-#include "DlgRepBug.h"
+#include "DlgHtRepBug.h"
 
 namespace fw
 {
@@ -107,8 +107,7 @@ HRESULT __stdcall HandleErrors(struct FWERROR *p, BOOL bRaised)
 
 		int nRes = AfxMessageBox(str, MB_ABORTRETRYIGNORE | MB_DEFBUTTON3);
 
-		CDlgReportBug::Report(3, str);
-		CDlgReportBug dlg(str);
+		CDlgHtRepBug dlg(str);
 		dlg.m_cat = 1;
 		dlg.DoModal();
 			
@@ -249,8 +248,7 @@ bool CEngine::Create(HWND hWnd, ILostDeviceObserver *pLDO)
 		}
 		str += L" This is a fatal error and the application will now shut down.";
 		AfxMessageBox(str, MB_OK | MB_ICONHAND);
-		CDlgReportBug::Report(3, str);
-		CDlgReportBug dlg(str);
+		CDlgHtRepBug dlg(str);
 		dlg.DoModal();
 		return false;
 	}
@@ -285,11 +283,11 @@ CString CEngine::GetDiagnosticMessage()
 {
 	CString str;
 	if (IsPlaying() && !IsPaused())
-		str.Format(L"Playing now at %d", GetPlayTime());
+		str.Format(L"Visualisation playing now at %d.", GetPlayTime());
 	else if (IsPlaying() && IsPaused())
-		str.Format(L"Paused at %d", GetPlayTime());
+		str.Format(L"Visualisation paused at %d.", GetPlayTime());
 	else
-		str.Format(L"Not playing");
+		str.Format(L"Visualisation not started.");
 	return str;
 }
 

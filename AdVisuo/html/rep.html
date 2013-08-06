@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>AdVisuo: Report a Bug</title>
+    <link href="res:/CSS/#341" type="text/css" rel="stylesheet" />
+</head>
+
+<script type="text/javascript" language="ecmascript">
+
+    // Forbid user's mouse selecting for the content (allow text selection in EditBox only)
+    function onSelect1()
+    {
+        if (window.event.srcElement.tagName != "INPUT")
+        {
+            window.event.returnValue = false;
+            window.event.cancelBubble = true;
+        }
+    }
+
+    // Install Context Menu and Mark handlers on HTML loading.
+    function onLoad()
+    {
+        document.onselectstart = onSelect1;
+    }
+
+    function showVer(major, minor, rel, date)
+    {
+        document.getElementById("idMajor").innerHTML = major;
+        document.getElementById("idMinor").innerHTML = minor;
+        document.getElementById("idRel").innerHTML = rel;
+        document.getElementById("idDate").innerHTML = date;
+    }
+</script>
+
+<body class="rep" onload="onLoad();">
+    <h1>AdVisuo v3.0</h1>
+    
+    <!-- Bug Rep stuff -->
+    <div class="rep-container">
+        This software product is currently being developed by LerchBates.<br />
+        Your input is of great value for us and may contribute to a much better product!
+    </div><!--end info container-->
+    <div class="rep-buttons-container">
+        <input type="submit" value="Send" name="SendButton" id="idSendButton" class="RoundedButton" />
+        <input type="submit" value="Cancel" name="CancelButton" id="idCancelButton" class="RoundedButton" />
+    </div><!--end info container-->
+
+
+    
+    
+    <div id="idCopyright">
+        
+    </div>
+
+</body>
+</html>

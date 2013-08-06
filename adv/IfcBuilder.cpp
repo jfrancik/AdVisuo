@@ -35,14 +35,92 @@
 		x1 = fCos * A._41 - fSin * A._42;  x2 = fSin * A._41 + fCos * A._42;  A._41 = x1; A._42 = x2;
 	}
 
+	extern TCHAR g_pMainPath[MAX_PATH];
+
+	static void IFCPath(LPCTSTR pIFCName, char bufIFCPath[])
+	{
+		CString path = g_pMainPath;
+		int i;
+		i = path.ReverseFind('\\');
+		if (i >= 0) path = path.Left(i);
+		i = path.ReverseFind('\\');
+		if (i >= 0) path = path.Left(i);
+
+		path += L"\\ifcfiles\\";
+		path += pIFCName;
+
+		WideCharToMultiByte(CP_UTF8, 0, path, -1, bufIFCPath, MAX_PATH, NULL, NULL);
+	}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CIfcBuilder
 
-CIfcBuilder::CIfcBuilder(char *pFilename, AVULONG nInstanceIndex)
+CIfcBuilder::CIfcBuilder(wchar_t *pIFCFile, AVULONG nInstanceIndex)
 {
-	m_revitfile.Open(pFilename);
-	m_h = m_revitfile.GetInstance(nInstanceIndex);
-	CIFCModelScanner::GetBB(m_h, m_bb);
+	char pExtFile[MAX_PATH];
+	IFCPath(L"IFC2X3_TC1.exp", pExtFile);
+	IFCPath(pIFCFile, m_pIFCFile);
+	m_revitfile.Open(m_pIFCFile, pExtFile);
+	m_revitfile.GetInstance(nInstanceIndex, m_h, m_hRep);
+	CIFCModelScanner::GetBB(m_hRep, m_bb);
+}
+
+CIfcBuilder::~CIfcBuilder()	
+{ 
+}
+
+void CIfcBuilder::SaveAsMesh(wchar_t *pMeshFile)
+{
+	struct VERTEX
+	{
+		float	x, y, z;
+		float	nx, ny, nz;
+	};
+
+	int nVertices, nIndices;
+	VERTEX *pVertices;
+	int *pIndices;
+	int startVertex, startIndex, primitiveCount;
+
+	initializeModelling(m_revitfile.m_hModel, &nVertices, &nIndices, 1);
+	pVertices = new VERTEX[nVertices];
+	pIndices = new int[nIndices];
+	finalizeModelling(m_revitfile.m_hModel, (float*)pVertices, pIndices, 0x12);	// 0x12 = D3DFVF_XYZ | D3DFVF_NORMAL
+	getInstanceInModelling(m_revitfile.m_hModel, m_h, 2, &startVertex, &startIndex, &primitiveCount);
+
+	// split IFC filename
+	wchar_t ifc_path_buffer[_MAX_PATH], ifc_drive[_MAX_DRIVE], ifc_dir[_MAX_DIR], ifc_fname[_MAX_FNAME], ifc_ext[_MAX_EXT];
+	MultiByteToWideChar(CP_UTF8, 0, m_pIFCFile, -1, ifc_path_buffer, _MAX_PATH);
+	_wsplitpath_s(ifc_path_buffer, ifc_drive, ifc_dir, ifc_fname, ifc_ext);
+
+	// split MESH filename
+	if (!pMeshFile) pMeshFile = L"";
+	wchar_t mesh_path_buffer[_MAX_PATH], mesh_drive[_MAX_DRIVE], mesh_dir[_MAX_DIR], mesh_fname[_MAX_FNAME], mesh_ext[_MAX_EXT];
+	_wsplitpath_s(pMeshFile, mesh_drive, mesh_dir, mesh_fname, mesh_ext);
+
+	if (mesh_drive[0] == L'\0' && mesh_dir[0] == L'\0')
+	{
+		wcsncpy_s(mesh_drive, ifc_drive, _MAX_DRIVE);
+		wcsncpy_s(mesh_dir, ifc_dir, _MAX_DIR);
+	}
+	if (mesh_fname[0] == L'\0')
+	{
+		wcsncpy_s(mesh_fname, ifc_fname, _MAX_DIR);
+		wcsncpy_s(mesh_ext, L"mesh", _MAX_EXT);
+	}
+
+	_wmakepath_s(mesh_path_buffer, mesh_drive, mesh_dir, mesh_fname, mesh_ext);
+
+	CComPtr<IStream> pFileStream;
+	HRESULT h = SHCreateStreamOnFile(mesh_path_buffer, STGM_CREATE | STGM_WRITE, &pFileStream); if (FAILED(h)) throw _com_error(h);
+	ULONG N;
+	pFileStream->Write(&nVertices, sizeof(nVertices), &N);
+	pFileStream->Write(&nIndices, sizeof(nIndices), &N);
+	pFileStream->Write(&startVertex, sizeof(startVertex), &N);
+	pFileStream->Write(&startIndex, sizeof(startIndex), &N);
+	pFileStream->Write(&primitiveCount, sizeof(primitiveCount), &N);
+	pFileStream->Write(pVertices, nVertices * sizeof(*pVertices), &N);
+	pFileStream->Write(pIndices, nIndices * sizeof(*pIndices), &N);
 }
 
 void CIfcBuilder::build(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, AVVECTOR base, AVFLOAT fRot, AVFLOAT fRotX)
@@ -92,7 +170,7 @@ USES_CONVERSION;
 
 	CIFCRevitElem machine(pElem->GetBone(), &matrix);
 	machine.setInfo(pName, pName);
-	int hRes = machine.build(m_h, [dShiftX, dShiftY, dShiftZ, fScaleX, fScaleY, fScaleZ] (CIFCModelScanner::ITEM *pItem) 
+	int hRes = machine.build(m_hRep, [dShiftX, dShiftY, dShiftZ, fScaleX, fScaleY, fScaleZ] (CIFCModelScanner::ITEM *pItem) 
 								{
 									if (pItem->type == CIFCModelScanner::ITEM::AGGREG && pItem->nIndex >= 0 && pItem->nType == sdaiREAL && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE && strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 && sdaiGetMemberCount(pItem->hAggreg) == 3)
 									{

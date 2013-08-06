@@ -341,6 +341,22 @@ bool CXMLRequest::AVExtendAuthorisation()
 	return true;
 }
 
+void CXMLRequest::AVReportIssue(std::wstring url, std::wstring strUsername, std::wstring strTicket, AVULONG nVersion, AVULONG nId, std::wstring strPath, AVULONG nCat, std::wstring strUserDesc, std::wstring strDiagnostic, std::wstring strErrorMsg)
+{
+	setreq();
+	addparam(L"url", url);
+	addparam(L"strUsername", strUsername);
+	addparam(L"strTicket", strTicket);
+	addparam(L"nVersion", nVersion);
+	addparam(L"nId", nId);
+	addparam(L"strPath", strPath);
+	addparam(L"nCat", nCat);
+	addparam(L"strUserDesc", strUserDesc);
+	addparam(L"strDiagnostic", strDiagnostic);
+	addparam(L"strErrorMsg", strErrorMsg);
+	call(L"AVReportIssue");
+}
+
 void CXMLRequest::AVFolders()
 {
 	setreq();

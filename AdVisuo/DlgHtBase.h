@@ -7,6 +7,7 @@
 #include <functional>
 
 class _prj_error;
+class _xmlreq_error;
 namespace dbtools { class _value_error; }
 
 class CDlgHtBase: public CDHtmlDialog

@@ -8,15 +8,26 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	CoInitialize(NULL);
 	AVSetupDiagnosticOutput(true, true, false, true);
-//	AVIFC8(1204, "c:\\users\\jarek\\desktop\\test.ifc");
-//	AVIFC8(1204, "c:\\users\\jarek\\desktop\\test.ifc");
-//	AVIFC8(1202, "c:\\users\\jarek\\desktop\\warsaw tower.ifc");
-//	AVIFC8(1196, "c:\\users\\jarek\\desktop\\elevcon.ifc");
 
 	AVIFC8(51, "c:\\users\\jarek\\desktop\\test.ifc");
-//	AVIFC8(1238, "c:\\users\\jarek\\desktop\\test_variety.ifc");
-//	AVIFC8(3, "c:\\users\\jarek\\desktop\\test.ifc");
 
+	//AVSaveIFCMesh(L"buffer.ifc");
+	//AVSaveIFCMesh(L"cwt.ifc");
+	//AVSaveIFCMesh(L"ladder.ifc");
+	//AVSaveIFCMesh(L"light.ifc");
+	//AVSaveIFCMesh(L"machine138.ifc");
+	//AVSaveIFCMesh(L"machine30t.ifc");
+	//AVSaveIFCMesh(L"machine40t.ifc");
+	//AVSaveIFCMesh(L"machine70t.ifc");
+	//AVSaveIFCMesh(L"overspeed.ifc");
+	//AVSaveIFCMesh(L"panel1000.ifc");
+	//AVSaveIFCMesh(L"panel1250.ifc");
+	//AVSaveIFCMesh(L"panel1500.ifc");
+	//AVSaveIFCMesh(L"panel1600.ifc");
+	//AVSaveIFCMesh(L"panel1700.ifc");
+	//AVSaveIFCMesh(L"panel700.ifc");
+	//AVSaveIFCMesh(L"pulley.ifc");
+	//AVSaveIFCMesh(L"rail.ifc");
 
 	CoUninitialize();
 	return 0;

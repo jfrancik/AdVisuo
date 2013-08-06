@@ -59,6 +59,8 @@ public:
 	bool ready()			{ return m_nReadyState == 4; }
 	bool ok()				{ return ready() && SUCCEEDED(m_h) && m_nStatus <= 299; }
 
+	bool logged()			{ return !m_strTicket.empty(); }
+
 	// calls - generic
 	void setreq(std::wstring strRequest = L"");
 	void addreq(std::wstring strRequest);
@@ -91,6 +93,7 @@ public:
 	int AVIsAuthorised();
 	bool AVExtendAuthorisation();
 
+	void AVReportIssue(std::wstring url, std::wstring strUsername, std::wstring strTicket, AVULONG nVersion, AVULONG nId, std::wstring strPath, AVULONG nCat, std::wstring strUserDesc, std::wstring strDiagnostic, std::wstring strErrorMsg);
 	void AVFolders();
 	void AVIndex();
 	void AVProject(AVLONG nSimulationId);
@@ -100,7 +103,6 @@ public:
 	void AVSim(AVLONG nLiftGroupId);
 	void AVSimData(AVLONG nSimId, AVLONG timeFrom, AVLONG timeTo);
 	void AVPrjData(AVLONG nProjectId, AVLONG timeFrom, AVLONG timeTo);
-
 
 private:
 	HRESULT ExecWorkerThread();

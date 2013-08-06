@@ -218,6 +218,32 @@ namespace advsrv
             return strTicket;
         }
 
+        [WebMethod(Description = "Reports an issue or bug.")]
+        public void AVReportIssue(string url, string strUsername, string strTicket, int nVersion, int nId, string strPath, int nCat, string strUserDesc, string strDiagnostic, string strErrorMsg)
+        {
+            OleDbConnection connVis = new OleDbConnection(GetVisConnStr());
+            OleDbCommand cmdInsert = new OleDbCommand("INSERT INTO AVReports (URL,UserId,Ticket,Version,SimulationId,Path,Category,UserDescription,Diagnostic,ErrorMsg,TimeStamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)", connVis);
+            cmdInsert.Parameters.AddWithValue("URL", url);
+            cmdInsert.Parameters.AddWithValue("UserId", strUsername);
+            cmdInsert.Parameters.AddWithValue("Ticket", strTicket);
+            cmdInsert.Parameters.AddWithValue("Version", nVersion);
+            cmdInsert.Parameters.AddWithValue("SimulationId", nId);
+            cmdInsert.Parameters.AddWithValue("Path", strPath);
+            cmdInsert.Parameters.AddWithValue("Category", nCat);
+            cmdInsert.Parameters.AddWithValue("UserDescription", strUserDesc);
+            cmdInsert.Parameters.AddWithValue("Diagnostic", strDiagnostic);
+            cmdInsert.Parameters.AddWithValue("ErrorMsg", strErrorMsg);
+            connVis.Open();
+
+            try
+            {
+                cmdInsert.ExecuteNonQuery();
+            }
+            catch (OleDbException ex)
+            {
+            }
+        }
+            
         [WebMethod(Description = "Returns index of project folders.")]
         public DataSet AVFolders(string strUsername, string strTicket)
         {

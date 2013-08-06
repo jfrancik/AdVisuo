@@ -316,8 +316,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,0,1,0
- PRODUCTVERSION 3,0,1,0
+ FILEVERSION 3,0,4,0
+ PRODUCTVERSION 3,0,4,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -334,12 +334,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "LerchBates"
             VALUE "FileDescription", "LerchBates AdVisuo Client"
-            VALUE "FileVersion", "3.0.1.0"
+            VALUE "FileVersion", "3.0.4.0"
             VALUE "InternalName", "AdVisuo.exe"
             VALUE "LegalCopyright", " (c) Lerch Bates 2009-2013.  All rights reserved."
             VALUE "OriginalFilename", "AdVisuo.exe"
             VALUE "ProductName", "LerchBates AdVisuo Client"
-            VALUE "ProductVersion", "3.0.1.0"
+            VALUE "ProductVersion", "3.0.4.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -753,25 +753,14 @@ BEGIN
     CONTROL         "",IDC_STATIC_2,"Static",SS_GRAYRECT,195,7,139,128,WS_EX_TRANSPARENT
 END
 
-IDD_ADV_REPORT_BUG DIALOGEX 0, 0, 316, 236
+IDD_ADV_REPORT_BUG DIALOGEX 0, 0, 404, 251
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT           "This software product is currently being developed by LerchBates. \nYour input is of great value for us and may contribute to a much better product! Your contact details are optional, but it may help us even more if you leave them here.",IDC_STATIC,82,7,227,36
-    LTEXT           "Your name:",IDC_STATIC,7,47,38,8
-    EDITTEXT        IDC_EDIT_NAME,80,44,229,14,ES_AUTOHSCROLL
-    LTEXT           "Your e-mail address:",IDC_STATIC,7,65,66,8
-    EDITTEXT        IDC_EDIT_EMAIL,80,62,229,14,ES_AUTOHSCROLL
-    LTEXT           "Category:",IDC_STATIC,7,84,34,8
-    COMBOBOX        IDC_COMBO_CAT,79,81,229,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Description:",IDC_STATIC,7,103,39,8
-    EDITTEXT        IDC_EDIT_DESC,80,100,229,52,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN
-    LTEXT           "System message sent:",IDC_STATIC,7,159,73,8
-    EDITTEXT        IDC_EDIT_SYSTEM,80,157,229,52,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
-    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,21,20
-    DEFPUSHBUTTON   "Send",IDOK,205,215,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,259,215,50,14
+    COMBOBOX        IDC_COMBO_CAT,7,82,281,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_EDIT_DESC,7,100,281,59,ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN
+    EDITTEXT        IDC_EDIT_SYSTEM,7,166,281,52,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
 END
 
 IDD_ADV_MATERIALS DIALOGEX 0, 0, 316, 184
@@ -902,9 +891,9 @@ BEGIN
     IDD_ADV_REPORT_BUG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 309
+        RIGHTMARGIN, 397
         TOPMARGIN, 7
-        BOTTOMMARGIN, 229
+        BOTTOMMARGIN, 244
     END
 
     IDD_ADV_MATERIALS, DIALOG
@@ -1054,12 +1043,13 @@ END
 // HTML
 //
 
-IDR_HTML_LOGIN          HTML                    "html/login.html"
+IDR_HTML_LOGIN          HTML                    "C:\\Users\\Jarek\\Documents\\_projects\\AdVisuo\\AdVisuo\\html/login.html"
 IDR_HTML_SPLASH         HTML                    "html/splash.html"
 IDR_HTML_ABOUT          HTML                    "html/about.html"
 IDR_HTML_SELECT         HTML                    "html/select.html"
 IDR_XSLT_SELECT_PRJ     HTML                    "html\\select.xslt"
 IDR_XSLT_SELECT_SIM     HTML                    "html\\select2.xslt"
+IDR_HTML_REP            HTML                    "html\\rep.html"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1080,6 +1070,29 @@ IDR_HTML_PNG_SPLASH1    PNG                     "html/splash1.png"
 IDR_HTML_PNG_SPLASH2    PNG                     "html/splash2.png"
 IDR_HTML_PNG_CONNECTION PNG                     "html/connection.png"
 IDR_HTML_PNG_SPLASH3    PNG                     "html/splash3.png"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RCDATA
+//
+
+BUFFER.MESH             RCDATA                  "mesh/buffer.mesh"
+CWT.MESH                RCDATA                  "mesh/cwt.mesh"
+LADDER.MESH             RCDATA                  "mesh/ladder.mesh"
+LIGHT.MESH              RCDATA                  "mesh/light.mesh"
+MACHINE138.MESH         RCDATA                  "mesh/machine138.mesh"
+MACHINE30T.MESH         RCDATA                  "mesh/machine30t.mesh"
+MACHINE40T.MESH         RCDATA                  "mesh/machine40t.mesh"
+MACHINE70T.MESH         RCDATA                  "mesh/machine70t.mesh"
+OVERSPEED.MESH          RCDATA                  "mesh/overspeed.mesh"
+PANEL1000.MESH          RCDATA                  "mesh/panel1000.mesh"
+PANEL1250.MESH          RCDATA                  "mesh/panel1250.mesh"
+PANEL1500.MESH          RCDATA                  "mesh/panel1500.mesh"
+PANEL1600.MESH          RCDATA                  "mesh/panel1600.mesh"
+PANEL1700.MESH          RCDATA                  "mesh/panel1700.mesh"
+PANEL700.MESH           RCDATA                  "mesh/panel700.mesh"
+PULLEY.MESH             RCDATA                  "mesh/pulley.mesh"
+RAIL.MESH               RCDATA                  "mesh/rail.mesh"
 
 /////////////////////////////////////////////////////////////////////////////
 //

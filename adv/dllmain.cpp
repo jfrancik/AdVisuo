@@ -3,19 +3,20 @@
 #include "stdafx.h"
 #include "adv.h"
 
+TCHAR g_pMainPath[MAX_PATH];
+
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
 					 )
 {
-	TCHAR szPath[MAX_PATH];
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
 		AddEventSource(hModule, L"AdVisuo", 1);
 		Log(INFO_STARTED);
 
-		GetModuleFileName(hModule, szPath, MAX_PATH);
+		GetModuleFileName(hModule, g_pMainPath, MAX_PATH);
 
 		break;
 	case DLL_THREAD_ATTACH:

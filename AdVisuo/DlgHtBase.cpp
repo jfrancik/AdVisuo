@@ -340,7 +340,7 @@ CString CDlgHtFailure::GetFailureString(dbtools::_value_error &ve, CString url)
 CString CDlgHtFailure::GetFailureString(CString url)
 {
 	std::wstringstream str;
-	str << L"Unidentified error while downloading from " << (LPCTSTR)url;
+	str << L"Unidentified error while connecting to " << (LPCTSTR)url;
 	return str.str().c_str();
 }
 
