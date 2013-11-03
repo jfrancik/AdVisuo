@@ -115,6 +115,8 @@ public:
 	operator std::wstring();
 	operator DATE();
 
+	ULONG msec();	// multiplies by 1000, rounds to the nearest 10 (useful to convert values in seconds to milliseconds)
+
 	BOOL as_bool()						{ return operator BOOL(); }
 	FLOAT as_float()					{ return operator FLOAT(); }
 	ULONG as_ulong()					{ return operator ULONG(); }

@@ -12,7 +12,6 @@ CLiftGroup::CLiftGroup(CProject *pProject, AVULONG nIndex) : m_pProject(pProject
 	m_nId = 0;
 	m_nProjectId = 0;
 	m_fScale = 1;
-	m_nBasementStoreyCount = 0;
 	m_pnShaftCount[0] = m_pnShaftCount[1] = 0;
 	m_LiftShaftArrang = SHAFT_INLINE;
 	m_LobbyArrangement = LOBBY_OPENPLAN;
@@ -155,7 +154,6 @@ void CLiftGroup::ResolveMe()
 	SetId(ME[L"ID"]);
 	SetIndex(ME[L"LiftGroupIndex"]);
 	SetProjectId(ME[L"ProjectId"]);
-	m_nBasementStoreyCount = (ULONG)ME[L"NumberOfBasementStoreys"];
 
 	AVULONG nLifts = 0; 
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
@@ -594,6 +592,9 @@ void CLiftGroup::ConsoleCreate()
 	m_fPitLevel = -m_fPitLevel;
 	if (GetPit()) GetPit()->ConsoleCreate();
 
+	// Main Storeys (a.k.a. Lobbies)
+	m_strMainStoreys = ME[L"MainFloors"];
+
 	// Final updates and amendments
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
 		GetShaft(i)->ConsoleCreateAmend();
@@ -638,6 +639,8 @@ void CLiftGroup::Create()
 	m_fPanelGrpOrientation = ME[L"PanelGrpOrientation"];
 	m_boxPit.ParseFromString(ME[L"BoxPit"]);
 	m_fPitLevel = ME[L"PitLevel"];
+
+	m_strMainStoreys = ME[L"MainFloors"];
 	
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
 		GetShaft(i)->Create();
@@ -700,7 +703,7 @@ void CLiftGroup::STOREY::ConsoleCreate(AVULONG nId, AVFLOAT fLevel)
 	m_fLevel = fLevel;
 	m_strName = ME[L"Name"];
 	m_box = GetLiftGroup()->m_box;
-	m_box.SetHeight((AVFLOAT)ME[L"FloorHeight"] * 1000.0f- m_box.UpperThickness());
+	m_box.SetHeight(ME[L"FloorHeight"].msec() - m_box.UpperThickness());
 
 	ME[L"FloorId"] = GetId();
 	ME[L"FloorLevel"] = m_fLevel;
@@ -841,8 +844,15 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 	m_nDeckType = ME[L"DecksId"];
 	m_nDoorType = ME[L"DoorTypeId"];
 
-	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
-	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);
+	m_nOpeningTime = ME[L"OpeningTime"].msec();
+	m_nClosingTime = ME[L"ClosingTime"].msec();
+	m_nLoadingTime = ME[L"LoadingTime"].msec();
+	m_nUnloadingTime = ME[L"UnloadingTime"].msec();
+	m_nDwellTime = ME[L"HallCallDwellTime"].msec();
+	m_nMainFloorDwellTime = ME[L"MainFloorDwellTime"].msec();
+	m_nPreOpeningTime = ME[L"PreOpeningTime"].msec();
+	m_nMotorStartDelayTime = ME[L"MotorStartDelay"].msec();
+	m_nReopenings = ME[L"Reopenings"];
 
 	m_strStoreysServed = ME[L"StoreysServed"];
 
@@ -1171,8 +1181,15 @@ void CLiftGroup::SHAFT::Create()
 	m_nDeckType = ME[L"DecksId"];
 	m_nDoorType = ME[L"DoorTypeId"];
 
-	m_nOpeningTime = (AVULONG)((float)ME[L"OpeningTime"] * 1000);
-	m_nClosingTime = (AVULONG)((float)ME[L"ClosingTime"] * 1000);
+	m_nOpeningTime = ME[L"OpeningTime"].msec();
+	m_nClosingTime = ME[L"ClosingTime"].msec();
+	m_nLoadingTime = ME[L"LoadingTime"].msec();
+	m_nUnloadingTime = ME[L"UnloadingTime"].msec();
+	m_nDwellTime = ME[L"HallCallDwellTime"].msec();
+	m_nMainFloorDwellTime = ME[L"MainFloorDwellTime"].msec();
+	m_nPreOpeningTime = ME[L"PreOpeningTime"].msec();
+	m_nMotorStartDelayTime = ME[L"MotorStartDelay"].msec();
+	m_nReopenings = ME[L"Reopenings"];
 
 	m_nLiftCount = max(1, (AVULONG)ME[L"LiftsPerShaft"]);
 	m_nShaftLine = ME[L"ShaftLine"];

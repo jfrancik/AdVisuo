@@ -2,6 +2,7 @@
 
 #include "StdAfx.h"
 #include <comdef.h>
+#include "log.h"
 
 using namespace std;
 
@@ -10,6 +11,29 @@ HMODULE g_hModule = NULL;
 bool g_bRegEvents = true;
 bool g_bOnScreen = false;
 bool g_bBenchmark = false;
+bool g_bProgressOnScreen = false;
+bool g_bProgressDB = true;
+
+DWORD g_nSteps = 0;
+double g_fProgress = 0;
+
+void InitProgress(DWORD nSteps)
+{
+	g_nSteps = nSteps;
+	g_fProgress = 0;
+
+	if (!g_nSteps) return;
+	if (g_bProgressOnScreen)
+		wprintf(L"%d%%\b\b\b\b", (int)(100.0 * g_fProgress + 0.5));
+}
+
+void LogProgress()
+{
+	if (!g_nSteps) return;
+	g_fProgress += 1.0 / g_nSteps;
+	if (g_bProgressOnScreen)
+		wprintf(L"%d%%\b\b\b\b", (int)(100.0 * g_fProgress + 0.5));
+}
 
 void AddEventSource(HMODULE hModule, PCTSTR pszName, DWORD dwCategoryCount /* =0 */ )
 {

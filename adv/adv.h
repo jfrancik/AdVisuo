@@ -59,6 +59,8 @@
 // Returns module version number
 // Output: version number x 100000 (for 1.09.02 the value is 10902)
 ADV_API AVULONG AVGetVersion();
+// Output: release date
+ADV_API AVSTRING AVGetRelease();
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Setup diagnostic output
@@ -66,7 +68,7 @@ ADV_API AVULONG AVGetVersion();
 // Set bRegisterEventLog to register diagnostic output in the system event log. Default setting: true
 // Set bPrintOnScreen to display diagnostic output on screen. Default setting: false
 // Set bBenchmark to display benchmark results. Default setting: false
-ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog = true, bool bPrintOnScreen = false, bool bVerbose = false, bool bBenchmark = false);
+ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog = true, bool bPrintOnScreen = true, bool bVerbose = false, bool bBenchmark = false, bool bProgressOnScreen = true, bool bProgressDB = false);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configuration
@@ -132,6 +134,9 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID);
 // Function also fails if SIM binary data are missing or inconsistent.
 ADV_API HRESULT AVProcess(AVULONG nProjectId);
 
+// Replaces consecutive calls to AvInit and AVProcess
+ADV_API HRESULT AVRun(AVULONG nSimulationId);
+
 // Generates the IFC file for the given simulation ID
 // Uses Advisuo_Console database to acquire data
 // Stores IFC data in the location provided
@@ -156,6 +161,9 @@ ADV_API HRESULT AVDeleteAll();
 // Drops tables in the VISUALISATION database - may be used to re-initialize
 // Returns standard error codes in case of database/connection errors - check with FAILED(...) macro
 ADV_API HRESULT AVDropTables();
+
+// Creates a BAT file which drops all the tables and then reinitialises the Visualisation database
+ADV_API HRESULT AVWriteReinitBATFile();
 
 // Drops tables in the VISUALISATION database - may be used to re-initialize
 // Returns standard error codes in case of database/connection errors - check with FAILED(...) macro

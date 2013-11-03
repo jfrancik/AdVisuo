@@ -45,6 +45,7 @@ void CLiftVis::AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, bo
 {
 	AVFLOAT nDist = GetSim()->GetLiftGroup()->GetShaft(nShaft)->GetBoxDoor().Width() / 2.0f - 0.1f;
 	if (!bOpen) nDist = -nDist;
+	if (GetSHAFT()->GetShaftLine() == 1) nDist = -nDist;
 
 	CElemVis *pElemLI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 0);
 	CElemVis *pElemRI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 1);

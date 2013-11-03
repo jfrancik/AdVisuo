@@ -160,6 +160,11 @@ CValue::operator string()
 	return _wstr2str(operator wstring());
 }
 
+ULONG CValue::msec()
+{
+	return ((ULONG)((float)(*this) * 1000 + 5.0f)) / 10 * 10;
+}
+
 std::wstring CValue::as_xs_type()
 {
 	switch (type)
@@ -284,7 +289,11 @@ CDataBase::CDataBase(LPCOLESTR pConnectionString)
 	m_h = m_connection.CreateInstance(__uuidof(ADODB::Connection));
 	if FAILED(m_h) throw m_h;
 	m_connection->CursorLocation = ADODB::adUseClient;
+	m_connection->ConnectionTimeout = 60;
+	m_connection->CommandTimeout = 120;
 	m_h = m_connection->Open(pConnectionString, L"", L"", ADODB::adConnectUnspecified);
+	auto t3 = m_connection->ConnectionTimeout;
+	auto t4 = m_connection->CommandTimeout;
 	if FAILED(m_h) throw m_h;
 }
 

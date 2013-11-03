@@ -65,8 +65,10 @@ public:
 		bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
 		bool Within(AVVECTOR &pos)				{ return pos.z >= GetLevel() && pos.z < GetLevel() + GetHeight(); }
 
-		bool IsStoreyServed()					{ for (AVULONG i = 0; i < GetLiftGroup()->GetShaftCount(); i++) if (GetLiftGroup()->GetShaft(i)->IsStoreyServed(GetId())) return true; return false; }
+		bool IsStoreyServed()					{ for each (SHAFT *pShaft in GetLiftGroup()->GetShafts()) if (pShaft->IsStoreyServed(GetId())) return true; return false; }
 		bool IsStoreyServed(AVULONG nShaft)		{ return GetLiftGroup()->GetShaft(nShaft)->IsStoreyServed(GetId()); }
+
+		bool IsMain()							{ return GetLiftGroup()->IsStoreyMain(GetId()); }
 
 		// Operations:
 		void ConsoleCreate(AVULONG nId, AVFLOAT fLevel);
@@ -104,8 +106,15 @@ public:
 		CLiftGroup *m_pLiftGroup;				// lift group
 		AVULONG m_nShaftLine;					// 0 for SHAFT_INLINE and 0 or 1 for SHAFT_OPPOSITE
 
-		AVULONG m_nOpeningTime;					// door opening time
-		AVULONG m_nClosingTime;					// door closing time
+		AVLONG m_nOpeningTime;					// door opening time
+		AVLONG m_nClosingTime;					// door closing time
+		AVLONG m_nLoadingTime;
+		AVLONG m_nUnloadingTime;
+		AVLONG m_nDwellTime;					// dwell time - not main floor
+		AVLONG m_nMainFloorDwellTime;			// dwell time - main floor
+		AVLONG m_nPreOpeningTime;				// preopening time [ms]
+		AVLONG m_nMotorStartDelayTime;			// motor delay time [ms]
+		AVULONG m_nReopenings;					// max limit for reopenings
 
 		std::wstring m_strStoreysServed;		// storeys served; "0" for not served, "1" for served
 
@@ -159,8 +168,14 @@ public:
 
 		AVULONG GetDeckCount()					{ return m_nDeckType == 2 ? 2 : 1; }
 
-		AVULONG GetOpeningTime()				{ return m_nOpeningTime; }
-		AVULONG GetClosingTime()				{ return m_nClosingTime; }
+		AVLONG GetOpeningTime()					{ return m_nOpeningTime; }
+		AVLONG GetClosingTime()					{ return m_nClosingTime; }
+		AVLONG GetLoadingTime()					{ return m_nLoadingTime; }
+		AVLONG GetUnloadingTime()				{ return m_nUnloadingTime; }
+		AVLONG GetDwellTime(AVULONG nFloor)		{ return GetLiftGroup()->IsStoreyMain(nFloor) ? m_nMainFloorDwellTime : m_nDwellTime; }
+		AVLONG GetPreOpeningTime()				{ return m_nPreOpeningTime; }
+		AVLONG GetMotorStartDelayTime()			{ return m_nMotorStartDelayTime; }
+		AVULONG GetReopenings()					{ return m_nReopenings; }
 
 		bool IsStoreyServed(AVULONG nStorey)	{ return m_strStoreysServed[nStorey] == '1' ? true : false; }
 		AVULONG GetHighestStoreyServed()		{ return m_strStoreysServed.find_last_of('1'); }
@@ -272,8 +287,6 @@ private:
 
 	AVFLOAT m_fScale;					// scale factor (applied to all dimensions)
 
-	// storey counters
-	AVULONG m_nBasementStoreyCount;		// basement storey count
 	AVULONG m_pnShaftCount[2];			// counter of lifts per line
 
 	// lobby arrangement
@@ -299,6 +312,10 @@ private:
 	// pit level layout
 	BOX m_boxPit;						// scaled floor plan and level for the pit level
 	AVFLOAT m_fPitLevel;
+
+	// main floors (a.k.a. lobbies)
+	std::wstring m_strMainStoreys;		// catalogue of storeys: "1" for the main storey (a.k.a. lobby), "0" for any other
+
 
 protected:
 	std::vector<STOREY*> m_storeys;
@@ -351,9 +368,8 @@ public:
 	STOREY *AddStorey();
 	void DeleteStoreys();
 	AVULONG GetStoreyCount()				{ return m_storeys.size(); }
-	AVULONG GetBasementStoreyCount()		{ return m_nBasementStoreyCount; }
+	AVULONG GetBasementStoreyCount()		{ return 0; }
 	STOREY *GetStorey(AVULONG i)			{ return i < GetStoreyCount() ? m_storeys[i] : NULL; }
-	STOREY *GetGroundStorey(AVULONG i = 0)	{ return GetStorey(i + GetBasementStoreyCount()); }
 
 	// Extras: Machine Room & Pit
 	void AddExtras();
@@ -424,10 +440,15 @@ public:
 	// Storeys Served
 	bool IsStoreyServed(AVULONG nStorey)	{ return GetStorey(nStorey)->IsStoreyServed(); }
 	bool IsStoreyServed(AVULONG nStorey, AVULONG nShaft)	{ return GetShaft(nShaft)->IsStoreyServed(nStorey); }
-	AVULONG GetHighestStoreyServed()		{ AVLONG N = 0; for (AVULONG i = 0; i < GetShaftCount(); i++) { AVLONG n = GetShaft(i)->GetHighestStoreyServed(); if (n > N) N = n; } return N; }
-	AVULONG GetLowestStoreyServed()			{ AVLONG N = 32767; for (AVULONG i = 0; i < GetShaftCount(); i++) { AVLONG n = GetShaft(i)->GetLowestStoreyServed(); if (n < N) N = n; } return N; }
+	AVULONG GetHighestStoreyServed()		{ AVLONG N = 0; for each (SHAFT *pShaft in GetShafts()) { AVLONG n = pShaft->GetHighestStoreyServed(); if (n > N) N = n; } return N; }
+	AVULONG GetLowestStoreyServed()			{ AVLONG N = 32767; for each (SHAFT *pShaft in GetShafts()) { AVLONG n = pShaft->GetLowestStoreyServed(); if (n < N) N = n; } return N; }
 	AVULONG GetFloorUp(AVULONG nStorey)		{ if (nStorey >= GetHighestStoreyServed()) return GetHighestStoreyServed(); else if (IsStoreyServed(nStorey+1)) return nStorey+1; else return GetFloorUp(nStorey+1); }
 	AVULONG GetFloorDown(AVULONG nStorey)	{ if (nStorey <= GetLowestStoreyServed()) return GetLowestStoreyServed(); else if (IsStoreyServed(nStorey-1)) return nStorey-1; else return GetFloorDown(nStorey-1); }
+
+	// Main Floors (a.k.a. lobbies)
+	bool IsStoreyMain(AVULONG nStorey)		{ return m_strMainStoreys[nStorey] == '1' ? true : false; }
+	AVULONG GetLowestMainStorey()			{ return m_strMainStoreys.find('1'); }
+	AVULONG GetLobby()						{ return m_strMainStoreys.find('1'); }
 
 	// The Sim
 	CSim *AddSim();

@@ -14,9 +14,10 @@
 
 IMPLEMENT_DYNCREATE(CDlgHtSelect, CDlgHtBase)
 
-CDlgHtSelect::CDlgHtSelect(AVULONG nProjectId, AVULONG nSimulationId, bool bGotoSimulations, CWnd* pParent)
+CDlgHtSelect::CDlgHtSelect(std::wstring url, AVULONG nProjectId, AVULONG nSimulationId, bool bGotoSimulations, CWnd* pParent)
 	: CDlgHtBase(IDD, IDH)
 {
+	m_url = url;
 	m_nProjectId = 0;
 	m_nSimulationId = 0;
 	m_nSortModePrj = m_nSortModeSim = 0;
@@ -243,6 +244,7 @@ CString CDlgHtSelect::GenContent()
 	// Create XML structure
 	xmltools::CXmlWriter writer(L"utf-8", 4 * 1024 * 1024);
 	writer.write(L"AdVisuo-Path", lpszModule);
+	writer.write(L"Server-Path", m_url.c_str());
 	writer.write(L"SortMode", m_nSortModePrj);
 	writer.write(L"SortAsc", (int)m_bSortAscPrj);
 
@@ -303,6 +305,7 @@ CString CDlgHtSelect::GenContent(AVULONG nProjectId)
 	// Create XML structure
 	xmltools::CXmlWriter writer(L"utf-8", 4 * 1024 * 1024);
 	writer.write(L"AdVisuo-Path", lpszModule);
+	writer.write(L"Server-Path", m_url.c_str());
 	writer.write(L"SortMode", m_nSortModeSim);
 	writer.write(L"SortAsc", (int)m_bSortAscSim);
 	for each (std::wstring str in m_folders)

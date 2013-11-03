@@ -1,6 +1,7 @@
 // Sim.cpp - a part of the AdVisuo Server Module
 
 #include "StdAfx.h"
+#include <algorithm>
 #include "../CommonFiles/BaseProject.h"
 #include "SrvSim.h"
 #include "SrvLift.h"
@@ -51,13 +52,17 @@ HRESULT CSimSrv::LoadFromReports(CDataBase db)
 
 	bool bWarning = false;
 
+	wcerr << (LPOLESTR)L"********************************" << endl;
+
 	AVULONG iPassengerId = 0;
 	for (AVULONG iLift = 0; iLift < GetLiftGroup()->GetLiftCount(); iLift++)
 	{
 		AVULONG nNativeId = GetLiftGroup()->GetLift(iLift)->GetShaft()->GetNativeId();
+
+		std::vector<CPassenger*> collLoading, collUnloading;
 		
 		// Create and load passengers (Hall Calls)
-		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND TraffiicScenarioId=%d AND Iteration=%d", nNativeId, nTrafficScenarioId, nIteration);
+		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND TraffiicScenarioId=%d AND Iteration=%d ORDER BY StartLoading", nNativeId, nTrafficScenarioId, nIteration);
 		for ( ; sel; sel++)
 		{
 			CPassengerSrv *pPassenger = (CPassengerSrv*)CreatePassenger(iPassengerId++);
@@ -65,16 +70,29 @@ HRESULT CSimSrv::LoadFromReports(CDataBase db)
 			pPassenger->SetLiftId(iLift);	// overwrite original values (which were native DB id's)
 			pPassenger->SetShaftId(iLift);
 			AddPassenger(pPassenger);
+			collLoading.push_back(pPassenger);
+			collUnloading.push_back(pPassenger);
 		}
+		std::sort(collUnloading.begin(), collUnloading.end(), [](CPassenger *p1, CPassenger *p2) -> bool { return p1->GetUnloadTime() < p2->GetUnloadTime(); });
 	
+		HRESULT h;
+
 		// Create and load lifts & journeys
 		CLiftSrv *pLift = (CLiftSrv*)CreateLift(iLift);
-		pLift->Load(GetLiftGroup()->GetLift(iLift), db, nNativeId, nTrafficScenarioId, nIteration);
-		HRESULT h = pLift->Adjust();
+		h = pLift->Load(GetLiftGroup()->GetLift(iLift), db, nNativeId, nTrafficScenarioId, nIteration);
+		//h = pLift->Load2(db, nNativeId, nTrafficScenarioId, nIteration, collUnloading, collLoading);
+		//pLift->Adjust();
+
+		CLiftSrv *pLift2 = (CLiftSrv*)CreateLift(iLift);
+		h = pLift2->Load2(db, nNativeId, nTrafficScenarioId, nIteration, collUnloading, collLoading);
+		pLift->Comp(pLift2);
+		delete pLift2;
+
 		if FAILED(h) return h;
 		if (h != S_OK) bWarning = true;
 		AddLift(pLift);
 	}
+	LogProgress();
 
 	return bWarning ? WARNING_GENERIC : S_OK;
 }
@@ -140,6 +158,9 @@ HRESULT CSimSrv::Update(CDataBase db)
 	upd[L"PassengersSaved"] = GetPassengerCount();
 	upd[L"SavedAll"] = true;
 	upd.execute();
+
+	if (nLifts || nPassengers)
+		LogProgress();
 
 	return S_OK;
 }

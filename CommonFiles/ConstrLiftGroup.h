@@ -155,7 +155,6 @@ public:
 	CProjectConstr *GetProject()			{ return (CProjectConstr*)CLiftGroup::GetProject(); }
 
 	STOREY *GetStorey(AVULONG i)			{ return (STOREY*)CLiftGroup::GetStorey(i); }
-	STOREY *GetGroundStorey(AVULONG i = 0)	{ return (STOREY*)CLiftGroup::GetGroundStorey(i); }
 	SHAFT *GetShaft(AVULONG i)				{ return (SHAFT*)CLiftGroup::GetShaft(i); }
 	LIFT *GetLift(AVULONG i)				{ return (LIFT*)CLiftGroup::GetLift(i); }
 	MR *GetMR()								{ return (MR*)CLiftGroup::GetMR(); }

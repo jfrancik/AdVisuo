@@ -28,7 +28,6 @@ public:
 	AVULONG GetSimulationId()					{ return m_nSimulationId; }
 	AVULONG GetId()								{ return m_nId; }
 	AVULONG GetAVVersionId()					{ return m_nAVVersionId; }
-	static AVULONG GetAVNativeVersionId()		{ return 10900; }
 	
 	void SetSimulationId(AVULONG n)				{ m_nSimulationId = n; }
 	void SetId(AVULONG n)						{ m_nId = n; }

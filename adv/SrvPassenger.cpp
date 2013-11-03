@@ -131,7 +131,7 @@ void CPassengerSrv::Play()
 		AVULONG stepDuration = 150;
 		AVFLOAT stepLen = 15.0f;
 
-		SetGoTime(GetLoadTime() + 1600
+		SetGoTime(GetLoadTime() //+ 1600
 			- timeToGo(XLobby1, YLobby1, XLiftDoor0, YLiftDoor0, stepLen, stepDuration)
 			- timeToGo(XLiftDoor0, YLiftDoor0, XLiftDoor, YLiftDoor, stepLen, stepDuration));
 		SetArrivalTime(min(GetArrivalTime(), GetGoTime()));
@@ -188,16 +188,19 @@ void CPassengerSrv::Play()
 
 DWORD CPassengerSrv::Load(dbtools::CDataBase::SELECT &sel)
 {
-	SetArrivalTime((AVULONG)((float)sel[L"ArrivalTime"] * 1000));
+	SetArrivalTime(sel[L"ArrivalTime"].msec());
 	SetArrivalFloor((int)sel[L"ArrivalFloor"] + GetSim()->GetLiftGroup()->GetBasementStoreyCount());
 	SetDestFloor((int)sel[L"DestinationFloor"] + GetSim()->GetLiftGroup()->GetBasementStoreyCount());
 	SetLiftId((int)sel[L"LiftId"]);
-	SetShaftId((int)sel[L"LiftId"]);	// provisionary setting
-	SetDeck(0);							// provisionary setting
+	SetShaftId((int)sel[L"LiftId"]);
+	SetDeck((int)sel[L"Deck"]);
 
-	SetWaitSpan((AVULONG)((float)sel[L"WaitingTime"] * 1000));
-	SetLoadTime(GetArrivalTime() + (AVULONG)((float)sel[L"WaitingTime"] * 1000));
-	SetUnloadTime(GetArrivalTime() + (AVULONG)((float)sel[L"JourneyTime"] * 1000));
+	SetWaitSpan(sel[L"WaitingTime"].msec());
+
+//	SetLoadTime(GetArrivalTime() + sel[L"WaitingTime"].msec());
+//	SetUnloadTime(GetArrivalTime() + sel[L"JourneyTime"].msec());
+	SetLoadTime(sel[L"StartLoading"].msec());
+	SetUnloadTime(sel[L"StartUnloading"].msec());
 
 	return S_OK;
 }

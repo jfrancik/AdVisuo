@@ -106,13 +106,16 @@ struct JOURNEY
 
 		friend std::wstringstream &operator << (std::wstringstream &s, DOOR &d);
 		friend std::wstringstream &operator >> (std::wstringstream &s, DOOR &d);
+
+		bool operator == (DOOR &d)	{ return m_timeOpen == m_timeOpen && m_durationOpen == m_durationOpen && m_timeClose == m_timeClose && m_durationClose == m_durationClose; }
 	};
 
 	std::vector<DOOR> m_doorcycles[DECK_NUM];
 
+	AVULONG		m_id;						// for debug use only!
 	AVULONG		m_shaftFrom, m_shaftTo;		// shaft id
 	AVULONG		m_floorFrom, m_floorTo;		// journey floors
-	AVULONG		m_timeGo, m_timeDest;		// journey time
+	AVLONG		m_timeGo, m_timeDest;		// journey time
 
 	AVULONG FirstOpenTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? UNDEF : m_doorcycles[iDeck][0].m_timeOpen; }
 	AVULONG FirstOpenedTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? UNDEF : m_doorcycles[iDeck][0].timeOpened(); }
@@ -128,6 +131,73 @@ struct JOURNEY
 	void ParseDoorCycles(std::wstring);
 
 	JOURNEY()								{ m_shaftFrom = m_shaftTo = 0; m_floorFrom = m_floorTo = m_timeGo = m_timeDest = UNDEF; }
+
+	bool operator != (JOURNEY &j)
+	{
+		std::wstring msg = L"";
+		static AVULONG nCount = 0;
+
+		bool flag[2] = { true, true };
+
+		if (m_id != j.m_id) { msg += L"ID"; flag[0] = false; }
+		if (m_shaftFrom != j.m_shaftFrom) { msg += L"shaftfrom"; flag[0] = false; }
+		if (m_shaftTo != j.m_shaftTo) { msg += L"shaftto"; flag[0] = false; }
+		if (m_floorFrom != j.m_floorFrom) { msg += L"floorfrom"; flag[0] = false; }
+		if (m_floorTo != j.m_floorTo) { msg += L"floorto"; flag[0] = false; }
+		if (abs(long(m_timeGo - j.m_timeGo)) > 2) { msg += L"timego"; flag[0] = false; }
+		if (abs(long(m_timeDest - j.m_timeDest)) > 2) { msg += L"timedest"; flag[0] = false; }
+
+		if (!flag[0])
+		{
+#ifdef __ADV_DLL
+			wcerr << m_id << ": " << msg.c_str() << L" (" << ++nCount << L")" << endl;
+#endif
+		}
+		else
+			for (int iDeck = 0; iDeck < DECK_NUM; iDeck++)
+			{
+				auto mySize = m_doorcycles[iDeck].size();
+				auto jSize = j.m_doorcycles[iDeck].size();
+				if (mySize != jSize) 
+					flag[iDeck] = false; 
+				for (unsigned i = 0; i < min(mySize, jSize); i++)
+					if (!(m_doorcycles[iDeck][i] == j.m_doorcycles[iDeck][i])) 
+						flag[iDeck] = false; 
+
+				if (!flag[iDeck])
+				{
+#ifdef __ADV_DLL
+					wcerr << m_id << L" " << m_floorFrom << L"->" << m_floorTo << ": " << L"doorcycles at deck "<< iDeck << L" (" << ++nCount << L")" << endl;
+					wcerr << "  me:  "; for (unsigned i = 0; i < mySize; i++) wcerr <<   m_doorcycles[iDeck][i].m_timeOpen << "+" <<   m_doorcycles[iDeck][i].m_durationOpen << " - " <<   m_doorcycles[iDeck][i].m_timeClose << "+" <<   m_doorcycles[iDeck][i].m_durationClose  << "  |  "; wcerr << endl;
+					wcerr << "  him: "; for (unsigned i = 0; i < jSize; i++)  wcerr << j.m_doorcycles[iDeck][i].m_timeOpen << "+" << j.m_doorcycles[iDeck][i].m_durationOpen << " - " << j.m_doorcycles[iDeck][i].m_timeClose << "+" << j.m_doorcycles[iDeck][i].m_durationClose  << "  |  "; wcerr << endl;
+#endif
+				}
+			}
+
+		return !flag[0] && !flag[1];
+	}
+
+	bool operator == (JOURNEY &j)
+	{
+		bool flag = true;
+		if (m_shaftFrom != j.m_shaftFrom) flag = false;
+		if (m_shaftTo != j.m_shaftTo) flag = false;
+		if (m_floorFrom != j.m_floorFrom) flag = false;
+		if (m_floorTo != j.m_floorTo) flag = false;
+		if (abs(long(m_timeGo - j.m_timeGo)) > 2) flag = false;
+		if (abs(long(m_timeDest - j.m_timeDest)) > 2) flag = false;
+
+		for (int iDeck = 0; iDeck < DECK_NUM; iDeck++)
+		{
+			auto mySize = m_doorcycles[iDeck].size();
+			auto jSize = j.m_doorcycles[iDeck].size();
+			if (mySize != jSize) flag = false;
+			for (unsigned i = 0; i < min(mySize, jSize); i++)
+				if (!(m_doorcycles[iDeck][i] == j.m_doorcycles[iDeck][i])) flag = false;
+		}
+
+		return flag;
+	}
 };
 
 /////////////////////////////////////////////////////////////
@@ -151,6 +221,9 @@ public:
 
 	CSim *GetSim()					{ return m_pSim; }
 	CProject *GetProject()			{ return m_pSim->GetProject(); }
+
+	CLiftGroup::LIFT *GetLIFT()		{ return GetSim()->GetLiftGroup()->GetLift(m_nId); }
+	CLiftGroup::SHAFT *GetSHAFT()	{ return GetSim()->GetLiftGroup()->GetShaft(m_nId); }
 
 	AVULONG GetId()					{ return m_nId; }
 	void SetId(AVULONG n)			{ m_nId = n; }
@@ -191,21 +264,22 @@ class CPassenger : public dbtools::CCollection
 
 	// Simulation & Derived Data
 	AVULONG m_nId;
-	AVULONG m_nSimId;			// Sim ID
+	AVULONG m_nSimId;
 
-	AVULONG m_nShaft;			// set later
-	AVULONG m_nLift;			// read from file
-	AVULONG m_nDeck;			// set later
-	AVULONG m_nArrivalFloor;	// read from file
-	AVULONG m_nDestFloor;		// read from file
+	// all data below read from a DB except for m_timeSpawn and m_timeGo which are calculated from the data
+	AVULONG m_nShaft;
+	AVULONG m_nLift;
+	AVULONG m_nDeck;
+	AVULONG m_nArrivalFloor;
+	AVULONG m_nDestFloor;
 
-	AVLONG m_timeSpawn;			// calculated from data - appear at the starting pos
-	AVLONG m_timeArrival;		// read from file		- arrival to the wait zone (lobby)
-	AVLONG m_timeGo;			// calculated from data	- start towards the lift
-	AVLONG m_timeLoad;			// read from file		- load time (in the lift door)
-	AVLONG m_timeUnload;		// read from file		- unload time (in the lift door)
+	AVLONG m_timeSpawn;			// when appears outside the lobby to step into the action --- calculated from the data - walking backwards from the arrival time
+	AVLONG m_timeArrival;		// arrival time to the lobby - the main timestamp of the hallcall
+	AVLONG m_timeGo;			// time to start walking towards the lift - calculated from data - walking backwards from the loading time
+	AVLONG m_timeLoad;			// loading time - when passing the door into the lift
+	AVLONG m_timeUnload;		// unloading time - when passing the door out of the lift
 
-	AVLONG m_spanWait;			// read from file or derived from lift data
+	AVLONG m_spanWait;			// waiting time (used to determine the colours)
 
 protected:
 	// Way Points

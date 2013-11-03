@@ -16,6 +16,8 @@ class CDlgHtSelect : public CDlgHtBase
 	std::vector<std::wstring> m_folders;
 	std::vector<CProjectVis*> m_prjs;
 
+	std::wstring m_url;
+
 	AVULONG m_nSortModePrj, m_nSortModeSim;
 	bool m_bSortAscPrj, m_bSortAscSim;
 
@@ -26,7 +28,7 @@ public:
 	ULONG m_nSimulationId;		// selection (simulation id)
 
 public:
-	CDlgHtSelect(AVULONG nProjectId = 0, AVULONG nSimulationId = 0, bool bGotoSimulations = false, CWnd* pParent = NULL);   // standard constructor
+	CDlgHtSelect(std::wstring url = L"(unknown URL)", AVULONG nProjectId = 0, AVULONG nSimulationId = 0, bool bGotoSimulations = false, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgHtSelect();
 
 	void Load(CXMLRequest &http);

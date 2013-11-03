@@ -173,6 +173,7 @@ BOOL CAdVisuoApp::InitInstance()
 		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen && (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
 		{
 			url = cmdInfo.m_strFileName;
+			AfxMessageBox(url);
 			AddRemoteServer(url);
 			SaveRemoteServerConfig();
 		}
@@ -186,7 +187,7 @@ BOOL CAdVisuoApp::InitInstance()
 		{
 			if (!AskLogin()) return false;
 			SaveRemoteServerConfig();
-			AVULONG nSimulationId = SelectSimulation();
+			AVULONG nSimulationId = SelectSimulation(m_url);
 			if (!nSimulationId) return false;
 			url = URLFromSimulationId(nSimulationId);
 		}
@@ -270,7 +271,7 @@ bool CAdVisuoApp::AskLogin()
 	return true;
 }
 
-AVULONG CAdVisuoApp::SelectSimulation(AVULONG nProjectId, AVULONG nSimulationId, bool bGotoSimulations)
+AVULONG CAdVisuoApp::SelectSimulation(CString url, AVULONG nProjectId, AVULONG nSimulationId, bool bGotoSimulations)
 {
 	CWaitCursor wait;
 	try
@@ -282,7 +283,7 @@ AVULONG CAdVisuoApp::SelectSimulation(AVULONG nProjectId, AVULONG nSimulationId,
 			throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
 
 		// show Select Dialog
-		CDlgHtSelect dlgSelect(nProjectId, nSimulationId, bGotoSimulations);
+		CDlgHtSelect dlgSelect((LPCTSTR)url, nProjectId, nSimulationId, bGotoSimulations);
 		dlgSelect.Load(m_http);
 
 		auto pPrevFrame = m_pMainWnd;
@@ -392,7 +393,7 @@ bool CAdVisuoApp::InitSimulation(CString url)
 
 bool CAdVisuoApp::LoadSimulation(AVULONG nProjectId, AVULONG nSimulationId, bool bGotoSimulations)
 {
-	nSimulationId = SelectSimulation(nProjectId, nSimulationId, bGotoSimulations);
+	nSimulationId = SelectSimulation(m_url, nProjectId, nSimulationId, bGotoSimulations);
 	if (!nSimulationId) return false;
 	return InitSimulation(URLFromSimulationId(nSimulationId));
 }

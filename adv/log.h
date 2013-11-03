@@ -8,6 +8,14 @@
 
 extern HMODULE g_hModule;
 
+////////////////////////////////////////////////
+// Progress Functions
+
+void InitProgress(DWORD nSteps = 0);
+void LogProgress();
+
+////////////////////////////////////////////////
+// Log Functions
 void AddEventSource(HMODULE hModule, PCTSTR pszName, DWORD dwCategoryCount = 0);
 
 // generic formatted version

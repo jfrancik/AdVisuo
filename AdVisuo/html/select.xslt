@@ -407,6 +407,11 @@
       </div>
     </div>  <!-- list of projects -->
 
+    <div id="idCopyright">
+      Connected to: <xsl:value-of select="Server-Path"/>
+    </div>
+
+
     <input type="hidden" id="idProjectId" />
     <input type="hidden" id="idSimulationId" />
 

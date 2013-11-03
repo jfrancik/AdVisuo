@@ -19,6 +19,90 @@ CLiftGroup *CProjectSrv::CreateLiftGroup(AVULONG nIndex)
 	return new CLiftGroupSrv(this, nIndex); 
 }
 
+AVULONG CProjectSrv::QueryVerInt(CDataBase db)
+{
+	if (!db) throw db;
+	CDataBase::SELECT sel;
+	try
+	{
+		sel = db.select(L"SELECT IntValue FROM AVStatus WHERE Name = 'VERSION_LATEST'");
+	}
+	catch (...)
+	{
+		return 0;
+	}
+	if (!sel) return 0;
+
+	return sel[L"IntValue"];
+}
+
+std::wstring CProjectSrv::QueryVerStr(CDataBase db)
+{
+	if (!db) throw db;
+	CDataBase::SELECT sel;
+	try
+	{
+		sel = db.select(L"SELECT Value FROM AVStatus WHERE Name = 'VERSION_LATEST'");
+	}
+	catch (...)
+	{
+		return L"";
+	}
+	if (!sel) return 0;
+
+	return sel[L"Value"];
+}
+
+AVULONG CProjectSrv::QuerySimCountFromConsole(CDataBase db, ULONG nSimulationId)
+{
+	if (!db) throw db;
+	CDataBase::SELECT sel;
+	try
+	{
+		sel = db.select(L"SELECT COUNT(s.TrafficScenarioId) AS ScenarioCount FROM LiftGroups g, Tenancies t, TrafficScenarios s WHERE t.SimulationId = %d AND t.TenancyId = g.TenancyId AND g.LiftGroupId = s.LiftGroupId", nSimulationId);
+	}
+	catch (...)
+	{
+		return S_FALSE;
+	}
+	if (!sel) return 0;
+
+	return sel[L"ScenarioCount"];
+}
+
+AVULONG CProjectSrv::QuerySimCountFromVisualisation(CDataBase db, ULONG nProjectId)
+{
+	if (!db) throw db;
+	CDataBase::SELECT sel;
+	try
+	{
+		sel = db.select(L"SELECT COUNT(s.ID) AS ScenarioCount FROM AVSims s, AVLiftGroups g WHERE s.LiftGroupId = g.ID AND g.ProjectId = %d", nProjectId);
+	}
+	catch (...)
+	{
+		return S_FALSE;
+	}
+	if (!sel) return 0;
+
+	return sel[L"ScenarioCount"];
+}
+
+void CProjectSrv::QueryAvailIds(dbtools::CDataBase db, std::vector<AVULONG> &ids)
+{
+	if (!db) throw db;
+	CDataBase::SELECT sel;
+		
+	try
+	{
+		sel = db.select(L"SELECT SimulationId FROM AVProjects ORDER BY SimulationId");
+		for (; sel; sel++)
+			ids.push_back(sel[L"SimulationId"]);
+	}
+	catch (...)
+	{
+	}
+}
+
 HRESULT CProjectSrv::FindProjectID(CDataBase db, ULONG nSimulationId, ULONG &nProjectID)
 {
 	if (!db) throw db;
@@ -47,7 +131,7 @@ HRESULT CProjectSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
 	CDataBase::SELECT sel;
 
 	SetSimulationId(nSimulationId);
-	SetAVVersionId(GetAVNativeVersionId());
+	SetAVVersionId(0);
 	
 	// Query for the Simulation (not Sim!)
 	sel = db.select(L"SELECT p.*, f.Name AS ProjectFolderName, s.Name AS SimName, s.Comments AS SimComments, s.CreatedBy AS SimCreatedBy, s.CreatedDate AS SimCreatedDate, s.LastModifiedBy AS SimLastModifiedBy, s.LastModifiedDate AS SimLastModifiedDate FROM Projects p, ProjectFolders f, Simulations s WHERE p.ProjectId = s.ProjectId AND p.ProjectFolderId = f.ProjectFolderId AND s.SimulationId=%d", nSimulationId);
@@ -133,6 +217,7 @@ HRESULT CProjectSrv::Store(CDataBase db)
 		HRESULT h = pGroup->Store(db);
 		if FAILED(h) return h;
 	}
+
 	return S_OK;
 }
 
@@ -174,6 +259,14 @@ HRESULT CProjectSrv::CleanUp(CDataBase db, ULONG nSimulationId)
 	db.execute(L"IF OBJECT_ID('dbo.AVSims','U')       IS NOT NULL DELETE FROM AVSims       WHERE LiftGroupId  IN (SELECT G.ID FROM AVLiftGroups G, AVProjects P WHERE G.ProjectId = P.ID AND P.SimulationId=%d)", nSimulationId);
 	db.execute(L"IF OBJECT_ID('dbo.AVLiftGroups','U') IS NOT NULL DELETE FROM AVLiftGroups WHERE ProjectID IN (SELECT ID FROM AVProjects WHERE SimulationId=%d)", nSimulationId);
 	db.execute(L"IF OBJECT_ID('dbo.AVProjects','U')   IS NOT NULL DELETE FROM AVProjects WHERE SimulationId=%d", nSimulationId);
+	return S_OK;
+}
+
+HRESULT CProjectSrv::CleanUpSim(CDataBase db, ULONG nProjectId)
+{
+	if (!db) throw db;
+	db.execute(L"IF OBJECT_ID('dbo.AVPassengers','U') IS NOT NULL DELETE FROM AVPassengers WHERE SimID IN (SELECT S.ID FROM AVSims S, AVLiftGroups G WHERE S.LiftGroupId = G.ID AND G.ProjectId = %d)", nProjectId);
+	db.execute(L"IF OBJECT_ID('dbo.AVJourneys','U')   IS NOT NULL DELETE FROM AVJourneys   WHERE SimID IN (SELECT S.ID FROM AVSims S, AVLiftGroups G WHERE S.LiftGroupId = G.ID AND G.ProjectId = %d)", nProjectId);
 	return S_OK;
 }
 

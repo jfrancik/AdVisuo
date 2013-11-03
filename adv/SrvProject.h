@@ -22,7 +22,13 @@ public:
 	CSimSrv *FindSim(int id)				{ return (CSimSrv*)CProjectConstr::FindSim(id); }
 
 	// Database operations
-	HRESULT FindProjectID(dbtools::CDataBase db, ULONG nSimulationId, ULONG &nProjectID);
+	static AVULONG QueryVerInt(dbtools::CDataBase db);
+	static std::wstring QueryVerStr(dbtools::CDataBase db);
+	static AVULONG QuerySimCountFromConsole(dbtools::CDataBase db, ULONG nSimulationId);		// finds Sim count from the Console database
+	static AVULONG QuerySimCountFromVisualisation(dbtools::CDataBase db, ULONG nProjectId);
+	static void QueryAvailIds(dbtools::CDataBase db, std::vector<AVULONG> &ids);
+
+	static HRESULT FindProjectID(dbtools::CDataBase db, ULONG nSimulationId, ULONG &nProjectID);	// searches for prj id in Visualisation database
 	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);
 	HRESULT LoadFromReports(dbtools::CDataBase db);
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectId);
@@ -31,9 +37,10 @@ public:
 
 	void Play();
 
-	static HRESULT CleanUp(dbtools::CDataBase db, ULONG nSimulationId);
-	static HRESULT CleanUpAll(dbtools::CDataBase db);
-	static HRESULT DropTables(dbtools::CDataBase db);
+	static HRESULT CleanUp(dbtools::CDataBase db, ULONG nSimulationId);		// deletes all data for a particular simulation
+	static HRESULT CleanUpSim(dbtools::CDataBase db, ULONG nProjectId);		// deletes sim data (passengers and journeys) for a particular simulation
+	static HRESULT CleanUpAll(dbtools::CDataBase db);						// deletes all simulations
+	static HRESULT DropTables(dbtools::CDataBase db);						// drops all tables
 
 	static HRESULT CreateTicket(dbtools::CDataBase db, AVSTRING strUserId, AVSTRING strBuf);
 

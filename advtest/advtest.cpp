@@ -13,7 +13,9 @@ using namespace std;
 
 void version()
 {
-	wcout << L"ADV AdVisuo Server Tool version " << AVGetVersion() / 10000.0 << L". Copyright (C) 2011-12 Lerch Bates" << endl;
+	AVULONG v = AVGetVersion();
+	AVSTRING s = AVGetRelease();
+	wcout << L"ADV AdVisuo Server Ver " << v / 10000 << L"." << (v % 10000) / 100 << L"."  << v % 100 << L" (" << s << L"). Copyright (C) 2011-13 Lerch Bates" << endl;
 }
 
 void usage()
@@ -23,6 +25,7 @@ void usage()
 			<< L"  adv -d [ID]   deletes visualisation data for the specified simulation" << endl
 			<< L"  adv -dall     deletes all available visualisation data" << endl
 			<< L"  adv -drop     drops all table structure - the next storage will re-initialise" << endl
+			<< L"  adv -r        generates a BAT file to drop and then reinit all data" << endl
 			<< L"  adv -f [ID]   creates IFC file for the specified simulation" << endl
 			<< L"  adv -t [ID]   calls AVTest for the specified simulation" << endl
 			<< L"  adv -i [ID]   calls AVInit for the specified simulation" << endl
@@ -33,20 +36,21 @@ void usage()
 			<< L"  adv -u userid creates a ticket for the user id" << endl
 			<< L"[ID] is optional and may be omitted to enter interactive mode." << endl
 			<< L"More options:" << endl
-			<< L"-q for quiet mode: no text output is generated" << endl
-			<< L"-v for verbose mode: displays all SQL commands used" << endl
+			<< L"-q for quiet mode       -v for verbose mode" << endl
 			<< L"-b for benchmark mode: to display execution time information" << endl
-			<< L"-y to automatically reply \"Yes\" to proceed with the project which is up to date" << endl
-			<< L"-n to automatically reply \"No\" to omit the project which is up to date" << endl
+			<< L"-y to proceed, -n to discard when sim up to date (avoiding a query to continue)" << endl
 			<< L"-w to wait for a key pressed at the end of execution" << endl
 			<< endl;
 }
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	CoInitialize(NULL);
+	AVSetupDiagnosticOutput(false, false, false, false, false, false);
+
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	enum OPTION { DEFAULT, IFC, DEL, DEL_ALL, DROP_TABLES, TEST, INIT, PROCESS, USER_TICKET, CONN, CONN_ELEVATED, HELP, VERSION, WRONG, WRONG_2 } option = DEFAULT;
+	enum OPTION { DEFAULT, IFC, DEL, DEL_ALL, DROP_TABLES, REINIT, TEST, INIT, PROCESS, USER_TICKET, CONN, CONN_ELEVATED, HELP, VERSION, WRONG, WRONG_2 } option = DEFAULT;
 	AVULONG nSimulationID = 0;
 	AVULONG nProjectID;
 	_TCHAR *pParam = NULL;
@@ -94,6 +98,9 @@ int _tmain(int argc, _TCHAR* argv[])
 					option = (option == DEFAULT) ? DEL : WRONG;
 				break;
 
+			case 'r':
+				option = (option == DEFAULT) ? REINIT : WRONG;
+				break;
 			case 't':
 				option = (option == DEFAULT) ? TEST : WRONG;
 				break;
@@ -122,7 +129,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		else
 			pParam = argv[i];
 
-	if ((option == DEL_ALL || option == DROP_TABLES || option == CONN || option == CONN_ELEVATED) && nSimulationID > 0)
+	if ((option == DEL_ALL || option == DROP_TABLES || option == REINIT || option == CONN || option == CONN_ELEVATED) && nSimulationID > 0)
 		option = WRONG;
 
 	if ((option == USER_TICKET || option == CONN || option == CONN_ELEVATED) && pParam == NULL)
@@ -136,8 +143,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (nSimulationID <= 0) option = WRONG_2;
 	}
 
-	CoInitialize(NULL);
-	AVSetupDiagnosticOutput(true, !bQuiet, bVerbose, bBenchmark);
+	AVSetupDiagnosticOutput(true, !bQuiet, bVerbose, bBenchmark, !bQuiet);
 
 	switch (option)
 	{
@@ -166,9 +172,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					break;
 			}
 		}
-		h = AVInit(nSimulationID, nProjectID);
-		if SUCCEEDED(h)
-			h = AVProcess(nProjectID);
+		h = AVRun(nSimulationID);
 		break;
 	case IFC:
 		h = AVIFC(nSimulationID, L"out.ifc");
@@ -178,6 +182,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		break;
 	case DEL_ALL: 
 		h = AVDeleteAll();
+		break;
+	case REINIT:
+		AVWriteReinitBATFile();
 		break;
 	case TEST:
 		h = AVTest(nSimulationID);

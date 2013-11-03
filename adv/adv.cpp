@@ -3,6 +3,7 @@
 //
 
 #include "stdafx.h"
+#include <iostream>
 #include "../CommonFiles/DBTools.h"
 #include "adv.h"
 #include "SrvLiftGroup.h"
@@ -46,9 +47,46 @@
 	}
 
 
+HRESULT GetConnStrings(AVSTRING *ppConnConsole, AVSTRING *ppConnReports, AVSTRING *ppConnVisualisation, AVSTRING *ppConnUsers)
+{
+	static WCHAR bufConnConsole[1024];
+	static WCHAR bufConnReports[1024];
+	static WCHAR bufConnVisualisation[1024];
+	static WCHAR bufConnUsers[1024];
+	HKEY hRegKey = NULL; 
+
+	DWORD type, size;
+	HRESULT h;
+	h = RegOpenKey(HKEY_LOCAL_MACHINE, L"Software\\LerchBates\\AdVisuo\\ServerModule", &hRegKey); if (h != 0) return Log(ERROR_COM, h);
+	size = 1024; h = RegQueryValueEx(hRegKey, L"ConsoleConnectionString", 0, &type, (PBYTE)bufConnConsole, &size); if (h != 0) return Log(ERROR_COM, h);
+	size = 1024; h = RegQueryValueEx(hRegKey, L"ReportsConnectionString", 0, &type, (PBYTE)bufConnReports, &size); if (h != 0) return Log(ERROR_COM, h);
+	size = 1024; h = RegQueryValueEx(hRegKey, L"VisualisationConnectionString", 0, &type, (PBYTE)bufConnVisualisation, &size); if (h != 0) return Log(ERROR_COM, h);
+	size = 1024; h = RegQueryValueEx(hRegKey, L"UsersConnectionString", 0, &type, (PBYTE)bufConnUsers, &size); if (h != 0) return Log(ERROR_COM, h);
+	h = RegCloseKey(hRegKey); if (h != 0) return Log(ERROR_COM, h);
+
+	if (ppConnConsole) *ppConnConsole = bufConnConsole;
+	if (ppConnReports) *ppConnReports = bufConnReports;
+	if (ppConnVisualisation) *ppConnVisualisation = bufConnVisualisation;
+	if (ppConnUsers) *ppConnUsers = bufConnUsers;
+
+	return S_OK;
+}
+
 ADV_API AVULONG AVGetVersion()
 {
-	return CProject::GetAVNativeVersionId();
+	AVSTRING pConnStr;
+	GetConnStrings(NULL, NULL, &pConnStr, NULL);
+	return CProjectSrv::QueryVerInt(pConnStr);
+}
+
+ADV_API AVSTRING AVGetRelease()
+{
+	AVSTRING pConnStr;
+	GetConnStrings(NULL, NULL, &pConnStr, NULL);
+	auto str = CProjectSrv::QueryVerStr(pConnStr);
+	static wchar_t buf[128];
+	wcscpy_s(buf, str.c_str());
+	return buf;
 }
 
 ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation, AVSTRING pConnUsers)
@@ -117,31 +155,6 @@ ADV_API HRESULT AVSetScalingFactor(AVFLOAT fScale)
 	return S_OK;
 }
 
-HRESULT GetConnStrings(AVSTRING *ppConnConsole, AVSTRING *ppConnReports, AVSTRING *ppConnVisualisation, AVSTRING *ppConnUsers)
-{
-	static WCHAR bufConnConsole[1024];
-	static WCHAR bufConnReports[1024];
-	static WCHAR bufConnVisualisation[1024];
-	static WCHAR bufConnUsers[1024];
-	HKEY hRegKey = NULL; 
-
-	DWORD type, size;
-	HRESULT h;
-	h = RegOpenKey(HKEY_LOCAL_MACHINE, L"Software\\LerchBates\\AdVisuo\\ServerModule", &hRegKey); if (h != 0) return Log(ERROR_COM, h);
-	size = 1024; h = RegQueryValueEx(hRegKey, L"ConsoleConnectionString", 0, &type, (PBYTE)bufConnConsole, &size); if (h != 0) return Log(ERROR_COM, h);
-	size = 1024; h = RegQueryValueEx(hRegKey, L"ReportsConnectionString", 0, &type, (PBYTE)bufConnReports, &size); if (h != 0) return Log(ERROR_COM, h);
-	size = 1024; h = RegQueryValueEx(hRegKey, L"VisualisationConnectionString", 0, &type, (PBYTE)bufConnVisualisation, &size); if (h != 0) return Log(ERROR_COM, h);
-	size = 1024; h = RegQueryValueEx(hRegKey, L"UsersConnectionString", 0, &type, (PBYTE)bufConnUsers, &size); if (h != 0) return Log(ERROR_COM, h);
-	h = RegCloseKey(hRegKey); if (h != 0) return Log(ERROR_COM, h);
-
-	if (ppConnConsole) *ppConnConsole = bufConnConsole;
-	if (ppConnReports) *ppConnReports = bufConnReports;
-	if (ppConnVisualisation) *ppConnVisualisation = bufConnVisualisation;
-	if (ppConnUsers) *ppConnUsers = bufConnUsers;
-
-	return S_OK;
-}
-
 HRESULT GetScale(AVFLOAT *pScale)
 {
 
@@ -160,13 +173,18 @@ extern bool g_bRegEvents;
 extern bool g_bOnScreen;
 extern bool g_bVerbose;
 extern bool g_bBenchmark;
+extern bool g_bProgressOnScreen;
+extern bool g_bProgressDB;
 
-ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScreen, bool bVerbose, bool bBenchmark)
+ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScreen, bool bVerbose, bool bBenchmark, bool bProgressOnScreen, bool bProgressDB)
 {
 	g_bRegEvents = bRegisterEventLog;
 	g_bOnScreen = bPrintOnScreen;
 	g_bVerbose = bVerbose;
 	g_bBenchmark = bBenchmark;
+	g_bProgressOnScreen = bProgressOnScreen;
+	g_bProgressDB = bProgressDB;
+
 	return S_OK;
 }
 
@@ -189,10 +207,10 @@ ADV_API HRESULT AVTest(AVULONG nSimulationId)
 
 		AVULONG nProjectID;
 		
-		CProjectSrv prj;
-		h = prj.FindProjectID(pConnStr, nSimulationId, nProjectID);
+		h = CProjectSrv::FindProjectID(pConnStr, nSimulationId, nProjectID);
 		if (h == S_FALSE) return S_FALSE;
 
+		CProjectSrv prj;
 		h = prj.LoadFromVisualisation(pConnStr, nProjectID);
 
 		lt.Log(L"AVTest");
@@ -200,7 +218,10 @@ ADV_API HRESULT AVTest(AVULONG nSimulationId)
 		// should retuen S_OK if data up to date
 		return S_FALSE+1;
 	}
-	STD_CATCH(L"AVTest(%d)", nSimulationId);
+	catch (...)
+	{
+		return S_FALSE;
+	}
 }
 
 ADV_API HRESULT AVDelete(AVULONG nSimulationId)
@@ -257,6 +278,22 @@ ADV_API HRESULT AVDropTables()
 	STD_CATCH(L"AVDropTables()", 0);
 }
 
+ADV_API HRESULT AVWriteReinitBATFile()
+{
+	AVSTRING pVisConn;
+	GetConnStrings(NULL, NULL, &pVisConn, NULL);
+
+	std::vector<AVULONG> ids;
+	CProjectSrv::QueryAvailIds(pVisConn, ids);
+
+	std::wcout << L"@echo off" << std::endl;
+	std::wcout << L"adv -drop" << std::endl;
+	for each (AVULONG id in ids)
+		std::wcout << L"adv " << id << std::endl;
+
+	return S_OK;
+}
+
 ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 {
 	CLogTime lt;
@@ -265,21 +302,28 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 	
 	try
 	{
+		AVULONG nMilestones = 4;
+		InitProgress(nMilestones);
+
 		HRESULT h = S_OK;
 		DWORD dwStatus = STATUS_OK;
+		LogProgress();
 
 		h = CProjectSrv::CleanUp(pVisConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
+		LogProgress();
 
 		CProjectSrv prj;
 		h = prj.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
+		LogProgress();
 
 		h = prj.Store(pVisConn); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		h = prj.Update(pVisConn); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
+		LogProgress();
 
 		ASSERT(prj.GetId() == prj.GetLiftGroup(0)->GetProjectId());
 		nProjectID = prj.GetId();
@@ -299,15 +343,24 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 	
 	try
 	{
+		AVULONG nMilestones = 3 + 2 * CProjectSrv::QuerySimCountFromVisualisation(pVisConn, nProjectID);
+		InitProgress(nMilestones);
+
 		HRESULT h;
 		DWORD dwStatus = STATUS_OK;
 
 		AVFLOAT fScale;
 		GetScale(&fScale);
 
+		h = CProjectSrv::CleanUpSim(pVisConn, nProjectID); 
+		if WARNED(h) dwStatus = STATUS_WARNING;
+		LogProgress();
+
 		CProjectSrv prj;
 		h = prj.LoadFromVisualisation(pVisConn, nProjectID);
 		if WARNED(h) dwStatus = STATUS_WARNING;
+		LogProgress();
+		LogProgress();
 
 		prj.Scale(fScale);
 
@@ -316,6 +369,7 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		prj.Play(); lt.Log(L"Play");
+		LogProgress();
 
 		h = prj.Update(pVisConn); lt.Log(L"Update");
 		if WARNED(h) dwStatus = STATUS_WARNING;
@@ -324,6 +378,57 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 		return Logf(dwStatus, L"AVProcess(%d)", nProjectID);
 	}
 	STD_CATCH(L"AVProcess(%d)", nProjectID);
+}
+
+ADV_API HRESULT AVRun(AVULONG nSimulationId)
+{
+	CLogTime ltall, lt;
+	AVSTRING pConsoleConn, pVisConn, pRepConn;
+	GetConnStrings(&pConsoleConn, &pRepConn, &pVisConn, NULL);
+	
+	try
+	{
+		AVULONG nMilestones = 5 + 2 * CProjectSrv::QuerySimCountFromConsole(pConsoleConn, nSimulationId);
+		InitProgress(nMilestones);
+
+		HRESULT h = S_OK;
+		DWORD dwStatus = STATUS_OK;
+		LogProgress();
+
+		h = CProjectSrv::CleanUp(pVisConn, nSimulationId); 
+		if WARNED(h) dwStatus = STATUS_WARNING;
+		LogProgress();
+
+		CProjectSrv prj;
+		h = prj.LoadFromConsole(pConsoleConn, nSimulationId);
+		if WARNED(h) dwStatus = STATUS_WARNING;
+		LogProgress();
+
+		h = prj.Store(pVisConn); 
+		if WARNED(h) dwStatus = STATUS_WARNING;
+
+		h = prj.Update(pVisConn); 
+		if WARNED(h) dwStatus = STATUS_WARNING;
+		LogProgress();
+
+		AVFLOAT fScale;
+		GetScale(&fScale);
+		prj.Scale(fScale);
+
+		lt.Reset(); 
+		h = prj.LoadFromReports(pRepConn); lt.Log(L"LoadSim");
+		if WARNED(h) dwStatus = STATUS_WARNING;
+
+		prj.Play(); lt.Log(L"Play");
+		LogProgress();
+
+		h = prj.Update(pVisConn); lt.Log(L"Update");
+		if WARNED(h) dwStatus = STATUS_WARNING;
+
+		ltall.Log(L"AVRun");
+		return Logf(dwStatus, L"AVRun(%d)", nSimulationId);
+	}
+	STD_CATCH(L"AVRun(%d)", nSimulationId);
 }
 
 ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)

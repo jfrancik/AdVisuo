@@ -42,10 +42,6 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 	if (!sel) throw ERROR_BUILDING;
 	sel >> *this;
 
-	sel = db.select(L"SELECT 0 AS NumberOfBasementStoreys");	
-	if (!sel) throw ERROR_BUILDING;
-	sel >> *this;
-
 	// Query for Shaft Data and add /load shafts
 	sel = db.select(L"SELECT * FROM Lifts l, Doors d WHERE LiftGroupId=%d  AND d.LiftId = l.LiftId AND d.DoorConfigurationId=1 ORDER BY LiftNumber", nLiftGroupId);
 	while (sel)
@@ -57,18 +53,30 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 
 		// Queries for Stories Served
 		std::wstring ss((AVULONG)(*this)[L"NumberOfStoreys"], L'0');
-		sel1 = db.select(L"SELECT lf.IsServed AS IsServed, f.GroundIndex AS GroundIndex FROM LiftFloors lf, LiftGroupFloors lgf, Floors f WHERE lf.LiftId = %d AND lf.LiftGroupFloorId = lgf.LiftGroupFloorId AND lgf.FloorId = f.FloorId ORDER BY f.GroundIndex ", (AVULONG)sel[L"LiftId"]); 
+		sel1 = db.select(L"SELECT lf.Priority AS Priority, f.GroundIndex AS GroundIndex FROM LiftFloors lf, Floors f WHERE lf.LiftId = %d AND lf.FloorId = f.FloorId ORDER BY f.GroundIndex ", (AVULONG)sel[L"LiftId"]); 
 		while (sel1)
 		{
-			std::wstring is = sel1[L"IsServed"];
+			AVLONG nPriority = sel1[L"Priority"];
 			AVLONG nGroundIndex = sel1[L"GroundIndex"];
-			ss[nGroundIndex] = is[0];
+			ss[nGroundIndex] = L'1';
 			sel1++;
 		}
 		(*pShaft)[L"StoreysServed"] = ss;
 
 		sel++;
 	}
+
+	// Query for the Main Floors (aka Lobbies)
+	std::wstring ss((AVULONG)(*this)[L"NumberOfStoreys"], L'0');
+	sel1 = db.select(L"SELECT f.GroundIndex AS GroundIndex FROM LiftGroupLobbies lgl, Floors f WHERE lgl.LiftGroupId = %d AND lgl.FloorId = f.FloorId ORDER BY f.GroundIndex ", nLiftGroupId); 
+	while (sel1)
+	{
+		AVLONG nGroundIndex = sel1[L"GroundIndex"];
+		ss[nGroundIndex] = '1';
+		sel1++;
+	}
+	ME[L"MainFloors"] = ss;
+
 
 	// Query for Storey Data and add/load storeys
 

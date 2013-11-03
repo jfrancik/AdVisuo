@@ -11,6 +11,11 @@
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#include <iostream>
+using std::wcin;
+using std::wcout;
+using std::wcerr;
+using std::endl;
 #define new new(1, __FILE__, __LINE__)
 
 
