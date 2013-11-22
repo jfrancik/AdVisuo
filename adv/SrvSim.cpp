@@ -52,8 +52,6 @@ HRESULT CSimSrv::LoadFromReports(CDataBase db)
 
 	bool bWarning = false;
 
-	wcerr << (LPOLESTR)L"********************************" << endl;
-
 	AVULONG iPassengerId = 0;
 	for (AVULONG iLift = 0; iLift < GetLiftGroup()->GetLiftCount(); iLift++)
 	{
@@ -80,17 +78,16 @@ HRESULT CSimSrv::LoadFromReports(CDataBase db)
 		// Create and load lifts & journeys
 		CLiftSrv *pLift = (CLiftSrv*)CreateLift(iLift);
 		h = pLift->Load(GetLiftGroup()->GetLift(iLift), db, nNativeId, nTrafficScenarioId, nIteration);
-		//h = pLift->Load2(db, nNativeId, nTrafficScenarioId, nIteration, collUnloading, collLoading);
-		//pLift->Adjust();
 
 		CLiftSrv *pLift2 = (CLiftSrv*)CreateLift(iLift);
 		h = pLift2->Load2(db, nNativeId, nTrafficScenarioId, nIteration, collUnloading, collLoading);
-		pLift->Comp(pLift2);
-		delete pLift2;
+		pLift->ReportDifferences(pLift2);
+
+		delete pLift;
 
 		if FAILED(h) return h;
 		if (h != S_OK) bWarning = true;
-		AddLift(pLift);
+		AddLift(pLift2);
 	}
 	LogProgress();
 

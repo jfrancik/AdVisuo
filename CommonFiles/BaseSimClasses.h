@@ -107,7 +107,11 @@ struct JOURNEY
 		friend std::wstringstream &operator << (std::wstringstream &s, DOOR &d);
 		friend std::wstringstream &operator >> (std::wstringstream &s, DOOR &d);
 
-		bool operator == (DOOR &d)	{ return m_timeOpen == m_timeOpen && m_durationOpen == m_durationOpen && m_timeClose == m_timeClose && m_durationClose == m_durationClose; }
+		bool operator == (DOOR &d)	
+		{
+			return abs((int)m_timeOpen - (int)d.m_timeOpen) <= 400 && abs((int)m_timeClose - (int)d.m_timeClose) <= 400;
+		}
+		bool operator != (DOOR &j)		{ return !operator ==(j); } 
 	};
 
 	std::vector<DOOR> m_doorcycles[DECK_NUM];
@@ -132,72 +136,21 @@ struct JOURNEY
 
 	JOURNEY()								{ m_shaftFrom = m_shaftTo = 0; m_floorFrom = m_floorTo = m_timeGo = m_timeDest = UNDEF; }
 
-	bool operator != (JOURNEY &j)
-	{
-		std::wstring msg = L"";
-		static AVULONG nCount = 0;
-
-		bool flag[2] = { true, true };
-
-		if (m_id != j.m_id) { msg += L"ID"; flag[0] = false; }
-		if (m_shaftFrom != j.m_shaftFrom) { msg += L"shaftfrom"; flag[0] = false; }
-		if (m_shaftTo != j.m_shaftTo) { msg += L"shaftto"; flag[0] = false; }
-		if (m_floorFrom != j.m_floorFrom) { msg += L"floorfrom"; flag[0] = false; }
-		if (m_floorTo != j.m_floorTo) { msg += L"floorto"; flag[0] = false; }
-		if (abs(long(m_timeGo - j.m_timeGo)) > 2) { msg += L"timego"; flag[0] = false; }
-		if (abs(long(m_timeDest - j.m_timeDest)) > 2) { msg += L"timedest"; flag[0] = false; }
-
-		if (!flag[0])
-		{
-#ifdef __ADV_DLL
-			wcerr << m_id << ": " << msg.c_str() << L" (" << ++nCount << L")" << endl;
-#endif
-		}
-		else
-			for (int iDeck = 0; iDeck < DECK_NUM; iDeck++)
-			{
-				auto mySize = m_doorcycles[iDeck].size();
-				auto jSize = j.m_doorcycles[iDeck].size();
-				if (mySize != jSize) 
-					flag[iDeck] = false; 
-				for (unsigned i = 0; i < min(mySize, jSize); i++)
-					if (!(m_doorcycles[iDeck][i] == j.m_doorcycles[iDeck][i])) 
-						flag[iDeck] = false; 
-
-				if (!flag[iDeck])
-				{
-#ifdef __ADV_DLL
-					wcerr << m_id << L" " << m_floorFrom << L"->" << m_floorTo << ": " << L"doorcycles at deck "<< iDeck << L" (" << ++nCount << L")" << endl;
-					wcerr << "  me:  "; for (unsigned i = 0; i < mySize; i++) wcerr <<   m_doorcycles[iDeck][i].m_timeOpen << "+" <<   m_doorcycles[iDeck][i].m_durationOpen << " - " <<   m_doorcycles[iDeck][i].m_timeClose << "+" <<   m_doorcycles[iDeck][i].m_durationClose  << "  |  "; wcerr << endl;
-					wcerr << "  him: "; for (unsigned i = 0; i < jSize; i++)  wcerr << j.m_doorcycles[iDeck][i].m_timeOpen << "+" << j.m_doorcycles[iDeck][i].m_durationOpen << " - " << j.m_doorcycles[iDeck][i].m_timeClose << "+" << j.m_doorcycles[iDeck][i].m_durationClose  << "  |  "; wcerr << endl;
-#endif
-				}
-			}
-
-		return !flag[0] && !flag[1];
-	}
-
 	bool operator == (JOURNEY &j)
 	{
-		bool flag = true;
-		if (m_shaftFrom != j.m_shaftFrom) flag = false;
-		if (m_shaftTo != j.m_shaftTo) flag = false;
-		if (m_floorFrom != j.m_floorFrom) flag = false;
-		if (m_floorTo != j.m_floorTo) flag = false;
-		if (abs(long(m_timeGo - j.m_timeGo)) > 2) flag = false;
-		if (abs(long(m_timeDest - j.m_timeDest)) > 2) flag = false;
-
-		for (int iDeck = 0; iDeck < DECK_NUM; iDeck++)
+		if (m_id != j.m_id || m_shaftFrom != j.m_shaftFrom || m_shaftTo != j.m_shaftTo || m_floorFrom != j.m_floorFrom || m_floorTo != j.m_floorTo || m_timeGo != j.m_timeGo || m_timeDest != j.m_timeDest)
+			return false;
+		for (int iDeck = 0; iDeck < 1; iDeck++)
 		{
-			auto mySize = m_doorcycles[iDeck].size();
-			auto jSize = j.m_doorcycles[iDeck].size();
-			if (mySize != jSize) flag = false;
-			for (unsigned i = 0; i < min(mySize, jSize); i++)
-				if (!(m_doorcycles[iDeck][i] == j.m_doorcycles[iDeck][i])) flag = false;
+			if (m_doorcycles[iDeck].size() != j.m_doorcycles[iDeck].size()) 
+				return false; 
+			for (unsigned i = 0; i < m_doorcycles[iDeck].size(); i++)
+				if (m_doorcycles[iDeck][i] != j.m_doorcycles[iDeck][i])
+					return false;
 		}
-
-		return flag;
+		return true;
 	}
+	bool operator != (JOURNEY &j)		{ return !operator ==(j); } 
 };
 
 /////////////////////////////////////////////////////////////

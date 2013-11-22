@@ -16,7 +16,7 @@ public:
 
 	DWORD Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTrafficScenarioId, AVULONG nIteration,
 				std::vector<CPassenger*> &collUnloading, std::vector<CPassenger*> &collLoading);
-	bool Comp(CLiftSrv *p);
+	bool ReportDifferences(CLiftSrv *p);
 
 	// IO: load from SIM File, Store to DB
 	DWORD Load(CLiftGroupSrv::LIFT *pLIFT, dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTrafficScenarioId, AVULONG nIteration);

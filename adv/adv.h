@@ -25,7 +25,7 @@
 // Recommended usage (pseudo-code):
 //
 // Call this once for the system installation:
-//	AVSetConnStrings(pConsoleConnectionString, pReportsConnectionString, pVisualisationConnectionString, pUsersConnectionString)
+//	AVSetConnStrings(pConsoleConnectionString, pReportsConnectionString, pVisualisationConnectionString, pUsersConnectionString, pConnSimQueue)
 //	AVSetScalingFactor(fScalingFactor)	// this is not necessary unless a non-standard scaling factor is used
 //
 //
@@ -76,8 +76,8 @@ ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog = true, bool bPri
 // or again in unlikely case the parameters change.
 
 // Configures the database connection strings for the Console and Visualisation databases
-ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation, AVSTRING pConnUsers);
-ADV_API HRESULT AVSetConnStrings8(char *pConnConsole, char *pConnReports, char *pConnVisualisation, char *pConnUsers);
+ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation, AVSTRING pConnUsers, AVSTRING pConnSimQueue);
+ADV_API HRESULT AVSetConnStrings8(char *pConnConsole, char *pConnReports, char *pConnVisualisation, char *pConnUsers, char *pConnSimQueue);
 
 // Configures the database connection strings for the Console and Visualisation databases
 // Use "%s" sequence in the pConn string: it will be replaced by appropriate database names:

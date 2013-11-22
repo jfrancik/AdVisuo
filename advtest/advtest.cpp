@@ -36,7 +36,7 @@ void usage()
 			<< L"  adv -u userid creates a ticket for the user id" << endl
 			<< L"[ID] is optional and may be omitted to enter interactive mode." << endl
 			<< L"More options:" << endl
-			<< L"-q for quiet mode       -v for verbose mode" << endl
+			<< L"-q for quiet mode    -qp for not showing progress   -v for verbose mode" << endl
 			<< L"-b for benchmark mode: to display execution time information" << endl
 			<< L"-y to proceed, -n to discard when sim up to date (avoiding a query to continue)" << endl
 			<< L"-w to wait for a key pressed at the end of execution" << endl
@@ -54,7 +54,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	AVULONG nSimulationID = 0;
 	AVULONG nProjectID;
 	_TCHAR *pParam = NULL;
-	bool bQuiet = false, bVerbose = false, bYes = false, bNo = false, bWait = false, bBenchmark = false;
+	bool bQuiet = false, bPercentage = true, bVerbose = false, bYes = false, bNo = false, bWait = false, bBenchmark = false;
 	HRESULT h = S_OK;
 
 	// read params...
@@ -66,7 +66,9 @@ int _tmain(int argc, _TCHAR* argv[])
 			switch (argv[i][1])
 			{
 			case 'q':
-				bQuiet = true;
+				bPercentage = false;
+				if (_wcsicmp(argv[i], L"-q") == 0)
+					bQuiet = true;
 				break;
 			case 'v':
 				if (_wcsicmp(argv[i], L"-ver") == 0)
@@ -143,7 +145,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (nSimulationID <= 0) option = WRONG_2;
 	}
 
-	AVSetupDiagnosticOutput(true, !bQuiet, bVerbose, bBenchmark, !bQuiet);
+	AVSetupDiagnosticOutput(true, !bQuiet, bVerbose, bBenchmark, bPercentage);
 
 	switch (option)
 	{

@@ -47,49 +47,48 @@
 	}
 
 
-HRESULT GetConnStrings(AVSTRING *ppConnConsole, AVSTRING *ppConnReports, AVSTRING *ppConnVisualisation, AVSTRING *ppConnUsers)
+enum CONNECTIONS { CONN_CONSOLE, CONN_VISUALISATION, CONN_REPORT, CONN_USERS, CONN_SIMQUEUE, CONN_RESERVED };
+AVSTRING GetConnString(enum CONNECTIONS connId)
 {
-	static WCHAR bufConnConsole[1024];
-	static WCHAR bufConnReports[1024];
-	static WCHAR bufConnVisualisation[1024];
-	static WCHAR bufConnUsers[1024];
+	static WCHAR buf[CONN_RESERVED][1024];
 	HKEY hRegKey = NULL; 
 
 	DWORD type, size;
 	HRESULT h;
-	h = RegOpenKey(HKEY_LOCAL_MACHINE, L"Software\\LerchBates\\AdVisuo\\ServerModule", &hRegKey); if (h != 0) return Log(ERROR_COM, h);
-	size = 1024; h = RegQueryValueEx(hRegKey, L"ConsoleConnectionString", 0, &type, (PBYTE)bufConnConsole, &size); if (h != 0) return Log(ERROR_COM, h);
-	size = 1024; h = RegQueryValueEx(hRegKey, L"ReportsConnectionString", 0, &type, (PBYTE)bufConnReports, &size); if (h != 0) return Log(ERROR_COM, h);
-	size = 1024; h = RegQueryValueEx(hRegKey, L"VisualisationConnectionString", 0, &type, (PBYTE)bufConnVisualisation, &size); if (h != 0) return Log(ERROR_COM, h);
-	size = 1024; h = RegQueryValueEx(hRegKey, L"UsersConnectionString", 0, &type, (PBYTE)bufConnUsers, &size); if (h != 0) return Log(ERROR_COM, h);
-	h = RegCloseKey(hRegKey); if (h != 0) return Log(ERROR_COM, h);
+	h = RegOpenKey(HKEY_LOCAL_MACHINE, L"Software\\LerchBates\\AdVisuo\\ServerModule", &hRegKey); if (h != 0) return Log(ERROR_COM, h), NULL;
+	size = 1024; 
+	
+	switch (connId)
+	{
+	case CONN_CONSOLE:			h = RegQueryValueEx(hRegKey, L"ConsoleConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
+	case CONN_VISUALISATION:	h = RegQueryValueEx(hRegKey, L"VisualisationConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
+	case CONN_REPORT:			h = RegQueryValueEx(hRegKey, L"ReportsConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
+	case CONN_USERS:			h = RegQueryValueEx(hRegKey, L"UsersConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
+	case CONN_SIMQUEUE:			h = RegQueryValueEx(hRegKey, L"SimQueueConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
+	}
+	if (h != 0) return Log(ERROR_COM, h), NULL;
+	
+	h = RegCloseKey(hRegKey); if (h != 0) return Log(ERROR_COM, h), NULL;
 
-	if (ppConnConsole) *ppConnConsole = bufConnConsole;
-	if (ppConnReports) *ppConnReports = bufConnReports;
-	if (ppConnVisualisation) *ppConnVisualisation = bufConnVisualisation;
-	if (ppConnUsers) *ppConnUsers = bufConnUsers;
-
-	return S_OK;
+	return buf[connId];
 }
 
 ADV_API AVULONG AVGetVersion()
 {
-	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr, NULL);
+	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
 	return CProjectSrv::QueryVerInt(pConnStr);
 }
 
 ADV_API AVSTRING AVGetRelease()
 {
-	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr, NULL);
+	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
 	auto str = CProjectSrv::QueryVerStr(pConnStr);
 	static wchar_t buf[128];
 	wcscpy_s(buf, str.c_str());
 	return buf;
 }
 
-ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation, AVSTRING pConnUsers)
+ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, AVSTRING pConnVisualisation, AVSTRING pConnUsers, AVSTRING pConnSimQueue)
 {
 	HKEY hRegKey = NULL; 
 	HRESULT h;
@@ -98,19 +97,21 @@ ADV_API HRESULT AVSetConnStrings(AVSTRING pConnConsole, AVSTRING pConnReports, A
 	h = RegSetValueEx(hRegKey, L"ReportsConnectionString", 0, REG_EXPAND_SZ, (PBYTE)pConnReports, (_tcslen(pConnReports) + 1) * sizeof TCHAR); if (h != 0) return Log(ERROR_COM, h);
 	h = RegSetValueEx(hRegKey, L"VisualisationConnectionString", 0, REG_EXPAND_SZ, (PBYTE)pConnVisualisation, (_tcslen(pConnVisualisation) + 1) * sizeof TCHAR); if (h != 0) return Log(ERROR_COM, h);
 	h = RegSetValueEx(hRegKey, L"UsersConnectionString", 0, REG_EXPAND_SZ, (PBYTE)pConnUsers, (_tcslen(pConnUsers) + 1) * sizeof TCHAR); if (h != 0) return Log(ERROR_COM, h);
+	h = RegSetValueEx(hRegKey, L"SimQueueConnectionString", 0, REG_EXPAND_SZ, (PBYTE)pConnSimQueue, (_tcslen(pConnSimQueue) + 1) * sizeof TCHAR); if (h != 0) return Log(ERROR_COM, h);
 	h = RegCloseKey(hRegKey); if (h != 0) return Log(ERROR_COM, h);
-	Logf(INFO_CONFIG_SET, L"\n\rConsole = %s\n\rReports = %s\n\rVisualisation = %s\n\rUsers = %s", pConnConsole, pConnReports, pConnVisualisation, pConnUsers);
+	Logf(INFO_CONFIG_SET, L"\n\rConsole = %s\n\rReports = %s\n\rVisualisation = %s\n\rUsers = %s\n\rSimQueue = %s", pConnConsole, pConnReports, pConnVisualisation, pConnUsers, pConnSimQueue);
 	return S_OK;
 }
 
-ADV_API HRESULT AVSetConnStrings8(char *pConnConsole, char *pConnReports, char *pConnVisualisation, char *pConnUsers)
+ADV_API HRESULT AVSetConnStrings8(char *pConnConsole, char *pConnReports, char *pConnVisualisation, char *pConnUsers, char *pConnSimQueue)
 {
 	USES_CONVERSION;
 	CA2W wConnConsole(pConnConsole);
 	CA2W wConnReports(pConnReports);
 	CA2W wConnVisualisation(pConnVisualisation);
 	CA2W wConnUsers(pConnUsers);
-	return AVSetConnStrings(wConnConsole, wConnReports, wConnVisualisation, wConnUsers);
+	CA2W wConnSimQueue(pConnSimQueue);
+	return AVSetConnStrings(wConnConsole, wConnReports, wConnVisualisation, wConnUsers, wConnSimQueue);
 }
 
 ADV_API HRESULT AVSetConnString(AVSTRING pConn)
@@ -119,12 +120,14 @@ ADV_API HRESULT AVSetConnString(AVSTRING pConn)
 	static wchar_t pConnReport[1024];
 	static wchar_t pConnVisualisation[1024];
 	static wchar_t pConnUsers[1024];
+	static wchar_t pConnSimQueue[1024];
 	if (wcschr(pConn, L'=') == NULL)
 	{
 		_snwprintf_s(pConnConsole, 1024,	   L"Provider=SQLOLEDB;Data Source=%s\\SQLEXPRESS;Initial Catalog=Adsimulo_Console;Integrated Security=SSPI;", pConn);
 		_snwprintf_s(pConnReport, 1024,	       L"Provider=SQLOLEDB;Data Source=%s\\SQLEXPRESS;Initial Catalog=Adsimulo_Reports;Integrated Security=SSPI;", pConn);
 		_snwprintf_s(pConnVisualisation, 1024, L"Provider=SQLOLEDB;Data Source=%s\\SQLEXPRESS;Initial Catalog=Adsimulo_Visualisation;Integrated Security=SSPI;", pConn);
 		_snwprintf_s(pConnUsers, 1024,         L"Provider=SQLOLEDB;Data Source=%s\\SQLEXPRESS;Initial Catalog=AD_AspNetProviders;Integrated Security=SSPI;", pConn);
+		_snwprintf_s(pConnSimQueue, 1024,      L"Provider=SQLOLEDB;Data Source=%s\\SQLEXPRESS;Initial Catalog=AD_AspNetProviders;Integrated Security=SSPI;", pConn);
 	}
 	else
 	{
@@ -132,8 +135,9 @@ ADV_API HRESULT AVSetConnString(AVSTRING pConn)
 		_snwprintf_s(pConnReport, 1024, pConn, L"Adsimulo_Reports");
 		_snwprintf_s(pConnVisualisation, 1024, pConn, L"Adsimulo_Visualisation");
 		_snwprintf_s(pConnUsers, 1024, pConn, L"AD_AspNetProviders");
+		_snwprintf_s(pConnSimQueue, 1024, pConn, L"SimQueue");
 	}
-	return AVSetConnStrings(pConnConsole, pConnReport, pConnVisualisation, pConnUsers);
+	return AVSetConnStrings(pConnConsole, pConnReport, pConnVisualisation, pConnUsers, pConnSimQueue);
 }
 
 ADV_API HRESULT AVSetConnString8(char *pConn)
@@ -198,8 +202,7 @@ ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScr
 ADV_API HRESULT AVTest(AVULONG nSimulationId)
 {
 	CLogTime lt;
-	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr, NULL);
+	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
 	try
 	{
 		HRESULT h;
@@ -227,8 +230,7 @@ ADV_API HRESULT AVTest(AVULONG nSimulationId)
 ADV_API HRESULT AVDelete(AVULONG nSimulationId)
 {
 	CLogTime lt;
-	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr, NULL);
+	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -245,8 +247,7 @@ ADV_API HRESULT AVDelete(AVULONG nSimulationId)
 ADV_API HRESULT AVDeleteAll()
 {
 	CLogTime lt;
-	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr, NULL);
+	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -263,8 +264,7 @@ ADV_API HRESULT AVDeleteAll()
 ADV_API HRESULT AVDropTables()
 {
 	CLogTime lt;
-	AVSTRING pConnStr;
-	GetConnStrings(NULL, NULL, &pConnStr, NULL);
+	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -280,8 +280,7 @@ ADV_API HRESULT AVDropTables()
 
 ADV_API HRESULT AVWriteReinitBATFile()
 {
-	AVSTRING pVisConn;
-	GetConnStrings(NULL, NULL, &pVisConn, NULL);
+	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
 
 	std::vector<AVULONG> ids;
 	CProjectSrv::QueryAvailIds(pVisConn, ids);
@@ -297,13 +296,15 @@ ADV_API HRESULT AVWriteReinitBATFile()
 ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 {
 	CLogTime lt;
-	AVSTRING pConsoleConn, pVisConn;
-	GetConnStrings(&pConsoleConn, NULL, &pVisConn, NULL);
-	
+	AVSTRING pConsoleConn = GetConnString(CONN_CONSOLE);
+	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
+	AVSTRING pSimQueueConn = GetConnString(CONN_SIMQUEUE);
+		
 	try
 	{
 		AVULONG nMilestones = 4;
-		InitProgress(nMilestones);
+		dbtools::CDataBase db(pSimQueueConn);
+		InitProgress(&db, nSimulationId, nMilestones);
 
 		HRESULT h = S_OK;
 		DWORD dwStatus = STATUS_OK;
@@ -337,14 +338,15 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 ADV_API HRESULT AVProcess(AVULONG nProjectID)
 {
 	CLogTime ltall, lt;
-	AVSTRING pVisConn;
-	AVSTRING pRepConn;
-	GetConnStrings(NULL, &pRepConn, &pVisConn, NULL);
+	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
+	AVSTRING pRepConn = GetConnString(CONN_REPORT);
+	AVSTRING pSimQueueConn = GetConnString(CONN_SIMQUEUE);
 	
 	try
 	{
 		AVULONG nMilestones = 3 + 2 * CProjectSrv::QuerySimCountFromVisualisation(pVisConn, nProjectID);
-		InitProgress(nMilestones);
+		dbtools::CDataBase db(pSimQueueConn);
+		InitProgress(&db, -1, nMilestones);
 
 		HRESULT h;
 		DWORD dwStatus = STATUS_OK;
@@ -383,13 +385,16 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 ADV_API HRESULT AVRun(AVULONG nSimulationId)
 {
 	CLogTime ltall, lt;
-	AVSTRING pConsoleConn, pVisConn, pRepConn;
-	GetConnStrings(&pConsoleConn, &pRepConn, &pVisConn, NULL);
+	AVSTRING pConsoleConn = GetConnString(CONN_CONSOLE);
+	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
+	AVSTRING pRepConn = GetConnString(CONN_REPORT);
+	AVSTRING pSimQueueConn = GetConnString(CONN_SIMQUEUE);
 	
 	try
 	{
 		AVULONG nMilestones = 5 + 2 * CProjectSrv::QuerySimCountFromConsole(pConsoleConn, nSimulationId);
-		InitProgress(nMilestones);
+		dbtools::CDataBase db(pSimQueueConn);
+		InitProgress(&db, nSimulationId, nMilestones);
 
 		HRESULT h = S_OK;
 		DWORD dwStatus = STATUS_OK;
@@ -434,8 +439,7 @@ ADV_API HRESULT AVRun(AVULONG nSimulationId)
 ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)
 {
 	CLogTime lt;
-	AVSTRING pConsoleConn;
-	GetConnStrings(&pConsoleConn, NULL, NULL, NULL);
+	AVSTRING pConsoleConn = GetConnString(CONN_CONSOLE);
 
 	try
 	{
@@ -481,9 +485,8 @@ ADV_API HRESULT AVSaveIFCMesh8(char *strIFCPathName, char *strMeshPathName)
 ADV_API HRESULT AVCreateTicket(AVSTRING strUserName, AVSTRING strBuf)
 {
 	CLogTime lt;
-	AVSTRING pUsersConn;
-	AVSTRING pVisConn;
-	GetConnStrings(NULL, NULL, &pVisConn, &pUsersConn);
+	AVSTRING pUsersConn = GetConnString(CONN_USERS);
+	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;

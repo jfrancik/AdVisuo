@@ -3,6 +3,7 @@
 #include "StdAfx.h"
 #include <comdef.h>
 #include "log.h"
+#include "../CommonFiles/DBTools.h"
 
 using namespace std;
 
@@ -14,25 +15,36 @@ bool g_bBenchmark = false;
 bool g_bProgressOnScreen = false;
 bool g_bProgressDB = true;
 
+// Progress Internal Data
 DWORD g_nSteps = 0;
 double g_fProgress = 0;
+dbtools::CDataBase *g_pDb = NULL;
+AVULONG g_nSimulationId = -1;
 
-void InitProgress(DWORD nSteps)
+void InitProgress(dbtools::CDataBase *pDb, DWORD nSimulationId, DWORD nSteps)
 {
 	g_nSteps = nSteps;
 	g_fProgress = 0;
+	g_pDb = pDb;
+	if (nSimulationId >= 0) g_nSimulationId = nSimulationId;
 
 	if (!g_nSteps) return;
-	if (g_bProgressOnScreen)
-		wprintf(L"%d%%\b\b\b\b", (int)(100.0 * g_fProgress + 0.5));
+
+	LogProgress(0);
 }
 
-void LogProgress()
+void LogProgress(DWORD nSteps)
 {
 	if (!g_nSteps) return;
-	g_fProgress += 1.0 / g_nSteps;
+	g_fProgress += (double)nSteps / g_nSteps;
+
+	int nPercent = (int)(100.0 * g_fProgress + 0.5);
+
 	if (g_bProgressOnScreen)
-		wprintf(L"%d%%\b\b\b\b", (int)(100.0 * g_fProgress + 0.5));
+		wprintf(L"%d%%\b\b\b\b", nPercent);
+
+	if (nSteps > 0 && g_pDb && g_nSimulationId >= 0)
+		g_pDb->execute(L"UPDATE Queue SET Progress = %d WHERE SimulationId = %d", nPercent, g_nSimulationId);
 }
 
 void AddEventSource(HMODULE hModule, PCTSTR pszName, DWORD dwCategoryCount /* =0 */ )

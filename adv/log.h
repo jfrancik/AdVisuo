@@ -8,11 +8,16 @@
 
 extern HMODULE g_hModule;
 
+namespace dbtools
+{
+	class CDataBase;
+}
+
 ////////////////////////////////////////////////
 // Progress Functions
 
-void InitProgress(DWORD nSteps = 0);
-void LogProgress();
+void InitProgress(dbtools::CDataBase *pDb, DWORD nSimulationId, DWORD nSteps);
+void LogProgress(DWORD nSteps = 1);
 
 ////////////////////////////////////////////////
 // Log Functions
