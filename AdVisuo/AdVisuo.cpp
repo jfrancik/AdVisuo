@@ -173,7 +173,7 @@ BOOL CAdVisuoApp::InitInstance()
 		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen && (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
 		{
 			url = cmdInfo.m_strFileName;
-			AfxMessageBox(url);
+			//AfxMessageBox(url);
 			AddRemoteServer(url);
 			SaveRemoteServerConfig();
 		}

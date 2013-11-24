@@ -47,18 +47,19 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 	pJourney->m_floorFrom = selLiftStops[L"Floor"];
 	pJourney->m_timeGo = selLiftStops[L"Time"].msec() + selLiftStops[L"Duration"].msec();
 	
-	AVULONG nPassengers = 0;
-	AVLONG nTimeLiftArrive = 0;
-	AVLONG nTimeOpen = -1, nTimeClose = -1;
+	AVULONG nPassengers[DECK_NUM] = { 0, 0 };
+	AVLONG nTimeLiftArrive[DECK_NUM] = { 0, 0 };
+	AVLONG nTimeOpen[DECK_NUM] = { -1, -1 }, nTimeClose[DECK_NUM] = { -1, -1 };
 
 	AVLONG nTime = selLiftStops[L"Time"].msec();
 	AVLONG nDuration = selLiftStops[L"Duration"].msec();
 	AVLONG nDwellTime = pShaft->GetDwellTime(pJourney->m_floorFrom);
 	if (nDuration > 0)
-	{
-		nTimeOpen = nTime;
-		nTimeClose = nTime + nOpeningTime + pShaft->GetDwellTime(pJourney->m_floorFrom) - nPreOpeningTime;
-	}
+		for (AVULONG iDeck = 0; iDeck < GetDecks(); iDeck++)	// ### indiscriminative iteration through the decks here!
+		{
+			nTimeOpen[iDeck] = nTime;
+			nTimeClose[iDeck] = nTime + nOpeningTime + pShaft->GetDwellTime(pJourney->m_floorFrom) - nPreOpeningTime;
+		}
 		
 	selLiftStops++;
 
@@ -89,26 +90,27 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 			if (nDuration <= nMotorStartDelayTime)
 				continue;
 			
-			if (nTimeOpen < 0)
-			{
-				// initially plan open cycle
-				nTimeOpen = nTime;
-				nTimeClose = nTime + nOpeningTime + nDwellTime - nPreOpeningTime;
-			}
+			// initially plan open cycles
+			for (AVULONG iDeck = 0; iDeck < GetDecks(); iDeck++)	// ### indiscriminative iteration through the decks here!
+				if (nTimeOpen[iDeck] < 0)
+				{
+					nTimeOpen[iDeck] = nTime;
+					nTimeClose[iDeck] = nTime + nOpeningTime + nDwellTime - nPreOpeningTime;
+				}
 		}
 
 		// unloading passengers
 		while (iUnloading != collUnloading.end() && (*iUnloading)->GetUnloadTime() + 10 < (AVLONG)pJourney->m_timeGo)
 		{
 			LONG t = (*iUnloading)->GetUnloadTime();
-			AVULONG nDeck = (*iUnloading)->GetDeck();
-			if (nTimeOpen < 0) 
+			AVULONG iDeck = (*iUnloading)->GetDeck();
+			if (nTimeOpen[iDeck] < 0) 
 			{
 				// first opening
-				nTimeOpen = t - nOpeningTime;
-				nTimeClose = t + nDwellTime;
+				nTimeOpen[iDeck] = t - nOpeningTime;
+				nTimeClose[iDeck] = t + nDwellTime;
 			}
-			nTimeClose = max(nTimeClose, t + nUnloadingTime);
+			nTimeClose[iDeck] = max(nTimeClose[iDeck], t + nUnloadingTime);
 			iUnloading++;
 		}
 
@@ -117,53 +119,52 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 		{
 			LONG t = (*iLoading)->GetLoadTime();
 			LONG tarr = (*iLoading)->GetArrivalTime();
-			AVULONG nDeck = (*iLoading)->GetDeck();
-			if (nDeck == 1) { iLoading++; continue; }
-			nPassengers++;
+			AVULONG iDeck = (*iLoading)->GetDeck();
+			nPassengers[iDeck]++;
 
-			if (nTimeOpen < 0) 
+			if (nTimeOpen[iDeck] < 0) 
 			{
 				// first opening
-				nTimeOpen = t - nOpeningTime;
-				nTimeClose = t + nDwellTime;
+				nTimeOpen[iDeck] = t - nOpeningTime;
+				nTimeClose[iDeck] = t + nDwellTime;
 			}
-			else if (t > nTimeClose)
+			else if (t > nTimeClose[iDeck])
 			{
 				// reopening
 				JOURNEY::DOOR dc;
-				dc.m_timeOpen = nTimeOpen;
+				dc.m_timeOpen = nTimeOpen[iDeck];
 				dc.m_durationOpen = nOpeningTime;
-				dc.m_timeClose = nTimeClose;
+				dc.m_timeClose = nTimeClose[iDeck];
 				dc.m_durationClose = nClosingTime;
-				pJourney->m_doorcycles[0].push_back(dc);
+				pJourney->m_doorcycles[iDeck].push_back(dc);
 
-				double fClosing = min((double)(t - nTimeClose) / (nOpeningTime + nClosingTime), 1.0);
-				nTimeOpen = t - fClosing * nOpeningTime;
-				nTimeClose = t + nDwellTime;
+				double fClosing = min((double)(t - nTimeClose[iDeck]) / (nOpeningTime + nClosingTime), 1.0);
+				nTimeOpen[iDeck] = t - fClosing * nOpeningTime;
+				nTimeClose[iDeck] = t + nDwellTime;
 			}
-			if (t == nTimeOpen + nOpeningTime + nDwellTime && nPassengers == 1 && nTrafficControlType == 1)
+			if (t == nTimeOpen[iDeck] + nOpeningTime + nDwellTime && nPassengers[iDeck] == 1 && nTrafficControlType == 1)
 				// special case --- passengers waiting for the lift to finish its first dwell time
-				nTimeClose = t + nDwellTime;
+				nTimeClose[iDeck] = t + nDwellTime;
 			else
-				nTimeClose = max(nTimeClose, t + nLoadingTime);
+				nTimeClose[iDeck] = max(nTimeClose[iDeck], t + nLoadingTime);
 
 			// Additional check & intervention - if door closed after motor started...
-			if (nTimeClose + nClosingTime > pJourney->m_timeGo - nMotorStartDelayTime)
+			if (nTimeClose[iDeck] + nClosingTime > pJourney->m_timeGo - nMotorStartDelayTime)
 			{
 				if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Door close time trimmed *** " << nTrafficControlType << endl; LogProgress(0); }
-				nTimeClose = pJourney->m_timeGo - nClosingTime - nMotorStartDelayTime;
-				t = nTimeClose - nDwellTime;
-				if (pJourney->m_doorcycles[0].size() == 0)
-					nTimeOpen = min(nTimeOpen, t - nOpeningTime);	// this is the first opening - just trim it!
-				else if (t >= (AVLONG)pJourney->m_doorcycles[0].back().m_timeClose)
+				nTimeClose[iDeck] = pJourney->m_timeGo - nClosingTime - nMotorStartDelayTime;
+				t = nTimeClose[iDeck] - nDwellTime;
+				if (pJourney->m_doorcycles[iDeck].size() == 0)
+					nTimeOpen[iDeck] = min(nTimeOpen[iDeck], t - nOpeningTime);	// this is the first opening - just trim it!
+				else if (t >= (AVLONG)pJourney->m_doorcycles[iDeck].back().m_timeClose)
 				{	// still reopening - calculate it!
-					double fClosing = (double)(t - pJourney->m_doorcycles[0].back().m_timeClose) / (double)(nOpeningTime + nClosingTime);
-					nTimeOpen = min(nTimeOpen, t - fClosing * nOpeningTime);
+					double fClosing = (double)(t - pJourney->m_doorcycles[iDeck].back().m_timeClose) / (double)(nOpeningTime + nClosingTime);
+					nTimeOpen[iDeck] = min(nTimeOpen[iDeck], t - fClosing * nOpeningTime);
 				}
 				else
 				{	// door cycle overlaps with the previous one
-					nTimeOpen = pJourney->m_doorcycles[0].back().m_timeOpen;
-					pJourney->m_doorcycles[0].pop_back();
+					nTimeOpen[iDeck] = pJourney->m_doorcycles[iDeck].back().m_timeOpen;
+					pJourney->m_doorcycles[iDeck].pop_back();
 				}
 			}
 
@@ -173,61 +174,70 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 		// TO DO:
 		// 4. Double deckers
 
-		// Additional check and intervention - if door with passengers closed way before motor started...
-		if (nTrafficControlType == 1 && nTimeOpen >= 0 && flagClosing && nTimeClose + nClosingTime <= pJourney->m_timeGo - nMotorStartDelayTime - 100 && nPassengers > 0)
+		for (AVULONG iDeck = 0; iDeck < GetDecks(); iDeck++)
 		{
-			if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Door close time extended *** " << nTrafficControlType << endl; LogProgress(0); }
-			nTimeClose = pJourney->m_timeGo - nMotorStartDelayTime - nClosingTime;
+			// Additional check and intervention - if door with passengers closed way before motor started...
+			if (nTrafficControlType == 1 && nTimeOpen[iDeck] >= 0 && flagClosing && nTimeClose[iDeck] + nClosingTime <= pJourney->m_timeGo - nMotorStartDelayTime - 100 && nPassengers[iDeck] > 0)
+			{
+				if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Door close time extended *** " << nTrafficControlType << endl; LogProgress(0); }
+				nTimeClose[iDeck] = pJourney->m_timeGo - nMotorStartDelayTime - nClosingTime;
+			}
+
+			// send out the door cycle (if avail)
+			if (nTimeOpen[iDeck] >= 0)
+			{
+				JOURNEY::DOOR dc;
+				dc.m_timeOpen = nTimeOpen[iDeck];
+				dc.m_durationOpen = nOpeningTime;
+				dc.m_timeClose = nTimeClose[iDeck];
+				dc.m_durationClose = nClosingTime;
+				pJourney->m_doorcycles[iDeck].push_back(dc);
+			}
+		
+			// some final amendments - to be completed only near the end of the cycle!
+			if (flagClosing)
+			{
+				// amend for pre-opening
+				if (pJourney->m_doorcycles[iDeck].size() && pJourney->m_doorcycles[iDeck][0].m_timeOpen == nTimeLiftArrive[iDeck])
+					pJourney->m_doorcycles[iDeck][0].m_timeOpen -= nPreOpeningTime;
+				nTimeLiftArrive[iDeck] = pJourney->m_timeDest;
+
+				// amend for open-close cycle too tight (dwell time not kept)
+				if (nTimeOpen[iDeck] >= 0 && nTimeClose[iDeck] + nClosingTime > pJourney->m_timeGo - nMotorStartDelayTime)
+					if (nPassengers[iDeck] == 0)	// no problem --- remove the last cycle
+					{
+						if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Short door cycle eliminated *** " << nTrafficControlType << endl; LogProgress(0); }
+						pJourney->m_doorcycles[iDeck].pop_back();
+					}
+					else
+						if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": WTF CONDITION: Door cycle too short *** " << nTrafficControlType << endl; LogProgress(0); }
+			}
 		}
 
-		// send out the door cycle (if avail)
-		if (nTimeOpen >= 0)
-		{
-			JOURNEY::DOOR dc;
-			dc.m_timeOpen = nTimeOpen;
-			dc.m_durationOpen = nOpeningTime;
-			dc.m_timeClose = nTimeClose;
-			dc.m_durationClose = nClosingTime;
-			pJourney->m_doorcycles[0].push_back(dc);
-		}
-		
 		// if journey completed - send it out!
 		if (flagClosing)
 		{
-			// amend for pre-opening
-			if (pJourney->m_doorcycles[0].size() && pJourney->m_doorcycles[0][0].m_timeOpen == nTimeLiftArrive)
-				pJourney->m_doorcycles[0][0].m_timeOpen -= nPreOpeningTime;
-			nTimeLiftArrive = pJourney->m_timeDest;
-
-			// amend for open-close cycle too tight (dwell time not kept)
-			if (nTimeOpen >= 0 && nTimeClose + nClosingTime > pJourney->m_timeGo - nMotorStartDelayTime)
-				if (nPassengers == 0)	// no problem --- remove the last cycle
-				{
-					if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Short door cycle eliminated *** " << nTrafficControlType << endl; LogProgress(0); }
-					pJourney->m_doorcycles[0].pop_back();
-				}
-				else
-					if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": WTF CONDITION: Door cycle too short *** " << nTrafficControlType << endl; LogProgress(0); }
-
 			// start a new journey from now
 			m_journeys.push_back(JOURNEY());
 			pJourney = &m_journeys.back();
 			pJourney->m_id = nJourneyId++;
 			pJourney->m_floorFrom = nFloor;
 			pJourney->m_timeGo = nTime + nDuration;
-			nPassengers = 0;
+			for (AVULONG iDeck = 0; iDeck < GetDecks(); iDeck++)
+				nPassengers[iDeck] = 0;
 
 			nDwellTime = (AVLONG)pShaft->GetDwellTime(pJourney->m_floorFrom);
 		}
 
 		// initialise the cycle...
-		if (nTime > nTimeClose && nDuration > 0)
-		{
-			nTimeOpen = nTime;
-			nTimeClose = nTime + nOpeningTime + nDwellTime - nPreOpeningTime;
-		}
-		else
-			nTimeOpen = -1;
+		for (AVULONG iDeck = 0; iDeck < GetDecks(); iDeck++)	// ### indiscriminative iteration through the decks here!
+			if (nTime > nTimeClose[iDeck] && nDuration > 0)
+			{
+				nTimeOpen[iDeck] = nTime;
+				nTimeClose[iDeck] = nTime + nOpeningTime + nDwellTime - nPreOpeningTime;
+			}
+			else
+				nTimeOpen[iDeck] = -1;
 	}
 	m_journeys.pop_back();
 	
