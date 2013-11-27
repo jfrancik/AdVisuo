@@ -50,7 +50,7 @@ void CSimLiftJourneySeq::RecordOpen(AVULONG iDeck, AVULONG time, AVULONG duratio
 	duration = timeToOpen;
 
 	ASSERT(door[iDeck].m_timeOpen == UNDEF);
-	door[iDeck].m_timeOpen = time; door[iDeck].m_durationOpen = min(duration, timeToOpen);
+	door[iDeck].m_timeOpen = time;
 }
 
 void CSimLiftJourneySeq::RecordClose(AVULONG iDeck, AVULONG time, AVULONG duration, AVULONG timeToClose)
@@ -58,7 +58,7 @@ void CSimLiftJourneySeq::RecordClose(AVULONG iDeck, AVULONG time, AVULONG durati
 	duration = timeToClose;
 
 	ASSERT(door[iDeck].m_timeOpen != UNDEF);
-	door[iDeck].m_timeClose = time; door[iDeck].m_durationClose = min(duration, timeToClose);
+	door[iDeck].m_timeClose = time;
 	pJourney->m_doorcycles[iDeck].push_back(door[iDeck]);
 	door[iDeck].reset();
 }

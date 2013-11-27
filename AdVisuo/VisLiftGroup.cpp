@@ -24,11 +24,12 @@ AVVECTOR CLiftGroupVis::GetLiftPos(int nLift)
 
 void CLiftGroupVis::StoreConfig()
 {
-	for (AVULONG i = 0; i < GetLiftCount(); i++)
+	for (AVULONG iLift = 0; iLift < GetLiftCount(); iLift++)
 	{
-		GetLiftElement(i)->PushState();
-		for (AVULONG k = 0; k < MAX_DOORS; k++)
-			if (GetLiftDoor(i, k))	GetLiftDoor(i, k)->PushState();
+		GetLiftElement(iLift)->PushState();
+		for (AVULONG iDeck = 0; iDeck < GetLift(iLift)->GetShaft()->GetDeckCount(); iDeck++)
+			for (AVULONG iDoor = 0; iDoor < MAX_DOORS; iDoor++)
+				if (GetLiftDoor(iLift, iDeck, iDoor))	GetLiftDoor(iLift, iDeck, iDoor)->PushState();
 	}
 	for (AVULONG i = 0; i < GetStoreyCount(); i++)
 		for (AVULONG j = 0; j < GetShaftCount(); j++)
@@ -39,18 +40,19 @@ void CLiftGroupVis::StoreConfig()
 
 void CLiftGroupVis::RestoreConfig()
 {
-	for (AVULONG i = 0; i < GetLiftCount(); i++)
+	for (AVULONG iLift = 0; iLift < GetLiftCount(); iLift++)
 	{
-		GetLiftElement(i)->PopState();
-		GetLiftElement(i)->Invalidate();
-		GetLiftElement(i)->PushState();
-		for (AVULONG k = 0; k < MAX_DOORS; k++)
-			if (GetLiftDoor(i, k))	
-			{ 
-				GetLiftDoor(i, k)->PopState(); 
-				GetLiftDoor(i, k)->Invalidate(); 
-				GetLiftDoor(i, k)->PushState(); 
-			}
+		GetLiftElement(iLift)->PopState();
+		GetLiftElement(iLift)->Invalidate();
+		GetLiftElement(iLift)->PushState();
+		for (AVULONG iDeck = 0; iDeck < GetLift(iLift)->GetShaft()->GetDeckCount(); iDeck++)
+			for (AVULONG iDoor = 0; iDoor < MAX_DOORS; iDoor++)
+				if (GetLiftDoor(iLift, iDeck, iDoor))	
+				{ 
+					GetLiftDoor(iLift, iDeck, iDoor)->PopState(); 
+					GetLiftDoor(iLift, iDeck, iDoor)->Invalidate(); 
+					GetLiftDoor(iLift, iDeck, iDoor)->PushState(); 
+				}
 	}
 	for (AVULONG i = 0; i < GetStoreyCount(); i++)
 		for (AVULONG j = 0; j < GetShaftCount(); j++)

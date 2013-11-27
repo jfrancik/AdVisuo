@@ -24,7 +24,7 @@ public:
 	void MoveToInitialPosition();
 
 	void AnimateToInitialPosition(CEngine *pEngine, AVULONG nShaftFrom, AVULONG nStoreyFrom, AVULONG timeStart);
-	void AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG timeStart, AVULONG timeDuration = 1000);
+	void AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, AVULONG nDeck, AVLONG time, bool bOpen);
 	void AnimateJourney(CEngine *pEngine, AVULONG nShaftTo, AVULONG nStoreyTo, AVULONG timeStart, AVULONG timeDuration);
 	
 	void Go(JOURNEY &j);

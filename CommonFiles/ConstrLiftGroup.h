@@ -113,7 +113,7 @@ public:
 		// lift structure
 		CElem *m_pElem;
 		CElem *m_ppDecks[DECK_NUM];
-		CElem *m_ppDoors[MAX_DOORS];
+		CElem *m_ppDoors[MAX_DOORS * DECK_NUM];
 
 	public:
 		LIFT(CLiftGroupConstr *pLiftGroup, AVULONG nId) : CLiftGroup::LIFT(pLiftGroup, nId)
@@ -129,7 +129,7 @@ public:
 
 		CElem *GetElement()									{ return m_pElem; }
 		CElem *GetDeck(AVULONG nDeck)						{ return m_ppDecks[nDeck]; }
-		CElem *GetDoor(AVULONG nDoor)						{ return m_ppDoors[nDoor]; }
+		CElem *GetDoor(AVULONG nDeck, AVULONG nDoor)		{ return m_ppDoors[nDeck * MAX_DOORS + nDoor]; }
 
 		virtual void Construct(AVULONG iShaft);
 		virtual void Deconstruct();
@@ -168,7 +168,7 @@ public:
 	
 	CElem *GetLiftElement(AVULONG nLift)											{ return GetLift(nLift)->GetElement(); }
 	CElem *GetLiftDeck(AVULONG nLift, AVULONG nDeck)								{ return GetLift(nLift)->GetDeck(nDeck); }
-	CElem *GetLiftDoor(AVULONG nLift, AVULONG nDoor)								{ return GetLift(nLift)->GetDoor(nDoor); }
+	CElem *GetLiftDoor(AVULONG nLift, AVULONG nDeck, AVULONG nDoor)					{ return GetLift(nLift)->GetDoor(nDeck, nDoor); }
 
 	CElem *GetShaftElement(AVULONG nStorey, AVULONG nShaft)							{ return GetShaft(nShaft)->GetElement(nStorey); }
 	CElem *GetShaftElementLobbySide(AVULONG nStorey, AVULONG nShaft)				{ return GetShaft(nShaft)->GetElementLobbySide(nStorey); }

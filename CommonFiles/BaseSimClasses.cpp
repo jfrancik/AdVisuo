@@ -68,13 +68,13 @@ void CSim::ResolveMe()
 
 std::wstringstream &operator << (std::wstringstream &s, JOURNEY::DOOR &d)
 {
-	s << d.m_timeOpen << L" " << d.m_durationOpen << L" " << d.m_timeClose << L" " << d.m_durationClose << L" ";
+	s << d.m_timeOpen << L" " << d.m_timeClose << L" ";
 	return s;
 }
 
 std::wstringstream &operator >> (std::wstringstream &s, JOURNEY::DOOR &d)
 {
-	s >> d.m_timeOpen >> d.m_durationOpen >> d.m_timeClose >> d.m_durationClose;
+	s >> d.m_timeOpen >> d.m_timeClose;
 	return s;
 }
 

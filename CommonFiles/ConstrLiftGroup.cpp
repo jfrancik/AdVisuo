@@ -595,7 +595,7 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 				continue;	// no of this type of doors
 			for (AVULONG iPanel = 0; iPanel < GetShaft()->GetDoorPanelsCount(); iPanel++)
 			{
-				CElem *&pElem = m_ppDoors[iPanel * 2 + iIndex];
+				CElem *&pElem = m_ppDoors[iDeck * MAX_DOORS + iPanel * 2 + iIndex];
 				pElem = GetProject()->CreateElement(GetLiftGroup(), m_ppDecks[iDeck], CElem::ELEM_BONE, L"Car Door %d", iPanel * 2 + iIndex, Vector(0));
 				BOX box = boxDoor0; box.SetFront(box.Front() + fGap); box.SetRear(box.Rear() - fGap); 
 				box = box.Door(GetShaft()->GetDoorType(), GetShaft()->GetDoorPanelsCount(), iIndex, iPanel, true, nShaftLine ? true : false);

@@ -95,14 +95,13 @@ struct JOURNEY
 {
 	struct DOOR
 	{
-		AVULONG m_timeOpen, m_durationOpen;
-		AVULONG m_timeClose, m_durationClose;
+		AVULONG m_timeOpen, m_timeClose;
 		DOOR()					{ reset(); }
 
-		void reset()			{ m_timeOpen = m_timeClose = UNDEF; m_durationOpen = m_durationClose = 1000; }
+		void reset()			{ m_timeOpen = m_timeClose = UNDEF; }
 
-		AVULONG timeOpened()	{ return m_timeOpen + m_durationOpen; }
-		AVULONG timeClosed()	{ return m_timeClose + m_durationClose; }
+//		AVULONG timeOpened()	{ return m_timeOpen + m_durationOpen; }
+//		AVULONG timeClosed()	{ return m_timeClose + m_durationClose; }
 
 		friend std::wstringstream &operator << (std::wstringstream &s, DOOR &d);
 		friend std::wstringstream &operator >> (std::wstringstream &s, DOOR &d);
@@ -122,14 +121,10 @@ struct JOURNEY
 	AVLONG		m_timeGo, m_timeDest;		// journey time
 
 	AVULONG FirstOpenTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? UNDEF : m_doorcycles[iDeck][0].m_timeOpen; }
-	AVULONG FirstOpenedTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? UNDEF : m_doorcycles[iDeck][0].timeOpened(); }
 	AVULONG LastCloseTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? 0     : m_doorcycles[iDeck][N-1].m_timeClose; }
-	AVULONG LastClosedTime(AVULONG iDeck)	{ AVULONG N = m_doorcycles[iDeck].size(); return (N == 0) ? 0     : m_doorcycles[iDeck][N-1].timeClosed(); }
 
 	AVULONG FirstOpenTime()					{ AVULONG n = UNDEF; for (AVULONG i = 0; i < DECK_NUM; i++) n = min(n, FirstOpenTime(i)); return n; }
-	AVULONG FirstOpenedTime()				{ AVULONG n = UNDEF; for (AVULONG i = 0; i < DECK_NUM; i++) n = min(n, FirstOpenedTime(i)); return n; }
 	AVULONG LastCloseTime()					{ AVULONG n = 0; for (AVULONG i = 0; i < DECK_NUM; i++) n = max(n, LastCloseTime(i)); return n; }
-	AVULONG LastClosedTime()				{ AVULONG n = 0; for (AVULONG i = 0; i < DECK_NUM; i++) n = max(n, LastClosedTime(i)); return n; }
 
 	std::wstring StringifyDoorCycles();
 	void ParseDoorCycles(std::wstring);

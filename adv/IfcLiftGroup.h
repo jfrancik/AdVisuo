@@ -19,7 +19,7 @@ public:
 	
 	CElemIfc *GetLiftElement(AVULONG nLift)												{ return (CElemIfc*)CLiftGroupSrv::GetLiftElement(nLift); }
 	CElemIfc *GetLiftDeck(AVULONG nLift, AVULONG nDeck)									{ return (CElemIfc*)CLiftGroupSrv::GetLiftDeck(nLift, nDeck); }
-	CElemIfc *GetLiftDoor(AVULONG nLift, AVULONG nDoor)									{ return (CElemIfc*)CLiftGroupSrv::GetLiftDoor(nLift, nDoor); }
+	CElemIfc *GetLiftDoor(AVULONG nLift, AVULONG nDeck, AVULONG nDoor)					{ return (CElemIfc*)CLiftGroupSrv::GetLiftDoor(nLift, nDeck, nDoor); }
 
 	CElemIfc *GetShaftElement(AVULONG nStorey, AVULONG nShaft)							{ return (CElemIfc*)CLiftGroupSrv::GetShaftElement(nStorey, nShaft); }
 	CElemIfc *GetShaftElementLobbySide(AVULONG nStorey, AVULONG nShaft)					{ return (CElemIfc*)CLiftGroupSrv::GetShaftElementLobbySide(nStorey, nShaft); }

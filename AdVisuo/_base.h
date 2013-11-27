@@ -5,7 +5,7 @@
 ///////////////////////////////////////////////////////////////
 // Versioning
 
-#define VERSION 30004	// 3.00.04
+#define VERSION 30601	// 3.06.04
 
 #define VERSION_MAJOR	(VERSION / 10000)
 #define VERSION_MINOR	((VERSION % 10000) / 100)

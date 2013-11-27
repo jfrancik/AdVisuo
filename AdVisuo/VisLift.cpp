@@ -41,14 +41,16 @@ void CLiftVis::AnimateToInitialPosition(CEngine *pEngine, AVULONG nShaftFrom, AV
 	a = pEngine->MoveTo(a, pBone, 1, vFrom.x, vFrom.y, vFrom.z);
 }
 
-void CLiftVis::AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, bool bOpen, AVULONG timeStart, AVULONG timeDuration)
+void CLiftVis::AnimateDoor(CEngine *pEngine, AVULONG nShaft, AVULONG nStorey, AVULONG nDeck, AVLONG timeStart, bool bOpen)
 {
 	AVFLOAT nDist = GetSim()->GetLiftGroup()->GetShaft(nShaft)->GetBoxDoor().Width() / 2.0f - 0.1f;
 	if (!bOpen) nDist = -nDist;
 	if (GetSHAFT()->GetShaftLine() == 1) nDist = -nDist;
 
-	CElemVis *pElemLI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 0);
-	CElemVis *pElemRI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), 1);
+	AVLONG timeDuration = bOpen ? GetSHAFT()->GetOpeningTime() : GetSHAFT()->GetClosingTime();
+
+	CElemVis *pElemLI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), nDeck, 0);
+	CElemVis *pElemRI = GetSim()->GetLiftGroup()->GetLiftDoor(GetId(), nDeck, 1);
 	CElemVis *pElemLX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 0);
 	CElemVis *pElemRX = GetSim()->GetLiftGroup()->GetShaftDoor(nStorey, nShaft, 1);
 
@@ -79,13 +81,13 @@ void CLiftVis::AnimateJourney(CEngine *pEngine, AVULONG nShaftTo, AVULONG nStore
 void CLiftVis::Go(JOURNEY &j)
 {
 	if (j.m_timeGo != UNDEF && j.m_timeDest != UNDEF)
-		AnimateToInitialPosition(m_pEngine, j.m_shaftFrom, j.m_floorFrom, j.FirstOpenedTime());
+		AnimateToInitialPosition(m_pEngine, j.m_shaftFrom, j.m_floorFrom, j.FirstOpenTime() + GetSHAFT()->GetOpeningTime());
 
 	for (AVULONG iDeck = 0; iDeck < DECK_NUM; iDeck++)
 		for (AVULONG iCycle = 0; iCycle < j.m_doorcycles[iDeck].size(); iCycle++)
 		{
-			AnimateDoor(m_pEngine, j.m_shaftFrom, j.m_floorFrom+iDeck, true,  j.m_doorcycles[iDeck][iCycle].m_timeOpen , j.m_doorcycles[iDeck][iCycle].m_durationOpen);
-			AnimateDoor(m_pEngine, j.m_shaftFrom, j.m_floorFrom+iDeck, false, j.m_doorcycles[iDeck][iCycle].m_timeClose, j.m_doorcycles[iDeck][iCycle].m_durationClose);
+			AnimateDoor(m_pEngine, j.m_shaftFrom, j.m_floorFrom+iDeck, iDeck, j.m_doorcycles[iDeck][iCycle].m_timeOpen, true);
+			AnimateDoor(m_pEngine, j.m_shaftFrom, j.m_floorFrom+iDeck, iDeck, j.m_doorcycles[iDeck][iCycle].m_timeClose, false);
 		}
 
 	// journey

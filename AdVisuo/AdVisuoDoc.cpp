@@ -167,6 +167,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	AVULONG nId = 0;
 	CString strUserid;
 	CString strTicket;
+	CString strPhase;
 
 	if (url.Left(8).Compare(L"advisuo:") == 0)
 		url = CString(L"http:") + url.Mid(8);
@@ -191,6 +192,8 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 				strUserid = val;
 			if (name.Compare(L"ticket") == 0)
 				strTicket = val;
+			if (name.Compare(L"phase") == 0)
+				strPhase = val;
 		}
 	}
 	if (strUrl.Right(13) == "/GetAVProject") strUrl = strUrl.Left(strUrl.GetLength() - 13);

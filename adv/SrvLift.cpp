@@ -27,7 +27,7 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 	AVLONG nUnloadingTime = pShaft->GetUnloadingTime();
 	AVLONG nPreOpeningTime = pShaft->GetPreOpeningTime();
 	AVLONG nMotorStartDelayTime = pShaft->GetMotorStartDelayTime();
-	AVULONG nTrafficControlType = (*pShaft->GetLiftGroup())[L"TrafficControlTypeId"];
+	bool bDestination = ((AVULONG)(*pShaft->GetLiftGroup())[L"TrafficControlTypeId"]) == 2;
 
 	static AVULONG nJourneyId = 0;
 	nJourneyId = (nJourneyId / 1000) * 1000 + 1000;
@@ -54,7 +54,7 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 	AVLONG nTime = selLiftStops[L"Time"].msec();
 	AVLONG nDuration = selLiftStops[L"Duration"].msec();
 	AVLONG nDwellTime = pShaft->GetDwellTime(pJourney->m_floorFrom);
-	if (nDuration > 0)
+	if (!bDestination && nDuration > 0)
 		for (AVULONG iDeck = 0; iDeck < GetDecks(); iDeck++)	// ### indiscriminative iteration through the decks here!
 		{
 			nTimeOpen[iDeck] = nTime;
@@ -78,7 +78,7 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 
 		// identification
 		AVULONG idTrafficScenario = (*GetSim())[L"TrafficScenarioId"];
-		AVULONG idLift = (*this->GetSHAFT())[L"LiftId"];
+		AVULONG idLift = (*pShaft)[L"LiftId"];
 		AVULONG idJourney = pJourney->m_id;
 
 		bool flagClosing = nFloor != pJourney->m_floorFrom;
@@ -92,7 +92,7 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 			
 			// initially plan open cycles
 			for (AVULONG iDeck = 0; iDeck < GetDecks(); iDeck++)	// ### indiscriminative iteration through the decks here!
-				if (nTimeOpen[iDeck] < 0)
+				if (!bDestination && nTimeOpen[iDeck] < 0)
 				{
 					nTimeOpen[iDeck] = nTime;
 					nTimeClose[iDeck] = nTime + nOpeningTime + nDwellTime - nPreOpeningTime;
@@ -133,16 +133,14 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 				// reopening
 				JOURNEY::DOOR dc;
 				dc.m_timeOpen = nTimeOpen[iDeck];
-				dc.m_durationOpen = nOpeningTime;
 				dc.m_timeClose = nTimeClose[iDeck];
-				dc.m_durationClose = nClosingTime;
 				pJourney->m_doorcycles[iDeck].push_back(dc);
 
 				double fClosing = min((double)(t - nTimeClose[iDeck]) / (nOpeningTime + nClosingTime), 1.0);
 				nTimeOpen[iDeck] = t - fClosing * nOpeningTime;
 				nTimeClose[iDeck] = t + nDwellTime;
 			}
-			if (t == nTimeOpen[iDeck] + nOpeningTime + nDwellTime && nPassengers[iDeck] == 1 && nTrafficControlType == 1)
+			if (!bDestination && t == nTimeOpen[iDeck] + nOpeningTime + nDwellTime && nPassengers[iDeck] == 1)
 				// special case --- passengers waiting for the lift to finish its first dwell time
 				nTimeClose[iDeck] = t + nDwellTime;
 			else
@@ -151,7 +149,7 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 			// Additional check & intervention - if door closed after motor started...
 			if (nTimeClose[iDeck] + nClosingTime > pJourney->m_timeGo - nMotorStartDelayTime)
 			{
-				if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Door close time trimmed *** " << nTrafficControlType << endl; LogProgress(0); }
+				//if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Door close time trimmed *** " << (bDestination ? L"dest" : L"conv") << endl; LogProgress(0); }
 				nTimeClose[iDeck] = pJourney->m_timeGo - nClosingTime - nMotorStartDelayTime;
 				t = nTimeClose[iDeck] - nDwellTime;
 				if (pJourney->m_doorcycles[iDeck].size() == 0)
@@ -177,9 +175,9 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 		for (AVULONG iDeck = 0; iDeck < GetDecks(); iDeck++)
 		{
 			// Additional check and intervention - if door with passengers closed way before motor started...
-			if (nTrafficControlType == 1 && nTimeOpen[iDeck] >= 0 && flagClosing && nTimeClose[iDeck] + nClosingTime <= pJourney->m_timeGo - nMotorStartDelayTime - 100 && nPassengers[iDeck] > 0)
+			if (!bDestination && nTimeOpen[iDeck] >= 0 && flagClosing && nTimeClose[iDeck] + nClosingTime <= pJourney->m_timeGo - nMotorStartDelayTime - 100 && nPassengers[iDeck] > 0)
 			{
-				if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Door close time extended *** " << nTrafficControlType << endl; LogProgress(0); }
+				//if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Door close time extended *** " << (bDestination ? L"dest" : L"conv") << endl; LogProgress(0); }
 				nTimeClose[iDeck] = pJourney->m_timeGo - nMotorStartDelayTime - nClosingTime;
 			}
 
@@ -188,9 +186,7 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 			{
 				JOURNEY::DOOR dc;
 				dc.m_timeOpen = nTimeOpen[iDeck];
-				dc.m_durationOpen = nOpeningTime;
 				dc.m_timeClose = nTimeClose[iDeck];
-				dc.m_durationClose = nClosingTime;
 				pJourney->m_doorcycles[iDeck].push_back(dc);
 			}
 		
@@ -206,11 +202,11 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 				if (nTimeOpen[iDeck] >= 0 && nTimeClose[iDeck] + nClosingTime > pJourney->m_timeGo - nMotorStartDelayTime)
 					if (nPassengers[iDeck] == 0)	// no problem --- remove the last cycle
 					{
-						if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Short door cycle eliminated *** " << nTrafficControlType << endl; LogProgress(0); }
+						//if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": Short door cycle eliminated *** " << (bDestination ? L"dest" : L"conv") << endl; LogProgress(0); }
 						pJourney->m_doorcycles[iDeck].pop_back();
 					}
 					else
-						if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": WTF CONDITION: Door cycle too short *** " << nTrafficControlType << endl; LogProgress(0); }
+						;//if (g_bOnScreen) { wcout << L"*** " << pJourney->m_id << L": WTF CONDITION: Door cycle too short *** " << (bDestination ? L"dest" : L"conv") << endl; LogProgress(0); }
 			}
 		}
 
@@ -231,7 +227,7 @@ DWORD CLiftSrv::Load2(dbtools::CDataBase db, AVULONG nLiftNativeId, AVULONG nTra
 
 		// initialise the cycle...
 		for (AVULONG iDeck = 0; iDeck < GetDecks(); iDeck++)	// ### indiscriminative iteration through the decks here!
-			if (nTime > nTimeClose[iDeck] && nDuration > 0)
+			if (!bDestination && nTime > nTimeClose[iDeck] && nDuration > 0)
 			{
 				nTimeOpen[iDeck] = nTime;
 				nTimeClose[iDeck] = nTime + nOpeningTime + nDwellTime - nPreOpeningTime;
@@ -248,6 +244,8 @@ bool CLiftSrv::ReportDifferences(CLiftSrv *p)
 {
 	static AVULONG nCount = 0;
 	bool b = true;
+
+	bool bDestination = ((AVULONG)(*GetSHAFT()->GetLiftGroup())[L"TrafficControlTypeId"]) == 2;
 
 	auto iThis = m_journeys.begin();
 	auto iThat = p->m_journeys.begin();
@@ -271,11 +269,11 @@ bool CLiftSrv::ReportDifferences(CLiftSrv *p)
 		{
 			#ifdef __ADV_DLL
 			if (jThis.m_id == jThat.m_id && jThis.m_floorFrom == jThat.m_floorFrom && jThis.m_floorTo == jThat.m_floorTo && jThis.m_timeGo == jThat.m_timeGo && jThis.m_timeDest == jThat.m_timeDest)
-				wcout << jThis.m_id << L" " << jThis.m_floorFrom << L"->" << jThis.m_floorTo << " in " << jThis.m_timeGo << L"-" << jThis.m_timeDest << " (" << ++nCount << L")" << endl;
+				wcout << jThis.m_id << L" " << jThis.m_floorFrom << L"->" << jThis.m_floorTo << " in " << jThis.m_timeGo << L"-" << jThis.m_timeDest << " (" << ++nCount << L")" << (bDestination ? L" - destination" : L" - conventional") << endl;
 			else
 			{
-				wcout << "  old: " << jThis.m_id << L" " << jThis.m_floorFrom << L"->" << jThis.m_floorTo << " in " << jThis.m_timeGo << L"-" << jThis.m_timeDest << " (" <<   nCount << L")" << endl;
-				wcout << "  new: " << jThat.m_id << L" " << jThat.m_floorFrom << L"->" << jThat.m_floorTo << " in " << jThat.m_timeGo << L"-" << jThat.m_timeDest << " (" << ++nCount << L")" << endl;
+				wcout << "  old: " << jThis.m_id << L" " << jThis.m_floorFrom << L"->" << jThis.m_floorTo << " in " << jThis.m_timeGo << L"-" << jThis.m_timeDest << " (" <<   nCount << L")" << (bDestination ? L" - destination" : L" - conventional") << endl;
+				wcout << "  new: " << jThat.m_id << L" " << jThat.m_floorFrom << L"->" << jThat.m_floorTo << " in " << jThat.m_timeGo << L"-" << jThat.m_timeDest << " (" << ++nCount << L")" << (bDestination ? L" - destination" : L" - conventional") << endl;
 			}
 			wcout << "  old: "; for (unsigned i = 0; i < jThis.m_doorcycles[0].size(); i++) wcout << jThis.m_doorcycles[0][i].m_timeOpen << " - " <<   jThis.m_doorcycles[0][i].m_timeClose << "  |  "; wcout << endl;
 			wcout << "  new: "; for (unsigned i = 0; i < jThat.m_doorcycles[0].size(); i++) wcout << jThat.m_doorcycles[0][i].m_timeOpen << " - " <<   jThat.m_doorcycles[0][i].m_timeClose << "  |  "; wcout << endl;
@@ -320,12 +318,12 @@ DWORD CLiftSrv::Adjust()
 		AVULONG nLiftFloor = pJourney->m_floorFrom;
 		AVULONG nShaft = pJourney->m_shaftFrom;
 		AVULONG timeOpen = pJourney->FirstOpenTime();
-		AVULONG timeClose = pJourney->LastClosedTime();
+		AVULONG timeClose = pJourney->LastCloseTime() + GetSHAFT()->GetClosingTime();
 
 		// transfer timelines
 		AVULONG t[DECK_NUM];
 		for (AVULONG iDeck = 0; iDeck < DECK_NUM; iDeck++)
-			t[iDeck] = pJourney->FirstOpenedTime(iDeck);
+			t[iDeck] = pJourney->FirstOpenTime(iDeck) + GetSHAFT()->GetOpeningTime();
 
 		AVULONG myId = GetId();
 		AVULONG nPassengers = GetSim()->GetPassengerCount();
@@ -352,11 +350,11 @@ DWORD CLiftSrv::Adjust()
 				dRes = Log(WARNING_PASSENGER_FLOOR, false, pPassenger->GetId(), tUnload, nLiftFloor, myId, nDeck);
 			if (tUnload+1 < pJourney->FirstOpenTime(nDeck))
 				dRes = Log(WARNING_PASSENGER_1, false, pPassenger->GetId(), tUnload, nLiftFloor, myId, nDeck);
-			else if (tUnload+1 < pJourney->FirstOpenedTime(nDeck))
+			else if (tUnload+1 < pJourney->FirstOpenTime(nDeck) + GetSHAFT()->GetOpeningTime())
 				dRes = Log(WARNING_PASSENGER_2, false, pPassenger->GetId(), tUnload, nLiftFloor, myId, nDeck);
 			else if (tUnload > pJourney->LastCloseTime(nDeck)+1)
 				dRes = Log(WARNING_PASSENGER_3, false, pPassenger->GetId(), tUnload, nLiftFloor, myId, nDeck);
-			else if (tUnload > pJourney->LastClosedTime(nDeck)+1)
+			else if (tUnload > pJourney->LastCloseTime(nDeck) + GetSHAFT()->GetClosingTime() + 1)
 				dRes = Log(WARNING_PASSENGER_4, false, pPassenger->GetId(), tUnload, nLiftFloor, myId, nDeck);
 
 			pPassenger->SetDeck(nDeck);
@@ -388,11 +386,11 @@ DWORD CLiftSrv::Adjust()
 				dRes = Log(WARNING_PASSENGER_FLOOR, true, pPassenger->GetId(), tLoad, nLiftFloor, myId, nDeck);
 			if (tLoad+1 < pJourney->FirstOpenTime(nDeck))
 				dRes = Log(WARNING_PASSENGER_1, true, pPassenger->GetId(), tLoad, nLiftFloor, myId, nDeck);
-			else if (tLoad+1 < pJourney->FirstOpenedTime(nDeck))
+			else if (tLoad+1 < pJourney->FirstOpenTime(nDeck) + GetSHAFT()->GetOpeningTime())
 				dRes = Log(WARNING_PASSENGER_2, true, pPassenger->GetId(), tLoad, nLiftFloor, myId, nDeck);
 			else if (tLoad > pJourney->LastCloseTime(nDeck)+1)
 				dRes = Log(WARNING_PASSENGER_3, true, pPassenger->GetId(), tLoad, nLiftFloor, myId, nDeck);
-			else if (tLoad > pJourney->LastClosedTime(nDeck)+1)
+			else if (tLoad > pJourney->LastCloseTime(nDeck) + GetSHAFT()->GetClosingTime() + 1)
 				dRes = Log(WARNING_PASSENGER_4, true, pPassenger->GetId(), tLoad, nLiftFloor, myId, nDeck);
 
 			pPassenger->SetDeck(nDeck);

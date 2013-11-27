@@ -75,19 +75,21 @@ HRESULT CSimSrv::LoadFromReports(CDataBase db)
 	
 		HRESULT h;
 
-		// Create and load lifts & journeys
-//		CLiftSrv *pLift = (CLiftSrv*)CreateLift(iLift);
-//		h = pLift->Load(GetLiftGroup()->GetLift(iLift), db, nNativeId, nTrafficScenarioId, nIteration);
 
-		CLiftSrv *pLift2 = (CLiftSrv*)CreateLift(iLift);
-		h = pLift2->Load2(db, nNativeId, nTrafficScenarioId, nIteration, collUnloading, collLoading);
-//		pLift->ReportDifferences(pLift2);
+		CLiftSrv *pLift = (CLiftSrv*)CreateLift(iLift);
+		h = pLift->Load2(db, nNativeId, nTrafficScenarioId, nIteration, collUnloading, collLoading);
 
-//		delete pLift;
+
+		// Verify...
+		//CLiftSrv *pLiftFromLogs = (CLiftSrv*)CreateLift(iLift);
+		//h = pLiftFromLogs->Load(GetLiftGroup()->GetLift(iLift), db, nNativeId, nTrafficScenarioId, nIteration);
+		//pLiftFromLogs->ReportDifferences(pLift);
+		//delete pLiftFromLogs;
+
 
 		if FAILED(h) return h;
 		if (h != S_OK) bWarning = true;
-		AddLift(pLift2);
+		AddLift(pLift);
 	}
 	LogProgress();
 

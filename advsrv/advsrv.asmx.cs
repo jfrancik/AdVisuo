@@ -46,6 +46,13 @@ namespace advsrv
             return str;
         }
 
+        private string GetSimQueueConnStr()
+        {
+            RegistryKey ourKey = Registry.LocalMachine.OpenSubKey("Software\\LerchBates\\AdVisuo\\ServerModule");
+            string str = ourKey.GetValue("SimQueueConnectionString").ToString();
+            return str;
+        }
+
         private string EncodePassword(string pass, string salt)
         {
             byte[] bytes = Encoding.Unicode.GetBytes(pass);
@@ -304,6 +311,58 @@ namespace advsrv
             OleDbDataAdapter myDataAdapter = new OleDbDataAdapter("SELECT * FROM AVProjects WHERE SimulationId=" + nSimulationId + " ORDER BY ID", conn);
             myDataAdapter.Fill(myDataSet, "AVProject");
             return myDataSet;
+        }
+
+        [WebMethod(Description = "Returns project progress information")]
+        public int AVPrjProgress(string strUsername, string strTicket, int nSimulationId)
+        {
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return -1000;
+
+            int res = -1;
+            OleDbConnection conn = new OleDbConnection(GetVisConnStr());
+            OleDbCommand cmdSelect = new OleDbCommand("SELECT SavedAll FROM AVProjects WHERE SimulationId=?", conn);
+            cmdSelect.Parameters.AddWithValue("SimulationId", nSimulationId);
+            conn.Open();
+            OleDbDataReader reader = cmdSelect.ExecuteReader();
+            if (reader.Read())
+            {
+                res = reader.GetInt32(0);
+                reader.Close();
+                if (res == 1)
+                    return 100; // only do it when AllSaved set
+            }
+
+            conn = new OleDbConnection(GetSimQueueConnStr());
+            cmdSelect = new OleDbCommand("SELECT Progress FROM Queue WHERE SimulationId=?", conn);
+            cmdSelect.Parameters.AddWithValue("SimulationId", nSimulationId);
+            conn.Open();
+            reader = cmdSelect.ExecuteReader();
+            if (reader.Read())
+            {
+                res = reader.GetInt32(0);
+                reader.Close();
+                if (res > 0)
+                    return res; // only if progress larger than 0
+            }
+            else
+                return -1000;
+
+            conn = new OleDbConnection(GetSimQueueConnStr());
+            cmdSelect = new OleDbCommand(@"SELECT -COUNT(ItemID) AS QueueNum 
+                                            FROM [SimQueue].[dbo].[Queue] q, (SELECT Priority, SubmittedDate FROM [SimQueue].[dbo].[Queue] WHERE SimulationId = ?) p
+                                            WHERE q.Priority > p.Priority OR (q.Priority = p.Priority AND q.SubmittedDate < p.SubmittedDate)", conn);
+            cmdSelect.Parameters.AddWithValue("SimulationId", nSimulationId);
+            conn.Open();
+            reader = cmdSelect.ExecuteReader();
+            if (reader.Read())
+            {
+                res = reader.GetInt32(0);
+                reader.Close();
+                return res; // only if progress larger than 0
+            }
+
+            return -1000;
         }
 
         [WebMethod(Description = "Returns lift group structure")]

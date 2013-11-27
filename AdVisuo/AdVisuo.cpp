@@ -174,6 +174,8 @@ BOOL CAdVisuoApp::InitInstance()
 		{
 			url = cmdInfo.m_strFileName;
 			//AfxMessageBox(url);
+			if (url.Find(L"phase=16&") >= 0)
+				return false;
 			AddRemoteServer(url);
 			SaveRemoteServerConfig();
 		}

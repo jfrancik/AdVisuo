@@ -41,7 +41,7 @@ public:
 
 	CElemVis *GetLiftElement(AVULONG nLift)												{ return (CElemVis*)CLiftGroupConstr::GetLiftElement(nLift); }
 	CElemVis *GetLiftDeck(AVULONG nLift, AVULONG nDeck)									{ return (CElemVis*)CLiftGroupConstr::GetLiftDeck(nLift, nDeck); }
-	CElemVis *GetLiftDoor(AVULONG nLift, AVULONG nDoor)									{ return (CElemVis*)CLiftGroupConstr::GetLiftDoor(nLift, nDoor); }
+	CElemVis *GetLiftDoor(AVULONG nLift, AVULONG nDeck, AVULONG nDoor)					{ return (CElemVis*)CLiftGroupConstr::GetLiftDoor(nLift, nDeck, nDoor); }
 
 	CElemVis *GetShaftElement(AVULONG nStorey, AVULONG nShaft)							{ return (CElemVis*)CLiftGroupConstr::GetShaftElement(nStorey, nShaft); }
 	CElemVis *GetShaftElementLobbySide(AVULONG nStorey, AVULONG nShaft)					{ return (CElemVis*)CLiftGroupConstr::GetShaftElementLobbySide(nStorey, nShaft); }
