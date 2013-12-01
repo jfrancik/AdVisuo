@@ -81,10 +81,10 @@ HRESULT CSimSrv::LoadFromReports(CDataBase db)
 
 
 		// Verify...
-		//CLiftSrv *pLiftFromLogs = (CLiftSrv*)CreateLift(iLift);
-		//h = pLiftFromLogs->Load(GetLiftGroup()->GetLift(iLift), db, nNativeId, nTrafficScenarioId, nIteration);
-		//pLiftFromLogs->ReportDifferences(pLift);
-		//delete pLiftFromLogs;
+		CLiftSrv *pLiftFromLogs = (CLiftSrv*)CreateLift(iLift);
+		h = pLiftFromLogs->Load(GetLiftGroup()->GetLift(iLift), db, nNativeId, nTrafficScenarioId, nIteration);
+		pLiftFromLogs->ReportDifferences(pLift);
+		delete pLiftFromLogs;
 
 
 		if FAILED(h) return h;
