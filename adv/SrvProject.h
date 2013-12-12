@@ -31,11 +31,15 @@ public:
 	static HRESULT FindProjectID(dbtools::CDataBase db, ULONG nSimulationId, ULONG &nProjectID);	// searches for prj id in Visualisation database
 	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);
 	HRESULT LoadFromReports(dbtools::CDataBase db);
+	HRESULT FastLoadFromReports(dbtools::CDataBase dbReports, dbtools::CDataBase dbVis);
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectId);
+
+	void Play();
+
 	HRESULT Store(dbtools::CDataBase db);
 	HRESULT Update(dbtools::CDataBase db);
 
-	void Play();
+	HRESULT PlayAndUpdate(dbtools::CDataBase dbVis);
 
 	static HRESULT CleanUp(dbtools::CDataBase db, ULONG nSimulationId);		// deletes all data for a particular simulation
 	static HRESULT CleanUpSim(dbtools::CDataBase db, ULONG nProjectId);		// deletes sim data (passengers and journeys) for a particular simulation

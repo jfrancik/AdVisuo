@@ -96,7 +96,7 @@
     <ClCompile Include="SrvLiftGroup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SrvSimLiftSeq.cpp">
+    <ClCompile Include="_legacy_SrvLift.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -188,7 +188,7 @@
     <ClInclude Include="SrvLiftGroup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SrvSimLiftSeq.h">
+    <ClInclude Include="_legacy_SrvLift.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

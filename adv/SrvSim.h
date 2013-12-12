@@ -24,7 +24,7 @@ public:
 	HRESULT Store(dbtools::CDataBase db);
 	HRESULT Update(dbtools::CDataBase db);
 
-protected:
+public:
 	virtual CPassenger *CreatePassenger(AVULONG nId);
 	virtual CLift *CreateLift(AVULONG nId);
 };

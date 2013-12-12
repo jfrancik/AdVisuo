@@ -915,12 +915,12 @@ void CAdVisuoView::OnCamera(UINT nCmd)
 			case ID_CAMERA_LIFTLEFT:		GetCurCamera()->AnimateTo(CAMLOC_LIFT, GetCurCamera()->GetLift()+1, GetViewAspectRatio()); break;
 
 			case ID_CAMERA_GROUP_MENU:		break;
-			case ID_CAMERA_GROUPRIGHT:		GetCurCamera()->AnimateTo(CAMLOC_LIFTGROUP, GetCurCamera()->GetLiftGroup()-1, GetViewAspectRatio()); break;
-			case ID_CAMERA_GROUP_LEFT:		GetCurCamera()->AnimateTo(CAMLOC_LIFTGROUP, GetCurCamera()->GetLiftGroup()+1, GetViewAspectRatio()); break;
+			case ID_CAMERA_GROUPRIGHT:		GetCurCamera()->AnimateTo(CAMLOC_LIFTGROUP, CAMLOC_PREV, GetViewAspectRatio()); break;
+			case ID_CAMERA_GROUP_LEFT:		GetCurCamera()->AnimateTo(CAMLOC_LIFTGROUP, CAMLOC_NEXT, GetViewAspectRatio()); break;
 
 			case ID_STOREY_MENU:			break;
-			case ID_STOREY_ONEUP:			GetCurCamera()->AnimateTo(CAMLOC_STOREY, GetProject()->GetLiftGroup(GetCurCamera()->GetLiftGroup())->GetFloorUp(GetCurCamera()->GetStorey()), GetViewAspectRatio()); break;
-			case ID_STOREY_ONEDOWN:			GetCurCamera()->AnimateTo(CAMLOC_STOREY, GetProject()->GetLiftGroup(GetCurCamera()->GetLiftGroup())->GetFloorDown(GetCurCamera()->GetStorey()), GetViewAspectRatio()); break;
+			case ID_STOREY_ONEUP:			GetCurCamera()->AnimateTo(CAMLOC_STOREY, CAMLOC_NEXT, GetViewAspectRatio()); break;
+			case ID_STOREY_ONEDOWN:			GetCurCamera()->AnimateTo(CAMLOC_STOREY, CAMLOC_PREV, GetViewAspectRatio()); break;
 			case ID_CAMERA_EXT_FRONT:		GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, 0, GetViewAspectRatio()); break;
 			case ID_CAMERA_EXT_REAR:		GetCurCamera()->AnimateTo(CAMLOC_OUTSIDE, 1, GetViewAspectRatio()); break;
 			case ID_CAMERA_EXT_SIDE:		if (desc.camloc == CAMLOC_OUTSIDE && desc.index == 2) 

@@ -123,6 +123,61 @@ void CLiftGroup::DeleteSims()
 	m_pCurSim = NULL;
 }
 
+// Storeys Served
+AVULONG CLiftGroup::GetHighestStoreyServed()
+{ 
+	AVLONG N = 0; 
+	for each (SHAFT *pShaft in GetShafts()) 
+	{ 
+		AVLONG n = pShaft->GetHighestStoreyServed(); 
+		if (n > N) 
+			N = n; 
+	} 
+	return N; 
+}
+
+AVULONG CLiftGroup::GetLowestStoreyServed()
+{ 
+	AVLONG N = 32767; 
+	for each (SHAFT *pShaft in GetShafts()) 
+	{ 
+		AVLONG n = pShaft->GetLowestStoreyServed(); 
+		if (n < N) 
+			N = n; 
+	} 
+	return N; 
+}
+
+AVULONG CLiftGroup::GetFloorUp(AVULONG nStorey)
+{ 
+	if (nStorey >= GetHighestStoreyServed()) 
+		return GetHighestStoreyServed();
+	else if (IsStoreyServed(nStorey+1)) 
+		return nStorey+1; 
+	else 
+		return GetFloorUp(nStorey+1); 
+}
+
+AVULONG CLiftGroup::GetFloorDown(AVULONG nStorey)	
+{ 
+	if (nStorey <= GetLowestStoreyServed()) 
+		return GetLowestStoreyServed(); 
+	else if (IsStoreyServed(nStorey-1)) 
+		return nStorey-1; 
+	else 
+		return GetFloorDown(nStorey-1); 
+}
+
+AVULONG CLiftGroup::GetValidFloor(AVULONG nStorey)
+{
+	if (IsStoreyServed(nStorey))
+		return nStorey;
+	else if (nStorey <= GetLowestStoreyServed()) 
+		return GetLowestStoreyServed();
+	else
+		return GetFloorDown(nStorey);
+}
+
 AVSIZE CLiftGroup::CalcPanelFootstep(AVULONG iFrom, AVULONG iTo)
 {
 	if (iTo > GetShaftCount()) iTo = GetShaftCount();

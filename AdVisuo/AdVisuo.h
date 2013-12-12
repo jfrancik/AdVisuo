@@ -39,12 +39,11 @@ class CAdVisuoApp : public CWinAppEx
 	CString m_servers;						// list of servers for the CDlgDownload
 	CString m_url;							// server where the sim is loaded from
 
-	ULONG m_nSessionId;
-
 	CMultiDocTemplate* m_pAVDocTemplate;	// doc template
 
 public:
 	UINT  m_nAppLook;
+	BOOL  m_bOutputWindow;
 	BOOL  m_bHiColorIcons;
 
 public:
@@ -57,8 +56,6 @@ public:
 
 	CXMLRequest *GetAuthorisationAgent()	{ return &m_http; }
 	bool IsLogged()					{ return m_http.logged(); }
-
-	ULONG GetSessionId()			{ return m_nSessionId; }
 
 // Overrides
 public:

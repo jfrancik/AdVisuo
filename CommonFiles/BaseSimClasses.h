@@ -60,7 +60,7 @@ public:
 	void SetId(AVULONG n)						{ m_nId = n; }
 	void SetLiftGroupId(AVULONG n)				{ m_nLiftGroupId = n; }
 
-	std::vector<CLift*> &GetLfts()				{ return m_lifts; }
+	std::vector<CLift*> &GetLifts()				{ return m_lifts; }
 	std::vector<CPassenger*> &GetPassengers()	{ return m_passengers; }
 
 	AVVECTOR GetOffsetVector()					{ return m_vecOffset; }
@@ -133,7 +133,7 @@ struct JOURNEY
 
 	bool operator == (JOURNEY &j)
 	{
-		if (m_id != j.m_id || m_shaftFrom != j.m_shaftFrom || m_shaftTo != j.m_shaftTo || m_floorFrom != j.m_floorFrom || m_floorTo != j.m_floorTo || m_timeGo != j.m_timeGo || m_timeDest != j.m_timeDest)
+		if (/*m_id != j.m_id || */m_shaftFrom != j.m_shaftFrom || m_shaftTo != j.m_shaftTo || m_floorFrom != j.m_floorFrom || m_floorTo != j.m_floorTo || m_timeGo != j.m_timeGo || m_timeDest != j.m_timeDest)
 			return false;
 		for (int iDeck = 0; iDeck < 1; iDeck++)
 		{

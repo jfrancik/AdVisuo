@@ -131,7 +131,7 @@ BOOL CAdVisuoApp::InitInstance()
 		RUNTIME_CLASS(CMFCToolTipCtrl), &ttParams);
 
 	// read server configuration
-	LoadRemoteServerConfig(L"adsimulodev.mylb.eu:8081");
+	LoadRemoteServerConfig(L"adsimulo.mylb.eu:8081");
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
@@ -245,9 +245,6 @@ BOOL CAdVisuoApp::InitInstance()
 		return false;
 	}
 
-	// report session id
-	m_nSessionId = rand() * (RAND_MAX + 1) + rand();
-
 	return true;
 }
 
@@ -355,6 +352,9 @@ bool CAdVisuoApp::InitSimulation(CString url)
 	pSplash->DoNonModal(1000);
 	pSplash->Sleep(400);
 
+	// Report
+	Report(0, (LPOLESTR)(LPCOLESTR)url, 0, L"", L"OK", L"");
+
 	// prepare "debug" info
 	for (int i = 0; i < 10; i++) pSplash->OutText(L"");
 	if (!m_pMainWnd->IsWindowVisible())
@@ -419,14 +419,21 @@ bool CAdVisuoApp::Report(AVULONG nSimulationId, AVSTRING strPath, AVULONG nCat, 
 {
 	CXMLRequest http;
 	http.create();
-	http.setURL(L"http://adsimulodev.mylb.eu:8081/advsrv.asmx");
+	http.setURL(L"http://adsimulo.mylb.eu:8081/advsrv.asmx");
 
 	std::wstring strUsername, strTicket;
 	m_http.get_authorisation_data(strUsername, strTicket);
 
 	try
 	{
-		http.AVReportIssue(m_http.getURL(), strUsername, strTicket, VERSION, nSimulationId, strPath, nCat, strUserDesc, strDiagnostic, strErrorMsg);
+		std::wstringstream s;
+		OSVERSIONINFO osvi;
+		ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx(&osvi);
+		s << strDiagnostic << L" (winver " << osvi.dwMajorVersion << L"." << osvi.dwMinorVersion << L"." << osvi.dwBuildNumber << L"." << osvi.dwPlatformId << L" " << osvi.szCSDVersion << L")";
+
+		http.AVReportIssue(m_http.getURL(), strUsername, strTicket, VERSION, nSimulationId, strPath, nCat, strUserDesc, s.str(), strErrorMsg);
 		std::wstring response;
 		http.get_response(response);
 	}

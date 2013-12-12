@@ -17,7 +17,7 @@ namespace dbtools
 // Progress Functions
 
 void InitProgress(dbtools::CDataBase *pDb, DWORD nSimulationId, DWORD nSteps);
-void LogProgress(DWORD nSteps = 1);
+void LogProgress(int nSteps = 1);
 
 ////////////////////////////////////////////////
 // Log Functions

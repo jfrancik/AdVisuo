@@ -317,7 +317,6 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 		CProjectSrv prj;
 		h = prj.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
-		LogProgress();
 
 		h = prj.Store(pVisConn); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
@@ -367,7 +366,7 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 		prj.Scale(fScale);
 
 		lt.Reset(); 
-		h = prj.LoadFromReports(pRepConn); lt.Log(L"LoadSim");
+		h = prj.LoadFromReports(pRepConn); lt.Log(L"LoadFromReports");
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		prj.Play(); lt.Log(L"Play");
@@ -392,42 +391,48 @@ ADV_API HRESULT AVRun(AVULONG nSimulationId)
 	
 	try
 	{
-		AVULONG nMilestones = 5 + 2 * CProjectSrv::QuerySimCountFromConsole(pConsoleConn, nSimulationId);
+		AVULONG nMilestones = 3 + CProjectSrv::QuerySimCountFromConsole(pConsoleConn, nSimulationId);
 		dbtools::CDataBase db(pSimQueueConn);
 		InitProgress(&db, nSimulationId, nMilestones);
 
 		HRESULT h = S_OK;
 		DWORD dwStatus = STATUS_OK;
-		LogProgress();
 
-		h = CProjectSrv::CleanUp(pVisConn, nSimulationId); 
+		lt.Reset();
+		h = CProjectSrv::CleanUp(pVisConn, nSimulationId); lt.Log(L"CleanUp");
 		if WARNED(h) dwStatus = STATUS_WARNING;
+
 		LogProgress();
 
 		CProjectSrv prj;
-		h = prj.LoadFromConsole(pConsoleConn, nSimulationId);
-		if WARNED(h) dwStatus = STATUS_WARNING;
-		LogProgress();
-
-		h = prj.Store(pVisConn); 
+		lt.Reset();
+		h = prj.LoadFromConsole(pConsoleConn, nSimulationId); lt.Log(L"LoadFromConsole");
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		h = prj.Update(pVisConn); 
+		lt.Reset();
+		h = prj.Store(pVisConn); lt.Log(L"Store");
 		if WARNED(h) dwStatus = STATUS_WARNING;
+
 		LogProgress();
+
+//		h = prj.Update(pVisConn); 
+//		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		AVFLOAT fScale;
 		GetScale(&fScale);
 		prj.Scale(fScale);
 
-		lt.Reset(); 
-		h = prj.LoadFromReports(pRepConn); lt.Log(L"LoadSim");
+		lt.Reset();
+		//h = prj.LoadFromReports(pRepConn); lt.Log(L"LoadFromReports");
+		h = prj.FastLoadFromReports(pRepConn, pVisConn); lt.Log(L"FastLoadFromReports");
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		prj.Play(); lt.Log(L"Play");
 		LogProgress();
 
-		h = prj.Update(pVisConn); lt.Log(L"Update");
+		//prj.Play(); lt.Log(L"Play");
+
+		//h = prj.Update(pVisConn); lt.Log(L"Update");
+		h = prj.PlayAndUpdate(pVisConn); lt.Log(L"PlayAndUpdate");
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		ltall.Log(L"AVRun");

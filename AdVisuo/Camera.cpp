@@ -166,9 +166,9 @@ void CCamera::CheckLocation()
 		}
 	}
 
-	if (camloc == CAMLOC_LIFT && nLift != m_nLift)
+	if (camloc == CAMLOC_LIFT && (m_camloc != CAMLOC_LIFT || nLift != m_nLift))
 		SetLift(nLift);
-	if (camloc != CAMLOC_LIFT && nStorey != m_nStorey)
+	if (camloc != CAMLOC_LIFT && (m_camloc == CAMLOC_LIFT || nStorey != m_nStorey))
 		SetStorey(nStorey);
 
 	m_camloc = camloc;
@@ -519,6 +519,12 @@ CCamera::CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLO
 	case CAMLOC_STOREY:
 		cp = GetCameraParams();
 		if (cp.camloc == CAMLOC_LIFT) break;	// cannot change floor while in lift!
+
+		if (nId == CAMLOC_NEXT)
+			nId = pLiftGroup->GetFloorUp(GetStorey());
+		else if (nId == CAMLOC_PREV)
+			nId = pLiftGroup->GetFloorDown(GetStorey());
+
 		cp.nId = nId;
 
 		if (cp.eye.z <= m_nTripodHeight * 1.1)
@@ -542,6 +548,12 @@ CCamera::CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLO
 
 	case CAMLOC_LIFTGROUP:
 		cp = GetCameraParams();
+
+		if (nId == CAMLOC_NEXT)
+			nId = GetLiftGroup() + 1;
+		else if (nId == CAMLOC_PREV)
+			nId = GetLiftGroup() - 1;
+
 		if (cp.camloc != CAMLOC_LOBBY)
 		{
 			SetLiftGroup(nId);
@@ -562,7 +574,33 @@ CCamera::CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLO
 
 			cp.eye.x =  eye_x * m_box.Width() + m_box.Left();
 			cp.eye.y = -eye_y * m_box.Depth() + m_box.Rear();
-		}		
+		}
+
+		// change to valid floor, if necessary
+		pLiftGroup = m_pProject->GetLiftGroup(m_nLiftGroup);
+		if (!pLiftGroup->IsStoreyServed(GetStorey()))
+		{
+			nId = pLiftGroup->GetValidFloor(GetStorey());
+			cp.nId = nId;
+
+			if (cp.eye.z <= m_nTripodHeight * 1.1)
+			{
+				// camera mounted on a tripod
+				if (cp.eye.z > pLiftGroup->GetStorey(nId)->GetHeight())
+					cp.eye.z = pLiftGroup->GetStorey(nId)->GetHeight();
+			}
+			else
+			{
+				// if camera mounted below the ceiling (above the standard tripod height)
+				cp.eye.z = pLiftGroup->GetStorey(nId)->GetHeight() - pLiftGroup->GetStorey(GetStorey())->GetHeight() + cp.eye.z;
+
+				if (cp.eye.z > pLiftGroup->GetStorey(nId)->GetHeight())
+					cp.eye.z = pLiftGroup->GetStorey(nId)->GetHeight();
+				if (cp.eye.z < m_nTripodHeight)
+					cp.eye.z = m_nTripodHeight;
+			}
+		}
+
 		break;
 
 	case CAMLOC_LOBBY:

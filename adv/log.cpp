@@ -33,7 +33,7 @@ void InitProgress(dbtools::CDataBase *pDb, DWORD nSimulationId, DWORD nSteps)
 	LogProgress(0);
 }
 
-void LogProgress(DWORD nSteps)
+void LogProgress(int nSteps)
 {
 	if (!g_nSteps) return;
 	g_fProgress += (double)nSteps / g_nSteps;

@@ -15,7 +15,7 @@
 #define ID_                             130
 #define ID_WINDOW_MANAGER               131
 #define IDS_WINDOWS_MANAGER             132
-#define ID_VIEW_OUTPUTWND               149
+#define ID_VIEW_OUTPUTWND               150
 #define IDR_PASTE_MENU                  151
 #define IDR_WINDOWS_MENU                152
 #define IDS_OUTPUT_WND                  157

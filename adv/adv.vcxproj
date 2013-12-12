@@ -123,11 +123,11 @@
     <ClCompile Include="SrvPassenger.cpp" />
     <ClCompile Include="SrvProject.cpp" />
     <ClCompile Include="SrvSim.cpp" />
-    <ClCompile Include="SrvSimLiftSeq.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="_legacy_SrvLift.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CommonFiles\BaseLiftGroup.h" />
@@ -156,10 +156,10 @@
     <ClInclude Include="SrvProject.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SrvSim.h" />
-    <ClInclude Include="SrvSimLiftSeq.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="..\CommonFiles\Vector.h" />
+    <ClInclude Include="_legacy_SrvLift.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="res\messages.mc">

@@ -116,6 +116,9 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndOutput.EnableDocking(CBRS_ALIGN_ANY);
 	DockPane(&m_wndOutput);
 
+	// hidden by default
+	ShowPane(&m_wndOutput, FALSE, FALSE, FALSE);
+
 
 	// Enable enhanced windows management dialog
 	EnableWindowsDialog(ID_WINDOW_MANAGER, IDS_WINDOWS_MANAGER, TRUE);

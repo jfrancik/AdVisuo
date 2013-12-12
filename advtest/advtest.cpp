@@ -150,30 +150,30 @@ int _tmain(int argc, _TCHAR* argv[])
 	switch (option)
 	{
 	case DEFAULT:
-		h = AVTest(nSimulationID);
-		if FAILED(h)
-			break;
-		if (h == S_OK)
-		{
-			if (bQuiet)
-			{
-				if (!bYes) break;
-			}
-			else if (bNo)
-			{
-				wcout << L"Project " << nSimulationID << " is up to date." << endl;
-				break;
-			}
-			else if (bYes)
-				wcout << L"Project " << nSimulationID << " is up to date but will be proceeded." << endl;
-			else
-			{
-				wcout << L"Project " << nSimulationID << " is up to date. Proceed anyway (Y/N)? " << endl;
-				int ch = _getch();
-				if (ch != 'y' && ch != 'Y')
-					break;
-			}
-		}
+		//h = AVTest(nSimulationID);
+		//if FAILED(h)
+		//	break;
+		//if (h == S_OK)
+		//{
+		//	if (bQuiet)
+		//	{
+		//		if (!bYes) break;
+		//	}
+		//	else if (bNo)
+		//	{
+		//		wcout << L"Project " << nSimulationID << " is up to date." << endl;
+		//		break;
+		//	}
+		//	else if (bYes)
+		//		wcout << L"Project " << nSimulationID << " is up to date but will be proceeded." << endl;
+		//	else
+		//	{
+		//		wcout << L"Project " << nSimulationID << " is up to date. Proceed anyway (Y/N)? " << endl;
+		//		int ch = _getch();
+		//		if (ch != 'y' && ch != 'Y')
+		//			break;
+		//	}
+		//}
 		h = AVRun(nSimulationID);
 		break;
 	case IFC:

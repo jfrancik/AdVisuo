@@ -177,7 +177,7 @@ public:
 		AVLONG GetMotorStartDelayTime()			{ return m_nMotorStartDelayTime; }
 		AVULONG GetReopenings()					{ return m_nReopenings; }
 
-		bool IsStoreyServed(AVULONG nStorey)	{ return m_strStoreysServed[nStorey] == '1' ? true : false; }
+		bool IsStoreyServed(AVULONG nStorey)	{ return (nStorey < m_strStoreysServed.length() && m_strStoreysServed[nStorey] == '1') ? true : false; }
 		AVULONG GetHighestStoreyServed()		{ return m_strStoreysServed.find_last_of('1'); }
 		AVULONG GetLowestStoreyServed()			{ return m_strStoreysServed.find('1'); }
 
@@ -440,10 +440,11 @@ public:
 	// Storeys Served
 	bool IsStoreyServed(AVULONG nStorey)	{ return GetStorey(nStorey)->IsStoreyServed(); }
 	bool IsStoreyServed(AVULONG nStorey, AVULONG nShaft)	{ return GetShaft(nShaft)->IsStoreyServed(nStorey); }
-	AVULONG GetHighestStoreyServed()		{ AVLONG N = 0; for each (SHAFT *pShaft in GetShafts()) { AVLONG n = pShaft->GetHighestStoreyServed(); if (n > N) N = n; } return N; }
-	AVULONG GetLowestStoreyServed()			{ AVLONG N = 32767; for each (SHAFT *pShaft in GetShafts()) { AVLONG n = pShaft->GetLowestStoreyServed(); if (n < N) N = n; } return N; }
-	AVULONG GetFloorUp(AVULONG nStorey)		{ if (nStorey >= GetHighestStoreyServed()) return GetHighestStoreyServed(); else if (IsStoreyServed(nStorey+1)) return nStorey+1; else return GetFloorUp(nStorey+1); }
-	AVULONG GetFloorDown(AVULONG nStorey)	{ if (nStorey <= GetLowestStoreyServed()) return GetLowestStoreyServed(); else if (IsStoreyServed(nStorey-1)) return nStorey-1; else return GetFloorDown(nStorey-1); }
+	AVULONG GetHighestStoreyServed();
+	AVULONG GetLowestStoreyServed();
+	AVULONG GetFloorUp(AVULONG nStorey);
+	AVULONG GetFloorDown(AVULONG nStorey);
+	AVULONG GetValidFloor(AVULONG nStorey);
 
 	// Main Floors (a.k.a. lobbies)
 	bool IsStoreyMain(AVULONG nStorey)		{ return m_strMainStoreys[nStorey] == '1' ? true : false; }

@@ -57,6 +57,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_3046AF37E89D402A9BFF142AB247C5D7"
+        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_3782F1C337044B76A46BFE0A947ADF26"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -75,20 +81,8 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_50C978F82E874B2399AE0A4B126A7922"
-        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_559E77703EED4355990698E31314DBF9"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_5791AA053F644B4CBECCAD09F8C26101"
-        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -191,6 +185,12 @@
         {
         "MsmKey" = "8:_B82CA5FCB86C4AB99B8ABD8FB7DECCAA"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B996673BCCAC408A9B98C2A3C9FDE5E8"
+        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1238,15 +1238,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:AdVisuo"
-        "ProductCode" = "8:{7A3F3830-6FEF-46E2-B7F5-A3C2C13E2C4E}"
-        "PackageCode" = "8:{898EFA15-A2B7-4113-B40B-4BB43E33A4FC}"
+        "ProductCode" = "8:{A1D3D544-7989-4FD1-B2F7-8C0E34644FC0}"
+        "PackageCode" = "8:{FF7F70BC-2A99-42EC-89A4-F3DA4849177E}"
         "UpgradeCode" = "8:{C0274823-104C-4BC9-8FD3-3E2E42F3BC44}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:3.06.1"
+        "ProductVersion" = "8:3.06.6"
         "Manufacturer" = "8:LerchBates"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1526,8 +1526,8 @@
                                             {
                                             "Name" = "8:command"
                                             "Condition" = "8:"
-                                            "AlwaysCreate" = "11:FALSE"
-                                            "DeleteAtUninstall" = "11:FALSE"
+                                            "AlwaysCreate" = "11:TRUE"
+                                            "DeleteAtUninstall" = "11:TRUE"
                                             "Transitive" = "11:FALSE"
                                                 "Keys"
                                                 {
@@ -1540,7 +1540,7 @@
                                                     "Condition" = "8:"
                                                     "Transitive" = "11:FALSE"
                                                     "ValueTypes" = "3:1"
-                                                    "Value" = "8:\"[ProgramFilesFolder][Manufacturer]\\[ProductName]\\bin\\AdVisuo.exe\" \"%1\""
+                                                    "Value" = "8:\"[TARGETDIR]bin\\AdVisuo.exe\" \"%1\""
                                                     }
                                                 }
                                             }
@@ -2055,11 +2055,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_50C978F82E874B2399AE0A4B126A7922"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_3046AF37E89D402A9BFF142AB247C5D7"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC100_DebugCRT_x86.msm"
+            "SourcePath" = "8:Microsoft_VC100_MFC_x86.msm"
                 "Properties"
                 {
                 }
@@ -2069,11 +2069,11 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_5791AA053F644B4CBECCAD09F8C26101"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_B996673BCCAC408A9B98C2A3C9FDE5E8"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC100_DebugMFC_x86.msm"
+            "SourcePath" = "8:Microsoft_VC100_CRT_x86.msm"
                 "Properties"
                 {
                 }
@@ -2088,7 +2088,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_10B54625FC6B4DDC873D65E342D8248E"
             {
-            "SourcePath" = "8:..\\Debug\\AdVisuo.exe"
+            "SourcePath" = "8:..\\Release\\AdVisuo.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_B8128D4453284849ACE4122C291505AF"
