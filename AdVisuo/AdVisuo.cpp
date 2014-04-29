@@ -194,7 +194,6 @@ BOOL CAdVisuoApp::InitInstance()
 			url = URLFromSimulationId(nSimulationId);
 		}
 
-
 		// create main MDI Frame window
 		CMainFrame *pMainframe = new CMainFrame; 
 		if (!pMainframe || !pMainframe->LoadFrame(IDR_MAINFRAME))
@@ -289,7 +288,9 @@ AVULONG CAdVisuoApp::SelectSimulation(CString url, AVULONG nProjectId, AVULONG n
 		if (!m_pMainWnd || !m_pMainWnd->IsWindowVisible())
 			m_pMainWnd = &dlgSelect;
 		int nRes = dlgSelect.DoModal();
+
 		m_pMainWnd = pPrevFrame;
+		
 		if (nRes != IDOK)
 			return 0;
 		else

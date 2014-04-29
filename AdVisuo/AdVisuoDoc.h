@@ -2,11 +2,9 @@
 // interface of the CAdVisuoDoc class
 //
 
-//#include "VisLiftGroup.h"
 #include "VisProject.h"
-//#include "VisSim.h"
-//#include "VisLift.h"
 #include "xmlrequest.h"
+#include "AdVisuoLoader.h"
 
 class CAdVisuoView;
 
@@ -22,6 +20,8 @@ class CAdVisuoDoc : public CDocument
 	CXMLRequest m_http;		// XML HTTP Request object
 	CString m_strStatus;	// status of internet connection
 	CString m_strResponse;	// response from the internet connection
+
+	CAdVisuoLoader m_loader;
 
 	AVLONG m_timeLoaded;	// streamed loading: time loaded
 
@@ -56,7 +56,7 @@ public:
 	virtual BOOL OnSaveDocument(LPCTSTR lpszPathName);
 	virtual BOOL OnDownloadDocument(CString url);
 
-	BOOL OnSIMDataLoaded();
+	BOOL OnSIMDataLoaded(CEngine *pEngine);
 
 // Generated message map functions
 protected:

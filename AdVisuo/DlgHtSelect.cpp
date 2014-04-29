@@ -30,6 +30,8 @@ CDlgHtSelect::CDlgHtSelect(std::wstring url, AVULONG nProjectId, AVULONG nSimula
 
 CDlgHtSelect::~CDlgHtSelect()
 {
+	for each (CProjectVis *pPrj in m_prjs)
+		delete pPrj;
 }
 
 void CDlgHtSelect::Load(CXMLRequest &http)

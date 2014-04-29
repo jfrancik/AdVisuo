@@ -199,7 +199,7 @@ void CAdVisuoView::OnInitialUpdate()
 	for (int i = 0; i < N_CAMERAS; i++) 
 	{
 		m_pCamera[i] = new CCamera(); 
-		m_pCamera[i]->Create(&m_engine, GetDocument()->GetProject(), i, 0, 0); 
+		m_pCamera[i]->Create(&m_engine, GetProject(), i, 0, 0); 
 	}
 	AVULONG nStorey = GetProject()->GetLiftGroup(0)->GetBasementStoreyCount();
 
@@ -403,13 +403,7 @@ void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 		OnActionStop();
 
 	if (GetDocument()->IsSIMDataReady())
-	{
-		LONG m_timeLoaded = GetDocument()->GetLoadedTime();
-
-		GetDocument()->OnSIMDataLoaded();
-		for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-			GetProject()->GetLiftGroup(i)->GetCurSim()->Play(&m_engine, m_timeLoaded);
-	}
+		GetDocument()->OnSIMDataLoaded(&m_engine);
 
 	GetDocument()->UpdateAllViews(NULL, 0, 0);
 

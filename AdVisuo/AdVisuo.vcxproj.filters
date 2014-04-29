@@ -135,6 +135,9 @@
     <ClCompile Include="DlgHtRepBug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AdVisuoLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdVisuo.h">
@@ -264,6 +267,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DlgHtRepBug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AdVisuoLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

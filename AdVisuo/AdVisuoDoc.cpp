@@ -7,6 +7,7 @@
 #include "AdVisuoDoc.h"
 #include "AdVisuoView.h"
 #include "AdVisuo.h"
+#include "VisSim.h"
 #include "DlgHtBase.h"
 
 #ifdef _DEBUG
@@ -26,7 +27,7 @@ END_MESSAGE_MAP()
 
 // CAdVisuoDoc construction/destruction
 
-CAdVisuoDoc::CAdVisuoDoc() : m_prj()
+CAdVisuoDoc::CAdVisuoDoc() : m_loader(&m_http, &m_prj)
 {
 	m_h = S_FALSE;
 	m_timeLoaded = 0;
@@ -255,7 +256,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		m_timeLoaded = GetProject()->GetMinSimulationTime();
 		m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
 		//m_http.wait();
-		OnSIMDataLoaded();
+		OnSIMDataLoaded(NULL);
 
 		m_h = S_OK;
 		OutText(L"Download initiated successfully, more data loading in background...");
@@ -300,16 +301,44 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	return true;
 }
 
-BOOL CAdVisuoDoc::OnSIMDataLoaded()
+
+HANDLE m_hEvResponseRead;
+struct WORKERDATA
+{
+	CXMLRequest *pHttp;
+	CProjectVis *pProject;
+};
+static UINT __cdecl WorkerThread(void *p)
+{
+	CXMLRequest *pHttp = static_cast<WORKERDATA*>(p)->pHttp;
+	CProjectVis *pProject = static_cast<WORKERDATA*>(p)->pProject;
+
+	std::wstring response;
+	pHttp->get_response(response);
+	SetEvent(m_hEvResponseRead);
+	pProject->LoadFromBuf(response.c_str());
+	delete p;
+	return 0;
+}
+
+BOOL CAdVisuoDoc::OnSIMDataLoaded(CEngine *pEngine)
 {
 	std::wstringstream str;
 	try
 	{
+//		WORKERDATA *p = new WORKERDATA;
+//		p->pHttp = &m_http;
+//		p->pProject = GetProject();
+//		m_hEvResponseRead = CreateEvent(NULL, FALSE, FALSE, NULL);
+//		AfxBeginThread(WorkerThread, p);
+//		WaitForSingleObject(m_hEvResponseRead, 5000);
+
 		// Process the most recently loaded data
 		std::wstring response;
 		m_http.get_response(response);
 		GetProject()->LoadFromBuf(response.c_str());
 		
+		LONG prevTimeLoaded = m_timeLoaded;
 		m_timeLoaded += 60000;
 
 		if (!IsDownloadComplete())
@@ -319,6 +348,10 @@ BOOL CAdVisuoDoc::OnSIMDataLoaded()
 				throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
 			m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
 		}
+
+		if (pEngine)
+			for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
+				GetProject()->GetLiftGroup(i)->GetCurSim()->Play(pEngine, prevTimeLoaded);
 
 		return true;
 	}

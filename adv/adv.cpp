@@ -430,7 +430,6 @@ ADV_API HRESULT AVRun(AVULONG nSimulationId)
 		LogProgress();
 
 		//prj.Play(); lt.Log(L"Play");
-
 		//h = prj.Update(pVisConn); lt.Log(L"Update");
 		h = prj.PlayAndUpdate(pVisConn); lt.Log(L"PlayAndUpdate");
 		if WARNED(h) dwStatus = STATUS_WARNING;

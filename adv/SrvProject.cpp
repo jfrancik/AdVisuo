@@ -354,6 +354,7 @@ HRESULT CProjectSrv::PlayAndUpdate(dbtools::CDataBase dbVis)
 	upd[L"TimeSaved"] = GetMaxSimulationTime();
 	upd[L"SavedAll"] = true;
 	upd.execute();
+	return S_OK;
 }
 
 HRESULT CProjectSrv::CleanUp(CDataBase db, ULONG nSimulationId)

@@ -22,7 +22,7 @@ using namespace std;
 		return s.str();
 	}
 
-UINT __cdecl WorkerThread(void *p)
+static UINT __cdecl WorkerThread(void *p)
 {
 	((CXMLRequest*)p)->ExecWorkerThread();
 	return 0;
