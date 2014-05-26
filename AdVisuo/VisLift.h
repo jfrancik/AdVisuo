@@ -29,6 +29,7 @@ public:
 	
 	void Go(JOURNEY &j);
 
+	void Play(AVULONG iIndex, JOURNEY &journey, CEngine *pEngine, AVLONG nTime = 0);
 	void Play(CEngine *pEngine, AVLONG nTime = 0);
 	AVLONG FastForward(CEngine *pEngine, AVLONG nTime);
 

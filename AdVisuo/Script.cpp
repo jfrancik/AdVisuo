@@ -28,7 +28,7 @@ void CScriptEvent::Record()
 	SetFFTime(0);
 	SetAccel(m_pView->GetEngine()->GetAccel());
 
-	for (AVULONG i = 0; i < N_CAMERAS; i++)
+	for (AVULONG i = 0; i < /*N_CAMERAS*/1; i++)
 	{
 		CCamera *pCamera = m_pView->GetCamera(i);
 		pCamera->CheckLocation();
@@ -45,7 +45,7 @@ void CScriptEvent::Play(AVLONG &nTime, AVLONG nAuxClockValue)
 	}
 
 	m_pView->GetEngine()->PutAccel(GetAccel());
-	for (AVULONG i = 0; i < N_CAMERAS; i++)
+	for (AVULONG i = 0; i < /*N_CAMERAS*/1; i++)
 		if (GetAnimTime() == 0)
 			m_pView->GetCamera(i)->MoveTo(m_camera[i]);
 		else
@@ -61,7 +61,7 @@ void CScriptEvent::Serialize(CArchive& ar)
 		ar << m_nTimeFF;
 		ar << m_fAccel;
 		ar << m_desc;
-		for (int i = 0; i < N_CAMERAS; i++)
+		for (int i = 0; i < /*N_CAMERAS*/1; i++)
 			ar.Write(m_camera + i, sizeof(CCamera::CAMPARAMS));
 	}
 	else
@@ -71,7 +71,7 @@ void CScriptEvent::Serialize(CArchive& ar)
 		ar >> m_nTimeFF;
 		ar >> m_fAccel; 
 		ar >> m_desc;
-		for (int i = 0; i < N_CAMERAS; i++)
+		for (int i = 0; i < /*N_CAMERAS*/1; i++)
 			ar.Read(m_camera + i, sizeof(CCamera::CAMPARAMS));
 	}
 }

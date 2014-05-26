@@ -27,30 +27,23 @@ END_MESSAGE_MAP()
 
 // CAdVisuoDoc construction/destruction
 
-CAdVisuoDoc::CAdVisuoDoc() : m_loader(&m_http, &m_prj)
+CAdVisuoDoc::CAdVisuoDoc() : m_loader(&m_prj)
 {
-	m_h = S_FALSE;
-	m_timeLoaded = 0;
-	m_http.create();
 }
 
 CAdVisuoDoc::~CAdVisuoDoc()
 {
+	CWaitCursor cursor;
+	if (AVGetApp() && AfxGetMainWnd() && AVGetApp()->CountDocuments() == 1)
+		AfxGetMainWnd()->ShowWindow(SW_HIDE);
+	m_loader.Stop();
 }
 
-CString CAdVisuoDoc::GetDiagnosticMessage()
+CEngine *CAdVisuoDoc::GetEngine()
 {
 	POSITION pos = GetFirstViewPosition();
 	CAdVisuoView *pView = (CAdVisuoView*)GetNextView(pos);
-	if (pView)
-		return pView->GetEngine()->GetDiagnosticMessage();
-	else
-		return L"";
-}
-
-CString CAdVisuoDoc::GetPathInfo()
-{
-	return m_strUrl.IsEmpty() ? m_strPathName : m_strUrl;
+	return pView ? pView->GetEngine() : NULL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +68,7 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	if (!CDocument::OnOpenDocument(lpszPathName))
 		return FALSE;
 
-	OutText(L"Loading simulation from file: %s", lpszPathName);
+	OutText(L"File: %s", lpszPathName);
 
 	CWaitCursor wait;
 	DeleteContents();
@@ -86,9 +79,9 @@ BOOL CAdVisuoDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		GetProject()->LoadFromFile(lpszPathName);	// throws _prj_error and _com_error
 
 		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_NAME).c_str());
-		m_timeLoaded = GetProject()->GetMaxSimulationTime();
 
-		m_h = S_OK;
+		//ATTENTION: This line was to signal the project was READY
+		//m_h = S_OK;
 		OutText(L"File successfully loaded.");
 		SetModifiedFlag(FALSE);
 	}
@@ -198,216 +191,41 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 		}
 	}
 	if (strUrl.Right(13) == "/GetAVProject") strUrl = strUrl.Left(strUrl.GetLength() - 13);
-	OutText(L"Downloading project from:");
-	OutText(L"%s (id=%d)", strUrl, nId);
+	OutText(L"URL is %s (id=%d)", strUrl, nId);
 
-	// Initiate the download
-	std::wstringstream str;
-	std::wstring response;
-	try
+	// set-up the master autorisation/http object
+	CXMLRequest *pMaster = AVGetApp()->GetAuthorisationAgent();
+	pMaster->set_authorisation_data((LPCTSTR)strUserid, (LPCTSTR)strTicket);
+	pMaster->setURL((LPCTSTR)strUrl);
+	
+	// initialise project loading...
+	m_loader.Start((LPCTSTR)strUrl, (LPCTSTR)strUserid, (LPCTSTR)strTicket, nId);
+
+	OutText(L"Download initiated successfully, more data loading in background...");
+	SetModifiedFlag(TRUE);
+	
+	return true;
+}
+
+bool CAdVisuoDoc::WaitWhileProjectLoading()
+{
+	CAdVisuoLoader::STATUS status = m_loader.Update();
+	while (status != CAdVisuoLoader::LOADING_DATA && status != CAdVisuoLoader::COMPLETE)
 	{
-		// set-up the master autorisation/http object
-		CXMLRequest *pMaster = AVGetApp()->GetAuthorisationAgent();
-		pMaster->set_authorisation_data((LPCTSTR)strUserid, (LPCTSTR)strTicket);
-		pMaster->setURL((LPCTSTR)strUrl);
-
-		// prepare my own copy
-		m_http.setURL(pMaster->getURL());
-		m_http.take_authorisation_from(pMaster);
-		
-		if (m_http.AVIsAuthorised() <= 0)
-			throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
-
-		std::wstring appname = m_http.AVGetAppName();
-		int verreq = m_http.AVGetRequiredVersion();
-		std::wstring date = m_http.AVGetRequiredVersionDate();
-		std::wstring path = m_http.AVGetLatestVersionDownloadPath();
-		if (VERSION < verreq)
-			throw _version_error(verreq, date.c_str(), path.c_str());
-
-		m_http.AVProject(nId);
-		m_http.get_response(response);
-		GetProject()->LoadFromBuf(response.c_str());
-
-		SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_NAME).c_str());
-		m_strPathName = GetTitle();
-
-		m_http.AVLiftGroups(GetProject()->GetId());
-		m_http.get_response(response);
-		GetProject()->LoadFromBuf(response.c_str());
-
-		// load lift groups
-		for each (CLiftGroupVis *pGroup in GetProject()->GetLiftGroups())
+		if (status == CAdVisuoLoader::FAILED)
 		{
-			m_http.AVFloors(pGroup->GetId());
-			m_http.get_response(response);
-			GetProject()->LoadFromBuf(response.c_str());
-
-			m_http.AVShafts(pGroup->GetId());
-			m_http.get_response(response);
-			GetProject()->LoadFromBuf(response.c_str());
-
-			m_http.AVSim(pGroup->GetId());
-			m_http.get_response(response);
-			GetProject()->LoadFromBuf(response.c_str());
+			return false;
 		}
 
-		// first SIM data chunk
-		m_timeLoaded = GetProject()->GetMinSimulationTime();
-		m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
-		//m_http.wait();
-		OnSIMDataLoaded(NULL);
-
-		m_h = S_OK;
-		OutText(L"Download initiated successfully, more data loading in background...");
-		SetModifiedFlag(TRUE);
-	}
-	catch (_prj_error pe)
-	{
-		CDlgHtFailure dlg(pe, m_http.getURL().c_str());
-		dlg.DoModal();
-		return false;
-	}
-	catch (_com_error ce)
-	{
-		CDlgHtFailure dlg(ce, m_http.getURL().c_str());
-		dlg.DoModal();
-		return false;
-	}
-	catch (_xmlreq_error xe)
-	{
-		CDlgHtFailure dlg(xe, m_http.getURL().c_str());
-		dlg.DoModal();
-		return false;
-	}
-	catch (_version_error ve)
-	{
-		CDlgHtFailure dlg(ve, m_http.getURL().c_str());
-		dlg.DoModal();
-		return false;
-	}
-	catch (dbtools::_value_error ve)
-	{
-		CDlgHtFailure dlg(ve, m_http.getURL().c_str());
-		dlg.DoModal();
-		return false;
-	}
-	catch(...)
-	{
-		CDlgHtFailure dlg(m_http.getURL().c_str());
-		dlg.DoModal();
-		return false;
+		Sleep(250);
+		status = m_loader.Update();
 	}
 	return true;
 }
 
-
-HANDLE m_hEvResponseRead;
-struct WORKERDATA
+void CAdVisuoDoc::UpdateProjectLoader(CEngine *pEngine)
 {
-	CXMLRequest *pHttp;
-	CProjectVis *pProject;
-};
-static UINT __cdecl WorkerThread(void *p)
-{
-	CXMLRequest *pHttp = static_cast<WORKERDATA*>(p)->pHttp;
-	CProjectVis *pProject = static_cast<WORKERDATA*>(p)->pProject;
-
-	std::wstring response;
-	pHttp->get_response(response);
-	SetEvent(m_hEvResponseRead);
-	pProject->LoadFromBuf(response.c_str());
-	delete p;
-	return 0;
-}
-
-BOOL CAdVisuoDoc::OnSIMDataLoaded(CEngine *pEngine)
-{
-	std::wstringstream str;
-	try
-	{
-//		WORKERDATA *p = new WORKERDATA;
-//		p->pHttp = &m_http;
-//		p->pProject = GetProject();
-//		m_hEvResponseRead = CreateEvent(NULL, FALSE, FALSE, NULL);
-//		AfxBeginThread(WorkerThread, p);
-//		WaitForSingleObject(m_hEvResponseRead, 5000);
-
-		// Process the most recently loaded data
-		std::wstring response;
-		m_http.get_response(response);
-		GetProject()->LoadFromBuf(response.c_str());
-		
-		LONG prevTimeLoaded = m_timeLoaded;
-		m_timeLoaded += 60000;
-
-		if (!IsDownloadComplete())
-		{
-			m_http.take_authorisation_from(AVGetApp()->GetAuthorisationAgent());
-			if (m_http.AVIsAuthorised() <= 0)
-				throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
-			m_http.AVPrjData(GetProject()->GetId(), m_timeLoaded, m_timeLoaded + 60000);
-		}
-
-		if (pEngine)
-			for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
-				GetProject()->GetLiftGroup(i)->GetCurSim()->Play(pEngine, prevTimeLoaded);
-
-		return true;
-	}
-	catch (_prj_error pe)
-	{
-		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(pe);
-		m_strFailureText  = CDlgHtFailure::GetFailureString(pe, m_http.getURL().c_str());
-		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
-		return false;
-	}
-	catch (_com_error ce)
-	{
-		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(ce);
-		m_strFailureText  = CDlgHtFailure::GetFailureString(ce, m_http.getURL().c_str());
-		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
-		return false;
-	}
-	catch (_xmlreq_error xe)
-	{
-		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(xe);
-		m_strFailureText  = CDlgHtFailure::GetFailureString(xe, m_http.getURL().c_str());
-		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
-		return false;
-	}
-	catch (_version_error ve)
-	{
-		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(ve);
-		m_strFailureText  = CDlgHtFailure::GetFailureString(ve, m_http.getURL().c_str());
-		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
-		return false;
-	}
-	catch (dbtools::_value_error ve)
-	{
-		m_strFailureTitle = CDlgHtFailure::GetFailureTitle(ve);
-		m_strFailureText  = CDlgHtFailure::GetFailureString(ve, m_http.getURL().c_str());
-		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
-		return false;
-	}
-	catch(...)
-	{
-		m_strFailureTitle = CDlgHtFailure::GetFailureTitle();
-		m_strFailureText  = CDlgHtFailure::GetFailureString(m_http.getURL().c_str());
-		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
-		return false;
-	}
-	return true;
-}
-
-void CAdVisuoDoc::OnOtherFailure()
-{
-	CDlgHtFailure dlg(m_strFailureTitle, m_strFailureText);
-	dlg.DoModal();
-}
-
-void CAdVisuoDoc::Serialize(CArchive& ar)
-{
+	m_loader.Update(pEngine);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -456,21 +274,6 @@ void CAdVisuoDoc::SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU)
 }
 
 
-void CAdVisuoDoc::OnCloseDocument()
-{
-	//if (!IsDownloadComplete())
-	//{
-	//	// finish background download cycle to avoid a crash
-	//	CWaitCursor cursor;
-	//	m_http.wait(5000);
-	//	m_http.reset();
-	//	if (IsSIMDataReady())
-	//		MessageBeep(-1);
-	//}
-	CDocument::OnCloseDocument();
-}
-
-
 BOOL CAdVisuoDoc::SaveModified()
 {
 	if (!IsModified())
@@ -516,4 +319,21 @@ BOOL CAdVisuoDoc::SaveModified()
 	return TRUE;    // keep going
 }
 
+void CAdVisuoDoc::OnOtherFailure()
+{
+	CDlgHtFailure dlg(m_loader.GetFailureTitle().c_str(), m_loader.GetFailureText().c_str());
+	dlg.DoModal();
 
+	OutText(L"Closing document...");
+	OnCloseDocument();
+	OutText(L"Current document has been closed.");
+}
+
+
+
+void CAdVisuoDoc::OnCloseDocument()
+{
+	CDocument::OnCloseDocument();
+	if (AVGetApp()->CountDocuments() == 0)
+		AfxGetMainWnd()->PostMessage(WM_CLOSE);
+}

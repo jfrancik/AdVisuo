@@ -366,7 +366,9 @@ bool CAdVisuoApp::InitSimulation(CString url)
 			
 	// open document
 	CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
-	if (!pDoc) return FALSE;
+
+	if (!pDoc)
+		return FALSE;
 
 	m_url = m_http.getURL().c_str();
 	if (pDoc) pDoc->ResetTitle();
@@ -374,10 +376,23 @@ bool CAdVisuoApp::InitSimulation(CString url)
 	// wait a moment
 	pSplash->Sleep(250);
 
+	if (CountDocuments() == 0)
+	{
+		if (m_pMainWnd)
+		{
+			pSplash->OnOK();
+			delete pSplash;
+		}
+		// close the splash window and return as a fail
+		return FALSE;
+	}
+
 	if (!m_pMainWnd->IsWindowVisible())
 	{
 		// If the main window hasn't been shown yet (starting program!), show and update it
 		m_pMainWnd->ShowWindow(SW_RESTORE);
+//		m_pMainWnd->SetWindowPos(NULL,0, 0, 1024, 568, SWP_NOMOVE | SWP_NOZORDER);
+//		m_pMainWnd->CenterWindow();
 		m_pMainWnd->ShowWindow(SW_MAXIMIZE);
 		m_pMainWnd->UpdateWindow();
 
@@ -399,6 +414,20 @@ bool CAdVisuoApp::LoadSimulation(AVULONG nProjectId, AVULONG nSimulationId, bool
 	nSimulationId = SelectSimulation(m_url, nProjectId, nSimulationId, bGotoSimulations);
 	if (!nSimulationId) return false;
 	return InitSimulation(URLFromSimulationId(nSimulationId));
+}
+
+AVULONG CAdVisuoApp::CountDocuments()
+{
+	if (!m_pAVDocTemplate) return 0;
+
+	POSITION pos = m_pAVDocTemplate->GetFirstDocPosition();
+	AVULONG n = 0;
+	while (pos)
+	{
+		n++;
+		m_pAVDocTemplate->GetNextDoc(pos);
+	}
+	return n;
 }
 
 void CAdVisuoApp::ExtendAuthorisation()

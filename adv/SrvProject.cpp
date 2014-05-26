@@ -289,9 +289,9 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	ins[L"TimeStamp"] = L"CURRENT_TIMESTAMP";
 	ins[L"TimeStamp"].act_as_symbol();
 
-	ins[L"MinSimulationTime"] = GetMinSimulationTime();
-	ins[L"MaxSimulationTime"] = GetMaxSimulationTime();
-	ins[L"TimeSaved"] = GetMaxSimulationTime();
+	ins[L"MinSimulationTime"] = (ULONG)0;
+	ins[L"MaxSimulationTime"] = (ULONG)0;
+	ins[L"TimeSaved"] = (ULONG)0;
 	ins[L"SavedAll"] = (ULONG)0;
 
 	ins.execute();

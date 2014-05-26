@@ -106,10 +106,20 @@ void CDlgHtBase::DoNonModal(unsigned nTimeout)
 
 void CDlgHtBase::Sleep(ULONG nTime)
 {
+	MSG msg;
 	DWORD t = ::GetTickCount();
+
+	// first, consume all posted messages
+	while (::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE))
+		if (!AfxGetApp()->PumpMessage()) 
+		{ 
+			::PostQuitMessage(0); 
+			return; 
+		}
+
+	// now, idle for the time given...	
 	while (::GetTickCount() <= t + nTime)
 	{
-		MSG msg;
 		::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
 		if (!AfxGetApp()->PumpMessage()) 
 		{ 

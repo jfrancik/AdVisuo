@@ -3,10 +3,10 @@
 //
 
 #include "VisProject.h"
-#include "xmlrequest.h"
 #include "AdVisuoLoader.h"
 
 class CAdVisuoView;
+class CEngine;
 
 #pragma once
 
@@ -14,20 +14,8 @@ class CAdVisuoDoc : public CDocument
 {
 // Attributes
 
-	CProjectVis m_prj;		// The Project
-	HRESULT m_h;			// The result of m_sim.Load
-
-	CXMLRequest m_http;		// XML HTTP Request object
-	CString m_strStatus;	// status of internet connection
-	CString m_strResponse;	// response from the internet connection
-
-	CAdVisuoLoader m_loader;
-
-	AVLONG m_timeLoaded;	// streamed loading: time loaded
-
-	// data used by delayed Failure Dialog Box
-	CString m_strFailureTitle;
-	CString m_strFailureText;
+	CProjectVis m_prj;			// The Project
+	CAdVisuoLoader m_loader;	// The Project Loader
 
 protected: // create from serialization only
 	CAdVisuoDoc();
@@ -35,28 +23,24 @@ protected: // create from serialization only
 public:
 	virtual ~CAdVisuoDoc();
 
-	CString GetDiagnosticMessage();
-	CString GetPathInfo();
+	CEngine *GetEngine();
+
+	CString GetPathInfo()					{ return m_strUrl.IsEmpty() ? m_strPathName : m_strUrl; }
 
 	// Attributes and Basic Operations
 	CProjectVis *GetProject()				{ return &m_prj; }
-
-	bool IsSimReady()						{ return m_h == S_OK; }
-	bool IsSIMDataReady()					{ return m_http.ready(); }
-	bool IsDownloadComplete()				{ return m_timeLoaded >= GetProject()->GetTimeSaved(); }
-
-	AVLONG GetLoadedTime()					{ return m_timeLoaded; }
-
+	bool IsDownloadComplete()				{ return m_loader.GetStatus() == CAdVisuoLoader::COMPLETE; }
+	AVLONG GetLoadedTime()					{ return m_loader.GetTimeLoaded(); }
 	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_NAME).c_str()); m_strPathName = GetTitle(); }
 
 	// Open/New/Download Operations
 	virtual BOOL OnNewDocument();
-	virtual void Serialize(CArchive& ar);
 	virtual BOOL OnOpenDocument(LPCTSTR lpszPathName);
 	virtual BOOL OnSaveDocument(LPCTSTR lpszPathName);
 	virtual BOOL OnDownloadDocument(CString url);
 
-	BOOL OnSIMDataLoaded(CEngine *pEngine);
+	bool WaitWhileProjectLoading();
+	void UpdateProjectLoader(CEngine *pEngine);
 
 // Generated message map functions
 protected:
@@ -65,9 +49,9 @@ protected:
 public:
 	afx_msg void OnUpdateFileSave(CCmdUI *pCmdUI);
 	virtual void SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU = TRUE);
-	virtual void OnCloseDocument();
 	virtual BOOL SaveModified();
 	afx_msg void OnOtherFailure();
+	virtual void OnCloseDocument();
 };
 
 

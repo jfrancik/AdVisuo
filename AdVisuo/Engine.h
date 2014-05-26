@@ -144,6 +144,7 @@ public:
 	bool IsPlaying();
 	bool IsPaused();
 	AVLONG GetPlayTime();
+	void SetPlayTime(AVULONG nTime);
 	AVULONG GetFPS();
 	AVFLOAT GetAccel();
 	void PutAccel(AVFLOAT accel);

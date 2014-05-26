@@ -167,7 +167,7 @@ void CAdVisuoView::OnInitialUpdate()
 	CWaitCursor wait_cursor;
 
 	// initialise FreeWill
-	if (!m_engine.Create(m_hWnd, this) || !m_engine.IsReady() || !GetDocument()->IsSimReady())
+	if (!m_engine.Create(m_hWnd, this) || !m_engine.IsReady())
 	{
 		::PostQuitMessage(100);
 		return;
@@ -184,6 +184,14 @@ void CAdVisuoView::OnInitialUpdate()
 
 	// adjust to the screen size
 	OnAdjustViewSize();
+
+	// test & wait for the project to build
+	OutText(L"Waiting for the project...");
+	if (!GetDocument()->WaitWhileProjectLoading())
+	{
+		OutText(L"Project loading failed...");
+		return;
+	}
 
 	// initialise the simulation
 	OutText(L"Creating building structure...");
@@ -252,7 +260,7 @@ void CAdVisuoView::OnInitialUpdate()
 	RenderScene();
 	m_engine.EndFrame();
 
-	// necessary to initialise:
+	// necessary to initialise
 	Stop();
 	
 	SetTimer(101, 1000 / 100, NULL);
@@ -402,8 +410,7 @@ void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 	if (m_engine.GetPlayTime() > GetProject()->GetMaxSimulationTime())
 		OnActionStop();
 
-	if (GetDocument()->IsSIMDataReady())
-		GetDocument()->OnSIMDataLoaded(&m_engine);
+	GetDocument()->UpdateProjectLoader(&m_engine);
 
 	GetDocument()->UpdateAllViews(NULL, 0, 0);
 
@@ -454,7 +461,7 @@ void CAdVisuoView::OnDraw(CDC *pDC)
 
 	if (m_bLock) return;
 
-	if (!GetDocument() || !m_engine.IsReady() || !GetDocument()->IsSimReady() || !GetCurCamera() || !GetCurCamera()->IsReady())
+	if (!GetDocument() || !m_engine.IsReady() || !GetCurCamera() || !GetCurCamera()->IsReady())
 	{
 		// if anything went wrong or is not yet ready...
 		CRect rect;
@@ -583,6 +590,7 @@ bool CAdVisuoView::RenderToVideo(LPCTSTR lpszFilename, AVULONG nFPS, AVULONG nRe
 
 			// proceed the script - and provide for any pre-programmed fast forward
 			m_script.Proceed(t, t);
+			m_engine.SetPlayTime(t);
 			m_engine.Proceed(t);
 			m_engine.ProceedAux(t);
 
@@ -1439,7 +1447,6 @@ void CAdVisuoView::OnUpdateCharacterExpectedwaitingtime(CCmdUI *pCmdUI)	{ pCmdUI
 
 void CAdVisuoView::OnUpdateStatusbarPane2(CCmdUI *pCmdUI)
 {
-	AVULONG nTime = m_engine.GetPlayTime();
 	CString str;
 	AVULONG fps = m_engine.GetFPS();
 	if (fps)

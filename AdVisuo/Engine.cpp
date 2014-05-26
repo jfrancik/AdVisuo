@@ -560,6 +560,7 @@ bool CEngine::Stop()						{ if (!IsReady()) return false; m_pRenderer->Stop(); m
 bool CEngine::IsPlaying()					{ return IsReady() && (m_pRenderer->IsPlaying() == S_OK); }
 bool CEngine::IsPaused()					{ return IsReady() && (m_pRenderer->IsPaused() == S_OK); }
 AVLONG CEngine::GetPlayTime()				{ AVLONG nTime; if (!IsPlaying()) return 0; m_pRenderer->GetPlayTime(&nTime); return nTime; }
+void CEngine::SetPlayTime(AVULONG nTime)	{ m_pRenderer->PutPlayTime(nTime); } 
 AVULONG CEngine::GetFPS()					{ return m_pfps[m_nfps] ? 1000 * (c_fpsNUM-1) / (m_pfps[(m_nfps+c_fpsNUM-1)%c_fpsNUM] - m_pfps[m_nfps]) : 0; }
 AVFLOAT CEngine::GetAccel()					{ AVFLOAT accel; m_pRenderer->GetAccel(&accel); return accel; }
 void CEngine::PutAccel(AVFLOAT accel)		{ m_pRenderer->PutAccel(accel); }

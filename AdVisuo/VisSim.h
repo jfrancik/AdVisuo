@@ -35,4 +35,5 @@ protected:
 	virtual CLift *CreateLift(AVULONG nId);
 
 	friend class CProjectVis;
+	friend class CAdVisuoLoader;
 };

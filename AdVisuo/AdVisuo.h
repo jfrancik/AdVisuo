@@ -68,6 +68,8 @@ public:
 	bool InitSimulation(CString name);					// Loads the project with all decorations (splash windows, debuf info etc...)
 	bool LoadSimulation(AVULONG nProjectId = 0, AVULONG nSimulationId = 0, bool bGotoSimulations = false);
 
+	AVULONG CountDocuments();
+
 	void ExtendAuthorisation();
 
 	bool Report(AVULONG nSimulationId, AVSTRING strPath, AVULONG nCat, AVSTRING strUserDesc, AVSTRING strDiagnostic, AVSTRING strErrorMsg);

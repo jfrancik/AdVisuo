@@ -68,16 +68,6 @@ public:
 	afx_msg HCURSOR OnQueryDragIcon();
 };
 
-class _version_error
-{
-	int nVersionReq;
-	CString strVerDate;
-	CString strDownloadPath;
-public:
-	_version_error(int _nVersionReq, CString _strVerDate, CString _strDownloadPath)	: nVersionReq(_nVersionReq), strVerDate(_strVerDate), strDownloadPath(_strDownloadPath) { }
-	std::wstring ErrorMessage();
-};
-
 class CDlgHtFailure: public CDlgHtBase
 {
 	DECLARE_DYNCREATE(CDlgHtFailure)

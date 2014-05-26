@@ -5,7 +5,7 @@
 ///////////////////////////////////////////////////////////////
 // Versioning
 
-#define VERSION 30606	// 3.06.06
+#define VERSION 30613	// 3.06.13
 
 #define VERSION_MAJOR	(VERSION / 10000)
 #define VERSION_MINOR	((VERSION % 10000) / 100)
@@ -58,6 +58,16 @@ struct AVCOLOR
 	AVFLOAT g;
 	AVFLOAT b;
 	AVFLOAT a;
+};
+
+class _version_error
+{
+	int nVersionReq;
+	CString strVerDate;
+	CString strDownloadPath;
+public:
+	_version_error(int _nVersionReq, CString _strVerDate, CString _strDownloadPath)	: nVersionReq(_nVersionReq), strVerDate(_strVerDate), strDownloadPath(_strDownloadPath) { }
+	std::wstring ErrorMessage();
 };
 
 #define _FWCOLOR(c) (*(FWCOLOR*)&(c))

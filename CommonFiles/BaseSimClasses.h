@@ -186,6 +186,7 @@ public:
 	AVULONG GetJourneyCount()		{ return m_journeys.size(); }
 	JOURNEY *GetJourney(AVULONG i)	{ return i < GetJourneyCount() ? &m_journeys[i] : NULL; }
 	void AddJourney(JOURNEY &j)		{ m_journeys.push_back(j); }
+	std::vector<JOURNEY> &GetJourneys()	{ return m_journeys; }
 };
 
 /////////////////////////////////////////////////////////////

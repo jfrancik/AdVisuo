@@ -4,6 +4,7 @@
 #include "DlgHtRepBug.h"
 #include "AdVisuoDoc.h"
 #include "AdVisuo.h"
+#include "Engine.h"
 
 using namespace std;
 
@@ -61,7 +62,7 @@ BOOL CDlgHtRepBug::OnInitDialog()
 
 	if (pDoc)
 	{
-		m_diagnostic = pDoc->GetDiagnosticMessage();
+		m_diagnostic = (pDoc && pDoc->GetEngine()) ? pDoc->GetEngine()->GetDiagnosticMessage() : L"";
 		m_nId = pDoc->GetProject()->GetSimulationId();
 		m_path = pDoc->GetPathInfo();
 	}

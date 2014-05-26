@@ -25,7 +25,6 @@
 #include "HUD.h"
 #include "Script.h"
 #include "Engine.h"
-
 #include <functional>
 
 #define N_CAMERAS	8						// number of cameras

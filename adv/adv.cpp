@@ -4,13 +4,16 @@
 
 #include "stdafx.h"
 #include <iostream>
+#include <fstream>
 #include "../CommonFiles/DBTools.h"
 #include "adv.h"
-#include "SrvLiftGroup.h"
-#include "IfcLiftGroup.h"
-#include "SrvSim.h"
 #include "SrvProject.h"
+#include "SrvLiftGroup.h"
+#include "SrvSim.h"
+#include "SrvLift.h"
+#include "SrvPassenger.h"
 #include "IfcProject.h"
+#include "IfcLiftGroup.h"
 #include "ATLComTime.h"
 #include "IFCBuilder.h"
 
@@ -433,6 +436,34 @@ ADV_API HRESULT AVRun(AVULONG nSimulationId)
 		//h = prj.Update(pVisConn); lt.Log(L"Update");
 		h = prj.PlayAndUpdate(pVisConn); lt.Log(L"PlayAndUpdate");
 		if WARNED(h) dwStatus = STATUS_WARNING;
+
+
+
+
+		std::wofstream myfile;
+		myfile.open ("c:\\users\\jarek\\desktop\\output.txt");
+		for each (CLiftGroupSrv *pGroup in prj.GetLiftGroups())
+		{
+			myfile << L"LIFT GROUP: " << pGroup->GetName() << endl;
+			for each (CSimSrv *pSim in pGroup->GetSims())
+			{
+				myfile << L"  SCENARIO: " << pSim->GetScenarioName() << endl;
+				for each (CLiftSrv *pLift in pSim->GetLifts())
+				{
+					myfile << L"    LIFT: " << pLift->GetId() << endl;
+					for each (JOURNEY j in pLift->GetJourneys())
+						myfile << L"      JOURNEY: from " << j.m_floorFrom << L" to " << j.m_floorTo << L", " << j.m_timeGo/1000 << L" => " << j.m_timeDest/1000 << L"; doorcycles: " << j.StringifyDoorCycles() << endl;
+				}
+				myfile << L"  - PASSENGERS:" << endl;
+				for each (CPassengerSrv *pPassenger in pSim->GetPassengers())
+					myfile << L"    PASSENGER: lift: " << pPassenger->GetLiftId() << L" from " << pPassenger->GetArrivalFloor() << L" to " << pPassenger->GetDestFloor() << L", " << pPassenger->GetArrivalTime() << L" => " << pPassenger->GetLoadTime() << L" => " << pPassenger->GetGoTime() << L" => " << pPassenger->GetUnloadTime() << L"; waypoints: " << pPassenger->StringifyWayPoints() << endl;
+			}
+		}
+		myfile.close();
+
+
+
+
 
 		ltall.Log(L"AVRun");
 		return Logf(dwStatus, L"AVRun(%d)", nSimulationId);

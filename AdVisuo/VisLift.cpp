@@ -95,31 +95,33 @@ void CLiftVis::Go(JOURNEY &j)
 		AnimateJourney(m_pEngine, j.m_shaftTo, j.m_floorTo, j.m_timeGo, j.m_timeDest - j.m_timeGo);
 }
 
+void CLiftVis::Play(AVULONG iIndex, JOURNEY &journey, CEngine *pEngine, AVLONG nTime /*= 0*/)
+{
+	if ((AVLONG)journey.m_timeGo >= nTime)
+	{
+		if (iIndex == 0) MoveToInitialPosition();	// do it once in every cycle!
+
+		ASSERT(journey.m_floorFrom != UNDEF && journey.m_floorTo != UNDEF);
+
+		AVULONG timeStart = journey.FirstOpenTime();
+		if (timeStart == UNDEF) timeStart = journey.m_timeGo;
+		ASSERT(timeStart != UNDEF);
+
+		HACTION a = pEngine->StartAnimation(timeStart);
+		a = pEngine->SetAnimationListener(a, this, iIndex);
+
+		AVULONG timeFinish = journey.m_timeDest;
+		ASSERT(timeFinish != UNDEF);
+	}
+}
+
 void CLiftVis::Play(CEngine *pEngine, AVLONG nTime)
 {
 	m_pEngine = pEngine;
 
 	// Plan journeys
 	for (AVULONG i = 0; i < GetJourneyCount(); i++)
-	{
-		JOURNEY *pJ = GetJourney(i);
-		if ((AVLONG)pJ->m_timeGo >= nTime)
-		{
-			if (i == 0) MoveToInitialPosition();	// do it once in every cycle!
-
-			ASSERT(pJ->m_floorFrom != UNDEF && pJ->m_floorTo != UNDEF);
-
-			AVULONG timeStart = pJ->FirstOpenTime();
-			if (timeStart == UNDEF) timeStart = pJ->m_timeGo;
-			ASSERT(timeStart != UNDEF);
-
-			HACTION a = pEngine->StartAnimation(timeStart);
-			a = pEngine->SetAnimationListener(a, this, i);
-
-			AVULONG timeFinish = pJ->m_timeDest;
-			ASSERT(timeFinish != UNDEF);
-		}
-	}
+		Play(i, *GetJourney(i), pEngine, nTime);
 }
 
 AVLONG CLiftVis::FastForward(CEngine *pEngine, AVLONG nTime)
