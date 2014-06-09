@@ -57,7 +57,7 @@ AVLONG CSimVis::FastForward(CEngine *pEngine, AVLONG nTime)
 			AVLONG t = GetPassenger(i)->GetSpawnTime();
 			nEarliestTime = min(nEarliestTime, t);
 		}
-	return min(nEarliestTime, GetProject()->GetMaxSimulationTime());
+	return min(nEarliestTime, GetProject()->GetMaxTime());
 }
 
 void CSimVis::RenderPassengers(AVLONG nPhase)

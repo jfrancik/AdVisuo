@@ -127,7 +127,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="_legacy_SrvLift.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CommonFiles\BaseLiftGroup.h" />

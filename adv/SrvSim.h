@@ -20,7 +20,6 @@ public:
 
 	// Database operations
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nSimId);
-	HRESULT LoadFromReports(dbtools::CDataBase db);
 	HRESULT Store(dbtools::CDataBase db);
 	HRESULT Update(dbtools::CDataBase db);
 

@@ -128,44 +128,64 @@ HRESULT CProjectSrv::FindProjectID(CDataBase db, ULONG nSimulationId, ULONG &nPr
 	return S_OK;
 }
 
-HRESULT CProjectSrv::LoadFromConsole(CDataBase db, ULONG nSimulationId)
-{
-	if (!db) throw db;
+HRESULT CProjectSrv::LoadFromConsole(dbtools::CDataBase dbConsole, ULONG nSimulationId)
+{	// special IFC version (no access to the reports)
+	if (!dbConsole) throw dbConsole;
 	CDataBase::SELECT sel;
 
 	SetSimulationId(nSimulationId);
 	SetAVVersionId(0);
-	
+
 	// Query for the Simulation (not Sim!)
-	sel = db.select(L"SELECT p.*, f.Name AS ProjectFolderName, s.Name AS SimName, s.Comments AS SimComments, s.CreatedBy AS SimCreatedBy, s.CreatedDate AS SimCreatedDate, s.LastModifiedBy AS SimLastModifiedBy, s.LastModifiedDate AS SimLastModifiedDate FROM Projects p, ProjectFolders f, Simulations s WHERE p.ProjectId = s.ProjectId AND p.ProjectFolderId = f.ProjectFolderId AND s.SimulationId=%d", nSimulationId);
+	sel = dbConsole.select(L"SELECT p.*, f.Name AS ProjectFolderName, s.Name AS SimName, s.Comments AS SimComments, s.CreatedBy AS SimCreatedBy, s.CreatedDate AS SimCreatedDate, s.LastModifiedBy AS SimLastModifiedBy, s.LastModifiedDate AS SimLastModifiedDate FROM Projects p, ProjectFolders f, Simulations s WHERE p.ProjectId = s.ProjectId AND p.ProjectFolderId = f.ProjectFolderId AND s.SimulationId=%d", nSimulationId);
 	if (!sel) throw ERROR_PROJECT;
 	sel >> ME;
 
 	// Query for Lift Groups
-	sel = db.select(L"SELECT LiftGroupId FROM LiftGroups WHERE TenancyId IN (SELECT TenancyId FROM Tenancies WHERE SimulationId=%d)", nSimulationId);
+	sel = dbConsole.select(L"SELECT LiftGroupId FROM LiftGroups WHERE TenancyId IN (SELECT TenancyId FROM Tenancies WHERE SimulationId=%d)", nSimulationId);
 	while (sel)
 	{
 		CLiftGroupSrv *pGroup = AddLiftGroup();
-		pGroup->LoadFromConsole(db, sel[L"LiftGroupId"]);
+		pGroup->LoadFromConsole(dbConsole, sel[L"LiftGroupId"]);
 		sel++;
 	}
 
 	return S_OK;
 }
 
-HRESULT CProjectSrv::LoadFromReports(dbtools::CDataBase db)
+HRESULT CProjectSrv::LoadFromConsole(dbtools::CDataBase dbConsole, dbtools::CDataBase dbReports, ULONG nSimulationId)
 {
-	for each (CLiftGroupSrv *pGroup in GetLiftGroups())
-		for each (CSimSrv *pSim in pGroup->GetSims())
-		{
-			HRESULT h = pSim->LoadFromReports(db);
-			if FAILED(h) return h;
-			LogProgress();
-		}
+	if (!dbConsole) throw dbConsole;
+	CDataBase::SELECT sel;
+
+	SetSimulationId(nSimulationId);
+	SetAVVersionId(0);
+	
+	// Query for the Simulation (not Sim!)
+	sel = dbConsole.select(L"SELECT p.*, f.Name AS ProjectFolderName, s.Name AS SimName, s.Comments AS SimComments, s.CreatedBy AS SimCreatedBy, s.CreatedDate AS SimCreatedDate, s.LastModifiedBy AS SimLastModifiedBy, s.LastModifiedDate AS SimLastModifiedDate FROM Projects p, ProjectFolders f, Simulations s WHERE p.ProjectId = s.ProjectId AND p.ProjectFolderId = f.ProjectFolderId AND s.SimulationId=%d", nSimulationId);
+	if (!sel) throw ERROR_PROJECT;
+	sel >> ME;
+
+	// Query for Lift Groups
+	sel = dbConsole.select(L"SELECT LiftGroupId FROM LiftGroups WHERE TenancyId IN (SELECT TenancyId FROM Tenancies WHERE SimulationId=%d)", nSimulationId);
+	while (sel)
+	{
+		CLiftGroupSrv *pGroup = AddLiftGroup();
+		pGroup->LoadFromConsole(dbConsole, sel[L"LiftGroupId"]);
+		sel++;
+	}
+
+	// Query for Maximum Simulation Time
+	sel = dbReports.select(L"SELECT MAX(StartUnloading) AS MaxSimulationTime FROM HallCalls WHERE Iteration=0 AND SimulationId = %d", nSimulationId);
+	if (!sel) throw ERROR_PROJECT;
+	sel >> ME;
+
+	SetMaxTime(sel[L"MaxSimulationTime"].msec());
+
 	return S_OK;
 }
 
-HRESULT CProjectSrv::FastLoadFromReports(dbtools::CDataBase dbReports, dbtools::CDataBase dbVis)
+HRESULT CProjectSrv::FastLoadPlayUpdate(dbtools::CDataBase dbVis, dbtools::CDataBase dbReports)
 {
 	if (!dbReports) throw dbReports;
 	if (!dbVis) throw dbVis;
@@ -185,63 +205,70 @@ HRESULT CProjectSrv::FastLoadFromReports(dbtools::CDataBase dbReports, dbtools::
 				pSim->AddLift((CLift*)pLift);
 				mapLifts[std::make_pair(nTrafficScenario, nLiftId)] = pLift;
 			}
+
+			for each (CLiftSrv *pLift in pSim->GetLifts())
+				pLift->SetSimId(pSim->GetId());
 		}
 
 	bool bWarning = false;
 
-	// Load Passengers - from HallCalls
+	InitTimedProgress(0, GetMaxTime());
+	DWORD nTicks = GetTickCount();
+
+	// Main Fast Loop
 	AVULONG iPassengerId = 0;
-	dbtools::CDataBase::SELECT sel;
-	sel = dbReports.select(L"SELECT * FROM HallCalls WHERE Iteration=0 AND SimulationId = %d ORDER BY StartLoading", GetSimulationId());
-	for ( ; sel; sel++)
+	dbtools::CDataBase::SELECT selHC, selSt;
+	selHC = dbReports.select(L"SELECT * FROM HallCalls WHERE Iteration=0 AND SimulationId = %d ORDER BY StartLoading", GetSimulationId());
+	selSt = dbReports.select(L"SELECT * FROM LiftStops WHERE Iteration=0 AND SimulationId = %d ORDER BY Time", GetSimulationId());
+	for( ; selSt; selSt++)
 	{
-		// identify the sim & lift from the maps
-		AVULONG nTrafficScenario = sel[L"TraffiicScenarioId"];
-		AVULONG nLiftId = sel[L"LiftId"];
-		CSimSrv *pSim = mapSims[nTrafficScenario];
-		CLiftSrv *pLift = mapLifts[std::make_pair(nTrafficScenario, nLiftId)];
-		ASSERT(pSim != NULL && pLift != NULL);
+		AVULONG nTrafficScenario = selSt[L"TrafficScenarioId"];
+		AVULONG nLiftId = selSt[L"LiftId"];
+		AVULONG nFloor = selSt[L"Floor"];
+		AVLONG nTime = selSt[L"Time"].msec();
+		AVLONG nDuration = selSt[L"Duration"].msec();
 
-		CPassengerSrv *pPassenger = (CPassengerSrv*)pSim->CreatePassenger(iPassengerId++);
-		if (pPassenger->Load(sel) != S_OK) bWarning = true;
-		pPassenger->SetLiftId(pLift->GetId());		// overwrite original values (which were native DB id's)
-		pPassenger->SetShaftId(pLift->GetId());
-		pSim->AddPassenger(pPassenger);
-		pLift->AddPassenger(pPassenger);	// passengers are added to the lifts only to speed-up the next process below
-	}
+		// Load passengers - up to this moment in time...
+		for ( ; selHC &&  (AVLONG)selHC[L"StartLoading"].msec() <= nTime + nDuration + 100; selHC++)
+		{
+			// identify the sim & lift from the maps
+			AVULONG nTrafficScenario = selHC[L"TraffiicScenarioId"];
+			AVULONG nLiftId = selHC[L"LiftId"];
+			CSimSrv *pSim = mapSims[nTrafficScenario];
+			CLiftSrv *pLift = mapLifts[std::make_pair(nTrafficScenario, nLiftId)];
+			ASSERT(pSim != NULL && pLift != NULL);
 
-	// feed lifts with LiftStops
-	sel = dbReports.select(L"SELECT * FROM LiftStops WHERE Iteration=0 AND SimulationId = %d ORDER BY Time", this->GetSimulationId());
-	for( ; sel; sel++)
-	{
-		AVULONG nTrafficScenario = sel[L"TrafficScenarioId"];
-		AVULONG nLiftId = sel[L"LiftId"];
+			CPassengerSrv *pPassenger = (CPassengerSrv*)pSim->CreatePassenger(iPassengerId++);
+			if (pPassenger->Load(selHC) != S_OK) bWarning = true;
+			pPassenger->SetLiftId(pLift->GetId());		// overwrite original values (which were native DB id's)
+			pPassenger->SetShaftId(pLift->GetId());
+			pSim->AddPassenger(pPassenger);
+			pLift->AddPassenger(pPassenger);	// passengers are added to the lifts only to speed-up the next process below
+
+			pPassenger->Play();
+			pPassenger->SetSimId(pSim->GetId());
+			pPassenger->Store(dbVis);
+		}
+
 		CLiftSrv *pLift = mapLifts[std::make_pair(nTrafficScenario, nLiftId)];
 		ASSERT(pLift != NULL);
-		pLift->AddStop(sel[L"Floor"], sel[L"Time"].msec(), sel[L"Duration"].msec());
+		pLift->Feed(nFloor, nTime, nDuration);
+
+		while (pLift->GetJourneyCacheSize())
+			pLift->Store(dbVis, pLift->PullCachedJourney());
+
+		if (GetTickCount() - nTicks > 500)
+		{
+			LogProgressTime(nTime);
+			nTicks = GetTickCount();
+
+			dbVis.execute(L"UPDATE AVProjects SET TimeSaved = %d WHERE SimulationId = %d", nTime, GetSimulationId());
+		}
 	}
 
-	// Load Lifts (Generate Journeys)
-	// Each lift received a list of passengers and stops in the previous steps
-	for each (CLiftGroupSrv *pGroup in GetLiftGroups())
-		for each (CSimSrv *pSim in pGroup->GetSims())
-			for each (CLiftSrv *pLift in pSim->GetLifts())
-				pLift->Load();
-
-#ifdef _DEBUG
-	// optional - compare with the legacy version - FOR DEBUG ONLY!
-	//for each (CLiftGroupSrv *pGroup in GetLiftGroups())
-	//	for each (CSimSrv *pSim in pGroup->GetSims())
-	//		for each (CLiftSrv *pLift in pSim->GetLifts())
-	//		{
-	//			CLiftSrv *pLiftFromLogs = (CLiftSrv*)pSim->CreateLift(pLift->GetId());
-	//			auto pLIFT = pGroup->GetLift(pLift->GetId());
-	//			pLiftFromLogs->legacy_Load(pLIFT, dbReports, pLIFT->GetShaft()->GetNativeId(), (*pSim)[L"TrafficScenarioId"], 0);
-	//			pLiftFromLogs->legacy_ReportDifferences(pLift);
-	//			delete pLiftFromLogs;
-	//		}
-#endif
-	
+	LogProgressStep();
+	dbVis.execute(L"UPDATE AVProjects SET TimeSaved = %d WHERE SimulationId = %d", GetMaxTime(), GetSimulationId());
+	dbVis.execute(L"UPDATE AVProjects SET SavedAll = 1 WHERE SimulationId = %d", GetSimulationId());
 	return S_OK;
 }
 
@@ -289,8 +316,7 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	ins[L"TimeStamp"] = L"CURRENT_TIMESTAMP";
 	ins[L"TimeStamp"].act_as_symbol();
 
-	ins[L"MinSimulationTime"] = (ULONG)0;
-	ins[L"MaxSimulationTime"] = (ULONG)0;
+	ins[L"MaxSimulationTime"] = ME[L"MaxSimulationTime"].msec();
 	ins[L"TimeSaved"] = (ULONG)0;
 	ins[L"SavedAll"] = (ULONG)0;
 
@@ -321,15 +347,8 @@ HRESULT CProjectSrv::Update(dbtools::CDataBase db)
 		{
 			HRESULT h = pSim->Update(db);
 			if FAILED(h) return h;
-			LogProgress();
+			LogProgressStep();
 		}
-
-	CDataBase::UPDATE upd = db.update(L"AVProjects", L"WHERE ID=%d", GetId());
-	upd[L"MinSimulationTime"] = GetMinSimulationTime();
-	upd[L"MaxSimulationTime"] = GetMaxSimulationTime();
-	upd[L"TimeSaved"] = GetMaxSimulationTime();
-	upd[L"SavedAll"] = true;
-	upd.execute();
 
 	return S_OK;
 }
@@ -345,15 +364,9 @@ HRESULT CProjectSrv::PlayAndUpdate(dbtools::CDataBase dbVis)
 
 			h = pSim->Update(dbVis);
 			if FAILED(h) return h;
-			LogProgress();
+			LogProgressStep();
 		}
 
-	CDataBase::UPDATE upd = dbVis.update(L"AVProjects", L"WHERE ID=%d", GetId());
-	upd[L"MinSimulationTime"] = GetMinSimulationTime();
-	upd[L"MaxSimulationTime"] = GetMaxSimulationTime();
-	upd[L"TimeSaved"] = GetMaxSimulationTime();
-	upd[L"SavedAll"] = true;
-	upd.execute();
 	return S_OK;
 }
 

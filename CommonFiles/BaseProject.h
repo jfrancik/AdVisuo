@@ -15,8 +15,7 @@ class CProject : public dbtools::CCollection
 	AVULONG m_nAVVersionId;			// AV Version id
 
 	// simulation time
-	AVLONG m_nMinSimulationTime;	// simulation minimum time - may be less than zero but not greater than zero
-	AVLONG m_nMaxSimulationTime;	// simulation maximum time
+	AVLONG m_nMaxTime;				// simulation maximum time
 	AVLONG m_nTimeSaved;			// simulation saved time
 
 	std::vector<CLiftGroup*> m_groups;
@@ -34,12 +33,12 @@ public:
 	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
 
 	// Time-related functions
-	AVLONG GetMinSimulationTime()				{ return m_nMinSimulationTime; }	// simulation minimum time - may be less than zero but not greater than zero
-	AVLONG GetMaxSimulationTime()				{ return m_nMaxSimulationTime; }	// simulation maximum time
+	AVLONG GetMaxTime()							{ return m_nMaxTime; }	// simulation maximum time
+	void SetMaxTime(AVLONG t)					{ m_nMaxTime = t; }
 	AVLONG GetTimeSaved()						{ return m_nTimeSaved; }			// simulation saved time
+	void SetTimeSaved(AVLONG t)					{ m_nTimeSaved = t; }
 
-	void ReportMinSimulationTime(AVLONG n)		{ if (n < m_nMinSimulationTime) m_nMinSimulationTime = n; }		// used to collect time min info
-	void ReportMaxSimulationTime(AVLONG n)		{ if (n > m_nMaxSimulationTime) m_nMaxSimulationTime = n; }		// used to collect time max info
+	AVLONG GetSimulationStartTime();
 
 	AVULONG GetMaxStoreyCount();
 	AVULONG GetMaxBasementStoreyCount();

@@ -180,7 +180,7 @@ void CAdVisuoView::OnInitialUpdate()
 	m_sprite.Initialise();
 	m_plateCam.SetParams((_stdPathModels + L"plateNW.bmp").c_str(), 0xFF0000FF, 0x80FFFFFF, 12, TRUE, FALSE, L"System", 0xFF000000, 16, false, CSize(2, 2));
 	m_hud.Initialise();
-	m_hud.SetSimulationTime(GetProject()->GetMaxSimulationTime());
+	m_hud.SetSimulationTime(GetProject()->GetMaxTime());
 
 	// adjust to the screen size
 	OnAdjustViewSize();
@@ -360,7 +360,7 @@ void CAdVisuoView::Stop()
 	// prepare sim...
 	for (AVULONG i = 0; i < GetProject()->GetLiftGroupsCount(); i++)
 		GetProject()->GetLiftGroup(i)->GetCurSim()->Play(&m_engine);
-	for (AVLONG t = GetProject()->GetMinSimulationTime(); t <= 0; t += 40)
+	for (AVLONG t = GetProject()->GetSimulationStartTime(); t <= 0; t += 40)
 		m_engine.Proceed(t);	// loops un-nested on 24/1/13: Proceed was called too often!
 }
 
@@ -407,7 +407,7 @@ void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 	}
 	m_engine.ProceedAux(GetTickCount());
 	
-	if (m_engine.GetPlayTime() > GetProject()->GetMaxSimulationTime())
+	if (m_engine.GetPlayTime() > GetProject()->GetMaxTime())
 		OnActionStop();
 
 	GetDocument()->UpdateProjectLoader(&m_engine);

@@ -38,7 +38,7 @@ void CAdVisuoLoader::Start(std::wstring strUrl, std::wstring strUsername, std::w
 	m_http.set_authorisation_data(strUsername, strTicket);
 	m_nProjectId = nProjectId;
 
-	m_timeLoaded = m_pProject->GetMinSimulationTime();
+	m_timeLoaded = 0;			// m_pProject->GetMinSimulationTime();
 	m_hEvCompleted = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	AfxBeginThread(::WorkerThread, this);
@@ -121,7 +121,7 @@ UINT CAdVisuoLoader::WorkerThread()
 		m_status = LOADING_DATA;
 
 		std::wstring response;
-		while (m_timeLoaded < m_pProject->GetTimeSaved() && m_status != REQUEST_TO_STOP)
+		while (m_timeLoaded < m_pProject->GetMaxTime() && m_status != REQUEST_TO_STOP)
 		{
 			if (m_http.AVIsAuthorised() <= 0)
 				throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);

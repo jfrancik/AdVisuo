@@ -111,7 +111,7 @@ void CProjectVis::Load(xmltools::CXmlReader reader)
 			reader >> *pSim;
 			pSim->ResolveMe();
 
-			for (AVULONG i = 0; i < pGroup->GetLiftCount(); i++)
+			for (AVULONG i = 0; i < pGroup->GetShaftCount(); i++)
 				pSim->AddLift(pSim->CreateLift(i));
 		}
 		else

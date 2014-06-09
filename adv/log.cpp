@@ -16,36 +16,76 @@ bool g_bProgressOnScreen = false;
 bool g_bProgressDB = true;
 
 // Progress Internal Data
-DWORD g_nSteps = 0;
-double g_fProgress = 0;
+DWORD g_nMaxSteps = 0;
+DWORD g_nCurStep = 0;
+
+bool g_bTimed = false;
+DWORD g_nTimedSteps = 0;
+double g_fTimeFactor = 0;
+
 dbtools::CDataBase *g_pDb = NULL;
 AVULONG g_nSimulationId = -1;
 
 void InitProgress(dbtools::CDataBase *pDb, DWORD nSimulationId, DWORD nSteps)
 {
-	g_nSteps = nSteps;
-	g_fProgress = 0;
+	g_bTimed = false;
+	g_nTimedSteps = 0;
+	g_fTimeFactor = 0;
+
+	g_nMaxSteps = nSteps;
+	g_nCurStep = 0;
 	g_pDb = pDb;
 	if (nSimulationId >= 0) g_nSimulationId = nSimulationId;
 
-	if (!g_nSteps) return;
+	if (!g_nMaxSteps) return;
 
-	LogProgress(0);
+	LogProgressStep(0);
 }
 
-void LogProgress(int nSteps)
+void InitTimedProgress(DWORD nSteps, DWORD nMsecs)
 {
-	if (!g_nSteps) return;
-	g_fProgress += (double)nSteps / g_nSteps;
+	g_bTimed = true;
+	if (nSteps <= 0) nSteps = g_nMaxSteps - g_nCurStep;
+	g_nTimedSteps = nSteps;
+	g_fTimeFactor = (double)nSteps / (double)g_nMaxSteps / (double)nMsecs;
+}
 
-	int nPercent = (int)(100.0 * g_fProgress + 0.5);
+void LogProgressPercent(int nPercent)
+{
+	if (nPercent > 100) nPercent = 100;
+	if (nPercent < 0) nPercent = 0;
 
 	if (g_bProgressOnScreen)
 		wprintf(L"%d%%\b\b\b\b", nPercent);
 
-	if (nSteps > 0 && g_pDb && g_nSimulationId >= 0)
+	if (g_pDb && g_nSimulationId >= 0)
 		g_pDb->execute(L"UPDATE Queue SET Progress = %d WHERE SimulationId = %d", nPercent, g_nSimulationId);
 }
+
+void LogProgressStep(int nSteps)
+{
+	if (!g_nMaxSteps) return;
+
+	if (g_bTimed)
+	{
+		// terminate and reset timed mode
+		g_bTimed = false;
+		g_nCurStep += g_nTimedSteps;
+		g_nTimedSteps = 0;
+		g_fTimeFactor = 0;
+		if (nSteps > 0) nSteps--;
+	}
+
+	g_nCurStep += nSteps;
+	
+	LogProgressPercent((AVULONG)(100.0 * (double)g_nCurStep / g_nMaxSteps + 0.5));
+}
+
+void LogProgressTime(int nMsecs)
+{
+	LogProgressPercent(100.0 * ((double)g_nCurStep / g_nMaxSteps + (double)nMsecs * g_fTimeFactor) + 0.5);
+}
+
 
 void AddEventSource(HMODULE hModule, PCTSTR pszName, DWORD dwCategoryCount /* =0 */ )
 {

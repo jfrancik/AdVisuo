@@ -29,9 +29,9 @@ public:
 	static void QueryAvailIds(dbtools::CDataBase db, std::vector<AVULONG> &ids);
 
 	static HRESULT FindProjectID(dbtools::CDataBase db, ULONG nSimulationId, ULONG &nProjectID);	// searches for prj id in Visualisation database
-	HRESULT LoadFromConsole(dbtools::CDataBase db, ULONG nSimulationId);
-	HRESULT LoadFromReports(dbtools::CDataBase db);
-	HRESULT FastLoadFromReports(dbtools::CDataBase dbReports, dbtools::CDataBase dbVis);
+	HRESULT LoadFromConsole(dbtools::CDataBase dbConsole, ULONG nSimulationId);	// special IFC version (no access to the reports)
+	HRESULT LoadFromConsole(dbtools::CDataBase dbConsole, dbtools::CDataBase dbReports, ULONG nSimulationId);
+	HRESULT FastLoadPlayUpdate(dbtools::CDataBase dbVis, dbtools::CDataBase dbReports);
 	HRESULT LoadFromVisualisation(dbtools::CDataBase db, ULONG nProjectId);
 
 	void Play();

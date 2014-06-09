@@ -20,7 +20,6 @@ inline AVULONG timeToGo(AVFLOAT x1, AVFLOAT y1, AVFLOAT x2, AVFLOAT y2, AVFLOAT 
 void CPassengerSrv::Play()
 {
 	// Calculate Spatial Points
-
 	CLiftGroupSrv::SHAFT *pSHAFT = GetSim()->GetLiftGroup()->GetShaft(GetShaftId());
 	ASSERT(pSHAFT);
 

@@ -96,9 +96,6 @@
     <ClCompile Include="SrvLiftGroup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="_legacy_SrvLift.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="adv.h">

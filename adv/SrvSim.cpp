@@ -16,13 +16,13 @@ CLift *CSimSrv::CreateLift(AVULONG nId)					{ return new CLiftSrv(this, nId); }
 
 void CSimSrv::Play()
 {
-	GetProject()->ReportMinSimulationTime(-100);
-	for each (CPassengerSrv *pPassenger in GetPassengers())
-	{
-		pPassenger->Play();
-		GetProject()->ReportMaxSimulationTime(pPassenger->GetUnloadTime());
-		GetProject()->ReportMinSimulationTime(pPassenger->GetSpawnTime());
-	}
+//	GetProject()->ReportMinSimulationTime(-100);
+//	for each (CPassengerSrv *pPassenger in GetPassengers())
+//	{
+//		pPassenger->Play();
+//		GetProject()->ReportMaxSimulationTime(pPassenger->GetUnloadTime());
+//		GetProject()->ReportMinSimulationTime(pPassenger->GetSpawnTime());
+//	}
 }
 
 HRESULT CSimSrv::LoadFromVisualisation(CDataBase db, ULONG nSimId)
@@ -40,57 +40,6 @@ HRESULT CSimSrv::LoadFromVisualisation(CDataBase db, ULONG nSimId)
 	return S_OK;
 }
 
-HRESULT CSimSrv::LoadFromReports(CDataBase db)
-{
-	// Checks
-	if (!db) throw db;
-	dbtools::CDataBase::SELECT sel;
-
-	AVULONG nTrafficScenarioId = (*this)[L"TrafficScenarioId"];
-	AVULONG nIteration = 0;
-
-	bool bWarning = false;
-
-	AVULONG iPassengerId = 0;
-	for (AVULONG iLift = 0; iLift < GetLiftGroup()->GetLiftCount(); iLift++)
-	{
-		AVULONG nNativeId = GetLiftGroup()->GetLift(iLift)->GetShaft()->GetNativeId();
-
-		// create the lift
-		CLiftSrv *pLift = (CLiftSrv*)CreateLift(iLift);
-
-		// Create and load passengers (Hall Calls)
-		sel = db.select(L"SELECT * FROM HallCalls WHERE LiftId = %d AND TraffiicScenarioId=%d AND Iteration=%d ORDER BY StartLoading", nNativeId, nTrafficScenarioId, nIteration);
-		for ( ; sel; sel++)
-		{
-			CPassengerSrv *pPassenger = (CPassengerSrv*)CreatePassenger(iPassengerId++);
-			if (pPassenger->Load(sel) != S_OK) bWarning = true;
-			pPassenger->SetLiftId(iLift);	// overwrite original values (which were native DB id's)
-			pPassenger->SetShaftId(iLift);
-			AddPassenger(pPassenger);
-			pLift->AddPassenger(pPassenger);
-		}
-	
-		// load the lift
-		HRESULT h;
-		h = pLift->Load(db);
-
-
-		// Compare with Legacy Version
-		//CLiftSrv *pLiftFromLogs = (CLiftSrv*)CreateLift(iLift);
-		//h = pLiftFromLogs->legacy_Load(GetLiftGroup()->GetLift(iLift), db, nNativeId, nTrafficScenarioId, nIteration);
-		//pLiftFromLogs->legacy_ReportDifferences(pLift);
-		//delete pLiftFromLogs;
-
-
-		if FAILED(h) return h;
-		if (h != S_OK) bWarning = true;
-		AddLift(pLift);
-	}
-
-	return bWarning ? WARNING_GENERIC : S_OK;
-}
-
 HRESULT CSimSrv::Store(CDataBase db)
 {
 	if (!db) throw db;
@@ -103,10 +52,6 @@ HRESULT CSimSrv::Store(CDataBase db)
 	ins[L"Floors"] = GetLiftGroup()->GetStoreyCount();
 	ins[L"Shafts"] = GetLiftGroup()->GetShaftCount();
 	ins[L"Lifts"] = GetLiftGroup()->GetLiftCount();
-	ins[L"Passengers"] = (ULONG)0;
-	ins[L"JourneysSaved"] = (ULONG)0;
-	ins[L"PassengersSaved"] = (ULONG)0;
-	ins[L"SavedAll"] = (ULONG)0;
 
 	ins[L"TimeStamp"] = L"CURRENT_TIMESTAMP";
 	ins[L"TimeStamp"].act_as_symbol();
@@ -124,8 +69,6 @@ HRESULT CSimSrv::Store(CDataBase db)
 HRESULT CSimSrv::Update(CDataBase db)
 {
 	if (!db) throw db;
-	if (GetLiftGroupId() == 0)
-		throw (Log(ERROR_INTERNAL, L"Project update run with ID=0"), ERROR_GENERIC);
 
 	// Store the Journeys
 	AVULONG nLifts = GetLiftCount();
@@ -142,16 +85,6 @@ HRESULT CSimSrv::Update(CDataBase db)
 		GetPassenger(i)->SetSimId(GetId());
 		GetPassenger(i)->Store(db);
 	}
-
-	CDataBase::UPDATE upd = db.update(L"AVSims", L"WHERE ID=%d", GetId());
-	upd[L"Floors"] = GetLiftGroup()->GetStoreyCount();
-	upd[L"Shafts"] = GetLiftGroup()->GetShaftCount();
-	upd[L"Lifts"] = GetLiftGroup()->GetLiftCount();
-	upd[L"Passengers"] = GetPassengerCount();
-	upd[L"JourneysSaved"] = GetJourneyTotalCount();
-	upd[L"PassengersSaved"] = GetPassengerCount();
-	upd[L"SavedAll"] = true;
-	upd.execute();
 
 	return S_OK;
 }

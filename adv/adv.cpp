@@ -301,6 +301,7 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 	CLogTime lt;
 	AVSTRING pConsoleConn = GetConnString(CONN_CONSOLE);
 	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
+	AVSTRING pRepConn = GetConnString(CONN_REPORT);
 	AVSTRING pSimQueueConn = GetConnString(CONN_SIMQUEUE);
 		
 	try
@@ -311,14 +312,14 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 
 		HRESULT h = S_OK;
 		DWORD dwStatus = STATUS_OK;
-		LogProgress();
+		LogProgressStep();
 
 		h = CProjectSrv::CleanUp(pVisConn, nSimulationId); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
-		LogProgress();
+		LogProgressStep();
 
 		CProjectSrv prj;
-		h = prj.LoadFromConsole(pConsoleConn, nSimulationId);
+		h = prj.LoadFromConsole(pConsoleConn, pRepConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		h = prj.Store(pVisConn); 
@@ -326,7 +327,7 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 
 		h = prj.Update(pVisConn); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
-		LogProgress();
+		LogProgressStep();
 
 		ASSERT(prj.GetId() == prj.GetLiftGroup(0)->GetProjectId());
 		nProjectID = prj.GetId();
@@ -358,25 +359,30 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 
 		h = CProjectSrv::CleanUpSim(pVisConn, nProjectID); 
 		if WARNED(h) dwStatus = STATUS_WARNING;
-		LogProgress();
+		LogProgressStep();
 
 		CProjectSrv prj;
 		h = prj.LoadFromVisualisation(pVisConn, nProjectID);
 		if WARNED(h) dwStatus = STATUS_WARNING;
-		LogProgress();
-		LogProgress();
+		LogProgressStep();
+		LogProgressStep();
 
 		prj.Scale(fScale);
 
-		lt.Reset(); 
-		h = prj.LoadFromReports(pRepConn); lt.Log(L"LoadFromReports");
+		lt.Reset();
+		h = prj.FastLoadPlayUpdate(pVisConn, pRepConn); lt.Log(L"FastLoadFromReports");
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		prj.Play(); lt.Log(L"Play");
-		LogProgress();
+		// Old, "slow" version
+		//lt.Reset();
+		//h = prj.LoadFromReports(pRepConn); lt.Log(L"LoadFromReports");
+		//if WARNED(h) dwStatus = STATUS_WARNING;
+		//LogProgressStep();
 
-		h = prj.Update(pVisConn); lt.Log(L"Update");
-		if WARNED(h) dwStatus = STATUS_WARNING;
+		// //prj.Play(); lt.Log(L"Play");
+		// //h = prj.Update(pVisConn); lt.Log(L"Update");
+		//h = prj.PlayAndUpdate(pVisConn); lt.Log(L"PlayAndUpdate");
+		//if WARNED(h) dwStatus = STATUS_WARNING;
 
 		ltall.Log(L"AVProcess");
 		return Logf(dwStatus, L"AVProcess(%d)", nProjectID);
@@ -405,18 +411,18 @@ ADV_API HRESULT AVRun(AVULONG nSimulationId)
 		h = CProjectSrv::CleanUp(pVisConn, nSimulationId); lt.Log(L"CleanUp");
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		LogProgress();
+		LogProgressStep();
 
 		CProjectSrv prj;
 		lt.Reset();
-		h = prj.LoadFromConsole(pConsoleConn, nSimulationId); lt.Log(L"LoadFromConsole");
+		h = prj.LoadFromConsole(pConsoleConn, pRepConn, nSimulationId); lt.Log(L"LoadFromConsole");
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
 		lt.Reset();
 		h = prj.Store(pVisConn); lt.Log(L"Store");
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		LogProgress();
+		LogProgressStep();
 
 //		h = prj.Update(pVisConn); 
 //		if WARNED(h) dwStatus = STATUS_WARNING;
@@ -426,46 +432,44 @@ ADV_API HRESULT AVRun(AVULONG nSimulationId)
 		prj.Scale(fScale);
 
 		lt.Reset();
+		h = prj.FastLoadPlayUpdate(pVisConn, pRepConn); lt.Log(L"FastLoadFromReports");
+		if WARNED(h) dwStatus = STATUS_WARNING;
+
+		// Old, "slow" version
+		//lt.Reset();
 		//h = prj.LoadFromReports(pRepConn); lt.Log(L"LoadFromReports");
-		h = prj.FastLoadFromReports(pRepConn, pVisConn); lt.Log(L"FastLoadFromReports");
-		if WARNED(h) dwStatus = STATUS_WARNING;
+		//if WARNED(h) dwStatus = STATUS_WARNING;
+		//LogProgressStep();
 
-		LogProgress();
-
-		//prj.Play(); lt.Log(L"Play");
-		//h = prj.Update(pVisConn); lt.Log(L"Update");
-		h = prj.PlayAndUpdate(pVisConn); lt.Log(L"PlayAndUpdate");
-		if WARNED(h) dwStatus = STATUS_WARNING;
-
-
-
-
-		std::wofstream myfile;
-		myfile.open ("c:\\users\\jarek\\desktop\\output.txt");
-		for each (CLiftGroupSrv *pGroup in prj.GetLiftGroups())
-		{
-			myfile << L"LIFT GROUP: " << pGroup->GetName() << endl;
-			for each (CSimSrv *pSim in pGroup->GetSims())
-			{
-				myfile << L"  SCENARIO: " << pSim->GetScenarioName() << endl;
-				for each (CLiftSrv *pLift in pSim->GetLifts())
-				{
-					myfile << L"    LIFT: " << pLift->GetId() << endl;
-					for each (JOURNEY j in pLift->GetJourneys())
-						myfile << L"      JOURNEY: from " << j.m_floorFrom << L" to " << j.m_floorTo << L", " << j.m_timeGo/1000 << L" => " << j.m_timeDest/1000 << L"; doorcycles: " << j.StringifyDoorCycles() << endl;
-				}
-				myfile << L"  - PASSENGERS:" << endl;
-				for each (CPassengerSrv *pPassenger in pSim->GetPassengers())
-					myfile << L"    PASSENGER: lift: " << pPassenger->GetLiftId() << L" from " << pPassenger->GetArrivalFloor() << L" to " << pPassenger->GetDestFloor() << L", " << pPassenger->GetArrivalTime() << L" => " << pPassenger->GetLoadTime() << L" => " << pPassenger->GetGoTime() << L" => " << pPassenger->GetUnloadTime() << L"; waypoints: " << pPassenger->StringifyWayPoints() << endl;
-			}
-		}
-		myfile.close();
-
-
-
-
+		// //prj.Play(); lt.Log(L"Play");
+		// //h = prj.Update(pVisConn); lt.Log(L"Update");
+		//h = prj.PlayAndUpdate(pVisConn); lt.Log(L"PlayAndUpdate");
+		//if WARNED(h) dwStatus = STATUS_WARNING;
 
 		ltall.Log(L"AVRun");
+
+		//std::wofstream myfile;
+		//myfile.open ("c:\\users\\jarek\\desktop\\output.txt");
+		//for each (CLiftGroupSrv *pGroup in prj.GetLiftGroups())
+		//{
+		//	myfile << L"LIFT GROUP: " << pGroup->GetName() << endl;
+		//	for each (CSimSrv *pSim in pGroup->GetSims())
+		//	{
+		//		myfile << L"  SCENARIO: " << pSim->GetScenarioName() << endl;
+		//		for each (CLiftSrv *pLift in pSim->GetLifts())
+		//		{
+		//			myfile << L"    LIFT: " << pLift->GetId() << endl;
+		//			for each (JOURNEY j in pLift->GetJourneys())
+		//				if (j.m_floorTo != (AVULONG)-1)
+		//					myfile << L"      JOURNEY: from " << j.m_floorFrom << L" to " << j.m_floorTo << L", " << j.m_timeGo/1000 << L" => " << j.m_timeDest/1000 << L"; doorcycles: " << j.StringifyDoorCycles() << endl;
+		//		}
+		//		myfile << L"  - PASSENGERS:" << endl;
+		//		for each (CPassengerSrv *pPassenger in pSim->GetPassengers())
+		//			myfile << L"    PASSENGER: lift: " << pPassenger->GetLiftId() << L" from " << pPassenger->GetArrivalFloor() << L" to " << pPassenger->GetDestFloor() << L", " << pPassenger->GetArrivalTime() << L" => " << pPassenger->GetLoadTime() << L" => " << pPassenger->GetGoTime() << L" => " << pPassenger->GetUnloadTime() << L"; waypoints: " << pPassenger->StringifyWayPoints() << endl;
+		//	}
+		//}
+		//myfile.close();
+
 		return Logf(dwStatus, L"AVRun(%d)", nSimulationId);
 	}
 	STD_CATCH(L"AVRun(%d)", nSimulationId);
@@ -475,6 +479,7 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)
 {
 	CLogTime lt;
 	AVSTRING pConsoleConn = GetConnString(CONN_CONSOLE);
+	AVSTRING pRepConn = GetConnString(CONN_REPORT);
 
 	try
 	{

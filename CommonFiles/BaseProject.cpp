@@ -15,8 +15,7 @@ CProject::CProject()
 	m_nId = 0;
 	m_nSimulationId = 0;
 	m_nAVVersionId = 0;
-	m_nMinSimulationTime = 0;
-	m_nMaxSimulationTime = 0;
+	m_nMaxTime = 0;
 	m_nTimeSaved = 0;
 }
 
@@ -24,6 +23,17 @@ CProject::~CProject()
 {
 	for each (CLiftGroup *pGroup in m_groups)
 		delete pGroup;
+}
+
+AVLONG CProject::GetSimulationStartTime()
+{
+	AVLONG t = 0;
+	for each (CLiftGroup *pGroup in GetLiftGroups())
+		for each (CSim *pSim in pGroup->GetSims())
+			for each (CPassenger *pPassenger in pSim->GetPassengers())
+				if (pPassenger->GetSpawnTime() < t)
+					t = pPassenger->GetSpawnTime();
+	return t;
 }
 
 AVULONG CProject::GetMaxStoreyCount()
@@ -72,8 +82,7 @@ void CProject::ResolveMe()
 	m_nSimulationId = ME[L"SimulationId"];
 	m_nAVVersionId = ME[L"AVVersionId"];
 
-	m_nMinSimulationTime = ME[L"MinSimulationTime"];
-	m_nMaxSimulationTime = ME[L"MaxSimulationTime"];
+	m_nMaxTime = ME[L"MaxSimulationTime"];
 	m_nTimeSaved = ME[L"TimeSaved"];
 }
 
