@@ -30,7 +30,8 @@ static UINT __cdecl WorkerThread(void *p)
 
 CXMLRequest::CXMLRequest() : m_hEvRequestSet(NULL), m_hEvResponseRdy(NULL), m_com_error(0)	
 {
-	m_pAuthSource = NULL;
+	InitializeCriticalSection(&cs);
+	m_pAuthAgent = NULL;
 }
 
 CXMLRequest::~CXMLRequest()
@@ -47,30 +48,34 @@ void CXMLRequest::create()
 	AfxBeginThread(WorkerThread, this);
 }
 
-void CXMLRequest::take_authorisation_from(CXMLRequest *pSource)
+void CXMLRequest::take_authorisation_from(CXMLRequest *pAuthAgent)
 { 
-	m_pAuthSource = pSource; 
+	m_pAuthAgent = pAuthAgent; 
 }
 
 void CXMLRequest::set_authorisation_data(std::wstring strUsername, std::wstring strTicket)
 {
-	if (m_pAuthSource)
-		m_pAuthSource->set_authorisation_data(strUsername, strTicket);
+	if (m_pAuthAgent)
+		m_pAuthAgent->set_authorisation_data(strUsername, strTicket);
 	else
 	{
+		EnterCriticalSection(&cs);
 		m_strUsername = strUsername;
 		m_strTicket = strTicket;
+		LeaveCriticalSection(&cs);
 	}
 }
 
 void CXMLRequest::get_authorisation_data(std::wstring &strUsername, std::wstring &strTicket)
 {
-	if (m_pAuthSource)
-		m_pAuthSource->get_authorisation_data(strUsername, strTicket);
+	if (m_pAuthAgent)
+		m_pAuthAgent->get_authorisation_data(strUsername, strTicket);
 	else
 	{
+		EnterCriticalSection(&cs);
 		strUsername = m_strUsername;
 		strTicket = m_strTicket;
+		LeaveCriticalSection(&cs);
 	}
 }
 
@@ -174,6 +179,16 @@ int CXMLRequest::unpack_as_int(wstring &strResponse, int defValue)
 		return defValue;
 	int i = reader[L"int"];
 	return i;
+}
+
+unsigned CXMLRequest::unpack_as_unsigned(std::wstring &strResponse, unsigned defValue)
+{
+	xmltools::CXmlReader reader(strResponse.c_str());
+	reader.read_simple_type(L"unsignedInt");
+	if (reader.find(L"unsignedInt") == reader.end())
+		return defValue;
+	unsigned u = (unsigned)(int)reader[L"unsignedInt"];
+	return u;
 }
 
 void CXMLRequest::throw_exceptions()
@@ -339,6 +354,17 @@ bool CXMLRequest::AVExtendAuthorisation()
 		return false;
 	set_authorisation_data(strUsername, strTicket);
 	return true;
+}
+
+unsigned CXMLRequest::AVPrjProgress(AVLONG nSimulationId)
+{
+	wstring response;
+	setreq();
+	addparam_authorisation();
+	addparam(L"nSimulationId", nSimulationId);
+	call(L"AVPrjProgress");
+	get_response(response);
+	return unpack_as_unsigned(response);
 }
 
 void CXMLRequest::AVReportIssue(std::wstring url, std::wstring strUsername, std::wstring strTicket, AVULONG nVersion, AVULONG nId, std::wstring strPath, AVULONG nCat, std::wstring strUserDesc, std::wstring strDiagnostic, std::wstring strErrorMsg)

@@ -237,6 +237,7 @@
     <None Include="html\splash1.png" />
     <None Include="html\splash2.png" />
     <None Include="html\splash3.png" />
+    <None Include="html\waitmsg.png" />
     <None Include="mesh\buffer.mesh" />
     <None Include="mesh\cwt.mesh" />
     <None Include="mesh\ladder.mesh" />
@@ -279,6 +280,7 @@
     </None>
     <None Include="res\Toolbar.bmp" />
     <None Include="res\Toolbar256.bmp" />
+    <None Include="res\wait_msg.bmp" />
     <None Include="res\writelarge.bmp" />
     <None Include="res\writesmall.bmp" />
     <None Include="AdVisuo.reg" />

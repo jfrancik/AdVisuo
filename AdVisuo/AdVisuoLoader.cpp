@@ -14,6 +14,7 @@
 CAdVisuoLoader::CAdVisuoLoader(CProjectVis *pProject) : m_pProject(pProject)
 {
 	m_status = NOT_STARTED;
+	m_progress = 0x80000003;
 	m_timeLoaded = 0;
 	m_timeStep = 120000;
 
@@ -31,11 +32,11 @@ CAdVisuoLoader::~CAdVisuoLoader(void)
 	DeleteCriticalSection(&m_csPassenger);
 }
 
-void CAdVisuoLoader::Start(std::wstring strUrl, std::wstring strUsername, std::wstring strTicket, AVULONG nProjectId)
+void CAdVisuoLoader::Start(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG nProjectId)
 {
 	m_http.create();
 	m_http.setURL(strUrl);
-	m_http.set_authorisation_data(strUsername, strTicket);
+	m_http.take_authorisation_from(pAuthAgent);
 	m_nProjectId = nProjectId;
 
 	m_timeLoaded = 0;			// m_pProject->GetMinSimulationTime();
@@ -46,7 +47,7 @@ void CAdVisuoLoader::Start(std::wstring strUrl, std::wstring strUsername, std::w
 
 void CAdVisuoLoader::Stop()
 {
-	if (m_status != COMPLETE)
+	if (m_status != COMPLETE && m_status != EXCEPTION && m_status != FAILED && m_status != SUCCEEDED)
 	{
 		m_status = REQUEST_TO_STOP;
 		WaitForSingleObject(m_hEvCompleted, 5000);
@@ -61,13 +62,17 @@ void CAdVisuoLoader::Stop()
 	m_passengerSimId.clear();
 }
 
+	class _prj_deleted
+	{
+	};
+
 UINT CAdVisuoLoader::WorkerThread()
 {
 	std::wstring response;
 	try
 	{
-		// Phase 1 - Load Structure
-		m_status = LOADING_STRUCTURE;
+		// Phase 0 - Authorisation and Pre-Load Checks
+		m_status = PREPROCESS;
 
 		// check authorisation
 		if (m_http.AVIsAuthorised() <= 0)
@@ -81,6 +86,20 @@ UINT CAdVisuoLoader::WorkerThread()
 		if (GetKeyState(VK_RMENU) < 0)
 			throw _version_error(verreq, m_http.AVGetRequiredVersionDate().c_str(), m_http.AVGetLatestVersionDownloadPath().c_str());
 
+		// Synchronise - wait queues to finish
+		m_progress = m_http.AVPrjProgress(m_nProjectId);
+		AVULONG state = m_progress >> 30;
+		while (state & 2)
+		{
+			Sleep(250);
+			m_progress = m_http.AVPrjProgress(m_nProjectId);
+			state = m_progress >> 30;
+			if (state == 2) throw _prj_deleted();
+		}
+
+		// Phase 1 - Load Structure
+		m_status = LOADING_STRUCTURE;
+
 		// load project
 		m_http.AVProject(m_nProjectId);
 		m_http.get_response(response);
@@ -93,8 +112,6 @@ UINT CAdVisuoLoader::WorkerThread()
 		m_http.AVLiftGroups(m_pProject->GetId());
 		m_http.get_response(response);
 		m_pProject->LoadFromBuf(response.c_str());
-
-		//Sleep(10000);
 
 		// load floors, shafts and sims for each lift group
 		for each (CLiftGroupVis *pGroup in m_pProject->GetLiftGroups())
@@ -117,14 +134,39 @@ UINT CAdVisuoLoader::WorkerThread()
 			for each (CSim *pSim in pGroup->GetSims())
 				m_sims[pSim->GetId()] = static_cast<CSimVis*>(pSim);
 
+
+		//// Phase Extra - Delay
+		//int seconds = 10;
+		//for (int i = 0; i < seconds * 2; i++)
+		//{
+		//	if (m_status == REQUEST_TO_STOP) break;
+		//	Sleep(500);
+		//}
+
 		// Phase 2 - Load Data
 		m_status = LOADING_DATA;
 
 		std::wstring response;
 		while (m_timeLoaded < m_pProject->GetMaxTime() && m_status != REQUEST_TO_STOP)
 		{
+			// ensure the authorisation
 			if (m_http.AVIsAuthorised() <= 0)
 				throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
+
+			// synchronise - wait for the current chunk to be entirely saved
+			m_progress = m_http.AVPrjProgress(m_nProjectId);
+			AVULONG state = m_progress >> 30;
+			AVULONG timeSaved = m_progress & 0x3fffffff;
+			while (state >= 2 || state == 0 && (AVLONG)timeSaved < m_timeLoaded + m_timeStep)
+			{
+				Sleep(250);
+				m_progress = m_http.AVPrjProgress(m_nProjectId);
+				state = m_progress >> 30;
+				timeSaved = m_progress & 0x3fffffff;
+				if (state >= 2) throw _prj_deleted();
+			}
+
+			// Load data
 			m_http.AVPrjData(m_pProject->GetId(), m_timeLoaded, m_timeLoaded + m_timeStep);
 
 			Load(response.c_str());
@@ -138,6 +180,13 @@ UINT CAdVisuoLoader::WorkerThread()
 		m_status = COMPLETE;
 		SetEvent(m_hEvCompleted);
 		return 0;
+	}
+	catch (_prj_deleted)
+	{
+		std::wstringstream str;
+		str << L"Project has been deleted from " << m_http.getURL().c_str() << L" (" << m_progress << L")";
+		m_strFailureTitle = L"";
+		m_strFailureText  = str.str().c_str();
 	}
 	catch (_prj_error pe)
 	{
@@ -177,7 +226,7 @@ UINT CAdVisuoLoader::WorkerThread()
 CAdVisuoLoader::STATUS CAdVisuoLoader::Update(CEngine *pEngine)
 {
 	STATUS status = m_status;
-	if (status == COMPLETE || status == FAILED)
+	if (status == SUCCEEDED || status == FAILED)
 		return status;
 
 	try
@@ -225,6 +274,9 @@ CAdVisuoLoader::STATUS CAdVisuoLoader::Update(CEngine *pEngine)
 					pPassenger->Play(pEngine);
 			}
 		}
+
+		if (status == COMPLETE)
+			m_status = status = SUCCEEDED;
 
 		if (status == EXCEPTION)
 		{

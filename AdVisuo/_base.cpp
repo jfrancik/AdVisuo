@@ -18,6 +18,17 @@ void OutText(LPCTSTR fmt, ...)
 		pSink->OutText(out);
 }
 
+bool OutWaitMessage(AVLONG nWaitStage, AVULONG nMsecs)
+{
+	TRACE("Wait Message: %d\n", nWaitStage);
+	for each (IOutTextSink *pSink in g_OutTextSinks)
+		if (!pSink->OutWaitMessage(nWaitStage, nMsecs))
+			return false;
+	if (nMsecs > 0)
+		Sleep(nMsecs);
+	return true;
+}
+
 void RegisterOutTextSink(IOutTextSink *p)
 {
 	g_OutTextSinks.push_back(p);

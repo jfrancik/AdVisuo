@@ -68,6 +68,7 @@ public:
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnWindowPosChanging(WINDOWPOS* lpwndpos);
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 };
 
 

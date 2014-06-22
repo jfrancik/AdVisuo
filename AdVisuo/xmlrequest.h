@@ -38,7 +38,8 @@ class CXMLRequest
 	// authorisation details
 	std::wstring m_strUsername;
 	std::wstring m_strTicket;
-	CXMLRequest *m_pAuthSource;
+	CRITICAL_SECTION cs;
+	CXMLRequest *m_pAuthAgent;
 
 public:
 	CXMLRequest();
@@ -50,8 +51,7 @@ public:
 	std::wstring getURL()						{ return m_strUrl; }
 
 	// Authorisation
-
-	void take_authorisation_from(CXMLRequest *pSource);
+	void take_authorisation_from(CXMLRequest *pAuthAgent);
 	void set_authorisation_data(std::wstring strUsername, std::wstring strTicket);
 	void get_authorisation_data(std::wstring &strUsername, std::wstring &strTicket);
 
@@ -77,6 +77,7 @@ public:
 	// unpack value
 	std::wstring unpack_as_string(std::wstring &strResponse, std::wstring defValue = L"");
 	int unpack_as_int(std::wstring &strResponse, int defValue = 0);
+	unsigned unpack_as_unsigned(std::wstring &strResponse, unsigned defValue = 0);
 
 	// throw
 	void throw_exceptions();
@@ -92,6 +93,8 @@ public:
 	bool AVLogin(std::wstring strUsername, std::wstring strPassword);
 	int AVIsAuthorised();
 	bool AVExtendAuthorisation();
+
+	unsigned AVPrjProgress(AVLONG nSimulationId);
 
 	void AVReportIssue(std::wstring url, std::wstring strUsername, std::wstring strTicket, AVULONG nVersion, AVULONG nId, std::wstring strPath, AVULONG nCat, std::wstring strUserDesc, std::wstring strDiagnostic, std::wstring strErrorMsg);
 	void AVFolders();

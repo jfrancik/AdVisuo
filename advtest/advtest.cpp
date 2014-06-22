@@ -15,7 +15,7 @@ void version()
 {
 	AVULONG v = AVGetVersion();
 	AVSTRING s = AVGetRelease();
-	wcout << L"ADV AdVisuo Server Ver " << v / 10000 << L"." << (v % 10000) / 100 << L"."  << v % 100 << L" (" << s << L"). Copyright (C) 2011-13 Lerch Bates" << endl;
+	wcout << L"ADV AdVisuo Server Ver " << v / 10000 << L"." << (v % 10000) / 100 << L"."  << v % 100 << L" (" << s << L"). Copyright (C) 2011-14 Lerch Bates" << endl;
 }
 
 void usage()

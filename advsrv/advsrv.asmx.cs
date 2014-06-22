@@ -162,8 +162,6 @@ namespace advsrv
         [WebMethod(Description = "Validates ticket - returns number of seconds left for the valid ticket or 0 if expired or not found")]
         public int AVValidateTicket(string strUsername, string strTicket)
         {
-            if (strTicket == "01234")
-                return 99;
             if (strTicket == "")
                 return 0;
             // open connection
@@ -314,55 +312,74 @@ namespace advsrv
         }
 
         [WebMethod(Description = "Returns project progress information")]
-        public int AVPrjProgress(string strUsername, string strTicket, int nSimulationId)
+        public uint AVPrjProgress(string strUsername, string strTicket, int nSimulationId)
         {
-            if (AVValidateTicket(strUsername, strTicket) == 0)
-                return -1000;
+            const uint NOT_FOUND = 0x80000000;
+            const uint ERR_AUTH = 0x80000001;
+            const uint ERR_UNKN = 0x80000002;
+            const uint QUEUED = 0xC0000000;
+            const uint STORING = 0x00000000;
+            const uint READY = 0x40000000;
 
-            int res = -1;
+            if (AVValidateTicket(strUsername, strTicket) == 0)
+                return ERR_AUTH;
+
+            // Read SavedAll, TimeSaved from AVProjects
             OleDbConnection conn = new OleDbConnection(GetVisConnStr());
-            OleDbCommand cmdSelect = new OleDbCommand("SELECT SavedAll FROM AVProjects WHERE SimulationId=?", conn);
+            OleDbCommand cmdSelect = new OleDbCommand("SELECT SavedAll, TimeSaved FROM AVProjects WHERE SimulationId=?", conn);
             cmdSelect.Parameters.AddWithValue("SimulationId", nSimulationId);
             conn.Open();
             OleDbDataReader reader = cmdSelect.ExecuteReader();
             if (reader.Read())
             {
-                res = reader.GetInt32(0);
+                int AllSaved = reader.GetInt32(0);
+                int TimeSaved = reader.GetInt32(1);
                 reader.Close();
-                if (res == 1)
-                    return 100; // only do it when AllSaved set
+
+                if (AllSaved == 1)
+                    // Status: All Saved
+                    return READY + (uint)TimeSaved;
+                else if (TimeSaved >= 0)
+                    // Status: Processing
+                    return STORING + (uint)TimeSaved;
+                else
+                    // Status: Processing
+                    return QUEUED + (uint)0;
             }
 
+            // No such project in AVProjects - look at SimQueue
             conn = new OleDbConnection(GetSimQueueConnStr());
-            cmdSelect = new OleDbCommand("SELECT Progress FROM Queue WHERE SimulationId=?", conn);
+            cmdSelect = new OleDbCommand(@"SELECT COUNT(ItemID) AS QueueNum FROM [SimQueue].[dbo].[Queue] WHERE SimulationId = ?", conn);
             cmdSelect.Parameters.AddWithValue("SimulationId", nSimulationId);
             conn.Open();
             reader = cmdSelect.ExecuteReader();
             if (reader.Read())
             {
-                res = reader.GetInt32(0);
+                int count = reader.GetInt32(0);
                 reader.Close();
-                if (res > 0)
-                    return res; // only if progress larger than 0
-            }
-            else
-                return -1000;
+                if (count == 0)
+                    // Status: Project not found
+                    return NOT_FOUND;
 
-            conn = new OleDbConnection(GetSimQueueConnStr());
-            cmdSelect = new OleDbCommand(@"SELECT -COUNT(ItemID) AS QueueNum 
+                // find out the position in the queue
+                conn = new OleDbConnection(GetSimQueueConnStr());
+                cmdSelect = new OleDbCommand(@"SELECT COUNT(ItemID) AS QueueNum 
                                             FROM [SimQueue].[dbo].[Queue] q, (SELECT Priority, SubmittedDate FROM [SimQueue].[dbo].[Queue] WHERE SimulationId = ?) p
                                             WHERE q.Priority > p.Priority OR (q.Priority = p.Priority AND q.SubmittedDate < p.SubmittedDate)", conn);
-            cmdSelect.Parameters.AddWithValue("SimulationId", nSimulationId);
-            conn.Open();
-            reader = cmdSelect.ExecuteReader();
-            if (reader.Read())
-            {
-                res = reader.GetInt32(0);
-                reader.Close();
-                return res; // only if progress larger than 0
+                cmdSelect.Parameters.AddWithValue("SimulationId", nSimulationId);
+                conn.Open();
+                reader = cmdSelect.ExecuteReader();
+                if (reader.Read())
+                {
+                    int queue = reader.GetInt32(0);
+                    reader.Close();
+                    // Status: Queued
+                    return QUEUED + (uint)queue + 1;
+                }
             }
 
-            return -1000;
+            // Something went wrong
+            return ERR_UNKN;
         }
 
         [WebMethod(Description = "Returns lift group structure")]

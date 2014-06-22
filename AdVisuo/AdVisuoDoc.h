@@ -39,8 +39,9 @@ public:
 	virtual BOOL OnSaveDocument(LPCTSTR lpszPathName);
 	virtual BOOL OnDownloadDocument(CString url);
 
-	bool WaitWhileProjectLoading();
-	void UpdateProjectLoader(CEngine *pEngine);
+	bool GetDownloadStatus(AVULONG &nStatus);	// status values: 0x80000000 or more = error; otherwise position in the queue, 0 for just now processing but not yet ready
+	void StopDownload();
+	void UpdateDownload(CEngine *pEngine);
 
 // Generated message map functions
 protected:

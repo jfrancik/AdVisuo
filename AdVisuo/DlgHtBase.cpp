@@ -162,11 +162,14 @@ BOOL CDlgHtBase::OnInitDialog()
 {
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
+	TRACE(L"OnInitDialog 1\n");
 	return CDHtmlDialog::OnInitDialog();
+	TRACE(L"OnInitDialog 2\n");
 }
 
 void CDlgHtBase::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 {
+	TRACE(L"OnDocumentComplete: %ls\n", szUrl);
 	CWaitCursor wait;
 
 	HRESULT h = S_OK;
@@ -358,3 +361,24 @@ CString CDlgHtFailure::GetFailureString(CString url)
 
 
 
+
+
+void CDlgHtBase::OnBeforeNavigate(LPDISPATCH pDisp, LPCTSTR szUrl)
+{
+	TRACE(L"OnBeforeNavigate: %ls\n", szUrl);
+	//CenterWindow();
+	//ShowWindow(SW_SHOW);
+	//UpdateWindow();
+
+	CDHtmlDialog::OnBeforeNavigate(pDisp, szUrl);
+}
+
+
+void CDlgHtBase::OnNavigateComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
+{
+	TRACE(L"OnNavigateComplete: %ls\n", szUrl);
+
+	CDHtmlDialog::OnNavigateComplete(pDisp, szUrl);
+
+	// TODO: Add your specialized code here and/or call the base class
+}

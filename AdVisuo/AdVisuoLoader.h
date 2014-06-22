@@ -38,7 +38,7 @@ public:
 class CAdVisuoLoader
 {
 public:
-	enum STATUS { NOT_STARTED, LOADING_STRUCTURE, LOADING_DATA, COMPLETE, REQUEST_TO_STOP, EXCEPTION, FAILED };
+	enum STATUS { NOT_STARTED, PREPROCESS, LOADING_STRUCTURE, LOADING_DATA, COMPLETE, REQUEST_TO_STOP, EXCEPTION, FAILED, SUCCEEDED };
 
 private:
 	// the project and its connection
@@ -48,6 +48,7 @@ private:
 
 	// status
 	ProtectedVariable<STATUS> m_status;
+	ProtectedVariable<AVULONG> m_progress;
 	ProtectedVariable<std::wstring> m_strFailureTitle;
 	ProtectedVariable<std::wstring> m_strFailureText;
 
@@ -73,6 +74,7 @@ public:
 
 	// Accessors
 	enum STATUS GetStatus()							{ return m_status; }
+	AVULONG GetProgress()							{ return m_progress; };
 	std::wstring GetFailureTitle()					{ return m_strFailureTitle; }
 	std::wstring GetFailureText()					{ return m_strFailureText; }
 	AVLONG GetTimeStep() const						{ return m_timeStep; }
@@ -81,7 +83,7 @@ public:
 
 	// Main Operations:
 	// Start - starts the load process, then continues in a thread
-	void Start(std::wstring strUrl, std::wstring strUsername, std::wstring strTicket, AVULONG nProjectId);
+	void Start(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG nProjectId);
 	// Updates the project with the latest loaded data - to be called from a timer proc
 	CAdVisuoLoader::STATUS Update(CEngine *pEngine);
 	CAdVisuoLoader::STATUS Update();

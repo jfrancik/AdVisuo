@@ -1,4 +1,5 @@
-﻿// AdVisuoView.cpp - a part of the AdVisuo Client Software
+﻿m_loader
+// AdVisuoView.cpp - a part of the AdVisuo Client Software
 
 #include "stdafx.h"
 #include "AdVisuo.h"
@@ -180,20 +181,40 @@ void CAdVisuoView::OnInitialUpdate()
 	m_sprite.Initialise();
 	m_plateCam.SetParams((_stdPathModels + L"plateNW.bmp").c_str(), 0xFF0000FF, 0x80FFFFFF, 12, TRUE, FALSE, L"System", 0xFF000000, 16, false, CSize(2, 2));
 	m_hud.Initialise();
-	m_hud.SetSimulationTime(GetProject()->GetMaxTime());
-
+	
 	// adjust to the screen size
 	OnAdjustViewSize();
 
 	// test & wait for the project to build
-	OutText(L"Waiting for the project...");
-	if (!GetDocument()->WaitWhileProjectLoading())
+	AVULONG nStat;
+	if (!GetDocument()->GetDownloadStatus(nStat))
 	{
-		OutText(L"Project loading failed...");
-		return;
+		OutText(L"Waiting for the project...");
+		Sleep(250);		// give it a second chance...
+		while (!GetDocument()->GetDownloadStatus(nStat))
+		{
+			if (nStat >= 0x80000000)
+			{
+				OutText(L"Project loading failed...");
+				return;
+			}
+
+			if (!OutWaitMessage(nStat, 250))
+			{
+				OutText(L"Stopping download...");
+				GetDocument()->StopDownload();
+				OutText(L"Download stopped...");
+				return;
+			}
+		}
+		OutWaitMessage(-1, 100);
 	}
 
+
 	// initialise the simulation
+	GetDocument()->ResetTitle();
+	LONG maxtime = GetProject()->GetMaxTime();
+	m_hud.SetSimulationTime(maxtime);
 	OutText(L"Creating building structure...");
 	m_engine.InitMats(GetProject()->GetMaxStoreyCount(), GetProject()->GetMaxBasementStoreyCount(), GetProject()->GetMaxShaftCount());
 	GetProject()->Construct();
@@ -410,7 +431,7 @@ void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 	if (m_engine.GetPlayTime() > GetProject()->GetMaxTime())
 		OnActionStop();
 
-	GetDocument()->UpdateProjectLoader(&m_engine);
+	GetDocument()->UpdateDownload(&m_engine);
 
 	GetDocument()->UpdateAllViews(NULL, 0, 0);
 
@@ -1039,7 +1060,8 @@ void CAdVisuoView::OnUpdateCamera(CCmdUI *pCmdUI)
 
 void CAdVisuoView::OnUpdateStoreyMenu(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(GetCurCamera() && GetCurCamera()->GetDescription() != CAMLOC_LIFT);
+	pCmdUI->Enable(GetCurCamera() != NULL);
+	if (GetCurCamera() == NULL) return;
 
 	if (GetProject()->GetLiftGroupsCount() == 0) return;
 
@@ -1075,6 +1097,7 @@ void CAdVisuoView::OnUpdateStoreyMenu(CCmdUI *pCmdUI)
 void CAdVisuoView::OnUpdateCameraLiftMenu(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(GetCurCamera() != NULL);
+	if (GetCurCamera() == NULL) return;
 
 	if (GetProject()->GetLiftGroupsCount() == 0) return;
 

@@ -24,10 +24,30 @@
     {
         document.onselectstart = onSelect1;
     }
+
+    function decorate()
+    {
+        document.getElementsByTagName('body')[0].style.backgroundImage = 'url(res:/PNG/#348)';
+    }
+
+    function undecorate()
+    {
+        document.getElementsByTagName('body')[0].style.backgroundImage = 'url(res:/PNG/#345)';
+    }
+
+    // Display the Wait Message
+    function displayWaitMsg(message)
+    {
+        var field = document.getElementById("idWaitMsg");
+        if (field)
+            field.innerHTML = message;
+    }
 </script>
 
 <body class="splash" onload="onLoad();">
     <h1>AdVisuo v3.0</h1>
+
+    <div id="idWaitMsg"></div>
     
     <!-- Failure information -->
     

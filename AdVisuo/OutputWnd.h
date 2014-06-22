@@ -60,6 +60,7 @@ public:
 	void OutFindWindow(LPCTSTR lpszItem);
 
 	void OutText(LPCTSTR lpszItem)	{ OutDebugWindow(lpszItem); }
+	bool OutWaitMessage(AVLONG nWaitStage, AVULONG &nMsecs) { return true; }
 
 protected:
 	void AdjustHorzScroll(CListBox& wndListBox);

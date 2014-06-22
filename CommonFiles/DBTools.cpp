@@ -53,7 +53,7 @@ std::wstring _value_error::ErrorMessage()
 CValue::CValue()			 { type = V_INT;	this->i = 0; }
 CValue::CValue(bool b)		 { type = V_BOOL;	this->b = b;}
 CValue::CValue(FLOAT f)		 { type = V_FLOAT;	this->f = f; }
-CValue::CValue(ULONG u)		 { type = V_INT;	this->i = u; }
+CValue::CValue(ULONG u)		 { type = V_UINT;	this->u = u; }
 CValue::CValue(LONG n)		 { type = V_INT;	this->i = n; }
 CValue::CValue(string s)	 { type = V_STRING;	this->s = _str2wstr(s); }
 CValue::CValue(char *ps)	 { type = V_STRING;	this->s = _str2wstr(ps); }
@@ -87,6 +87,7 @@ CValue::operator BOOL()
 	{
 	case V_BOOL:	return b;
 	case V_INT:		return i;
+	case V_UINT:	return u;
 	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_BOOL); 
 	}
 }
@@ -98,6 +99,7 @@ CValue::operator FLOAT()
 	case V_FLOAT:	return f;
 	case V_BOOL:	return (FLOAT)b;
 	case V_INT:		return (FLOAT)i;
+	case V_UINT:	return (FLOAT)u;
 	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_FLOAT);
 	}
 }
@@ -109,6 +111,7 @@ CValue::operator ULONG()
 	case V_FLOAT:	return (ULONG)f;
 	case V_BOOL:	return (ULONG)b;
 	case V_INT:		return (ULONG)i;
+	case V_UINT:	return u;
 	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_INT);
 	}
 }
@@ -120,6 +123,7 @@ CValue::operator LONG()
 	case V_FLOAT:	return (LONG)f;
 	case V_BOOL:	return (LONG)b;
 	case V_INT:		return (LONG)i;
+	case V_UINT:	return (LONG)u;
 	default:		throw _value_error(_value_error::E_VALUE_BAD_CONVERSION, type, V_INT);
 	}
 }
@@ -140,6 +144,7 @@ CValue::operator wstring()
 	case V_NULL:	return L"0";
 	case V_BOOL:	return to_wstring((_LONGLONG)b);
 	case V_INT:		return to_wstring((_LONGLONG)i);
+	case V_UINT:	return to_wstring((_LONGLONG)u);
 	case V_FLOAT:	return to_wstring((long double)f);
 	case V_DATE:
 		{
@@ -170,6 +175,7 @@ std::wstring CValue::as_xs_type()
 	switch (type)
 	{
 	case V_INT:		return L"xs:int";
+	case V_UINT:	return L"xs:unsignedInt";
 	case V_BOOL:	return L"xs:boolean";
 	case V_FLOAT:	return L"xs:double";
 	case V_DATE:	return L"xs:dateTime";
@@ -185,6 +191,7 @@ std::wstring CValue::as_sql_type()
 	{
 	case V_NULL:	return L"nvarchar(511)";
 	case V_INT:		return L"int";
+	case V_UINT:	return L"int";
 	case V_BOOL:	return L"bit";
 	case V_FLOAT:	return L"float";	// L"decimal(9,2)";
 	case V_DATE:	return L"datetime";
@@ -201,6 +208,7 @@ void CValue::from_string(std::string sv)
 	case V_NULL:	break;
 	case V_BOOL:	b = (sv == "1" || sv == "T" || sv == "t" || sv == "true" || sv == "TRUE"); break;
 	case V_INT:		i = stoi(sv); break;
+	case V_UINT:	u = stoul(sv); break;
 	case V_FLOAT:	f = stof(sv); break;
 	case V_DATE:	sv = sv.substr(0, 10) + " " + sv.substr(11, 8);
 					if FAILED(VarDateFromStr(_str2wstr(sv).c_str(), LANG_USER_DEFAULT, 0, &d)) throw _value_error(_value_error::E_VALUE_BAD_DATE_FORMAT);
@@ -217,6 +225,7 @@ void CValue::from_wstring(std::wstring wsv)
 	case V_NULL:	break;
 	case V_BOOL:	b = (wsv == L"1" || wsv == L"T" || wsv == L"t" || wsv == L"true" || wsv == L"TRUE"); break;
 	case V_INT:		i = stoi(wsv); break;
+	case V_UINT:	u = stoul(wsv); break;
 	case V_FLOAT:	f = stof(wsv); break;
 	case V_DATE:	wsv = wsv.substr(0, 10) + L" " + wsv.substr(11, 8);
 					if FAILED(VarDateFromStr(wsv.c_str(), LANG_USER_DEFAULT, 0, &d)) throw _value_error(_value_error::E_VALUE_BAD_DATE_FORMAT);
@@ -237,6 +246,8 @@ void CValue::from_type(std::wstring type)
 	else if (type == L"xs:integer")
 		*this = (ULONG)0;
 	else if (type == L"xs:int")
+		*this = (ULONG)0;
+	else if (type == L"xs:unsignedInt")
 		*this = (ULONG)0;
 	else if (type == L"xs:boolean")
 		*this = false;

@@ -453,6 +453,12 @@
     <None Include="html\about.html">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\wait_msg.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="html\waitmsg.png">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AdVisuo.rc">

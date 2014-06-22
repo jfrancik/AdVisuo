@@ -54,6 +54,21 @@ div {cursor:default;}
 hr { background-color: #aaa;height: 0px;}
 
 
+/**** SPLASH WAIT MSG ****/
+
+#idWaitMsg
+{
+    text-align:center;
+    vertical-align:middle;
+    font-size:16pt; 
+    font-weight:bold;
+    color:#f85800;
+    padding:2px 0 2px 8px;
+    position:absolute;
+    top:200px;
+    z-index:200;
+}
+
 /**** SELECT ****/
 
 /* Console */

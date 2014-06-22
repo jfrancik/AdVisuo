@@ -25,8 +25,15 @@
 ///////////////////////////////////////////////////////////////
 // OutText
 
-// Debug Output Function
+// Text Output Function
 void OutText(LPCTSTR fmt, ...);
+
+// Special Wait Message display.
+// nWaitStage: -1 for no wait, normally use count down like 3, 2, 1, 0, -1 (end of wait state)
+// nMSec: if not zero, sleeps either statically or actively for a number of milliseconds provided
+// result: false if STOP request generated, true otherwise
+bool OutWaitMessage(LONG nWaitStage, ULONG nMsecs);
+
 
 	// see also: IOutTextSink interface below and additional functions
 
@@ -114,7 +121,9 @@ interface IAnimationListener
 interface IOutTextSink
 {
 	virtual void OutText(LPCTSTR lpszItem) = 0;
-};
+	virtual bool OutWaitMessage(AVLONG nWaitStage, AVULONG &nMsecs) = 0;	// params & result as in global OutWaitMessage
+																			// Implementation is not required to sleep for nMsecs; 
+};																			// if it does, nMsecs value should be decreased to reflect sleeping time
 
 void RegisterOutTextSink(IOutTextSink*);
 void UnRegisterOutTextSink(IOutTextSink*);

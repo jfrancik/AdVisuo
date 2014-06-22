@@ -45,6 +45,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
 //	ON_UPDATE_COMMAND_UI(ID_TEST, &CMainFrame::OnUpdateTest)
 	ON_WM_GETMINMAXINFO()
 	ON_WM_WINDOWPOSCHANGING()
+	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 // CMainFrame construction/destruction
@@ -142,7 +143,7 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 	//  the CREATESTRUCT cs
 
 	cs.style = WS_OVERLAPPED | WS_CAPTION | FWS_ADDTOTITLE
-		 | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_MAXIMIZE | WS_SYSMENU;
+		 | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZE | WS_SYSMENU;
 
 	return TRUE;
 }
@@ -343,4 +344,24 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
 void CMainFrame::OnWindowPosChanging(WINDOWPOS* lpwndpos)
 {
 	CMDIFrameWndEx::OnWindowPosChanging(lpwndpos);
+}
+
+void CMainFrame::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	switch (nID)
+	{
+	case SC_RESTORE: 
+		if (AVGetApp()->GetSplashWindow())
+		{
+			((CWnd*)AVGetApp()->GetSplashWindow())->ShowWindow(SW_RESTORE);
+		}
+		else
+			CMDIFrameWndEx::OnSysCommand(nID, lParam); break;
+		break;
+
+	default: 
+		CMDIFrameWndEx::OnSysCommand(nID, lParam); break;
+	}
+
+	
 }

@@ -23,6 +23,7 @@
 #include "XMLRequest.h"
 
 class CAdVisuoApp;
+class CDlgHtSplash;
 
 // CAdVisuoApp:
 // See AdVisuo.cpp for the implementation of this class
@@ -32,6 +33,9 @@ class CAdVisuoApp : public CWinAppEx
 {
 	// global HTTP connection - used for authorisation
 	CXMLRequest m_http;
+
+	// The Splash Window
+	CDlgHtSplash *m_pSplash;
 
 	// global application modes
 	int m_nWalkMode;						// Walk or CCTV mode
@@ -48,6 +52,8 @@ public:
 
 public:
 	CAdVisuoApp();
+
+	CDlgHtSplash *GetSplashWindow()	{ return m_pSplash; }
 
 	AVULONG GetWalkMode()			{ return (ULONG)m_nWalkMode; }
 	void SetWalkMode(AVULONG n)		{ m_nWalkMode = n; }

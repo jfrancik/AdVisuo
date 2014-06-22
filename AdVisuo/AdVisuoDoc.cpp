@@ -199,31 +199,57 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	pMaster->setURL((LPCTSTR)strUrl);
 	
 	// initialise project loading...
-	m_loader.Start((LPCTSTR)strUrl, (LPCTSTR)strUserid, (LPCTSTR)strTicket, nId);
+	m_loader.Start((LPCTSTR)strUrl, pMaster, nId);
 
-	OutText(L"Download initiated successfully, more data loading in background...");
+	OutText(L"Download initiated...");
 	SetModifiedFlag(TRUE);
 	
 	return true;
 }
 
-bool CAdVisuoDoc::WaitWhileProjectLoading()
+bool CAdVisuoDoc::GetDownloadStatus(AVULONG &nStatus)
 {
-	CAdVisuoLoader::STATUS status = m_loader.Update();
-	while (status != CAdVisuoLoader::LOADING_DATA && status != CAdVisuoLoader::COMPLETE)
-	{
-		if (status == CAdVisuoLoader::FAILED)
-		{
-			return false;
-		}
+	CAdVisuoLoader::STATUS S = m_loader.Update();
 
-		Sleep(250);
-		status = m_loader.Update();
+	switch (S)
+	{
+		case CAdVisuoLoader::LOADING_DATA:
+		case CAdVisuoLoader::COMPLETE:
+			nStatus = 0;
+			return true;
+		case CAdVisuoLoader::FAILED:
+			nStatus = 0x80000010;
+			return false;
 	}
-	return true;
+	
+	AVULONG nProgress = m_loader.GetProgress();
+	switch (nProgress >> 30)
+	{
+		case 2:
+			nStatus = nProgress;
+			return false;		// this is an error condition
+		case 3:
+			nStatus = nProgress & 0xffff - 1;
+			return false;		// waiting in the queue
+		default:
+
+			if (GetKeyState(VK_F3) < 0) nStatus = 3;
+			else if (GetKeyState(VK_F2) < 0) nStatus = 2;
+			else if (GetKeyState(VK_F1) < 0) nStatus = 1;
+			else
+
+			nStatus = 0;
+			return false;		// shouldn't go there... status will be the very front of the queue
+	}
 }
 
-void CAdVisuoDoc::UpdateProjectLoader(CEngine *pEngine)
+void CAdVisuoDoc::StopDownload()
+{
+	m_loader.Stop();
+	::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
+}
+
+void CAdVisuoDoc::UpdateDownload(CEngine *pEngine)
 {
 	m_loader.Update(pEngine);
 }
@@ -321,12 +347,15 @@ BOOL CAdVisuoDoc::SaveModified()
 
 void CAdVisuoDoc::OnOtherFailure()
 {
-	CDlgHtFailure dlg(m_loader.GetFailureTitle().c_str(), m_loader.GetFailureText().c_str());
-	dlg.DoModal();
+	if (!m_loader.GetFailureText().empty())
+	{
+		CDlgHtFailure dlg(m_loader.GetFailureTitle().c_str(), m_loader.GetFailureText().c_str());
+		dlg.DoModal();
+	}
 
-	OutText(L"Closing document...");
+	OutText(L"Closing session...");
 	OnCloseDocument();
-	OutText(L"Current document has been closed.");
+	OutText(L"Current session has been closed.");
 }
 
 

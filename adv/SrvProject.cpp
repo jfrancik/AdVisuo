@@ -317,7 +317,8 @@ HRESULT CProjectSrv::Store(CDataBase db)
 	ins[L"TimeStamp"].act_as_symbol();
 
 	ins[L"MaxSimulationTime"] = ME[L"MaxSimulationTime"].msec();
-	ins[L"TimeSaved"] = (ULONG)0;
+	ins[L"MinSimulationTime"] = (ULONG)0;	// THIS IS OBSOLETE - kept for backward compatibility reasons only
+	ins[L"TimeSaved"] = (LONG)-1;
 	ins[L"SavedAll"] = (ULONG)0;
 
 	ins.execute();
@@ -334,6 +335,9 @@ HRESULT CProjectSrv::Store(CDataBase db)
 		HRESULT h = pGroup->Store(db);
 		if FAILED(h) return h;
 	}
+
+	// Update TimeSaved to 0 to signal the building structure is ready to use
+	db.execute(L"UPDATE AVProjects SET TimeSaved = 0 WHERE SimulationId = %d", GetSimulationId());
 
 	return S_OK;
 }

@@ -35,6 +35,7 @@ public:
 
 // OutTextSink
 	virtual void OutText(LPCTSTR lpszItem);
+	virtual bool OutWaitMessage(AVLONG nWaitStage, AVULONG &nMsecs)	{ return true; }
 
 	void ShowVersion(AVULONG nMajor, AVULONG nMinor, AVULONG nRel, CString date);
 
@@ -56,12 +57,21 @@ class CDlgHtSplash : public CDlgHtOutText
 {
 	DECLARE_DYNCREATE(CDlgHtSplash)
 
+	bool m_bQuitRequested;		// flag: user clicked the Cross icon
+	bool m_bProgramStarting;	// flag: program is starting, splash displayed for the first time
+
 public:
-	CDlgHtSplash(UINT nIDTemplate = IDD, UINT nHtmlResID = IDH, CWnd* pParent = NULL) : CDlgHtOutText(nIDTemplate, nHtmlResID, pParent)		{}
+	CDlgHtSplash(UINT nIDTemplate = IDD, UINT nHtmlResID = IDH, CWnd* pParent = NULL) : CDlgHtOutText(nIDTemplate, nHtmlResID, pParent)		{ m_bQuitRequested = false; }
 	virtual ~CDlgHtSplash()	{}
 
-// OutTextSink
+	// OutTextSink
 	virtual void OutText(LPCTSTR lpszItem);
+	virtual bool OutWaitMessage(AVLONG nWaitStage, AVULONG &nMsecs);
+
+	// Decoration: full frame with Minimize box
+	bool IsDecorated();
+	void Decorate();
+	void Undecorate();
 
 // Dialog Data
 	enum { IDD = IDD_ADV_SPLASH, IDH = IDR_HTML_SPLASH };
@@ -71,4 +81,6 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 	DECLARE_DHTML_EVENT_MAP()
+public:
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 };

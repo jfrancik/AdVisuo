@@ -31,10 +31,10 @@
 IMPLEMENT_DYNCREATE(CChildFrame, CMDIChildWndEx)
 
 BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWndEx)
-	ON_WM_SIZE()
+//	ON_WM_SIZE()
 //	ON_COMMAND_RANGE(ID_LAYOUT_SINGLE, ID_LAYOUT_QUADRUPLE, &CChildFrame::OnLayout)
 //	ON_UPDATE_COMMAND_UI_RANGE(ID_LAYOUT_SINGLE, ID_LAYOUT_QUADRUPLE, &CChildFrame::OnUpdateLayout)
-ON_WM_DESTROY()
+//	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 // CChildFrame construction/destruction
@@ -47,6 +47,7 @@ CChildFrame::~CChildFrame()
 {
 }
 
+/*
 BOOL CChildFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 {
 	if (pContext && pContext->m_pCurrentFrame)
@@ -139,6 +140,7 @@ m_nLayoutId = ID_LAYOUT_SINGLE;
 		return CreateView(pContext, AFX_IDW_PANE_FIRST) != NULL;
 	}
 }
+*/
 
 BOOL CChildFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
@@ -165,7 +167,7 @@ void CChildFrame::Dump(CDumpContext& dc) const
 
 // CChildFrame message handlers
 
-void CChildFrame::OnSize(UINT nType, int cx, int cy)
+/*void CChildFrame::OnSize(UINT nType, int cx, int cy)
 {
 	CMDIChildWndEx::OnSize(nType, cx, cy);
 
@@ -200,11 +202,10 @@ void CChildFrame::OnUpdateLayout(CCmdUI *pCmdUI)
 	pCmdUI->SetCheck(m_nLayoutId == pCmdUI->m_nID - ID_LAYOUT_SINGLE);
 }
 
-
-
 void CChildFrame::OnDestroy()
 {
 	CMDIChildWndEx::OnDestroy();
 
 	// TODO: Add your message handler code here
 }
+*/

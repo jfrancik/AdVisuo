@@ -1,0 +1,31 @@
+        private void editSimulationData()
+        {
+            int simulationId = Profile.CurrentSimulation;
+            if (simulationId != 0)
+            {
+                int simPhase = ConsoleRepository.GetSimulationPhase(simulationId);
+
+                if ((simPhase & 2) == 0)
+                {
+                    try
+                    {
+                        ReportRepository.DeleteReport(simulationId);
+                        AVDelete((uint)simulationId);     // added by JF 11/06/2014
+                        ConsoleRepository.UpdateSimulationPhase(simulationId, 0);
+
+                        var currentNode = GetCurrentSiteMapNode();
+                        if (currentNode != null && currentNode.Title == "Custom Reports" || currentNode.Title == "Zones" || currentNode.Title == "Solutions")
+                        {
+                            if (Profile.CurrentLiftGroup > 0)
+                                Response.Redirect(@"~/Console/LiftGroupDetails.aspx");
+                            Response.Redirect(@"~/Console/TenancyDetails.aspx");
+                        }
+                        Response.Redirect(Request.RawUrl);
+                    }
+                    catch (Exception ex)
+                    {
+                        DisplayErrorMessage(ex.Message);
+                    }
+                }
+            }
+        }

@@ -52,6 +52,7 @@ END_MESSAGE_MAP()
 CAdVisuoApp::CAdVisuoApp()
 {
 	m_bHiColorIcons = TRUE;
+	m_pSplash = NULL;
 
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -172,21 +173,24 @@ BOOL CAdVisuoApp::InitInstance()
 		CString url;
 		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen && (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
 		{
+			// start from the web
 			url = cmdInfo.m_strFileName;
 			//AfxMessageBox(url);
-			if (url.Find(L"phase=16&") >= 0)
-				return false;
+			//if (url.Find(L"phase=16&") >= 0)
+			//	return false;
 			AddRemoteServer(url);
 			SaveRemoteServerConfig();
 		}
 		else
 		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen)
 		{
+			// start from the cmd line file
 			url = cmdInfo.m_strFileName;
 			AfxMessageBox(L"Loading from a local file this application will have limited functionality!");
 		}
 		else
 		{
+			// start standalone
 			if (!AskLogin()) return false;
 			SaveRemoteServerConfig();
 			AVULONG nSimulationId = SelectSimulation(m_url);
@@ -349,16 +353,18 @@ bool CAdVisuoApp::InitSimulation(CString url)
 	CWaitCursor wait;
 
 	// Show Splash Window
-	CDlgHtSplash *pSplash = new CDlgHtSplash;
-	pSplash->DoNonModal(1000);
-	pSplash->Sleep(400);
+	m_pSplash = new CDlgHtSplash;
+	m_pSplash->DoNonModal(1000);
+	m_pSplash->Sleep(400);
+
+	bool bJustStarting = !m_pMainWnd->IsWindowVisible();
 
 	// Report
 	Report(0, (LPOLESTR)(LPCOLESTR)url, 0, L"", L"OK", L"");
 
 	// prepare "debug" info
-	for (int i = 0; i < 10; i++) pSplash->OutText(L"");
-	if (!m_pMainWnd->IsWindowVisible())
+	for (int i = 0; i < 10; i++) m_pSplash->OutText(L"");
+	if (bJustStarting)
 	{
 		OutText(L"AdVisuo module started - a part of AdSimulo system.");
 		OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
@@ -371,38 +377,37 @@ bool CAdVisuoApp::InitSimulation(CString url)
 		return FALSE;
 
 	m_url = m_http.getURL().c_str();
-	if (pDoc) pDoc->ResetTitle();
 
 	// wait a moment
-	pSplash->Sleep(250);
+	m_pSplash->Sleep(250);
 
 	if (CountDocuments() == 0)
 	{
 		if (m_pMainWnd)
 		{
-			pSplash->OnOK();
-			delete pSplash;
+			m_pSplash->OnOK();
+			m_pSplash = NULL;
+			delete m_pSplash;
 		}
 		// close the splash window and return as a fail
 		return FALSE;
 	}
 
-	if (!m_pMainWnd->IsWindowVisible())
+	if (bJustStarting)
 	{
 		// If the main window hasn't been shown yet (starting program!), show and update it
 		m_pMainWnd->ShowWindow(SW_RESTORE);
-//		m_pMainWnd->SetWindowPos(NULL,0, 0, 1024, 568, SWP_NOMOVE | SWP_NOZORDER);
-//		m_pMainWnd->CenterWindow();
 		m_pMainWnd->ShowWindow(SW_MAXIMIZE);
 		m_pMainWnd->UpdateWindow();
 
 		// wait a moment
-		pSplash->Sleep(500);
+		m_pSplash->Sleep(500);
 	}
 
 	// close the splash window
-	pSplash->OnOK();
-	delete pSplash;
+	m_pSplash->OnOK();
+	m_pSplash = NULL;
+	delete m_pSplash;
 
 	AVGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 

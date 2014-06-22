@@ -105,6 +105,8 @@
 #define IDR_HTML_PNG_SPLASH2            346
 #define IDR_HTML_PNG_CONNECTION         347
 #define IDR_HTML_PNG_SPLASH3            348
+#define IDR_HTML_PNG_SPLASH4            349
+#define IDR_HTML_PNG_WAITMSG            349
 #define IDR_HTML_LOGIN                  355
 #define IDR_HTML_SPLASH1                356
 #define IDR_HTML_ABOUT                  357
@@ -193,6 +195,9 @@
 #define IDC_SAVE                        1088
 #define IDC_EDIT_USERNAME               1089
 #define IDC_DEBUG                       1092
+#define IDC_WAIT_MSG                    1099
+#define IDC_WAIT_MSG2                   1102
+#define IDC_BUTTON1                     1103
 #define ID_WRITE_PASTEASHYPERLINK       32770
 #define ID_CAMERA_LAYOUT                32771
 #define ID_LAYOUT_1                     32772
@@ -307,9 +312,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        362
+#define _APS_NEXT_RESOURCE_VALUE        364
 #define _APS_NEXT_COMMAND_VALUE         32909
-#define _APS_NEXT_CONTROL_VALUE         1093
+#define _APS_NEXT_CONTROL_VALUE         1104
 #define _APS_NEXT_SYMED_VALUE           321
 #endif
 #endif

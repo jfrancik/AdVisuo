@@ -97,9 +97,97 @@ void CDlgHtSplash::OutText(LPCTSTR lpszItem)
 	pList->UpdateWindow();
 }
 
+bool CDlgHtSplash::OutWaitMessage(AVLONG nWaitStage, AVULONG &nMsecs)
+{
+	// call JS to display the message
+	std::wstringstream s;
+	if (nWaitStage > 0)
+		s << L"WAIT - TASK QUEUED #" << nWaitStage;
+	else if (nWaitStage == 0)
+		s << L"PROCESSING...";
+
+	SetWindowText(CString(L"AdVisuo: ") + s.str().c_str());
+	ExecJS(CString(L"displayWaitMsg('") + s.str().c_str() + L"')");
+
+	// do tricky things with the window style
+
+	if (nWaitStage > 0 && !IsDecorated())
+		Decorate();
+
+	if (nWaitStage < 0 && IsDecorated())
+		Undecorate();
+
+	// sleep and allow the user to play around
+	if (nMsecs > 0)
+		Sleep(nMsecs);
+	nMsecs = 0;
+
+	return !m_bQuitRequested;
+}
+
+bool CDlgHtSplash::IsDecorated()
+{
+	return (GetWindowLong(m_hWnd, GWL_STYLE) & WS_MINIMIZEBOX) == WS_MINIMIZEBOX;
+}
+
+void CDlgHtSplash::Decorate()
+{
+	if (IsDecorated()) return;
+
+	LONG nStyle = GetWindowLong(m_hWnd, GWL_STYLE);
+	LONG nExStyle = GetWindowLong(m_hWnd, GWL_EXSTYLE);
+
+	LockWindowUpdate();
+	CRect rect;
+	GetWindowRect(&rect);
+	SetWindowLong(m_hWnd, GWL_STYLE, nStyle | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | DS_FIXEDSYS | DS_MODALFRAME);
+	SetWindowLong(m_hWnd, GWL_EXSTYLE, nExStyle | WS_EX_DLGMODALFRAME);
+	SetWindowPos(NULL, 
+		rect.left - GetSystemMetrics(SM_CYFIXEDFRAME), 
+		rect.top - GetSystemMetrics(SM_CYCAPTION) - GetSystemMetrics(SM_CXFIXEDFRAME), 
+		rect.Width() + 2 * GetSystemMetrics(SM_CYFIXEDFRAME)+1, 
+		rect.Height() + GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CXFIXEDFRAME), 
+		SWP_NOZORDER | SWP_NOREDRAW);
+
+	ExecJS(L"decorate()");
+	UnlockWindowUpdate();
+	UpdateWindow();
+
+
+	if (m_bProgramStarting)
+		AfxGetMainWnd()->ShowWindow(SW_SHOW);
+}
+
+void CDlgHtSplash::Undecorate()
+{
+	if (!IsDecorated()) return;
+
+	LONG nStyle = GetWindowLong(m_hWnd, GWL_STYLE);
+	LONG nExStyle = GetWindowLong(m_hWnd, GWL_EXSTYLE);
+
+	LockWindowUpdate();
+	CRect rect;
+	GetWindowRect(&rect);
+	SetWindowLong(m_hWnd, GWL_STYLE, nStyle & ~(WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | DS_FIXEDSYS | DS_MODALFRAME));
+	SetWindowLong(m_hWnd, GWL_EXSTYLE, nExStyle & ~WS_EX_DLGMODALFRAME);
+	SetWindowPos(NULL, 
+		rect.left + GetSystemMetrics(SM_CYFIXEDFRAME), 
+		rect.top + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CXFIXEDFRAME), 
+		rect.Width() - 2 * GetSystemMetrics(SM_CYFIXEDFRAME)-1, 
+		rect.Height() - GetSystemMetrics(SM_CYCAPTION) - 2 * GetSystemMetrics(SM_CXFIXEDFRAME), 
+		SWP_NOZORDER | SWP_NOREDRAW);
+
+	ExecJS(L"undecorate()");
+	UnlockWindowUpdate();
+	UpdateWindow();
+}
+
 BOOL CDlgHtSplash::OnInitDialog()
 {
 	CDlgHtOutText::OnInitDialog();
+
+	m_bProgramStarting = !AfxGetMainWnd()->IsWindowVisible();
+	Undecorate();
 
 	SetWindowLong(m_hWnd, GWL_EXSTYLE, GetWindowLong(m_hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
 	SetLayeredWindowAttributes(RGB(255, 0, 0), 128, LWA_COLORKEY);
@@ -108,7 +196,27 @@ BOOL CDlgHtSplash::OnInitDialog()
 }
 
 BEGIN_MESSAGE_MAP(CDlgHtSplash, CDlgHtOutText)
+	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CDlgHtSplash)
 END_DHTML_EVENT_MAP()
+
+void CDlgHtSplash::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	switch (nID)
+	{
+	case SC_CLOSE: 
+		ExecJS(L"displayWaitMsg('STOPPING...')");
+		Undecorate(); 
+		m_bQuitRequested = true; 
+		Sleep(250); 
+		break;
+	case SC_MINIMIZE: 
+		CDlgHtOutText::OnSysCommand(nID, lParam);
+		ShowWindow(SW_HIDE); 
+		break;
+	default: 
+		CDlgHtOutText::OnSysCommand(nID, lParam);
+	}
+}

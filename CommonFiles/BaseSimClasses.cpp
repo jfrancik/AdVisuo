@@ -18,6 +18,7 @@ CSim::CSim()
 
 CSim::~CSim()
 {
+	TRACE(L"Deleting SIM (%d): %d passengers, %d journeys.\n", GetId(), GetPassengerCount(), GetJourneyTotalCount());
 	DeleteLifts();
 	DeletePassengers();
 }

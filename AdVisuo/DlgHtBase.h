@@ -66,6 +66,8 @@ protected:
 public:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+	virtual void OnBeforeNavigate(LPDISPATCH pDisp, LPCTSTR szUrl);
+	virtual void OnNavigateComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
 };
 
 class CDlgHtFailure: public CDlgHtBase

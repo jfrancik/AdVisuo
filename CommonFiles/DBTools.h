@@ -80,11 +80,12 @@ private:
 struct CValue
 {
 private:
-	enum { V_NULL, V_INT, V_BOOL, V_FLOAT, V_DATE, V_STRING, V_SYMBOL } type;
+	enum { V_NULL, V_INT, V_UINT, V_BOOL, V_FLOAT, V_DATE, V_STRING, V_SYMBOL } type;
 	union
 	{
 		bool b;
 		int i;
+		unsigned u;
 		float f;
 		DATE d;
 	};
