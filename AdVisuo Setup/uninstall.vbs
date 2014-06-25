@@ -1,5 +1,5 @@
 Dim shell, systempath
 set shell = WScript.CreateObject( "WScript.Shell" )
 systempath = shell.ExpandEnvironmentStrings("%SystemRoot%")
-shell.Run Chr(34) & systempath & "\system32\msiexec.exe" & Chr(34) & "  /x {E61751A2-4E84-4214-96D6-17A851150163}"
+shell.Run Chr(34) & systempath & "\system32\msiexec.exe" & Chr(34) & "  /x {DE262D66-8CD1-4A96-916D-9235D34E1A60}"
 WScript.Quit

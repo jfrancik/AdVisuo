@@ -374,7 +374,7 @@ namespace advsrv
                     int queue = reader.GetInt32(0);
                     reader.Close();
                     // Status: Queued
-                    return QUEUED + (uint)queue + 1;
+                    return QUEUED + (uint)queue;
                 }
             }
 

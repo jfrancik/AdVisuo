@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include "../CommonFiles/DBTools.h"
 #include "adv.h"
 #include "SrvProject.h"
@@ -182,8 +183,9 @@ extern bool g_bVerbose;
 extern bool g_bBenchmark;
 extern bool g_bProgressOnScreen;
 extern bool g_bProgressDB;
+extern bool g_bLog;
 
-ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScreen, bool bVerbose, bool bBenchmark, bool bProgressOnScreen, bool bProgressDB)
+ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScreen, bool bVerbose, bool bBenchmark, bool bProgressOnScreen, bool bProgressDB, bool bLog)
 {
 	g_bRegEvents = bRegisterEventLog;
 	g_bOnScreen = bPrintOnScreen;
@@ -191,6 +193,7 @@ ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScr
 	g_bBenchmark = bBenchmark;
 	g_bProgressOnScreen = bProgressOnScreen;
 	g_bProgressDB = bProgressDB;
+	g_bLog = bLog;
 
 	return S_OK;
 }
@@ -448,27 +451,38 @@ ADV_API HRESULT AVRun(AVULONG nSimulationId)
 
 		ltall.Log(L"AVRun");
 
-		//std::wofstream myfile;
-		//myfile.open ("c:\\users\\jarek\\desktop\\output.txt");
-		//for each (CLiftGroupSrv *pGroup in prj.GetLiftGroups())
-		//{
-		//	myfile << L"LIFT GROUP: " << pGroup->GetName() << endl;
-		//	for each (CSimSrv *pSim in pGroup->GetSims())
-		//	{
-		//		myfile << L"  SCENARIO: " << pSim->GetScenarioName() << endl;
-		//		for each (CLiftSrv *pLift in pSim->GetLifts())
-		//		{
-		//			myfile << L"    LIFT: " << pLift->GetId() << endl;
-		//			for each (JOURNEY j in pLift->GetJourneys())
-		//				if (j.m_floorTo != (AVULONG)-1)
-		//					myfile << L"      JOURNEY: from " << j.m_floorFrom << L" to " << j.m_floorTo << L", " << j.m_timeGo/1000 << L" => " << j.m_timeDest/1000 << L"; doorcycles: " << j.StringifyDoorCycles() << endl;
-		//		}
-		//		myfile << L"  - PASSENGERS:" << endl;
-		//		for each (CPassengerSrv *pPassenger in pSim->GetPassengers())
-		//			myfile << L"    PASSENGER: lift: " << pPassenger->GetLiftId() << L" from " << pPassenger->GetArrivalFloor() << L" to " << pPassenger->GetDestFloor() << L", " << pPassenger->GetArrivalTime() << L" => " << pPassenger->GetLoadTime() << L" => " << pPassenger->GetGoTime() << L" => " << pPassenger->GetUnloadTime() << L"; waypoints: " << pPassenger->StringifyWayPoints() << endl;
-		//	}
-		//}
-		//myfile.close();
+		// Log Output
+		if (g_bLog)
+		{
+			std::wofstream myfile;
+			myfile.open ("advisuo.log");
+			for each (CLiftGroupSrv *pGroup in prj.GetLiftGroups())
+			{
+				myfile << L"LIFT GROUP: " << pGroup->GetName() << endl;
+				for each (CSimSrv *pSim in pGroup->GetSims())
+				{
+					myfile << L"  SCENARIO: " << pSim->GetScenarioName() << endl;
+					for each (CLiftSrv *pLift in pSim->GetLifts())
+					{
+						myfile << L"    LIFT: " << pLift->GetId() << endl;
+						for each (JOURNEY j in pLift->GetJourneys())
+							if (j.m_floorTo != (AVULONG)-1)
+								myfile << L"      JOURNEY: from " << j.m_floorFrom << L" to " << j.m_floorTo << L", " << j.m_timeGo/1000 << L" => " << j.m_timeDest/1000 << L"; doorcycles: " << j.StringifyDoorCycles() << endl;
+					}
+					myfile << L"  - PASSENGERS:" << endl;
+					std::sort(pSim->GetPassengers().begin(), pSim->GetPassengers().end(), [](CPassenger *p1, CPassenger *p2) -> bool 
+					{ 
+						if (p1->GetLiftId() == p2->GetLiftId())
+							return p1->GetLoadTime() < p2->GetLoadTime(); 
+						else
+							return p1->GetLiftId() < p2->GetLiftId(); 
+					});
+					for each (CPassengerSrv *pPassenger in pSim->GetPassengers())
+						myfile << L"    PASSENGER: lift: " << pPassenger->GetLiftId() << L" from " << pPassenger->GetArrivalFloor() << L" to " << pPassenger->GetDestFloor() << L", " << pPassenger->GetLoadTime() << L" => " << pPassenger->GetUnloadTime() << endl;
+				}
+			}
+			myfile.close();
+		}
 
 		return Logf(dwStatus, L"AVRun(%d)", nSimulationId);
 	}

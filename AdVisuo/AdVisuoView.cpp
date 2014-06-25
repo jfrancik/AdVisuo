@@ -1455,8 +1455,45 @@ void CAdVisuoView::OnNavigationCctv()									{ SetWalkMode(0); }
 void CAdVisuoView::OnUpdateNavigationCctv(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 0); pCmdUI->Enable(FALSE); }
 void CAdVisuoView::OnNavigationWalk()									{ SetWalkMode(1); }
 void CAdVisuoView::OnUpdateNavigationWalk(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 1); pCmdUI->Enable(FALSE); }
-void CAdVisuoView::OnNavigationGhost()									{ SetWalkMode(2); }
-void CAdVisuoView::OnUpdateNavigationGhost(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 2); }
+void CAdVisuoView::OnNavigationGhost()									{ SetWalkMode(2); 
+																		/*	// TEMPORARY CODE!!!
+																			OutText(L"Loading complete");
+																			for each (CLiftGroup *pGroup in GetProject()->GetLiftGroups())
+																				for each (CSim *pSim in pGroup->GetSims())
+																					OutText(L"SIM - Passengers: %d, journeys: %d", pSim->GetPassengerCount(), pSim->GetJourneyTotalCount());
+																			OutText(L"Storing details to advisuo.txt");
+
+																			std::wofstream myfile;
+																			myfile.open ("c:\\users\\jarek\\desktop\\advisuo.txt");
+																			for each (CLiftGroupVis *pGroup in GetProject()->GetLiftGroups())
+																			{
+																				myfile << L"LIFT GROUP: " << pGroup->GetName() << std::endl;
+																				for each (CSimVis *pSim in pGroup->GetSims())
+																				{
+																					myfile << L"  SCENARIO: " << pSim->GetScenarioName() << std::endl;
+																					for each (CLift *pLift in pSim->GetLifts())
+																					{
+																						myfile << L"    LIFT: " << pLift->GetId() << std::endl;
+																						for each (JOURNEY j in pLift->GetJourneys())
+																							if (j.m_floorTo != (AVULONG)-1)
+																								myfile << L"      JOURNEY: from " << j.m_floorFrom << L" to " << j.m_floorTo << L", " << j.m_timeGo/1000 << L" => " << j.m_timeDest/1000 << L"; doorcycles: " << j.StringifyDoorCycles() << std::endl;
+																					}
+																					myfile << L"  - PASSENGERS:" << std::endl;
+																					std::sort(pSim->GetPassengers().begin(), pSim->GetPassengers().end(), [](CPassenger *p1, CPassenger *p2) -> bool 
+																					{ 
+																						if (p1->GetLiftId() == p2->GetLiftId())
+																							return p1->GetLoadTime() < p2->GetLoadTime(); 
+																						else
+																							return p1->GetLiftId() < p2->GetLiftId(); 
+																					});
+																					for each (CPassenger *pPassenger in pSim->GetPassengers())
+																						myfile << L"    PASSENGER: lift: " << pPassenger->GetLiftId() << L" from " << pPassenger->GetArrivalFloor() << L" to " << pPassenger->GetDestFloor() << L", " << pPassenger->GetLoadTime() << L" => " << pPassenger->GetUnloadTime() << std::endl;
+																				}
+																			}
+																			myfile.close();
+																			OutText(L"Done."); */
+																		}
+void CAdVisuoView::OnUpdateNavigationGhost(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 2); /*pCmdUI->Enable(GetDocument()->IsDownloadComplete());*/ }
 
 void CAdVisuoView::OnCharacterNocolourcoding()							{ SetColouringMode(0); }
 void CAdVisuoView::OnUpdateCharacterNocolourcoding(CCmdUI *pCmdUI)		{ pCmdUI->SetCheck(m_nColouringMode == 0); }

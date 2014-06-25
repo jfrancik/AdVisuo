@@ -11,8 +11,11 @@ CPassengerSrv::CPassengerSrv(CSimSrv *pSim, AVULONG nPassengerId) : CPassenger(p
 {
 }
 
-inline AVULONG timeToGo(AVFLOAT x1, AVFLOAT y1, AVFLOAT x2, AVFLOAT y2, AVFLOAT stepLen, AVULONG stepDuration)
+inline AVULONG timeToGo(AVFLOAT x1, AVFLOAT y1, AVFLOAT x2, AVFLOAT y2)
 {
+	AVULONG stepDuration = 150;
+	AVFLOAT stepLen = 15.0f;
+
 	AVFLOAT fDist = sqrt((y1 - y2) * (y1 - y2) + (x1 - x2) * (x1 - x2));
 	return ((int)(fDist / stepLen) + 1) * stepDuration;
 }
@@ -126,15 +129,11 @@ void CPassengerSrv::Play()
 		AVFLOAT YLift1 = YLift + 0.9f * ((rand() % (AVULONG)DLift) - DLift/2);
 
 		// Calculate Time Points
-
-		AVULONG stepDuration = 150;
-		AVFLOAT stepLen = 15.0f;
-
 		SetGoTime(GetLoadTime() //+ 1600
-			- timeToGo(XLobby1, YLobby1, XLiftDoor0, YLiftDoor0, stepLen, stepDuration)
-			- timeToGo(XLiftDoor0, YLiftDoor0, XLiftDoor, YLiftDoor, stepLen, stepDuration));
+			- timeToGo(XLobby1, YLobby1, XLiftDoor0, YLiftDoor0)
+			- timeToGo(XLiftDoor0, YLiftDoor0, XLiftDoor, YLiftDoor));
 		SetArrivalTime(min(GetArrivalTime(), GetGoTime()));
-		SetSpawnTime(GetArrivalTime() - timeToGo(XLobby0, YLobby0, XLobby1, YLobby1, stepLen, stepDuration));
+		SetSpawnTime(GetArrivalTime() - timeToGo(XLobby0, YLobby0, XLobby1, YLobby1));
 
 		WAYPOINT my_way_points[] =
 		{
@@ -163,13 +162,9 @@ void CPassengerSrv::Play()
 	else
 	{
 		// Calculate Time Points
-
-		AVULONG stepDuration = 150;
-		AVFLOAT stepLen = 15.0f;
-
 		SetGoTime(GetLoadTime());
 		SetArrivalTime(min(GetArrivalTime(), GetGoTime()));
-		SetSpawnTime(GetArrivalTime() - timeToGo(XLobby0, YLobby0, XLobby1, YLobby1, stepLen, stepDuration));
+		SetSpawnTime(GetArrivalTime() - timeToGo(XLobby0, YLobby0, XLobby1, YLobby1));
 
 		WAYPOINT my_way_points[] =
 		{
@@ -184,6 +179,12 @@ void CPassengerSrv::Play()
 			SetWaypoint(i, my_way_points[i]);
 	}
 }
+
+AVLONG CPassengerSrv::GetMaxSpawnToArrivalTime(CLiftGroup *pGroup)
+{
+	return 2 * timeToGo(0, 0, abs(pGroup->GetBox().Width()), abs(pGroup->GetBox().Depth()));
+}
+
 
 DWORD CPassengerSrv::Load(dbtools::CDataBase::SELECT &sel)
 {

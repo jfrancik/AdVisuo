@@ -185,9 +185,6 @@
     <ClInclude Include="SrvLiftGroup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="_legacy_SrvLift.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="adv.rc">

@@ -191,9 +191,13 @@ HRESULT CProjectSrv::FastLoadPlayUpdate(dbtools::CDataBase dbVis, dbtools::CData
 	if (!dbVis) throw dbVis;
 
 	// preparatory step: create lifts and map structures for quickly accessing them
+	// in addition: find out the maximum time before arrival time in which passengers may be spawn
 	map<AVULONG, CSimSrv*> mapSims;
 	map<std::pair<AVULONG, AVULONG>, CLiftSrv*> mapLifts;
+	AVLONG nMaxWalkAcrossTime = 0;
 	for each (CLiftGroupSrv *pGroup in GetLiftGroups())
+	{
+		nMaxWalkAcrossTime = max(nMaxWalkAcrossTime, CPassengerSrv::GetMaxSpawnToArrivalTime(pGroup));
 		for each (CSimSrv *pSim in pGroup->GetSims())
 		{
 			AVULONG nTrafficScenario = (*pSim)[L"TrafficScenarioId"];
@@ -209,17 +213,18 @@ HRESULT CProjectSrv::FastLoadPlayUpdate(dbtools::CDataBase dbVis, dbtools::CData
 			for each (CLiftSrv *pLift in pSim->GetLifts())
 				pLift->SetSimId(pSim->GetId());
 		}
+	}
 
 	bool bWarning = false;
 
 	InitTimedProgress(0, GetMaxTime());
-	DWORD nTicks = GetTickCount();
 
 	// Main Fast Loop
 	AVULONG iPassengerId = 0;
 	dbtools::CDataBase::SELECT selHC, selSt;
-	selHC = dbReports.select(L"SELECT * FROM HallCalls WHERE Iteration=0 AND SimulationId = %d ORDER BY StartLoading", GetSimulationId());
+	selHC = dbReports.select(L"SELECT * FROM HallCalls WHERE Iteration=0 AND SimulationId = %d ORDER BY ArrivalTime", GetSimulationId());
 	selSt = dbReports.select(L"SELECT * FROM LiftStops WHERE Iteration=0 AND SimulationId = %d ORDER BY Time", GetSimulationId());
+	DWORD nTicks = GetTickCount();
 	for( ; selSt; selSt++)
 	{
 		AVULONG nTrafficScenario = selSt[L"TrafficScenarioId"];
@@ -229,7 +234,7 @@ HRESULT CProjectSrv::FastLoadPlayUpdate(dbtools::CDataBase dbVis, dbtools::CData
 		AVLONG nDuration = selSt[L"Duration"].msec();
 
 		// Load passengers - up to this moment in time...
-		for ( ; selHC &&  (AVLONG)selHC[L"StartLoading"].msec() <= nTime + nDuration + 100; selHC++)
+		while (selHC &&  (AVLONG)selHC[L"ArrivalTime"].msec() <= nTime + nDuration + nMaxWalkAcrossTime)
 		{
 			// identify the sim & lift from the maps
 			AVULONG nTrafficScenario = selHC[L"TraffiicScenarioId"];
@@ -248,6 +253,8 @@ HRESULT CProjectSrv::FastLoadPlayUpdate(dbtools::CDataBase dbVis, dbtools::CData
 			pPassenger->Play();
 			pPassenger->SetSimId(pSim->GetId());
 			pPassenger->Store(dbVis);
+
+			selHC++;
 		}
 
 		CLiftSrv *pLift = mapLifts[std::make_pair(nTrafficScenario, nLiftId)];
@@ -259,10 +266,17 @@ HRESULT CProjectSrv::FastLoadPlayUpdate(dbtools::CDataBase dbVis, dbtools::CData
 
 		if (GetTickCount() - nTicks > 500)
 		{
+			// find the time to register - minimum of the last journey over all lifts
+			AVLONG nTimeReg = MAXINT32;
+			for each (auto pair in mapLifts)
+			{
+				AVLONG nTime1 = (pair.second->GetJourneyCount()) ? pair.second->GetJourneys().back().m_timeGo : 0;
+				nTimeReg = min(nTimeReg, nTime1);
+			}
+			dbVis.execute(L"UPDATE AVProjects SET TimeSaved = %d WHERE SimulationId = %d", nTimeReg, GetSimulationId());
 			LogProgressTime(nTime);
+			//Sleep(500);
 			nTicks = GetTickCount();
-
-			dbVis.execute(L"UPDATE AVProjects SET TimeSaved = %d WHERE SimulationId = %d", nTime, GetSimulationId());
 		}
 	}
 

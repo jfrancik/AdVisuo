@@ -16,7 +16,8 @@ CLiftSrv::CLiftSrv(CSimSrv *pSim, AVULONG nLift, AVULONG nDecks) : CLift((CSim*)
 
 void CLiftSrv::Feed(AVULONG nFloor, AVLONG nTime, AVLONG nDuration)
 {
-	std::sort(m_collUnloading.begin(), m_collUnloading.end(), [](CPassenger *p1, CPassenger *p2) -> bool { return p1->GetUnloadTime() < p2->GetUnloadTime(); });
+//	std::sort(m_collLoading.begin(), m_collLoading.end(), [](CPassenger *p1, CPassenger *p2) -> bool { return p1->GetLoadTime() < p2->GetLoadTime(); });
+//	std::sort(m_collUnloading.begin(), m_collUnloading.end(), [](CPassenger *p1, CPassenger *p2) -> bool { return p1->GetUnloadTime() < p2->GetUnloadTime(); });
 
 	// collect some parameters (speed up)
 	CLiftGroup::SHAFT *pShaft = GetSHAFT();
@@ -84,10 +85,10 @@ void CLiftSrv::Feed(AVULONG nFloor, AVLONG nTime, AVLONG nDuration)
 	}
 
 	// unloading passengers
-	while (!m_collUnloading.empty() && m_collUnloading.front()->GetUnloadTime() + 10 < (AVLONG)m_pJourney->m_timeGo)
+	while (!m_collUnloading.empty() && (*m_collUnloading.begin())->GetUnloadTime() + 10 < (AVLONG)m_pJourney->m_timeGo)
 	{
-		LONG t = m_collUnloading.front()->GetUnloadTime();
-		AVULONG iDeck = m_collUnloading.front()->GetDeck();
+		LONG t = (*m_collUnloading.begin())->GetUnloadTime();
+		AVULONG iDeck = (*m_collUnloading.begin())->GetDeck();
 		if (m_nTimeOpen[iDeck] < 0) 
 		{
 			// first opening
@@ -95,15 +96,15 @@ void CLiftSrv::Feed(AVULONG nFloor, AVLONG nTime, AVLONG nDuration)
 			m_nTimeClose[iDeck] = t + nDwellTime;
 		}
 		m_nTimeClose[iDeck] = max(m_nTimeClose[iDeck], t + m_nUnloadingTime);
-		m_collUnloading.pop_front();
+		m_collUnloading.erase(m_collUnloading.begin());
 	}
 
 	// loading passengers
-	while (!m_collPassengers.empty() && m_collPassengers.front()->GetLoadTime() + 10 < (AVLONG)m_pJourney->m_timeGo)
+	while (!m_collLoading.empty() && (*m_collLoading.begin())->GetLoadTime() + 10 < (AVLONG)m_pJourney->m_timeGo)
 	{
-		LONG t = m_collPassengers.front()->GetLoadTime();
-		LONG tarr = m_collPassengers.front()->GetArrivalTime();
-		AVULONG iDeck = m_collPassengers.front()->GetDeck();
+		LONG t = (*m_collLoading.begin())->GetLoadTime();
+		LONG tarr = (*m_collLoading.begin())->GetArrivalTime();
+		AVULONG iDeck = (*m_collLoading.begin())->GetDeck();
 		m_nPassengers[iDeck]++;
 
 		if (m_nTimeOpen[iDeck] < 0) 
@@ -150,7 +151,7 @@ void CLiftSrv::Feed(AVULONG nFloor, AVLONG nTime, AVLONG nDuration)
 			}
 		}
 
-		m_collPassengers.pop_front();
+		m_collLoading.erase(m_collLoading.begin());
 	}
 
 	// TO DO:

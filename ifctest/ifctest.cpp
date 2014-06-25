@@ -7,7 +7,7 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	CoInitialize(NULL);
-	AVSetupDiagnosticOutput(true, true, false, true);
+	AVSetupDiagnosticOutput(true, true, false, true, false, false, false);
 
 	AVIFC8(51, "c:\\users\\jarek\\desktop\\test.ifc");
 

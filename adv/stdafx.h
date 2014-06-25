@@ -43,6 +43,7 @@ using std::endl;
 #include <list>
 #include <vector>
 #include <deque>
+#include <set>
 
 #include "log.h"
 

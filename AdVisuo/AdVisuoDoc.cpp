@@ -229,15 +229,9 @@ bool CAdVisuoDoc::GetDownloadStatus(AVULONG &nStatus)
 			nStatus = nProgress;
 			return false;		// this is an error condition
 		case 3:
-			nStatus = nProgress & 0xffff - 1;
+			nStatus = (nProgress & 0xffff);
 			return false;		// waiting in the queue
 		default:
-
-			if (GetKeyState(VK_F3) < 0) nStatus = 3;
-			else if (GetKeyState(VK_F2) < 0) nStatus = 2;
-			else if (GetKeyState(VK_F1) < 0) nStatus = 1;
-			else
-
 			nStatus = 0;
 			return false;		// shouldn't go there... status will be the very front of the queue
 	}

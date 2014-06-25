@@ -17,4 +17,6 @@ public:
 
 	DWORD Load(dbtools::CDataBase::SELECT &sel);
 	HRESULT Store(dbtools::CDataBase db);
+
+	static AVLONG GetMaxSpawnToArrivalTime(CLiftGroup *pGroup);
 };

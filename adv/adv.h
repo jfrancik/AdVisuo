@@ -68,7 +68,7 @@ ADV_API AVSTRING AVGetRelease();
 // Set bRegisterEventLog to register diagnostic output in the system event log. Default setting: true
 // Set bPrintOnScreen to display diagnostic output on screen. Default setting: false
 // Set bBenchmark to display benchmark results. Default setting: false
-ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog = true, bool bPrintOnScreen = true, bool bVerbose = false, bool bBenchmark = false, bool bProgressOnScreen = true, bool bProgressDB = false);
+ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScreen, bool bVerbose, bool bBenchmark, bool bProgressOnScreen, bool bProgressDB, bool bLog);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configuration

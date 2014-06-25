@@ -47,7 +47,7 @@ void CAdVisuoLoader::Start(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG
 
 void CAdVisuoLoader::Stop()
 {
-	if (m_status != COMPLETE && m_status != EXCEPTION && m_status != FAILED && m_status != SUCCEEDED)
+	if (m_status != COMPLETE && m_status != EXCEPTION && m_status != FAILED)
 	{
 		m_status = REQUEST_TO_STOP;
 		WaitForSingleObject(m_hEvCompleted, 5000);
@@ -226,7 +226,10 @@ UINT CAdVisuoLoader::WorkerThread()
 CAdVisuoLoader::STATUS CAdVisuoLoader::Update(CEngine *pEngine)
 {
 	STATUS status = m_status;
-	if (status == SUCCEEDED || status == FAILED)
+	if (status == FAILED)
+		return status;
+
+	if (status == COMPLETE && m_journeySimId.size() + m_passengerSimId.size() == 0)
 		return status;
 
 	try
@@ -274,9 +277,6 @@ CAdVisuoLoader::STATUS CAdVisuoLoader::Update(CEngine *pEngine)
 					pPassenger->Play(pEngine);
 			}
 		}
-
-		if (status == COMPLETE)
-			m_status = status = SUCCEEDED;
 
 		if (status == EXCEPTION)
 		{

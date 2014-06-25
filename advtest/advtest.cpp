@@ -37,7 +37,7 @@ void usage()
 			<< L"[ID] is optional and may be omitted to enter interactive mode." << endl
 			<< L"More options:" << endl
 			<< L"-q for quiet mode    -qp for not showing progress   -v for verbose mode" << endl
-			<< L"-b for benchmark mode: to display execution time information" << endl
+			<< L"-b to display benchmarks    -l to generate detailed log" << endl
 			<< L"-y to proceed, -n to discard when sim up to date (avoiding a query to continue)" << endl
 			<< L"-w to wait for a key pressed at the end of execution" << endl
 			<< endl;
@@ -46,7 +46,7 @@ void usage()
 int _tmain(int argc, _TCHAR* argv[])
 {
 	CoInitialize(NULL);
-	AVSetupDiagnosticOutput(false, false, false, false, false, false);
+	AVSetupDiagnosticOutput(false, false, false, false, false, false, false);
 
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
@@ -54,7 +54,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	AVULONG nSimulationID = 0;
 	AVULONG nProjectID;
 	_TCHAR *pParam = NULL;
-	bool bQuiet = false, bPercentage = true, bVerbose = false, bYes = false, bNo = false, bWait = false, bBenchmark = false;
+	bool bQuiet = false, bPercentage = true, bVerbose = false, bYes = false, bNo = false, bWait = false, bBenchmark = false, bLog = false;
 	HRESULT h = S_OK;
 
 	// read params...
@@ -87,6 +87,9 @@ int _tmain(int argc, _TCHAR* argv[])
 				break;
 			case 'b':
 				bBenchmark = true;
+				break;
+			case 'l':
+				bLog = true;
 				break;
 			case 'f':
 				option = (option == DEFAULT) ? IFC : WRONG;
@@ -145,7 +148,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (nSimulationID <= 0) option = WRONG_2;
 	}
 
-	AVSetupDiagnosticOutput(true, !bQuiet, bVerbose, bBenchmark, bPercentage);
+	AVSetupDiagnosticOutput(true, !bQuiet, bVerbose, bBenchmark, bPercentage, false, bLog);
 
 	switch (option)
 	{

@@ -14,6 +14,7 @@ bool g_bOnScreen = false;
 bool g_bBenchmark = false;
 bool g_bProgressOnScreen = false;
 bool g_bProgressDB = true;
+bool g_bLog = false;
 
 // Progress Internal Data
 DWORD g_nMaxSteps = 0;
