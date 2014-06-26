@@ -169,7 +169,7 @@ public:
 	void RenderLights();
 	void Render(HCAMERA p);
 	void Render(HOBJECT p);
-	void RenderPassenger(HBODY pBody, AVULONG nColourMode, AVULONG nPhase, AVLONG timeSpawn, AVLONG timeLoad, AVLONG spanWait);
+	void RenderPassenger(HBODY pBody, AVULONG nPhase, AVLONG timeSpawn, AVLONG timeLoad, AVLONG spanWait);
 	
 	void PutCamera(HCAMERA p);
 	void Embark(HBODY pBody, HBONE pNode, bool bSwitchCoord = true);	// embarks the body as the pNode node

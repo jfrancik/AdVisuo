@@ -684,7 +684,7 @@ void CEngine::PutCamera(ISceneCamera *p)
 		}
 	}
 
-void CEngine::RenderPassenger(IBody *pBody, AVULONG nColourMode, AVULONG nPhase, AVLONG timeSpawn, AVLONG timeLoad, AVLONG spanWait)
+void CEngine::RenderPassenger(IBody *pBody, AVULONG nPhase, AVLONG timeSpawn, AVLONG timeLoad, AVLONG spanWait)
 {
 	// get the current playing time...
 	AVLONG nTime = GetPlayTime();
@@ -702,8 +702,8 @@ void CEngine::RenderPassenger(IBody *pBody, AVULONG nColourMode, AVULONG nPhase,
 		return;
 
 	// Determine Temperature
-	AVULONG time;
-	switch (nColourMode)
+	AVLONG time;
+	switch (SETTINGS::nColouringMode)
 	{
 	case 0: 
 		time = 0;
@@ -720,7 +720,19 @@ void CEngine::RenderPassenger(IBody *pBody, AVULONG nColourMode, AVULONG nPhase,
 		time = spanWait;
 		break;
 	}
-	AVCOLOR color = HSV_to_RGB(2 - (((AVFLOAT)min(time, 55000) * 2) / 55000), 1, 1);
+
+	// convert the useful range into 0..2
+	AVFLOAT fTime;
+	AVFLOAT r1 = 1000.f * SETTINGS::nThresholdGreen;
+	AVFLOAT r2 = 1000.f * SETTINGS::nThresholdRed;
+	if (time <= r1)
+		fTime = 0;
+	else if (time >= r2)
+		fTime = 2.f;
+	else
+		fTime = 2.f * ((AVFLOAT)time - r1) / (r2 - r1);
+
+	AVCOLOR color = HSV_to_RGB(2 - fTime, 1, 1);
 
 	// Determine transparency (where we are very young...)
 	AVFLOAT fAlpha = 1.0f;

@@ -5,7 +5,7 @@
 ///////////////////////////////////////////////////////////////
 // Versioning
 
-#define VERSION 30614	// 3.06.14
+#define VERSION 30615	// 3.06.15
 
 #define VERSION_MAJOR	(VERSION / 10000)
 #define VERSION_MINOR	((VERSION % 10000) / 100)
@@ -21,6 +21,18 @@
 // 10 - 19 - beta
 // 20 - 29 - release candidate or early release
 // 30 - 39 - stable release
+
+///////////////////////////////////////////////////////////////
+// Global Settings
+
+struct SETTINGS
+{
+	static int nAspectRatio;
+	static int nColouringMode;
+	static int nThresholdGreen;
+	static int nThresholdRed;
+	static int nNavMode;
+};
 
 ///////////////////////////////////////////////////////////////
 // OutText

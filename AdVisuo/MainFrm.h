@@ -16,6 +16,7 @@
 
 #pragma once
 #include "OutputWnd.h"
+#include "PropertiesWnd.h"
 
 class CMainFrame : public CMDIFrameWndEx
 {
@@ -46,6 +47,7 @@ protected:  // control bar embedded members
 	CMFCRibbonBar     m_wndRibbonBar;
 	CMFCRibbonStatusBar  m_wndStatusBar;
 	COutputWnd        m_wndOutput;
+	CPropertiesWnd    m_wndProperties;
 
 // Generated message map functions
 protected:
@@ -65,6 +67,8 @@ public:
 
 	afx_msg void OnViewOutputwnd();
 	afx_msg void OnUpdateViewOutputwnd(CCmdUI *pCmdUI);
+	afx_msg void OnViewPropertieswnd();
+	afx_msg void OnUpdateViewPropertieswnd(CCmdUI *pCmdUI);
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnWindowPosChanging(WINDOWPOS* lpwndpos);

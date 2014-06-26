@@ -47,12 +47,12 @@ public:
 protected:
 	CFont m_Font;
 
-	CMFCTabCtrl	m_wndTabs;
+	//CMFCTabCtrl	m_wndTabs;
 
 public:
-	COutputList m_wndOutputBuild;
+	//COutputList m_wndOutputBuild;
 	COutputList m_wndOutputDebug;
-	COutputList m_wndOutputFind;
+	//COutputList m_wndOutputFind;
 
 public:
 	void OutBuildWindow(LPCTSTR lpszItem);

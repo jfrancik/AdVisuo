@@ -33,6 +33,8 @@ IDR_MAINFRAME           ICON                    "res\\AdVisuo.ico"
 IDR_AdVisuoTYPE         ICON                    "res\\AdVisuoDoc.ico"
 IDI_OUTPUT_WND          ICON                    "res\\output_wnd.ico"
 IDI_OUTPUT_WND_HC       ICON                    "res\\output_wnd_hc.ico"
+IDI_PROPERTIES_WND      ICON                    "res\\ico00001.ico"
+IDI_PROPERTIES_WND_HC   ICON                    "res\\output_w.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -160,6 +162,7 @@ BEGIN
                 MENUITEM "&Aqua Style",                 ID_VIEW_APPLOOK_OFF_2007_AQUA
             END
         END
+        MENUITEM "PropertiesWnd",               ID_VIEW_PROPERTIESWND
     END
     POPUP "&Window"
     BEGIN
@@ -316,8 +319,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,6,14,0
- PRODUCTVERSION 3,6,14,0
+ FILEVERSION 3,6,15,0
+ PRODUCTVERSION 3,6,15,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -334,12 +337,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "LerchBates"
             VALUE "FileDescription", "LerchBates AdVisuo Client"
-            VALUE "FileVersion", "3.6.14.0"
+            VALUE "FileVersion", "3.6.15.0"
             VALUE "InternalName", "AdVisuo.exe"
             VALUE "LegalCopyright", " (c) Lerch Bates 2009-2013.  All rights reserved."
             VALUE "OriginalFilename", "AdVisuo.exe"
             VALUE "ProductName", "LerchBates AdVisuo Client"
-            VALUE "ProductVersion", "3.6.14.0"
+            VALUE "ProductVersion", "3.6.15.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -357,6 +360,7 @@ END
 STRINGTABLE
 BEGIN
     IDP_OLE_INIT_FAILED     "OLE initialization failed.  Make sure that the OLE libraries are the correct version."
+    IDS_PROPERTIES_WND      "Properties"
 END
 
 STRINGTABLE
@@ -643,6 +647,20 @@ IDB_LOGO                BITMAP                  "res\\main.bmp"
 IDB_LOGO2               BITMAP                  "res\\logo2.bmp"
 IDB_LOGO3               BITMAP                  "res\\logo3.bmp"
 IDB_SCENARIOS           BITMAP                  "res\\bitmap3.bmp"
+IDR_PROPERTIES          BITMAP                  "res\\toolbar1.bmp"
+IDB_PROPERTIES_HC       BITMAP                  "res\\bitmap2.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_PROPERTIES TOOLBAR 16, 15
+BEGIN
+    BUTTON      ID_EXPAND_ALL
+    BUTTON      ID_SORTPROPERTIES
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

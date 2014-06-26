@@ -38,8 +38,6 @@ class CAdVisuoApp : public CWinAppEx
 	CDlgHtSplash *m_pSplash;
 
 	// global application modes
-	int m_nWalkMode;						// Walk or CCTV mode
-	int m_nColouringMode;					// Character Colouring Mode
 	CString m_servers;						// list of servers for the CDlgDownload
 	CString m_url;							// server where the sim is loaded from
 
@@ -54,11 +52,6 @@ public:
 	CAdVisuoApp();
 
 	CDlgHtSplash *GetSplashWindow()	{ return m_pSplash; }
-
-	AVULONG GetWalkMode()			{ return (ULONG)m_nWalkMode; }
-	void SetWalkMode(AVULONG n)		{ m_nWalkMode = n; }
-	AVULONG GetColouringMode()		{ return (ULONG)m_nColouringMode; }
-	void SetColouringMode(AVULONG n){ m_nColouringMode = n; }
 
 	CXMLRequest *GetAuthorisationAgent()	{ return &m_http; }
 	bool IsLogged()					{ return m_http.logged(); }

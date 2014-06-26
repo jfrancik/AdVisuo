@@ -10,7 +10,7 @@
 
 #pragma warning(disable:4018)
 
-CSimVis::CSimVis() : m_nColouringMode(0)
+CSimVis::CSimVis()
 {
 }
 

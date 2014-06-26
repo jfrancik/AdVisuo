@@ -12,8 +12,6 @@ class CEngine;
 
 class CSimVis : public CSim
 {
-	AVULONG m_nColouringMode;	// the Colouring Mode
-
 public:
 	CSimVis();
 	virtual ~CSimVis();
@@ -21,9 +19,6 @@ public:
 	CLiftVis *GetLift(int i)			{ return (CLiftVis*)CSim::GetLift(i); }
 	CPassengerVis *GetPassenger(int i)	{ return (CPassengerVis*)CSim::GetPassenger(i); }
 	CLiftGroupVis *GetLiftGroup()		{ return (CLiftGroupVis*)CSim::GetLiftGroup(); }
-
-	AVULONG GetColouringMode()			{ return m_nColouringMode; }
-	void SetColouringMode(AVULONG n)	{ m_nColouringMode = n; }
 
 	void Play(CEngine *pEngine, AVLONG nTime = INT_MIN);
 	AVLONG FastForward(CEngine *pEngine, AVLONG nTime);					// returns the earliest time that must be scanned before FF (usually < nTime)

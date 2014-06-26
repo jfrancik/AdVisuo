@@ -148,6 +148,7 @@
     <ClCompile Include="DlgHtAbout.cpp" />
     <ClCompile Include="DlgVideo.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="PropertiesWnd.cpp" />
     <ClCompile Include="RibbonScenarioButton.cpp" />
     <ClCompile Include="VisElem.cpp" />
     <ClCompile Include="VisLiftGroup.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="DlgHtAbout.h" />
     <ClInclude Include="DlgVideo.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="PropertiesWnd.h" />
     <ClInclude Include="RibbonScenarioButton.h" />
     <ClInclude Include="VisElem.h" />
     <ClInclude Include="VisLiftGroup.h" />
@@ -270,15 +272,18 @@
     <None Include="res\dupa2.bmp" />
     <None Include="res\filelarge.bmp" />
     <None Include="res\filesmall.bmp" />
+    <None Include="res\ico00001.ico" />
     <None Include="res\logo2.bmp" />
     <None Include="res\logo3.bmp" />
     <None Include="res\main.bmp" />
+    <None Include="res\output_w.ico" />
     <None Include="res\output_wnd.ico" />
     <None Include="res\output_wnd_hc.ico" />
     <None Include="res\ribbon1.mfcribbon-ms">
       <SubType>Designer</SubType>
     </None>
     <None Include="res\Toolbar.bmp" />
+    <None Include="res\toolbar1.bmp" />
     <None Include="res\Toolbar256.bmp" />
     <None Include="res\wait_msg.bmp" />
     <None Include="res\writelarge.bmp" />

@@ -58,10 +58,6 @@ class CAdVisuoView : public CView, ILostDeviceObserver
 	bool m_bHUDCaption;							// diaplay HUD view captions
 	bool m_bHUDSelection;						// display sub-view selection
 
-	// Modes
-	AVULONG m_nWalkMode;						// Walk or CCTV mode
-	AVULONG m_nColouringMode;					// Character Colouring Mode
-
 	// Hit test auxiliaries
 	CScreen::HIT m_hit;							// hit test result - screen outside HUD
 	AVULONG m_nHitX, m_nHitY;					// aux hit indices
@@ -101,12 +97,6 @@ public:
 	// ILostDeviceObserver implementation
 	virtual void OnLostDevice();
 	virtual void OnResetDevice();
-
-	// Mode Configuration
-	AVULONG GetWalkMode()						{ return m_nWalkMode; }
-	AVULONG GetColouringMode()					{ return m_nColouringMode; }
-	void SetWalkMode(AVULONG n);
-	void SetColouringMode(AVULONG n);
 
 	// Play Control
 	void Play();

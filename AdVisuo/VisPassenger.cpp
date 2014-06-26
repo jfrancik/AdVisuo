@@ -39,7 +39,7 @@ void CPassengerVis::Play(CEngine *pEngine)
 void CPassengerVis::Render(AVLONG nPhase)
 {
 	if (m_pEngine) 
-		m_pEngine->RenderPassenger(m_pBody, GetSim()->GetColouringMode(), nPhase, GetSpawnTime(), GetLoadTime(), GetWaitSpan());
+		m_pEngine->RenderPassenger(m_pBody, nPhase, GetSpawnTime(), GetLoadTime(), GetWaitSpan());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

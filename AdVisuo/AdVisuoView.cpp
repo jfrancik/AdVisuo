@@ -272,10 +272,6 @@ void CAdVisuoView::OnInitialUpdate()
 
 	OutText(L"Building created, ready for rendering.");
 
-	// setup modes
-	SetWalkMode(AVGetApp()->GetWalkMode());
-	SetColouringMode(AVGetApp()->GetColouringMode());
-	
 	// first render cycle
 	m_engine.BeginFrame();
 	RenderScene();
@@ -330,25 +326,6 @@ void CAdVisuoView::OnResetDevice()
 	m_sprite.OnResetDevice();
 	m_plateCam.OnResetDevice();
 	m_hud.OnResetDevice();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////
-// Mode Configuration
-
-void CAdVisuoView::SetWalkMode(AVULONG n)
-{
-	m_nWalkMode = n;
-	AVGetApp()->SetWalkMode(m_nWalkMode);
-}
-
-void CAdVisuoView::SetColouringMode(AVULONG n)
-{
-	m_nColouringMode = n;
-	AVGetApp()->SetColouringMode(m_nColouringMode);
-
-	for each (CLiftGroupVis *pGroup in GetProject()->GetLiftGroups())
-		for each (CSimVis *pSim in pGroup->GetSims())
-			pSim->SetColouringMode(m_nColouringMode);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -692,7 +669,7 @@ void CAdVisuoView::OnDrag(int dx, int dy, int dz, bool bShift, bool bCtrl, bool 
 
 	// if (bCtrl) if (abs(dx) > abs(dy)) dy = 0; else dx = 0;
 
-	switch (m_nWalkMode)
+	switch (SETTINGS::nNavMode)
 	{
 	case 0:
 	case 2:
@@ -1451,11 +1428,11 @@ void CAdVisuoView::OnUpdateActionSavestill(CCmdUI *pCmdUI)
 ///////////////////////////////////////////////////////////////////////////////////////
 // Modes
 
-void CAdVisuoView::OnNavigationCctv()									{ SetWalkMode(0); }
-void CAdVisuoView::OnUpdateNavigationCctv(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 0); pCmdUI->Enable(FALSE); }
-void CAdVisuoView::OnNavigationWalk()									{ SetWalkMode(1); }
-void CAdVisuoView::OnUpdateNavigationWalk(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 1); pCmdUI->Enable(FALSE); }
-void CAdVisuoView::OnNavigationGhost()									{ SetWalkMode(2); 
+void CAdVisuoView::OnNavigationCctv()									{ SETTINGS::nNavMode = 0; }
+void CAdVisuoView::OnUpdateNavigationCctv(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(SETTINGS::nNavMode == 0); pCmdUI->Enable(FALSE); }
+void CAdVisuoView::OnNavigationWalk()									{ SETTINGS::nNavMode = 1; }
+void CAdVisuoView::OnUpdateNavigationWalk(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(SETTINGS::nNavMode == 1); pCmdUI->Enable(FALSE); }
+void CAdVisuoView::OnNavigationGhost()									{ SETTINGS::nNavMode = 2; 
 																		/*	// TEMPORARY CODE!!!
 																			OutText(L"Loading complete");
 																			for each (CLiftGroup *pGroup in GetProject()->GetLiftGroups())
@@ -1493,14 +1470,14 @@ void CAdVisuoView::OnNavigationGhost()									{ SetWalkMode(2);
 																			myfile.close();
 																			OutText(L"Done."); */
 																		}
-void CAdVisuoView::OnUpdateNavigationGhost(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(m_nWalkMode == 2); /*pCmdUI->Enable(GetDocument()->IsDownloadComplete());*/ }
+void CAdVisuoView::OnUpdateNavigationGhost(CCmdUI *pCmdUI)				{ pCmdUI->SetRadio(SETTINGS::nNavMode == 2); /*pCmdUI->Enable(GetDocument()->IsDownloadComplete());*/ }
 
-void CAdVisuoView::OnCharacterNocolourcoding()							{ SetColouringMode(0); }
-void CAdVisuoView::OnUpdateCharacterNocolourcoding(CCmdUI *pCmdUI)		{ pCmdUI->SetCheck(m_nColouringMode == 0); }
-void CAdVisuoView::OnCharacterCurrentwaitingtime()						{ SetColouringMode(1); }
-void CAdVisuoView::OnUpdateCharacterCurrentwaitingtime(CCmdUI *pCmdUI)	{ pCmdUI->SetCheck(m_nColouringMode == 1); }
-void CAdVisuoView::OnCharacterExpectedwaitingtime()						{ SetColouringMode(2); }
-void CAdVisuoView::OnUpdateCharacterExpectedwaitingtime(CCmdUI *pCmdUI)	{ pCmdUI->SetCheck(m_nColouringMode == 2); }
+void CAdVisuoView::OnCharacterNocolourcoding()							{ SETTINGS::nColouringMode = 0; }
+void CAdVisuoView::OnUpdateCharacterNocolourcoding(CCmdUI *pCmdUI)		{ pCmdUI->SetCheck(SETTINGS::nColouringMode == 0); }
+void CAdVisuoView::OnCharacterCurrentwaitingtime()						{ SETTINGS::nColouringMode = 1; }
+void CAdVisuoView::OnUpdateCharacterCurrentwaitingtime(CCmdUI *pCmdUI)	{ pCmdUI->SetCheck(SETTINGS::nColouringMode == 1); }
+void CAdVisuoView::OnCharacterExpectedwaitingtime()						{ SETTINGS::nColouringMode = 2; }
+void CAdVisuoView::OnUpdateCharacterExpectedwaitingtime(CCmdUI *pCmdUI)	{ pCmdUI->SetCheck(SETTINGS::nColouringMode == 2); }
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Status Bar

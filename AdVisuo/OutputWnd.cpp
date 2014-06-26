@@ -51,22 +51,30 @@ int COutputWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	rectDummy.SetRectEmpty();
 
 	// Create tabs window:
-	if (!m_wndTabs.Create(CMFCTabCtrl::STYLE_FLAT, rectDummy, this, 1))
+//	if (!m_wndTabs.Create(CMFCTabCtrl::STYLE_FLAT, rectDummy, this, 1))
+//	{
+//		TRACE0("Failed to create output tab window\n");
+//		return -1;      // fail to create
+//	}
+
+	// Create output panes:
+	const DWORD dwStyle = LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL;
+
+	if (!m_wndOutputDebug.Create(dwStyle, rectDummy, this, 1))
 	{
 		TRACE0("Failed to create output tab window\n");
 		return -1;      // fail to create
 	}
 
-	// Create output panes:
-	const DWORD dwStyle = LBS_NOINTEGRALHEIGHT | WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL;
 
-	if (/*!m_wndOutputBuild.Create(dwStyle, rectDummy, &m_wndTabs, 2) ||*/
-		!m_wndOutputDebug.Create(dwStyle, rectDummy, &m_wndTabs, 3) /*||
-		!m_wndOutputFind.Create(dwStyle, rectDummy, &m_wndTabs, 4)*/)
-	{
-		TRACE0("Failed to create output windows\n");
-		return -1;      // fail to create
-	}
+
+	//if (!m_wndOutputBuild.Create(dwStyle, rectDummy, &m_wndTabs, 2) ||
+	//	!m_wndOutputDebug.Create(dwStyle, rectDummy, &m_wndTabs, 3) ||
+	//	!m_wndOutputFind.Create(dwStyle, rectDummy, &m_wndTabs, 4))
+	//{
+	//	TRACE0("Failed to create output windows\n");
+	//	return -1;      // fail to create
+	//}
 
 //	m_wndOutputBuild.SetFont(&m_Font);
 	m_wndOutputDebug.SetFont(&m_Font);
@@ -76,15 +84,15 @@ int COutputWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	BOOL bNameValid;
 
 	// Attach list windows to tab:
-//	bNameValid = strTabName.LoadString(IDS_BUILD_TAB);
-//	ASSERT(bNameValid);
-//	m_wndTabs.AddTab(&m_wndOutputBuild, strTabName, (UINT)0);
-	bNameValid = strTabName.LoadString(IDS_DEBUG_TAB);
-	ASSERT(bNameValid);
-	m_wndTabs.AddTab(&m_wndOutputDebug, strTabName, (UINT)1);
-//	bNameValid = strTabName.LoadString(IDS_FIND_TAB);
-//	ASSERT(bNameValid);
-//	m_wndTabs.AddTab(&m_wndOutputFind, strTabName, (UINT)2);
+	//bNameValid = strTabName.LoadString(IDS_BUILD_TAB);
+	//ASSERT(bNameValid);
+	//m_wndTabs.AddTab(&m_wndOutputBuild, strTabName, (UINT)0);
+	//bNameValid = strTabName.LoadString(IDS_DEBUG_TAB);
+	//ASSERT(bNameValid);
+	//m_wndTabs.AddTab(&m_wndOutputDebug, strTabName, (UINT)1);
+	//bNameValid = strTabName.LoadString(IDS_FIND_TAB);
+	//ASSERT(bNameValid);
+	//m_wndTabs.AddTab(&m_wndOutputFind, strTabName, (UINT)2);
 
 	// Register to receive output
 	RegisterOutTextSink(this);
@@ -97,7 +105,8 @@ void COutputWnd::OnSize(UINT nType, int cx, int cy)
 	CDockablePane::OnSize(nType, cx, cy);
 
 	// Tab control should cover the whole client area:
-	m_wndTabs.SetWindowPos (NULL, -1, -1, cx, cy, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
+	//m_wndTabs.SetWindowPos (NULL, -1, -1, cx, cy, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
+	m_wndOutputDebug.SetWindowPos (NULL, -1, -1, cx, cy, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 void COutputWnd::AdjustHorzScroll(CListBox& wndListBox)
@@ -121,7 +130,7 @@ void COutputWnd::AdjustHorzScroll(CListBox& wndListBox)
 
 void COutputWnd::OutBuildWindow(LPCTSTR lpszItem)
 {
-	m_wndOutputBuild.AddString(lpszItem);
+	//m_wndOutputBuild.AddString(lpszItem);
 }
 
 void COutputWnd::OutDebugWindow(LPCTSTR lpszItem)
@@ -142,7 +151,7 @@ void COutputWnd::OutDebugWindow(LPCTSTR lpszItem)
 
 void COutputWnd::OutFindWindow(LPCTSTR lpszItem)
 {
-	m_wndOutputFind.AddString(lpszItem);
+	//m_wndOutputFind.AddString(lpszItem);
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -3,6 +3,7 @@
 // Used by AdVisuo.rc
 //
 #define IDP_OLE_INIT_FAILED             100
+#define IDS_PROPERTIES_WND              101
 #define IDB_BUTTONS                     113
 #define IDR_POPUP_EDIT                  119
 #define ID_STATUSBAR_PANE1              120
@@ -21,6 +22,8 @@
 #define IDS_OUTPUT_WND                  157
 #define IDI_OUTPUT_WND                  165
 #define IDI_OUTPUT_WND_HC               166
+#define IDI_PROPERTIES_WND              167
+#define IDI_PROPERTIES_WND_HC           168
 #define IDR_OUTPUT_POPUP                182
 #define IDR_THEME_MENU                  200
 #define ID_SET_STYLE                    201
@@ -116,6 +119,8 @@
 #define IDR_MESH_BUFFER                 361
 #define IDR_HTML_LOGIN1                 361
 #define IDR_HTML_REP                    361
+#define IDR_PROPERTIES                  364
+#define IDB_PROPERTIES_HC               366
 #define IDC_EDIT1                       1000
 #define IDC_EDIT2                       1001
 #define IDC_EDIT3                       1002
@@ -307,13 +312,17 @@
 #define ID_TENANCY_MENU                 32905
 #define ID_OTHER_FAILURE                32906
 #define ID_FILE_SIMULATION              32907
+#define ID_EXPAND_ALL                   32909
+#define ID_SORTPROPERTIES               32910
+#define ID_VIEW_PROPERTIESWND           32913
+#define ID_CHECK2                       32915
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        364
-#define _APS_NEXT_COMMAND_VALUE         32909
+#define _APS_NEXT_RESOURCE_VALUE        367
+#define _APS_NEXT_COMMAND_VALUE         32916
 #define _APS_NEXT_CONTROL_VALUE         1104
 #define _APS_NEXT_SYMED_VALUE           321
 #endif

@@ -199,6 +199,7 @@ BOOL CAdVisuoApp::InitInstance()
 		}
 
 		// create main MDI Frame window
+		LoadCustomState();
 		CMainFrame *pMainframe = new CMainFrame; 
 		if (!pMainframe || !pMainframe->LoadFrame(IDR_MAINFRAME))
 		{
@@ -569,10 +570,13 @@ void CAdVisuoApp::LoadCustomState()
 	CSettingsStore& reg = regSP.Create(FALSE, TRUE);
 	if (reg.Open(GetRegSectionPath(L"AdVisuo")))
 	{
-		reg.Read(L"NavigationMode", m_nWalkMode);
-		reg.Read(L"ColouringMode", m_nColouringMode);
+		reg.Read(L"AspectRatio", SETTINGS::nAspectRatio);
+		reg.Read(L"ColouringMode", SETTINGS::nColouringMode);
+		reg.Read(L"ThresholdGreen", SETTINGS::nThresholdGreen);
+		reg.Read(L"ThresholdRed", SETTINGS::nThresholdRed);
+		reg.Read(L"NavigationMode", SETTINGS::nNavMode);
 	}
-	m_nWalkMode = 2;	// ghost mode only now...
+	SETTINGS::nNavMode = 2;	// ghost mode only now...
 }
 
 void CAdVisuoApp::SaveCustomState()
@@ -581,8 +585,11 @@ void CAdVisuoApp::SaveCustomState()
 	CSettingsStore& reg = regSP.Create(FALSE, FALSE);
 	if (reg.CreateKey(GetRegSectionPath(L"AdVisuo")))
 	{
-		reg.Write(L"NavigationMode", m_nWalkMode);
-		reg.Write(L"ColouringMode", m_nColouringMode);
+		reg.Write(L"AspectRatio", SETTINGS::nAspectRatio);
+		reg.Write(L"ColouringMode", SETTINGS::nColouringMode);
+		reg.Write(L"ThresholdGreen", SETTINGS::nThresholdGreen);
+		reg.Write(L"ThresholdRed", SETTINGS::nThresholdRed);
+		reg.Write(L"NavigationMode", SETTINGS::nNavMode);
 	}
 }
 

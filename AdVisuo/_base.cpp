@@ -3,6 +3,12 @@
 #include "stdafx.h"
 #include <list>
 
+int SETTINGS::nAspectRatio		= 10000;
+int SETTINGS::nColouringMode	= 2;
+int SETTINGS::nThresholdGreen	= 0;
+int SETTINGS::nThresholdRed		= 50;
+int SETTINGS::nNavMode			= 2;
+
 std::list<IOutTextSink*> g_OutTextSinks;
 
 void OutText(LPCTSTR fmt, ...)
