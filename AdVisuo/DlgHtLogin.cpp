@@ -6,6 +6,7 @@
 #include "DlgHtLogin.h"
 #include "XMLRequest.h"
 #include "VisProject.h"		// for _prj_error
+#include <WinCred.h>
 
 // CDlgHtLogin dialog
 
@@ -32,6 +33,7 @@ void CDlgHtLogin::DoDataExchange(CDataExchange* pDX)
 	CDlgHtFailure::DoDataExchange(pDX);
 	DDX_DHtml_ElementText(pDX, _T("idUserName"), DISPID_A_VALUE, m_strUsername); 
 	DDX_DHtml_ElementText(pDX, _T("idPassword"), DISPID_A_VALUE, m_strPassword); 
+	DDX_DHtml_CheckBox(pDX, _T("idRemember"), m_bRememberMe);
 }
 
 BEGIN_MESSAGE_MAP(CDlgHtLogin, CDlgHtFailure)
@@ -67,6 +69,31 @@ void CDlgHtLogin::GotoLogin()
 	CWaitCursor wait;
 
 	if (!m_pHttp) return;
+
+	// display info
+	std::wstringstream str;
+	str << L"showVer(" << VERSION_MAJOR << L", " << VERSION_MINOR << L", " << VERSION_REV << L", \"" << (LPCTSTR)VERSION_DATE << L"\")";
+	ExecJS(str.str().c_str());
+	str.str(std::wstring());
+	str << L"showUrl(\"" << (LPCTSTR)m_strUrl << L"\")";
+	ExecJS(str.str().c_str());
+
+	// produce stored credentials
+	PCREDENTIAL pcred;
+	if (CredRead((LPWSTR)(LPCTSTR)m_strUrl, CRED_TYPE_GENERIC, 0, &pcred))
+	{
+		m_bRememberMe = 1;
+		m_strUsername = pcred->UserName;
+		m_strPassword = (wchar_t*)pcred->CredentialBlob;
+		CredFree(pcred);
+	}
+	else
+	{
+		m_bRememberMe = 0;
+		m_strUsername = L"";
+		m_strPassword = L"";
+	}
+	UpdateData(FALSE);
 
 	// test the connection
 	try
@@ -150,7 +177,27 @@ void CDlgHtLogin::OnOK()
 		{
 			m_pHttp->setURL((LPCTSTR)m_strUrl);
 			if (m_pHttp->AVLogin((LPCTSTR)m_strUsername, (LPCTSTR)m_strPassword))
+			{
 				CDlgHtFailure::OnOK();
+
+				// store credentials
+				if (m_bRememberMe)
+				{
+					// store credentials
+					CREDENTIAL cred = {0};
+					cred.Type = CRED_TYPE_GENERIC;
+					cred.TargetName = (LPWSTR)(LPCTSTR)m_strUrl;
+					cred.CredentialBlobSize = 2 * (m_strPassword.GetLength() + 1);
+					cred.CredentialBlob = (LPBYTE)m_strPassword.GetBuffer();
+					cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
+					cred.UserName = (LPWSTR)(LPCTSTR)m_strUsername;
+					CredWrite(&cred, 0);
+					m_strPassword.ReleaseBuffer();
+				}
+				else
+					// destroy credentials if any stored
+					CredDelete((LPWSTR)(LPCTSTR)m_strUrl, CRED_TYPE_GENERIC, 0);
+			}
 			else
 				GotoBadLogin();
 		}

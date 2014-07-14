@@ -21,7 +21,6 @@ IMPLEMENT_DYNCREATE(CAdVisuoDoc, CDocument)
 BEGIN_MESSAGE_MAP(CAdVisuoDoc, CDocument)
 	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE, &CAdVisuoDoc::OnUpdateFileSave)
 	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE_AS, &CAdVisuoDoc::OnUpdateFileSave)
-	ON_COMMAND(ID_OTHER_FAILURE, &CAdVisuoDoc::OnOtherFailure)
 END_MESSAGE_MAP()
 
 
@@ -207,7 +206,7 @@ BOOL CAdVisuoDoc::OnDownloadDocument(CString url)
 	return true;
 }
 
-bool CAdVisuoDoc::GetDownloadStatus(AVULONG &nStatus)
+/*bool CAdVisuoDoc::GetDownloadStatus(AVULONG &nStatus)
 {
 	CAdVisuoLoader::STATUS S = m_loader.Update();
 
@@ -220,40 +219,24 @@ bool CAdVisuoDoc::GetDownloadStatus(AVULONG &nStatus)
 		case CAdVisuoLoader::FAILED:
 			nStatus = 0x80000010;
 			return false;
-	}
-	
-	AVULONG nProgress = m_loader.GetProgress();
-	switch (nProgress >> 30)
-	{
-		case 2:
-			nStatus = nProgress;
-			return false;		// this is an error condition
-		case 3:
-			nStatus = (nProgress & 0xffff);
-			return false;		// waiting in the queue
 		default:
-			nStatus = 0;
-			return false;		// shouldn't go there... status will be the very front of the queue
+			AVULONG nProgress = m_loader.GetProgress();
+			switch (nProgress >> 30)
+			{
+				case 2: nStatus = nProgress; break;				// this is error condition
+				case 3: nStatus = (nProgress & 0xffff); break;	// waiting in the queue
+				default:nStatus = 0; break;						// shouldn't go there... status will be the very front of the queue
+			}
+			return false;
 	}
-}
-
-void CAdVisuoDoc::StopDownload()
-{
-	m_loader.Stop();
-	::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
-}
-
-void CAdVisuoDoc::UpdateDownload(CEngine *pEngine)
-{
-	m_loader.Update(pEngine);
-}
+}*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Non-Standard Command Handlers
 
 void CAdVisuoDoc::OnUpdateFileSave(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(IsDownloadComplete() && !((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
+	pCmdUI->Enable(IsDownloadTerminated() && !((CMDIFrameWndEx*)AfxGetMainWnd())->IsFullScreen());
 }
 
 void CAdVisuoDoc::SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU)
@@ -339,24 +322,17 @@ BOOL CAdVisuoDoc::SaveModified()
 	return TRUE;    // keep going
 }
 
-void CAdVisuoDoc::OnOtherFailure()
+void CAdVisuoDoc::OnCloseDocument()
 {
-	if (!m_loader.GetFailureText().empty())
+	if (GetLoaderStatus() == CAdVisuoLoader::TERMINATED && GetLoaderReasonForTermination() == CAdVisuoLoader::FAILED)
 	{
-		CDlgHtFailure dlg(m_loader.GetFailureTitle().c_str(), m_loader.GetFailureText().c_str());
+		CDlgHtFailure dlg(m_loader.GetFailureTitle().c_str(), m_loader.GetFailureText().c_str(), m_loader.GetURL().c_str());
 		dlg.DoModal();
 	}
 
-	OutText(L"Closing session...");
-	OnCloseDocument();
-	OutText(L"Current session has been closed.");
-}
-
-
-
-void CAdVisuoDoc::OnCloseDocument()
-{
 	CDocument::OnCloseDocument();
 	if (AVGetApp()->CountDocuments() == 0)
 		AfxGetMainWnd()->PostMessage(WM_CLOSE);
+
+	OutText(L"Current session has been closed.");
 }

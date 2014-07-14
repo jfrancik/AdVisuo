@@ -48,6 +48,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
 	ON_WM_GETMINMAXINFO()
 	ON_WM_WINDOWPOSCHANGING()
 	ON_WM_SYSCOMMAND()
+	ON_COMMAND(ID_VIEW_HIDE_ALL_PANES, &CMainFrame::OnViewHideAllPanes)
+	ON_COMMAND(ID_VIEW_VIEW, &CMainFrame::OnViewView)
 END_MESSAGE_MAP()
 
 // CMainFrame construction/destruction
@@ -67,7 +69,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CMDIFrameWndEx::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	BOOL bNameValid;
 	// set the visual manager and style based on persisted value
 	OnApplicationLook(theApp.m_nAppLook);
 
@@ -94,40 +95,38 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// enable Visual Studio 2005 style docking window auto-hide behavior
 	EnableAutoHidePanes(CBRS_ALIGN_ANY);
 
-	if (!m_wndStatusBar.Create(this))
-	{
-		TRACE0("Failed to create status bar\n");
-		return -1;      // fail to create
-	}
 
-	CString strTitlePane1;
-	CString strTitlePane2;
-	bNameValid = strTitlePane1.LoadString(IDS_STATUS_PANE1);
-	ASSERT(bNameValid);
-	bNameValid = strTitlePane2.LoadString(IDS_STATUS_PANE2);
-	ASSERT(bNameValid);
-	m_wndStatusBar.AddElement(new CMFCRibbonStatusBarPane(ID_STATUSBAR_PANE1, strTitlePane1, TRUE), strTitlePane1);
-	m_wndStatusBar.AddExtendedElement(new CMFCRibbonStatusBarPane(ID_STATUSBAR_PANE2, strTitlePane2, TRUE), strTitlePane2);
-
-	// create docking windows
-	if (!CreateDockingWindows())
+	// Create output window
+	CString strOutputWnd;
+	strOutputWnd.LoadString(IDS_OUTPUT_WND);
+	if (!m_wndOutput.Create(strOutputWnd, this, CRect(0, 0, 200, 500), TRUE, ID_VIEW_OUTPUTWND, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT | CBRS_FLOAT_MULTI))
 	{
-		TRACE0("Failed to create docking windows\n");
+		TRACE0("Failed to create Output window\n");
 		return -1;
 	}
+	HICON hOutputBarIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_OUTPUT_WND), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
+	m_wndOutput.SetIcon(hOutputBarIcon, FALSE);
+
+	// Create properties window
+	CString strPropertiesWnd;
+	strPropertiesWnd.LoadString(IDS_PROPERTIES_WND);
+	if (!m_wndProperties.Create(strPropertiesWnd, this, CRect(0, 0, 200, 500), TRUE, ID_VIEW_PROPERTIESWND, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT | CBRS_FLOAT_MULTI))
+	{
+		TRACE0("Failed to create Properties window\n");
+		return -1;
+	}
+	HICON hPropertiesBarIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_PROPERTIES_WND), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
+	m_wndProperties.SetIcon(hPropertiesBarIcon, FALSE);
+
+	UpdateMDITabbedBarsIcons();
 
 	m_wndOutput.EnableDocking(CBRS_ALIGN_ANY);
 	DockPane(&m_wndOutput);
 	m_wndProperties.EnableDocking(CBRS_ALIGN_ANY);
 	DockPane(&m_wndProperties);
 
-	// hidden by default
-	ShowPane(&m_wndOutput, FALSE, FALSE, FALSE);
-
-
 	// Enable enhanced windows management dialog
 	EnableWindowsDialog(ID_WINDOW_MANAGER, IDS_WINDOWS_MANAGER, TRUE);
-	//EnableWindowsDialog(ID_WINDOW_MANAGER, ID_WINDOW_MANAGER, TRUE);
 
 	// Switch the order of document name and application name on the window title bar. This
 	// improves the usability of the taskbar because the document name is visible with the thumbnail.
@@ -135,6 +134,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	EnableFullScreenMode (55555);
 	EnableFullScreenMainMenu(FALSE);
+
+	if (theApp.GetInt(L"Version") < 30700)
+	{
+		EnableLoadDockState(FALSE);
+		PostMessage(WM_COMMAND, MAKEWPARAM(ID_VIEW_HIDE_ALL_PANES, 0), (LPARAM)0);
+	}
 
 	return 0;
 }
@@ -147,52 +152,13 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 	//  the CREATESTRUCT cs
 
 	cs.style = WS_OVERLAPPED | WS_CAPTION | FWS_ADDTOTITLE
-		 | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZE | WS_SYSMENU;
+		 | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_MAXIMIZE | WS_SYSMENU;
 
 	return TRUE;
 }
 
-BOOL CMainFrame::CreateDockingWindows()
-{
-	BOOL bNameValid;
-
-	// Create output window
-	CString strOutputWnd;
-	bNameValid = strOutputWnd.LoadString(IDS_OUTPUT_WND);
-	ASSERT(bNameValid);
-	if (!m_wndOutput.Create(strOutputWnd, this, CRect(0, 0, 100, 100), TRUE, ID_VIEW_OUTPUTWND, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_BOTTOM | CBRS_FLOAT_MULTI))
-	{
-		TRACE0("Failed to create Output window\n");
-		return FALSE; // failed to create
-	}
-
-	// Create properties window
-	CString strPropertiesWnd;
-	bNameValid = strPropertiesWnd.LoadString(IDS_PROPERTIES_WND);
-	ASSERT(bNameValid);
-	if (!m_wndProperties.Create(strPropertiesWnd, this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_PROPERTIESWND, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_RIGHT | CBRS_FLOAT_MULTI))
-	{
-		TRACE0("Failed to create Properties window\n");
-		return FALSE; // failed to create
-	}
-
-	SetDockingWindowIcons(theApp.m_bHiColorIcons);
-	return TRUE;
-}
-
-void CMainFrame::SetDockingWindowIcons(BOOL bHiColorIcons)
-{
-	HICON hOutputBarIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(bHiColorIcons ? IDI_OUTPUT_WND_HC : IDI_OUTPUT_WND), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
-	m_wndOutput.SetIcon(hOutputBarIcon, FALSE);
-
-	HICON hPropertiesBarIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(bHiColorIcons ? IDI_PROPERTIES_WND_HC : IDI_PROPERTIES_WND), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
-	m_wndProperties.SetIcon(hPropertiesBarIcon, FALSE);
-
-	UpdateMDITabbedBarsIcons();
-}
 
 // CMainFrame diagnostics
-
 #ifdef _DEBUG
 void CMainFrame::AssertValid() const
 {
@@ -397,4 +363,15 @@ void CMainFrame::OnSysCommand(UINT nID, LPARAM lParam)
 	}
 
 	
+}
+
+void CMainFrame::OnViewHideAllPanes()
+{
+	m_wndProperties.SetAutoHideMode(TRUE, m_wndProperties.GetDefaultPaneDivider()->GetCurrentAlignment(), 0, 0);
+	m_wndOutput.SetAutoHideMode(TRUE, m_wndOutput.GetDefaultPaneDivider()->GetCurrentAlignment(), 0, 0);
+	EnableLoadDockState(TRUE);
+}
+
+void CMainFrame::OnViewView()
+{
 }

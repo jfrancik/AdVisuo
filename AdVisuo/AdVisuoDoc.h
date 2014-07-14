@@ -29,8 +29,6 @@ public:
 
 	// Attributes and Basic Operations
 	CProjectVis *GetProject()				{ return &m_prj; }
-	bool IsDownloadComplete()				{ return m_loader.GetStatus() == CAdVisuoLoader::COMPLETE; }
-	AVLONG GetLoadedTime()					{ return m_loader.GetTimeLoaded(); }
 	void ResetTitle()						{ SetTitle(GetProject()->GetProjectInfo(CProjectVis::PRJ_NAME).c_str()); m_strPathName = GetTitle(); }
 
 	// Open/New/Download Operations
@@ -39,9 +37,18 @@ public:
 	virtual BOOL OnSaveDocument(LPCTSTR lpszPathName);
 	virtual BOOL OnDownloadDocument(CString url);
 
-	bool GetDownloadStatus(AVULONG &nStatus);	// status values: 0x80000000 or more = error; otherwise position in the queue, 0 for just now processing but not yet ready
-	void StopDownload();
-	void UpdateDownload(CEngine *pEngine);
+	// Loader Status
+	AVULONG GetLoaderStatus()				{ return m_loader.GetStatus(); }
+	bool IsDownloadTerminated()				{ return m_loader.GetStatus() == CAdVisuoLoader::TERMINATED; }
+	bool IsBuildingDownloaded()				{ return m_loader.GetStatus() >= CAdVisuoLoader::LOADING_DATA; }
+	AVULONG GetLoaderReasonForTermination()	{ return m_loader.GetReasonForTermination(); }
+	AVULONG GetLoaderPosInQueue()			{ return m_loader.GetPosInQueue(); }
+
+	AVLONG GetLoadedTime()					{ return m_loader.GetTimeLoaded(); }
+
+	void StopDownload()						{ m_loader.Stop(); }
+	AVULONG UpdateDownload(CEngine *pEngine){ return m_loader.Update(pEngine); }	// returns status
+
 
 // Generated message map functions
 protected:
@@ -51,7 +58,6 @@ public:
 	afx_msg void OnUpdateFileSave(CCmdUI *pCmdUI);
 	virtual void SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU = TRUE);
 	virtual BOOL SaveModified();
-	afx_msg void OnOtherFailure();
 	virtual void OnCloseDocument();
 };
 

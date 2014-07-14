@@ -16,6 +16,7 @@ class CDlgHtLogin : public CDlgHtFailure
 public:
 	CString m_strUsername;
 	CString m_strPassword;
+	int m_bRememberMe;
 	CString m_strServers;
 	CString m_strUrl;
 	bool m_bAutoLogin;		// automatic login for speed-up in the debugging mode only

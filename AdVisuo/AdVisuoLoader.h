@@ -12,33 +12,11 @@ class CSimVis;
 class CEngine;
 class CPassengerVis;
 
-template<class T>
-class ProtectedVariable
-{
-	T value;
-	CRITICAL_SECTION cs;
-	T Value() 			{ EnterCriticalSection(&cs); T v = value; LeaveCriticalSection(&cs); return v; }
-	T Value(T val)		{ EnterCriticalSection(&cs); value = val; LeaveCriticalSection(&cs); return val; }
-public:
-	ProtectedVariable<T>()			{ InitializeCriticalSection(&cs); }
-	ProtectedVariable<T>(T value)	
-	{ 
-		InitializeCriticalSection(&cs); 
-		Value(value); 
-	}
-
-	T operator=(T value)			
-	{ 
-		return Value(value); 
-	}
-
-	operator T()					{ return Value(); }
-};
-
 class CAdVisuoLoader
 {
 public:
-	enum STATUS { NOT_STARTED, PREPROCESS, LOADING_STRUCTURE, LOADING_DATA, COMPLETE, REQUEST_TO_STOP, EXCEPTION, FAILED };
+	enum STATUS { NOT_STARTED, PREPROCESS, LOADING_STRUCTURE, LOADING_DATA, TERMINATED };
+	enum REASON_FOR_TERMINATION { NOT_TERMINATED, COMPLETE, STOPPED, FAILED };
 
 private:
 	// the project and its connection
@@ -46,11 +24,18 @@ private:
 	CProjectVis *m_pProject;
 	CXMLRequest m_http;
 
+	// the thread
+	CWinThread *m_pThread;
+
 	// status
-	ProtectedVariable<STATUS> m_status;
-	ProtectedVariable<AVULONG> m_progress;
-	ProtectedVariable<std::wstring> m_strFailureTitle;
-	ProtectedVariable<std::wstring> m_strFailureText;
+	ProtectedVariable<STATUS>					m_status;
+	ProtectedVariable<REASON_FOR_TERMINATION>	m_reasonForTermination;
+	ProtectedVariable<AVULONG>					m_posInQueue;
+	ProtectedVariable<bool>						m_requestToStop;
+	ProtectedVariable<bool>						m_requestToFail;
+	
+	ProtectedVariable<std::wstring>				m_strFailureTitle;
+	ProtectedVariable<std::wstring>				m_strFailureText;
 
 	// other params	
 	AVLONG m_timeLoaded;
@@ -73,22 +58,25 @@ public:
 	~CAdVisuoLoader(void);
 
 	// Accessors
-	enum STATUS GetStatus()							{ return m_status; }
-	AVULONG GetProgress()							{ return m_progress; };
-	std::wstring GetFailureTitle()					{ return m_strFailureTitle; }
-	std::wstring GetFailureText()					{ return m_strFailureText; }
-	AVLONG GetTimeStep() const						{ return m_timeStep; }
-	void SetTimeStep(AVLONG val)					{ m_timeStep = val; }
-	AVLONG GetTimeLoaded()							{ return m_timeLoaded; }
+	enum STATUS GetStatus()									{ return m_status; }
+	enum REASON_FOR_TERMINATION GetReasonForTermination()	{ return m_reasonForTermination; };
+	AVULONG GetPosInQueue()									{ return m_posInQueue; };
+	std::wstring GetFailureTitle()							{ return m_strFailureTitle; }
+	std::wstring GetFailureText()							{ return m_strFailureText; }
+	std::wstring GetURL()									{ return m_http.getURL(); }
+	AVLONG GetTimeStep() const								{ return m_timeStep; }
+	void SetTimeStep(AVLONG val)							{ m_timeStep = val; }
+	AVLONG GetTimeLoaded()									{ return m_timeLoaded; }
 
 	// Main Operations:
 	// Start - starts the load process, then continues in a thread
 	void Start(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG nProjectId);
 	// Updates the project with the latest loaded data - to be called from a timer proc
 	CAdVisuoLoader::STATUS Update(CEngine *pEngine);
-	CAdVisuoLoader::STATUS Update();
 	// Safely stops the thread
 	void Stop();
+	// Safely stops the thread and sets FAILED as the reason for termination
+	void Fail();
 
 private:
 	// main thread function

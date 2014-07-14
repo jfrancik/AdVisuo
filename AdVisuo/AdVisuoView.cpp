@@ -99,7 +99,7 @@ BEGIN_MESSAGE_MAP(CAdVisuoView, CView)
 	ON_UPDATE_COMMAND_UI(ID_ACTION_SPEEDUP, &CAdVisuoView::OnUpdateActionSpeedup)
 	ON_COMMAND(ID_ACTION_NORMALPACE, &CAdVisuoView::OnActionNormalpace)
 	ON_UPDATE_COMMAND_UI(ID_ACTION_NORMALPACE, &CAdVisuoView::OnUpdateActionNormalpace)
-	ON_UPDATE_COMMAND_UI(ID_STATUSBAR_PANE2, &CAdVisuoView::OnUpdateStatusbarPane2)
+	ON_UPDATE_COMMAND_UI(ID_FPS, &CAdVisuoView::OnUpdateFps)
 	ON_UPDATE_COMMAND_UI(ID_ACTION_RENDER, &CAdVisuoView::OnUpdateActionRender)
 	ON_WM_TIMER()
 	ON_UPDATE_COMMAND_UI(ID_ACTION_SAVESTILL, &CAdVisuoView::OnUpdateActionSavestill)
@@ -185,7 +185,36 @@ void CAdVisuoView::OnInitialUpdate()
 	// adjust to the screen size
 	OnAdjustViewSize();
 
-	// test & wait for the project to build
+	AVULONG nStatus = GetDocument()->GetLoaderStatus();
+	if (nStatus <= CAdVisuoLoader::LOADING_STRUCTURE)
+	{
+		OutText(L"Waiting for the project...");
+		Sleep(250);
+		nStatus = GetDocument()->GetLoaderStatus();
+		while (nStatus <= CAdVisuoLoader::LOADING_STRUCTURE)
+		{
+			if (!OutWaitMessage(GetDocument()->GetLoaderPosInQueue(), 250))
+			{
+				OutText(L"Stopping download...");
+				GetDocument()->StopDownload();
+				OutText(L"Download stopped...");
+				SetTimer(101, 1000 / 100, NULL);
+				return;
+			}
+			nStatus = GetDocument()->GetLoaderStatus();
+		}
+		OutWaitMessage(-1, 100);
+	}
+	if (nStatus == CAdVisuoLoader::TERMINATED && GetDocument()->GetLoaderReasonForTermination() == CAdVisuoLoader::FAILED)
+	{
+		OutText(L"Project loading failed...");
+		SetTimer(101, 1000 / 100, NULL);
+		return;
+	}
+
+	ASSERT(nStatus == CAdVisuoLoader::LOADING_DATA || nStatus == CAdVisuoLoader::TERMINATED && GetDocument()->GetLoaderReasonForTermination() == CAdVisuoLoader::COMPLETE);
+
+/*	// test & wait for the project to build
 	AVULONG nStat;
 	if (!GetDocument()->GetDownloadStatus(nStat))
 	{
@@ -195,20 +224,23 @@ void CAdVisuoView::OnInitialUpdate()
 		{
 			if (nStat >= 0x80000000)
 			{
+				// error...
 				OutText(L"Project loading failed...");
+				GetDocument()->StopDownload();
+				OutText(L"Download stopped XXX...");
 				return;
 			}
 
 			if (!OutWaitMessage(nStat, 250))
 			{
+				// user-requested stop
 				OutText(L"Stopping download...");
 				GetDocument()->StopDownload();
 				OutText(L"Download stopped...");
 				return;
 			}
-		}
-		OutWaitMessage(-1, 100);
-	}
+		}	
+	}*/
 
 
 	// initialise the simulation
@@ -394,6 +426,15 @@ void CAdVisuoView::Rewind(AVULONG nMSec)
 
 void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 {
+	// keep download process alive
+	AVULONG nStatus = GetDocument()->UpdateDownload(&m_engine);
+	if (nStatus == CAdVisuoLoader::TERMINATED && GetDocument()->GetLoaderReasonForTermination() != CAdVisuoLoader::COMPLETE)
+	{
+		KillTimer(nIDEvent);
+		GetDocument()->OnCloseDocument();
+		return;
+	}
+
 	// #FreeWill: Push the time info into the engine
 	if (m_engine.IsPlaying() && !m_bLock)
 	{
@@ -407,8 +448,6 @@ void CAdVisuoView::OnTimer(UINT_PTR nIDEvent)
 	
 	if (m_engine.GetPlayTime() > GetProject()->GetMaxTime())
 		OnActionStop();
-
-	GetDocument()->UpdateDownload(&m_engine);
 
 	GetDocument()->UpdateAllViews(NULL, 0, 0);
 
@@ -835,7 +874,7 @@ void CAdVisuoView::OnRButtonUp(UINT nFlags, CPoint point)
 
 void CAdVisuoView::OnContextMenu(CWnd* pWnd, CPoint point)
 {
-	theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_EDIT, point.x, point.y, this, TRUE);
+//	theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_EDIT, point.x, point.y, this, TRUE);
 }
 
 
@@ -1479,10 +1518,7 @@ void CAdVisuoView::OnUpdateCharacterCurrentwaitingtime(CCmdUI *pCmdUI)	{ pCmdUI-
 void CAdVisuoView::OnCharacterExpectedwaitingtime()						{ SETTINGS::nColouringMode = 2; }
 void CAdVisuoView::OnUpdateCharacterExpectedwaitingtime(CCmdUI *pCmdUI)	{ pCmdUI->SetCheck(SETTINGS::nColouringMode == 2); }
 
-///////////////////////////////////////////////////////////////////////////////////////
-// Status Bar
-
-void CAdVisuoView::OnUpdateStatusbarPane2(CCmdUI *pCmdUI)
+void CAdVisuoView::OnUpdateFps(CCmdUI *pCmdUI)
 {
 	CString str;
 	AVULONG fps = m_engine.GetFPS();

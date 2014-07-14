@@ -76,7 +76,7 @@ class CDlgHtFailure: public CDlgHtBase
 
 public:
 	CDlgHtFailure();
-	CDlgHtFailure(CString strTitle, CString strFailure);
+	CDlgHtFailure(CString strTitle, CString strFailure, CString url);
 	CDlgHtFailure(_version_error &ve, CString url);
 	CDlgHtFailure(_prj_error &pe, CString url);
 	CDlgHtFailure(_com_error &ce, CString url);
@@ -86,7 +86,7 @@ public:
 	~CDlgHtFailure()	{ }
 
 	// Built-in Failure Messages
-	virtual void OnGotoFailure(CString title, CString text);	// generic & virtual...
+	virtual void OnGotoFailure(CString title, CString text, CString url);	// generic & virtual...
 	
 	static CString GetFailureTitle(_version_error &ve)			{ return L"VERSION MISMATCH"; }
 	static CString GetFailureTitle(_prj_error &pe)				{ return L"INTERNAL ERROR"; }
@@ -102,12 +102,12 @@ public:
 	static CString GetFailureString(dbtools::_value_error &ve, CString url);
 	static CString GetFailureString(CString url);
 
-	void GotoFailure(_version_error &ve, CString url)			{ OnGotoFailure(GetFailureTitle(ve), GetFailureString(ve, url)); }
-	void GotoFailure(_prj_error &pe, CString url)				{ OnGotoFailure(GetFailureTitle(pe), GetFailureString(pe, url)); }
-	void GotoFailure(_com_error &ce, CString url)				{ OnGotoFailure(GetFailureTitle(ce), GetFailureString(ce, url)); }
-	void GotoFailure(_xmlreq_error &xe, CString url)			{ OnGotoFailure(GetFailureTitle(xe), GetFailureString(xe, url)); }
-	void GotoFailure(dbtools::_value_error &ve, CString url)	{ OnGotoFailure(GetFailureTitle(ve), GetFailureString(ve, url)); }
-	void GotoFailure(CString url)								{ OnGotoFailure(GetFailureTitle(  ), GetFailureString(url)); }
+	void GotoFailure(_version_error &ve, CString url)			{ OnGotoFailure(GetFailureTitle(ve), GetFailureString(ve, url), url); }
+	void GotoFailure(_prj_error &pe, CString url)				{ OnGotoFailure(GetFailureTitle(pe), GetFailureString(pe, url), url); }
+	void GotoFailure(_com_error &ce, CString url)				{ OnGotoFailure(GetFailureTitle(ce), GetFailureString(ce, url), url); }
+	void GotoFailure(_xmlreq_error &xe, CString url)			{ OnGotoFailure(GetFailureTitle(xe), GetFailureString(xe, url), url); }
+	void GotoFailure(dbtools::_value_error &ve, CString url)	{ OnGotoFailure(GetFailureTitle(ve), GetFailureString(ve, url), url); }
+	void GotoFailure(CString url)								{ OnGotoFailure(GetFailureTitle(  ), GetFailureString(url), url); }
 
 // Dialog Data
 	enum { IDD = IDD_ADV_LOGIN, IDH = IDR_HTML_LOGIN };

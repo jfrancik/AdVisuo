@@ -21,6 +21,7 @@
 
 #include "resource.h"       // main symbols
 #include "XMLRequest.h"
+#include "SingleInst.h"
 
 class CAdVisuoApp;
 class CDlgHtSplash;
@@ -36,6 +37,10 @@ class CAdVisuoApp : public CWinAppEx
 
 	// The Splash Window
 	CDlgHtSplash *m_pSplash;
+	AVULONG m_nSplash;	// counts parallel uses of the splash
+
+	// Single Instance Control
+	CSingleInstance m_SingleInstance;
 
 	// global application modes
 	CString m_servers;						// list of servers for the CDlgDownload
@@ -73,9 +78,7 @@ public:
 
 	bool Report(AVULONG nSimulationId, AVSTRING strPath, AVULONG nCat, AVSTRING strUserDesc, AVSTRING strDiagnostic, AVSTRING strErrorMsg);
 	
-	void LoadRemoteServerConfig(CString strDefault);
 	void AddRemoteServer(CString url);
-	void SaveRemoteServerConfig();
 
 	virtual void PreLoadState();
 	virtual void LoadCustomState();
@@ -93,6 +96,7 @@ public:
 	afx_msg void OnReportBug();
 	virtual int ExitInstance();
 	virtual BOOL LoadWindowPlacement(CRect& rectNormalPosition, int& nFflags, int& nShowCmd);
+	virtual void OnClosingMainFrame(CFrameImpl* pFrameImpl);
 };
 
 extern CAdVisuoApp theApp;

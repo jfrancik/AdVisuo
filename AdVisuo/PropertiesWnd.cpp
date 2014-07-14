@@ -142,16 +142,17 @@ void CPropertiesWnd::OnUpdateSortProperties(CCmdUI* pCmdUI)
 	pCmdUI->SetCheck(m_wndPropList.IsAlphabeticMode());
 }
 
-enum { ASPECT_RATIO = 1, ASPECT_RATIO_LIST, ASPECT_RATIO_H, ASPECT_RATIO_V, COLOURING_MODE, THRESHOLD_GREEN, THRESHOLD_RED, NAV_MODE };
+//enum { ASPECT_RATIO = 1, ASPECT_RATIO_LIST, ASPECT_RATIO_H, ASPECT_RATIO_V, COLOURING_MODE, THRESHOLD_GREEN, THRESHOLD_RED, NAV_MODE };
+enum { COLOURING_MODE = 1, THRESHOLD_GREEN, THRESHOLD_RED, NAV_MODE };
 
-std::wstring TXT_ASPECT[] = { 
-	L"Fit to window",
-	L"Current screen ratio",
-	L"16:9 Wide screen",
-	L"16:10 Wide screen",
-	L"4:3 Standard screen",
-	L"Custom..."
-	};
+//std::wstring TXT_ASPECT[] = { 
+//	L"Fit to window",
+//	L"Current screen ratio",
+//	L"16:9 Wide screen",
+//	L"16:10 Wide screen",
+//	L"4:3 Standard screen",
+//	L"Custom..."
+//	};
 std::wstring TXT_COLOUR_MODE[] = { 
 	L"No colour coding",
 	L"Current waiting time",
@@ -168,9 +169,12 @@ void CPropertiesWnd::InitPropList()
 	m_wndPropList.MarkModifiedProperties();
 	m_wndPropList.SetDescriptionRows(4);
 
-	CMFCPropertyGridProperty *pGroup, *pList, *pProp;
+	CMFCPropertyGridProperty *pGroup, *pProp;
 
 	// Group #1
+	/*
+	CMFCPropertyGridProperty *pList;
+
 	m_wndPropList.AddProperty(pGroup = new CMFCPropertyGridProperty(L"View"));
 	pGroup->SetDescription(L"Parameters of the view");
 
@@ -187,6 +191,7 @@ void CPropertiesWnd::InitPropList()
 
 	pList->AddSubItem(pProp = new CMFCPropertyGridProperty( L"vertically", (_variant_t) 10l, L"Vertical factor of the ratio, like 9 in case of 16:9 ratio", ASPECT_RATIO_V));
 	pProp->EnableSpinControl(TRUE, 1, 99);
+	*/
 
 	
 	// Group #2
@@ -251,14 +256,14 @@ LRESULT CPropertiesWnd::OnPropertyChanged(__in WPARAM wparam, __in LPARAM lparam
 	int i = 0;
 	switch (pProperty->GetData())
 	{
-	case ASPECT_RATIO:
-		break;
-	case ASPECT_RATIO_LIST:
-		break;
-	case ASPECT_RATIO_H:
-		break;
-	case ASPECT_RATIO_V:
-		break;
+	//case ASPECT_RATIO:
+	//	break;
+	//case ASPECT_RATIO_LIST:
+	//	break;
+	//case ASPECT_RATIO_H:
+	//	break;
+	//case ASPECT_RATIO_V:
+	//	break;
 	case COLOURING_MODE:
 		{
 			CString val = v;

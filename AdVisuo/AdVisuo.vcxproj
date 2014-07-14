@@ -150,6 +150,7 @@
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="PropertiesWnd.cpp" />
     <ClCompile Include="RibbonScenarioButton.cpp" />
+    <ClCompile Include="SingleInst.cpp" />
     <ClCompile Include="VisElem.cpp" />
     <ClCompile Include="VisLiftGroup.cpp" />
     <ClCompile Include="Camera.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="Engine.h" />
     <ClInclude Include="PropertiesWnd.h" />
     <ClInclude Include="RibbonScenarioButton.h" />
+    <ClInclude Include="SingleInst.h" />
     <ClInclude Include="VisElem.h" />
     <ClInclude Include="VisLiftGroup.h" />
     <ClInclude Include="Camera.h" />

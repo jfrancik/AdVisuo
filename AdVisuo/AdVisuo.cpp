@@ -49,10 +49,11 @@ END_MESSAGE_MAP()
 
 // CAdVisuoApp construction
 
-CAdVisuoApp::CAdVisuoApp()
+CAdVisuoApp::CAdVisuoApp() : m_SingleInstance(L"LerchBates.AdVisuo")
 {
 	m_bHiColorIcons = TRUE;
 	m_pSplash = NULL;
+	m_nSplash = 0;
 
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -112,6 +113,7 @@ BOOL CAdVisuoApp::InitInstance()
 		return FALSE;
 	}
 	AfxEnableControlContainer();
+	EnableTaskbarInteraction();
 	// Standard initialization
 	// If you are not using these features and wish to reduce the size
 	// of your final executable, you should remove from the following
@@ -132,7 +134,8 @@ BOOL CAdVisuoApp::InitInstance()
 		RUNTIME_CLASS(CMFCToolTipCtrl), &ttParams);
 
 	// read server configuration
-	LoadRemoteServerConfig(L"adsimulo.mylb.eu:8081");
+	m_servers = GetString(L"Servers", L"");
+	if (m_servers.IsEmpty()) m_servers = L"adsimulo.mylb.eu:8081";
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
@@ -151,9 +154,28 @@ BOOL CAdVisuoApp::InitInstance()
 	// Parse command line for standard shell commands, DDE, file open
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
-
+	#define FileDownload FileDDE
+	if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen && (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
+		cmdInfo.m_nShellCommand = CCommandLineInfo::FileDownload;
 	if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileNew)
 		cmdInfo.m_nShellCommand = CCommandLineInfo::FileNothing;
+
+	// check previous instances
+	bool bUniqueInst;
+	bUniqueInst = m_SingleInstance.CallPreviousInstance() == NULL;
+	if (!bUniqueInst)
+	{
+		wchar_t *pCmd = cmdInfo.m_strFileName.GetBuffer();
+		UINT nLen = sizeof(wchar_t) * (cmdInfo.m_strFileName.GetLength() + 1);
+		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileDownload)
+			m_SingleInstance.PostMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_DOWNLOAD, 0), (LPARAM)0, (PVOID)pCmd, nLen);
+		else if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen)
+			m_SingleInstance.PostMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_OPEN, 0), (LPARAM)0, (PVOID)pCmd, nLen);
+		else
+			m_SingleInstance.PostMessage(WM_COMMAND, MAKEWPARAM(ID_FILE_DOWNLOAD, 0), (LPARAM)0, 0, 0);
+		cmdInfo.m_strFileName.ReleaseBuffer();
+		return FALSE;
+	}
 
 	// load a simulation (from the command line or interactively)
 	try
@@ -163,15 +185,16 @@ BOOL CAdVisuoApp::InitInstance()
 
 		// for debug start mode
 #ifdef _DEBUG
-		//cmdInfo.m_nShellCommand = CCommandLineInfo::FileOpen;
-		//cmdInfo.m_strFileName = "http://adsimulodev.mylb.eu:8081/advsrv.asmx?request=51&userid=jarekf&ticket=fh4qrOXaydjk0FGraUSaWN3UrSc=";
+		//cmdInfo.m_nShellCommand = CCommandLineInfo::FileDownload;
+		//cmdInfo.m_strFileName = "http://adsimulo.mylb.eu:8081/advsrv.asmx?request=51&userid=jarekf&ticket=fh4qrOXaydjk0FGraUSaWN3UrSc=";
 		//cmdInfo.m_strFileName = "http://localhost:5204/advsrv.asmx?request=51&userid=jarekf&ticket=tl1GVsQwvZwsZeSCKhPG5bv3i5w=";
+		//cmdInfo.m_nShellCommand = CCommandLineInfo::FileOpen;
 		//cmdInfo.m_strFileName = "c:\\Users\\jarek\\Desktop\\Low Tower.avx";
 #endif
 
 		// Process advisuo: URL link or ask through Login...
 		CString url;
-		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen && (cmdInfo.m_strFileName.Left(8).Compare(L"advisuo:") == 0 || cmdInfo.m_strFileName.Left(5).Compare(L"http:") == 0))
+		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileDownload)
 		{
 			// start from the web
 			url = cmdInfo.m_strFileName;
@@ -179,7 +202,7 @@ BOOL CAdVisuoApp::InitInstance()
 			//if (url.Find(L"phase=16&") >= 0)
 			//	return false;
 			AddRemoteServer(url);
-			SaveRemoteServerConfig();
+			WriteString(L"servers", m_servers);
 		}
 		else
 		if (cmdInfo.m_nShellCommand == CCommandLineInfo::FileOpen)
@@ -192,7 +215,7 @@ BOOL CAdVisuoApp::InitInstance()
 		{
 			// start standalone
 			if (!AskLogin()) return false;
-			SaveRemoteServerConfig();
+			WriteString(L"servers", m_servers);
 			AVULONG nSimulationId = SelectSimulation(m_url);
 			if (!nSimulationId) return false;
 			url = URLFromSimulationId(nSimulationId);
@@ -258,11 +281,6 @@ bool CAdVisuoApp::AskLogin()
 	CDlgHtLogin dlgLogin(&m_http, m_servers);
 	auto pPrevFrame = m_pMainWnd;
 	m_pMainWnd = &dlgLogin;
-#ifdef _DEBUG
-	dlgLogin.m_strUsername = "jarekf";
-	dlgLogin.m_strPassword = "sv_penguin125";
-	//dlgLogin.m_bAutoLogin = true;
-#endif
 	if (dlgLogin.DoModal() != IDOK)
 		return false;
 	m_pMainWnd = pPrevFrame;
@@ -353,24 +371,29 @@ bool CAdVisuoApp::InitSimulation(CString url)
 {
 	CWaitCursor wait;
 
-	// Show Splash Window
-	m_pSplash = new CDlgHtSplash;
-	m_pSplash->DoNonModal(1000);
-	m_pSplash->Sleep(400);
-
+	// Check for "just starting" condition
 	bool bJustStarting = !m_pMainWnd->IsWindowVisible();
 
 	// Report
 	Report(0, (LPOLESTR)(LPCOLESTR)url, 0, L"", L"OK", L"");
 
-	// prepare "debug" info
-	for (int i = 0; i < 10; i++) m_pSplash->OutText(L"");
-	if (bJustStarting)
+	// Show Splash Window
+	m_nSplash++;
+	if (m_pSplash == NULL)
 	{
-		OutText(L"AdVisuo module started - a part of AdSimulo system.");
-		OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
+		m_pSplash = new CDlgHtSplash;
+	 	m_pSplash->DoNonModal(1000);
+		m_pSplash->Sleep(400);
+
+		// prepare "debug" --- initial info
+		for (int i = 0; i < 10; i++) m_pSplash->OutText(L"");
+		if (bJustStarting)
+		{
+			OutText(L"AdVisuo module started - a part of AdSimulo system.");
+			OutText(L"Version %d.%d.%d (%ls)", VERSION_MAJOR, VERSION_MINOR, VERSION_REV, VERSION_DATE);
+		}
 	}
-			
+
 	// open document
 	CAdVisuoDoc *pDoc = (CAdVisuoDoc*)m_pAVDocTemplate->OpenDocumentFile(url);
 
@@ -382,8 +405,9 @@ bool CAdVisuoApp::InitSimulation(CString url)
 	// wait a moment
 	m_pSplash->Sleep(250);
 
-	if (CountDocuments() == 0)
+	if (CountDocuments() == 0 && m_nSplash == 1)
 	{
+		m_nSplash--;
 		if (m_pMainWnd)
 		{
 			m_pSplash->OnOK();
@@ -401,14 +425,21 @@ bool CAdVisuoApp::InitSimulation(CString url)
 		m_pMainWnd->ShowWindow(SW_MAXIMIZE);
 		m_pMainWnd->UpdateWindow();
 
+		// initialize single instance check
+		m_SingleInstance.EstablishInstance(m_pMainWnd->m_hWnd);	
+
 		// wait a moment
 		m_pSplash->Sleep(500);
-	}
+	}	
 
 	// close the splash window
-	m_pSplash->OnOK();
-	m_pSplash = NULL;
-	delete m_pSplash;
+	m_nSplash--;
+	if (m_nSplash == 0)
+	{
+		m_pSplash->OnOK();
+		m_pSplash = NULL;
+		delete m_pSplash;
+	}
 
 	AVGetMainWnd()->SetWindowPos(&CWnd::wndNoTopMost, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
@@ -417,9 +448,18 @@ bool CAdVisuoApp::InitSimulation(CString url)
 
 bool CAdVisuoApp::LoadSimulation(AVULONG nProjectId, AVULONG nSimulationId, bool bGotoSimulations)
 {
-	nSimulationId = SelectSimulation(m_url, nProjectId, nSimulationId, bGotoSimulations);
-	if (!nSimulationId) return false;
-	return InitSimulation(URLFromSimulationId(nSimulationId));
+	int nLen;
+	PVOID xParam;
+	m_SingleInstance.GetXParam(nLen, xParam);
+
+	if (nLen)
+		return InitSimulation((wchar_t*)xParam);
+	else
+	{
+		nSimulationId = SelectSimulation(m_url, nProjectId, nSimulationId, bGotoSimulations);
+		if (!nSimulationId) return false;
+		return InitSimulation(URLFromSimulationId(nSimulationId));
+	}
 }
 
 AVULONG CAdVisuoApp::CountDocuments()
@@ -511,21 +551,11 @@ void CAdVisuoApp::OnAppAbout()
 
 void CAdVisuoApp::PreLoadState()
 {
-	BOOL bNameValid;
-	CString strName;
-	bNameValid = strName.LoadString(IDS_EDIT_MENU);
-	ASSERT(bNameValid);
-	GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT);
-}
-
-void CAdVisuoApp::LoadRemoteServerConfig(CString strDefault)
-{
-	CSettingsStoreSP regSP;
-	CSettingsStore& reg = regSP.Create(FALSE, TRUE);
-	if (reg.Open(GetRegSectionPath(L"URL")))
-		reg.Read(L"servers", m_servers); 
-	if (m_servers.IsEmpty())
-		m_servers = strDefault;
+	//BOOL bNameValid;
+	//CString strName;
+	//bNameValid = strName.LoadString(IDS_EDIT_MENU);
+	//ASSERT(bNameValid);
+	//GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT);
 }
 
 void CAdVisuoApp::AddRemoteServer(CString url)
@@ -556,41 +586,23 @@ void CAdVisuoApp::AddRemoteServer(CString url)
 
 }
 
-void CAdVisuoApp::SaveRemoteServerConfig()
-{
-	CSettingsStoreSP regSP;
-	CSettingsStore& reg = regSP.Create(FALSE, FALSE);
-	if (reg.CreateKey(GetRegSectionPath(L"URL")))
-		reg.Write(L"servers", m_servers);
-}
-
 void CAdVisuoApp::LoadCustomState()
 {
-	CSettingsStoreSP regSP;
-	CSettingsStore& reg = regSP.Create(FALSE, TRUE);
-	if (reg.Open(GetRegSectionPath(L"AdVisuo")))
-	{
-		reg.Read(L"AspectRatio", SETTINGS::nAspectRatio);
-		reg.Read(L"ColouringMode", SETTINGS::nColouringMode);
-		reg.Read(L"ThresholdGreen", SETTINGS::nThresholdGreen);
-		reg.Read(L"ThresholdRed", SETTINGS::nThresholdRed);
-		reg.Read(L"NavigationMode", SETTINGS::nNavMode);
-	}
-	SETTINGS::nNavMode = 2;	// ghost mode only now...
+	SETTINGS::nAspectRatio = GetInt(L"AspectRatio", SETTINGS::nAspectRatio);
+	SETTINGS::nColouringMode = GetInt(L"ColouringMode", SETTINGS::nColouringMode);
+	SETTINGS::nThresholdGreen = GetInt(L"ThresholdGreen", SETTINGS::nThresholdGreen);
+	SETTINGS::nThresholdRed = GetInt(L"ThresholdRed", SETTINGS::nThresholdRed);
+	SETTINGS::nNavMode = 2; // GetInt(L"NavigationMode", SETTINGS::nNavMode);
 }
 
 void CAdVisuoApp::SaveCustomState()
 {
-	CSettingsStoreSP regSP;
-	CSettingsStore& reg = regSP.Create(FALSE, FALSE);
-	if (reg.CreateKey(GetRegSectionPath(L"AdVisuo")))
-	{
-		reg.Write(L"AspectRatio", SETTINGS::nAspectRatio);
-		reg.Write(L"ColouringMode", SETTINGS::nColouringMode);
-		reg.Write(L"ThresholdGreen", SETTINGS::nThresholdGreen);
-		reg.Write(L"ThresholdRed", SETTINGS::nThresholdRed);
-		reg.Write(L"NavigationMode", SETTINGS::nNavMode);
-	}
+	WriteInt(L"AspectRatio", SETTINGS::nAspectRatio);
+	WriteInt(L"ColouringMode", SETTINGS::nColouringMode);
+	WriteInt(L"ThresholdGreen", SETTINGS::nThresholdGreen);
+	WriteInt(L"ThresholdRed", SETTINGS::nThresholdRed);
+	WriteInt(L"NavigationMode", SETTINGS::nNavMode);
+	WriteInt(L"Version", VERSION);
 }
 
 // CAdVisuoApp message handlers
@@ -652,3 +664,10 @@ BOOL CAdVisuoApp::LoadWindowPlacement(CRect& rectNormalPosition, int& nFflags, i
 	return b;
 }
 
+
+
+void CAdVisuoApp::OnClosingMainFrame(CFrameImpl* pFrameImpl)
+{
+	m_SingleInstance.ReleaseInstance();
+	return CWinAppEx::OnClosingMainFrame(pFrameImpl);
+}

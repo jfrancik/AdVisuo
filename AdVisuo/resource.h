@@ -5,7 +5,6 @@
 #define IDP_OLE_INIT_FAILED             100
 #define IDS_PROPERTIES_WND              101
 #define IDB_BUTTONS                     113
-#define IDR_POPUP_EDIT                  119
 #define ID_STATUSBAR_PANE1              120
 #define ID_STATUSBAR_PANE2              121
 #define IDS_STATUS_PANE1                122
@@ -20,11 +19,10 @@
 #define IDR_PASTE_MENU                  151
 #define IDR_WINDOWS_MENU                152
 #define IDS_OUTPUT_WND                  157
-#define IDI_OUTPUT_WND                  165
 #define IDI_OUTPUT_WND_HC               166
-#define IDI_PROPERTIES_WND              167
+#define IDI_OUTPUT_WND                  166
 #define IDI_PROPERTIES_WND_HC           168
-#define IDR_OUTPUT_POPUP                182
+#define IDI_PROPERTIES_WND              168
 #define IDR_THEME_MENU                  200
 #define ID_SET_STYLE                    201
 #define ID_VIEW_APPLOOK_WIN_2000        210
@@ -303,6 +301,7 @@
 #define ID_TMP_GROUP2                   32896
 #define ID_BUTTON4                      32897
 #define ID_TMP_GROUP3                   32897
+#define ID_FPS                          32897
 #define ID_CAMERA_GROUPRIGHT            32898
 #define ID_CAMERA_GROUP_LEFT            32899
 #define ID_SCENARIO_MENU                32900
@@ -310,19 +309,30 @@
 #define ID_CAMERA_GROUPLEFT             32903
 #define ID_SELTENANCY                   32904
 #define ID_TENANCY_MENU                 32905
-#define ID_OTHER_FAILURE                32906
 #define ID_FILE_SIMULATION              32907
 #define ID_EXPAND_ALL                   32909
 #define ID_SORTPROPERTIES               32910
 #define ID_VIEW_PROPERTIESWND           32913
 #define ID_CHECK2                       32915
+#define ID_BUTTON2                      32916
+#define ID_BUTTON8                      32921
+#define ID_BUTTON3                      32928
+#define ID_VIEW_VIEW                    32928
+#define ID_VIEW_WINDOWS                 32928
+#define ID_BUTTON5                      32929
+#define ID_BUTTON6                      32930
+#define ID_COMBO2                       32935
+#define ID_OTHER_VIEWPANEHIDEALL        32937
+#define ID_VIEW_PANES_HIDE_ALL          32938
+#define ID_VIEW_HIDE_ALL_PANES          32939
+#define ID_OTHER_ASPECT                 32940
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        367
-#define _APS_NEXT_COMMAND_VALUE         32916
+#define _APS_NEXT_COMMAND_VALUE         32941
 #define _APS_NEXT_CONTROL_VALUE         1104
 #define _APS_NEXT_SYMED_VALUE           321
 #endif

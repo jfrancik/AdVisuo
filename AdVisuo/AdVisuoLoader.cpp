@@ -14,9 +14,13 @@
 CAdVisuoLoader::CAdVisuoLoader(CProjectVis *pProject) : m_pProject(pProject)
 {
 	m_status = NOT_STARTED;
-	m_progress = 0x80000003;
+	m_reasonForTermination = NOT_TERMINATED;
+	m_posInQueue = 0;
+	m_requestToStop = false;
+	m_requestToFail = false;
 	m_timeLoaded = 0;
 	m_timeStep = 120000;
+	m_pThread = NULL;
 
 	m_hEvCompleted = NULL;
 	InitializeCriticalSection(&m_csJourney);
@@ -42,16 +46,46 @@ void CAdVisuoLoader::Start(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG
 	m_timeLoaded = 0;			// m_pProject->GetMinSimulationTime();
 	m_hEvCompleted = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-	AfxBeginThread(::WorkerThread, this);
+	m_pThread = AfxBeginThread(::WorkerThread, this);
 }
 
 void CAdVisuoLoader::Stop()
 {
-	if (m_status != COMPLETE && m_status != EXCEPTION && m_status != FAILED)
+	if (m_pThread == NULL) return;
+
+	if (m_status != TERMINATED)
 	{
-		m_status = REQUEST_TO_STOP;
+		m_requestToStop = true;
 		WaitForSingleObject(m_hEvCompleted, 5000);
+		if (m_status != TERMINATED)
+			::TerminateThread(m_pThread->m_hThread, 0);
 	}
+	m_pThread = NULL;
+
+	for each (CPassengerVis *pPassenger in m_passengers)
+		delete pPassenger;
+	m_journeys.clear();
+	m_journeySimId.clear();
+	m_journeyLiftId.clear();
+	m_passengers.clear();
+	m_passengerSimId.clear();
+}
+
+void CAdVisuoLoader::Fail()
+{
+	if (m_status == TERMINATED)
+		m_reasonForTermination = FAILED;
+
+	if (m_pThread == NULL) return;
+
+	if (m_status != TERMINATED)
+	{
+		m_requestToFail = true;
+		WaitForSingleObject(m_hEvCompleted, 5000);
+		if (m_status != TERMINATED)
+			::TerminateThread(m_pThread->m_hThread, 0);
+	}
+	m_pThread = NULL;
 
 	for each (CPassengerVis *pPassenger in m_passengers)
 		delete pPassenger;
@@ -65,6 +99,13 @@ void CAdVisuoLoader::Stop()
 	class _prj_deleted
 	{
 	};
+
+#define PROGRESS_MASK		0xC0000000
+#define PROGRESS_STORING	0x00000000
+#define PROGRESS_READY		0x40000000
+#define PROGRESS_FAILED		0x80000000
+#define PROGRESS_QUEUED		0xC0000000
+
 
 UINT CAdVisuoLoader::WorkerThread()
 {
@@ -86,16 +127,19 @@ UINT CAdVisuoLoader::WorkerThread()
 		if (GetKeyState(VK_RMENU) < 0)
 			throw _version_error(verreq, m_http.AVGetRequiredVersionDate().c_str(), m_http.AVGetLatestVersionDownloadPath().c_str());
 
-		// Synchronise - wait queues to finish
-		m_progress = m_http.AVPrjProgress(m_nProjectId);
-		AVULONG state = m_progress >> 30;
-		while (state & 2)
+		// Synchronise - wait for the queue to finish
+		AVULONG progress = m_http.AVPrjProgress(m_nProjectId);
+		while ((progress & PROGRESS_MASK) == PROGRESS_QUEUED)
 		{
+			m_posInQueue = progress & 0xffff;		// position in queue
 			Sleep(250);
-			m_progress = m_http.AVPrjProgress(m_nProjectId);
-			state = m_progress >> 30;
-			if (state == 2) throw _prj_deleted();
+			progress = m_http.AVPrjProgress(m_nProjectId);
 		}
+		if ((progress & PROGRESS_MASK) == PROGRESS_FAILED)
+			throw _prj_deleted();				// error condition
+		m_posInQueue = 0;
+		ASSERT((progress & PROGRESS_MASK) == PROGRESS_STORING || (progress & PROGRESS_MASK) == PROGRESS_READY);
+
 
 		// Phase 1 - Load Structure
 		m_status = LOADING_STRUCTURE;
@@ -135,36 +179,31 @@ UINT CAdVisuoLoader::WorkerThread()
 				m_sims[pSim->GetId()] = static_cast<CSimVis*>(pSim);
 
 
-		//// Phase Extra - Delay
-		//int seconds = 10;
-		//for (int i = 0; i < seconds * 2; i++)
-		//{
-		//	if (m_status == REQUEST_TO_STOP) break;
-		//	Sleep(500);
-		//}
+		// Phase Extra - Delay
+//		int seconds = 10;
+//		for (int i = 0; i < seconds * 2 && !m_requestToStop && !m_requestToFail; i++)
+//			Sleep(500);
 
 		// Phase 2 - Load Data
 		m_status = LOADING_DATA;
 
 		std::wstring response;
-		while (m_timeLoaded < m_pProject->GetMaxTime() && m_status != REQUEST_TO_STOP)
+		while (m_timeLoaded < m_pProject->GetMaxTime() && !m_requestToStop && !m_requestToFail)
 		{
 			// ensure the authorisation
 			if (m_http.AVIsAuthorised() <= 0)
 				throw _prj_error(_prj_error::E_PRJ_NOT_AUTHORISED);
 
 			// synchronise - wait for the current chunk to be entirely saved
-			m_progress = m_http.AVPrjProgress(m_nProjectId);
-			AVULONG state = m_progress >> 30;
-			AVULONG timeSaved = m_progress & 0x3fffffff;
-			while (state >= 2 || state == 0 && (AVLONG)timeSaved < m_timeLoaded + m_timeStep)
+			progress = m_http.AVPrjProgress(m_nProjectId);
+			while ((progress & PROGRESS_MASK) == PROGRESS_STORING && (AVLONG)(progress & 0x3fffffff) < m_timeLoaded + m_timeStep)
 			{
 				Sleep(250);
-				m_progress = m_http.AVPrjProgress(m_nProjectId);
-				state = m_progress >> 30;
-				timeSaved = m_progress & 0x3fffffff;
-				if (state >= 2) throw _prj_deleted();
+				progress = m_http.AVPrjProgress(m_nProjectId);
 			}
+			if ((progress & PROGRESS_MASK) == PROGRESS_FAILED || (progress & PROGRESS_MASK) == PROGRESS_QUEUED)
+				throw _prj_deleted();				// error condition
+			ASSERT((progress & PROGRESS_MASK) == PROGRESS_STORING || (progress & PROGRESS_MASK) == PROGRESS_READY);
 
 			// Load data
 			m_http.AVPrjData(m_pProject->GetId(), m_timeLoaded, m_timeLoaded + m_timeStep);
@@ -177,14 +216,20 @@ UINT CAdVisuoLoader::WorkerThread()
 		Load(response.c_str());
 
 		// Completed!
-		m_status = COMPLETE;
+		if (m_requestToFail)
+			m_reasonForTermination = FAILED;
+		else if (m_requestToStop)
+			m_reasonForTermination = STOPPED;
+		else
+			m_reasonForTermination = COMPLETE;
+		m_status = TERMINATED;
 		SetEvent(m_hEvCompleted);
 		return 0;
 	}
 	catch (_prj_deleted)
 	{
 		std::wstringstream str;
-		str << L"Project has been deleted from " << m_http.getURL().c_str() << L" (" << m_progress << L")";
+		str << L"Project has been deleted from " << (LPCTSTR)m_http.getURL().c_str();
 		m_strFailureTitle = L"";
 		m_strFailureText  = str.str().c_str();
 	}
@@ -218,7 +263,8 @@ UINT CAdVisuoLoader::WorkerThread()
 		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle();
 		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(m_http.getURL().c_str());
 	}
-	m_status = EXCEPTION;
+	m_reasonForTermination = FAILED;
+	m_status = TERMINATED;
 	SetEvent(m_hEvCompleted);
 	return 0;
 }
@@ -226,11 +272,9 @@ UINT CAdVisuoLoader::WorkerThread()
 CAdVisuoLoader::STATUS CAdVisuoLoader::Update(CEngine *pEngine)
 {
 	STATUS status = m_status;
-	if (status == FAILED)
-		return status;
-
-	if (status == COMPLETE && m_journeySimId.size() + m_passengerSimId.size() == 0)
-		return status;
+	
+	if (status == TERMINATED && m_journeySimId.size() + m_passengerSimId.size() == 0)
+		return TERMINATED;
 
 	try
 	{
@@ -278,11 +322,6 @@ CAdVisuoLoader::STATUS CAdVisuoLoader::Update(CEngine *pEngine)
 			}
 		}
 
-		if (status == EXCEPTION)
-		{
-			m_status = status = FAILED;
-			::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
-		}
 		return status;
 	}
 	catch (_prj_error pe)
@@ -315,24 +354,8 @@ CAdVisuoLoader::STATUS CAdVisuoLoader::Update(CEngine *pEngine)
 		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle();
 		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(m_http.getURL().c_str());
 	}
-	Stop();
-	ASSERT(m_status == COMPLETE);
-	m_status = FAILED;
-	return FAILED;
-}
-
-CAdVisuoLoader::STATUS CAdVisuoLoader::Update()
-{
-	STATUS status = m_status;
-
-	if (status == EXCEPTION)
-	{
-		m_status = FAILED;
-		::PostMessage(AfxGetMainWnd()->m_hWnd, WM_COMMAND, MAKEWPARAM(ID_OTHER_FAILURE, 0), (LPARAM)0);
-		return FAILED;
-	}
-	
-	return status;
+	Fail();
+	return TERMINATED;
 }
 
 void CAdVisuoLoader::Load(xmltools::CXmlReader reader)

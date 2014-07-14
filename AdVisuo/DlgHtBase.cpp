@@ -256,9 +256,9 @@ CDlgHtFailure::CDlgHtFailure() : CDlgHtBase(IDD, IDH)
 	m_fnLoadComplHandle = [this]() { };
 }
 
-CDlgHtFailure::CDlgHtFailure(CString strTitle, CString strFailure) : CDlgHtBase(IDD, IDH)
+CDlgHtFailure::CDlgHtFailure(CString strTitle, CString strFailure, CString strUrl) : CDlgHtBase(IDD, IDH)
 {
-	m_fnLoadComplHandle = [this, strTitle, strFailure]() { OnGotoFailure(strTitle, strFailure); };
+	m_fnLoadComplHandle = [this, strTitle, strFailure, strUrl]() { OnGotoFailure(strTitle, strFailure, strUrl); };
 }
 
 CDlgHtFailure::CDlgHtFailure(_version_error &ve, CString url) : CDlgHtBase(IDD, IDH)
@@ -301,9 +301,17 @@ END_DHTML_EVENT_MAP()
 BEGIN_DISPATCH_MAP(CDlgHtFailure, CDlgHtBase)
 END_DISPATCH_MAP()
 
-void CDlgHtFailure::OnGotoFailure(CString title, CString text)
+void CDlgHtFailure::OnGotoFailure(CString title, CString text, CString url)
 {
+	// display info
 	std::wstringstream str;
+	str << L"showVer(" << VERSION_MAJOR << L", " << VERSION_MINOR << L", " << VERSION_REV << L", \"" << (LPCTSTR)VERSION_DATE << L"\")";
+	ExecJS(str.str().c_str());
+	str.str(std::wstring());
+	str << L"showUrl(\"" << (LPCTSTR)url << L"\")";
+	ExecJS(str.str().c_str());
+
+	str.str(L"");
 	str << L"GotoFailure(\"" << (LPCTSTR)title << L"\", \"" << (LPCTSTR)text << L"\")";
 	ExecJS(str.str().c_str());
 	SetWindowText(CString(L"AdVisuo ") + title);

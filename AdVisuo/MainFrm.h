@@ -45,7 +45,6 @@ public:
 
 protected:  // control bar embedded members
 	CMFCRibbonBar     m_wndRibbonBar;
-	CMFCRibbonStatusBar  m_wndStatusBar;
 	COutputWnd        m_wndOutput;
 	CPropertiesWnd    m_wndProperties;
 
@@ -57,9 +56,6 @@ protected:
 	afx_msg void OnUpdateApplicationLook(CCmdUI* pCmdUI);
 	DECLARE_MESSAGE_MAP()
 
-	void InitializeRibbon();
-	BOOL CreateDockingWindows();
-	void SetDockingWindowIcons(BOOL bHiColorIcons);
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 
@@ -73,6 +69,8 @@ public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnWindowPosChanging(WINDOWPOS* lpwndpos);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+	afx_msg void OnViewView();
+	afx_msg void OnViewHideAllPanes();
 };
 
 

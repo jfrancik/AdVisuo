@@ -5,7 +5,7 @@
 ///////////////////////////////////////////////////////////////
 // Versioning
 
-#define VERSION 30615	// 3.06.15
+#define VERSION 30700	// 3.07.00
 
 #define VERSION_MAJOR	(VERSION / 10000)
 #define VERSION_MINOR	((VERSION % 10000) / 100)
@@ -77,6 +77,27 @@ struct AVCOLOR
 	AVFLOAT g;
 	AVFLOAT b;
 	AVFLOAT a;
+};
+
+///////////////////////////////////////////////////////////////
+// Protected Variables (thread-safe)
+
+template<class T>
+class ProtectedVariable
+{
+	T value;
+	CRITICAL_SECTION cs;
+	T Value() 			{ EnterCriticalSection(&cs); T val = value; LeaveCriticalSection(&cs); return val; }
+	T Value(T val)		{ EnterCriticalSection(&cs); value = val; LeaveCriticalSection(&cs); return val; }
+public:
+	ProtectedVariable<T>()			{ InitializeCriticalSection(&cs); }
+	ProtectedVariable<T>(T value)	{ InitializeCriticalSection(&cs); Value(value); }
+
+	T operator=(T value)			{ return Value(value); }
+	operator T()					{ return Value(); }
+
+	T operator ++()					{ EnterCriticalSection(&cs); T val = ++value; LeaveCriticalSection(&cs); return val; }
+	T operator --()					{ EnterCriticalSection(&cs); T val = --value; LeaveCriticalSection(&cs); return val; }
 };
 
 class _version_error

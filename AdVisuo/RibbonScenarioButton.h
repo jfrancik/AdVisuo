@@ -47,7 +47,7 @@ public:
 	CProject *GetProject()					{ return m_pProject; }
 
 	virtual void Clear();
-	void dupa()		{ OnShowPopupMenu(); }//this->OnP
+	//void dupa()		{ OnShowPopupMenu(); }//this->OnP
 
 protected:
 	virtual CSize GetIconSize() const;

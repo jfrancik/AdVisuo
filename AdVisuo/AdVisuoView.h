@@ -219,8 +219,7 @@ protected:
 	afx_msg void OnCharacterExpectedwaitingtime();
 	afx_msg void OnUpdateCharacterExpectedwaitingtime(CCmdUI *pCmdUI);
 	
-	// Status Bar
-	afx_msg void OnUpdateStatusbarPane2(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateFps(CCmdUI *pCmdUI);
 //public:
 	afx_msg void OnUpdateViewAspect(CCmdUI *pCmdUI);
 	afx_msg void OnViewMaterials();

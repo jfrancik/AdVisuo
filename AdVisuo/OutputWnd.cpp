@@ -81,7 +81,6 @@ int COutputWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 //	m_wndOutputFind.SetFont(&m_Font);
 
 	CString strTabName;
-	BOOL bNameValid;
 
 	// Attach list windows to tab:
 	//bNameValid = strTabName.LoadString(IDS_BUILD_TAB);
@@ -166,56 +165,30 @@ COutputList::~COutputList()
 }
 
 BEGIN_MESSAGE_MAP(COutputList, CListBox)
-	ON_WM_CONTEXTMENU()
-	ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
-	ON_COMMAND(ID_EDIT_CLEAR, OnEditClear)
-	ON_COMMAND(ID_VIEW_OUTPUTWND, OnViewOutput)
 	ON_WM_WINDOWPOSCHANGING()
 END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // COutputList message handlers
 
-void COutputList::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
-{
-	CMenu menu;
-	menu.LoadMenu(IDR_OUTPUT_POPUP);
-
-	CMenu* pSumMenu = menu.GetSubMenu(0);
-
-	if (AfxGetMainWnd()->IsKindOf(RUNTIME_CLASS(CMDIFrameWndEx)))
-	{
-		CMFCPopupMenu* pPopupMenu = new CMFCPopupMenu;
-
-		if (!pPopupMenu->Create(this, point.x, point.y, (HMENU)pSumMenu->m_hMenu, FALSE, TRUE))
-			return;
-
-		((CMDIFrameWndEx*)AfxGetMainWnd())->OnShowPopupMenu(pPopupMenu);
-		UpdateDialogControls(this, FALSE);
-	}
-
-	SetFocus();
-}
-
-void COutputList::OnEditCopy()
-{
-}
-
-void COutputList::OnEditClear()
-{
-}
-
-void COutputList::OnViewOutput()
-{
-	CDockablePane* pParentBar = DYNAMIC_DOWNCAST(CDockablePane, GetOwner());
-	CMDIFrameWndEx* pMainFrame = DYNAMIC_DOWNCAST(CMDIFrameWndEx, GetTopLevelFrame());
-
-	if (pMainFrame != NULL && pParentBar != NULL)
-	{
-		pMainFrame->SetFocus();
-		pMainFrame->ShowPane(pParentBar, FALSE, FALSE, FALSE);
-		pMainFrame->RecalcLayout();
-
-	}
-}
+//void COutputList::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
+//{
+//	CMenu menu;
+//	menu.LoadMenu(IDR_OUTPUT_POPUP);
+//
+//	CMenu* pSumMenu = menu.GetSubMenu(0);
+//
+//	if (AfxGetMainWnd()->IsKindOf(RUNTIME_CLASS(CMDIFrameWndEx)))
+//	{
+//		CMFCPopupMenu* pPopupMenu = new CMFCPopupMenu;
+//
+//		if (!pPopupMenu->Create(this, point.x, point.y, (HMENU)pSumMenu->m_hMenu, FALSE, TRUE))
+//			return;
+//
+//		((CMDIFrameWndEx*)AfxGetMainWnd())->OnShowPopupMenu(pPopupMenu);
+//		UpdateDialogControls(this, FALSE);
+//	}
+//
+//	SetFocus();
+//}
 
 

@@ -247,6 +247,10 @@ CString CDlgHtSelect::GenContent()
 	xmltools::CXmlWriter writer(L"utf-8", 4 * 1024 * 1024);
 	writer.write(L"AdVisuo-Path", lpszModule);
 	writer.write(L"Server-Path", m_url.c_str());
+	writer.write(L"Software-Version-Major", VERSION_MAJOR);
+	writer.write(L"Software-Version-Minor", VERSION_MINOR);
+	writer.write(L"Software-Version-Rel", VERSION_REV);
+	writer.write(L"Software-Version-Date", VERSION_DATE);
 	writer.write(L"SortMode", m_nSortModePrj);
 	writer.write(L"SortAsc", (int)m_bSortAscPrj);
 
@@ -308,6 +312,10 @@ CString CDlgHtSelect::GenContent(AVULONG nProjectId)
 	xmltools::CXmlWriter writer(L"utf-8", 4 * 1024 * 1024);
 	writer.write(L"AdVisuo-Path", lpszModule);
 	writer.write(L"Server-Path", m_url.c_str());
+	writer.write(L"Software-Version-Major", VERSION_MAJOR);
+	writer.write(L"Software-Version-Minor", VERSION_MINOR);
+	writer.write(L"Software-Version-Rel", VERSION_REV);
+	writer.write(L"Software-Version-Date", VERSION_DATE);
 	writer.write(L"SortMode", m_nSortModeSim);
 	writer.write(L"SortAsc", (int)m_bSortAscSim);
 	for each (std::wstring str in m_folders)

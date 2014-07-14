@@ -31,10 +31,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\AdVisuo.ico"
 IDR_AdVisuoTYPE         ICON                    "res\\AdVisuoDoc.ico"
-IDI_OUTPUT_WND          ICON                    "res\\output_wnd.ico"
-IDI_OUTPUT_WND_HC       ICON                    "res\\output_wnd_hc.ico"
-IDI_PROPERTIES_WND      ICON                    "res\\ico00001.ico"
-IDI_PROPERTIES_WND_HC   ICON                    "res\\output_w.ico"
+IDI_OUTPUT_WND          ICON                    "res\\output_wnd_hc.ico"
+IDI_PROPERTIES_WND      ICON                    "res\\output_w.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -119,7 +117,7 @@ BEGIN
     END
 END
 
-ID_ MENU
+ID_VIEW_ASPECT MENU
 BEGIN
     POPUP "&File"
     BEGIN
@@ -237,46 +235,17 @@ BEGIN
     END
     POPUP "Other"
     BEGIN
-        MENUITEM "Status Pane 2",               ID_STATUSBAR_PANE2
+        MENUITEM "Status Pane 2",               ID_FPS
         MENUITEM "Report Bug",                  ID_REPORT_BUG
         MENUITEM "Materials",                   ID_VIEW_MATERIALS
-        MENUITEM "Failure",                     ID_OTHER_FAILURE
+        MENUITEM "Hide All Panes",              ID_VIEW_HIDE_ALL_PANES
+        MENUITEM "Aspect",                      ID_OTHER_ASPECT
     END
     POPUP "HUD"
     BEGIN
         MENUITEM "HUD Panel",                   ID_HUD_PANEL
         MENUITEM "HUD Captions",                ID_HUD_CAPTION
         MENUITEM "HUD Selection",               ID_HUD_SELECT
-    END
-END
-
-IDR_POPUP_EDIT MENU
-BEGIN
-    POPUP "Edit"
-    BEGIN
-        MENUITEM "&Play",                       ID_ACTION_PLAY
-        MENUITEM "P&ause",                      ID_ACTION_PAUSE
-        MENUITEM "&Stop",                       ID_ACTION_STOP
-        MENUITEM SEPARATOR
-        MENUITEM "Slow &down",                  ID_ACTION_SLOWDOWN
-        MENUITEM "Normap &pace",                ID_ACTION_NORMALPACE
-        MENUITEM "Speed &up",                   ID_ACTION_SPEEDUP
-        MENUITEM SEPARATOR
-        MENUITEM "&Full screen",                ID_VIEW_FULLSCREEN
-        MENUITEM "Sc&ript...",                  ID_REC_SCRIPT
-        MENUITEM "Instant record",              ID_REC_RECORD
-        MENUITEM "Instanr play",                ID_REC_PLAY
-    END
-END
-
-IDR_OUTPUT_POPUP MENU
-BEGIN
-    POPUP "Popup"
-    BEGIN
-        MENUITEM "&Copy",                       ID_EDIT_COPY
-        MENUITEM "&Clear",                      ID_EDIT_CLEAR
-        MENUITEM SEPARATOR
-        MENUITEM "&Hide",                       ID_VIEW_OUTPUTWND
     END
 END
 
@@ -319,8 +288,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,6,15,0
- PRODUCTVERSION 3,6,15,0
+ FILEVERSION 3,7,0,0
+ PRODUCTVERSION 3,7,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -337,12 +306,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "LerchBates"
             VALUE "FileDescription", "LerchBates AdVisuo Client"
-            VALUE "FileVersion", "3.6.15.0"
+            VALUE "FileVersion", "3.7.0.0"
             VALUE "InternalName", "AdVisuo.exe"
             VALUE "LegalCopyright", " (c) Lerch Bates 2009-2013.  All rights reserved."
             VALUE "OriginalFilename", "AdVisuo.exe"
             VALUE "ProductName", "LerchBates AdVisuo Client"
-            VALUE "ProductVersion", "3.6.15.0"
+            VALUE "ProductVersion", "3.7.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -360,7 +329,7 @@ END
 STRINGTABLE
 BEGIN
     IDP_OLE_INIT_FAILED     "OLE initialization failed.  Make sure that the OLE libraries are the correct version."
-    IDS_PROPERTIES_WND      "Properties"
+    IDS_PROPERTIES_WND      "Settings"
 END
 
 STRINGTABLE
@@ -401,7 +370,46 @@ BEGIN
     ID_FILE_OPEN            "Open a simulation file previously stored on a disk\nOpen Simulation File (XML)"
     ID_FILE_CLOSE           "Close the active simulation\nClose"
     ID_FILE_SAVE            "Save the active simulation as an XML file\nSave"
-    ID_FILE_SAVE_AS         "Save the active simulation as an XML file with a new name\nSave As"
+    ID_FILE_SAVE_AS         "Save the active simulation as an XML file with a new name\nSave as"
+END
+
+STRINGTABLE
+BEGIN
+    ID_CAMERA_GROUPRIGHT    "Move the camera to the previous lift group\nCamera to the previous lift group"
+    ID_CAMERA_GROUP_LEFT    "Move the camera to the next lift group\nCamera to the next lift group"
+    ID_SCENARIO_MENU        "Select a scenario for each lift group\nSelect scenarios"
+    ID_CAMERA_GROUP_MENU    "Move the camera to any lift group selected from a drop down list\nCamera to a lift group"
+    ID_TENANCY_MENU         "Selects a tenancy within the current simulation\nSelect a tenancy"
+    ID_FILE_SIMULATION      "Downloads another simulation for the current project\nDownload a simulation"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_VIEW            "Switch visibility of windows and other elements of the application\nView"
+END
+
+STRINGTABLE
+BEGIN
+    ID_HUD_PANEL            "Show or hide HUD (Head On Display) control panel\nToggle HUD Panel"
+    ID_HUD_CAPTION          "Show or hide the view caption plates\nToggle View Captions"
+    ID_HUD_SELECT           "Show or hide the frame for the selected view in multi-view modes\nToggle view selection"
+    ID_VIEW_ASPECT_WIN      "Set the aspect ratio of the video image so that to fit entire space available\nFit to the current window"
+    ID_VIEW_ASPECT_SCREEN   "Set the aspect ratio of the video image so that to match that of the entire screen\nUse the system screen aspect ratio"
+    ID_VIEW_ASPECT_16_9     "Set the aspect ratio of the video image to 16:9 (wide screen) - best for YouTube videos\n16:9 wide screen aspect"
+    ID_VIEW_ASPECT_16_10    "Set the aspect ratio of the video image to 16:10 (wide screen)\n16:10 wide screen aspect"
+    ID_VIEW_ASPECT_4_3      "Set the aspect ratio of the video image so 4:3 (standard screen)\n16:9 standard screen aspect"
+    ID_VIEW_ASPECT_CUSTOM   "Display a dialog box to precisely setup the aspect ratio\nCustom aspect setup"
+    ID_VIEW_ASPECT          "Setup the aspect ratio of the image\nImage aspect ratio"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_OPENSIM         "Open a simulation file and prepare for visualisation"
+    ID_FILE_SAVEIFC         "Export the Building Information Model to IFC compliant file"
+    ID_ACTION_RENDER        "Save video footage to an AVI file\nSave video footage"
+    ID_ACTION_SAVESTILL     "Save a snapshot of the current simulation screen to a graphics file\nSave a snapshot"
+    ID_FILE_DOWNLOAD        "Download a project from the AdSimulo server\nDownload a project"
+    ID_VIEW_FULLSCREEN      "Switch to the Full Screen mode (ESC to return)\nFull ScreenMode"
 END
 
 STRINGTABLE
@@ -493,6 +501,7 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_VIEW_OUTPUTWND       "Shows or hides the Output side bar\nShow/Hide Output"
     IDS_OUTPUT_WND          "Output"
 END
 
@@ -551,22 +560,22 @@ BEGIN
     ID_LAYOUT_TRIPLE32778   "Divide the window frame to show three independent camera views, with vertical view on the right\nTriple (Right) Layout"
     ID_LAYOUT_QUADRUPLE     "Divide the window frame to show four independent camera views\nQuadruple Layout"
     ID_CAMERA_OVERHEAD      "Place the camera centrally over the landing, looking down\nCamera: Overhead"
-    ID_CAMERA_LEFTREAR      "Place the camera for the current view in the rear left corner of the landing\nCamera to the rear left corner"
-    ID_CAMERA_CENTRALREAR   "Place the camera for the current view at the centre of the rear side of the landing\nCamera to the rear side"
-    ID_CAMERA_RIGHTREAR     "Place the camera for the current view in the rear right corner of the landing\nCamera to the rear right corner"
+    ID_CAMERA_LEFTREAR      "Move the camera to the rear left corner of the landing\nCamera to the rear left corner"
+    ID_CAMERA_CENTRALREAR   "Move the camera to the centre of the rear side of the landing\nCamera to the rear side"
+    ID_CAMERA_RIGHTREAR     "Move the camera to the rear right corner of the landing\nCamera to the rear right corner"
 END
 
 STRINGTABLE
 BEGIN
-    ID_CAMERA_RIGHTSIDE     "Place the camera for the current view centrally at the right side of the landing\nCamera to the right side"
-    ID_CAMERA_RIGHTFRONT    "Place the camera for the current view in the front right corner of the landing\nCamera to the front right corner"
-    ID_CAMERA_CENTRALFRONT  "Place the camera for the current view at the centre of the front side of the landing\nCamera to the front side"
-    ID_CAMERA_LEFTFRONT     "Place the camera for the current view in the front left corner of the landing\nCamera to the front left corner"
-    ID_CAMERA_LEFTSIDE      "Place the camera for the current view centrally at the left side of the landing\nCamera to the left side"
-    ID_CAMERA_LIFTLEFT      "Move the camera to the next lift car\nCamera to the next lift"
-    ID_CAMERA_LIFTRIGHT     "Move the camera to the previous lift car\nCamera to the previous lift"
-    ID_STOREY_ONEUP         "Go one floor up\nOne Floor Up"
-    ID_STOREY_ONEDOWN       "Go one floor down\nOne Floor Down"
+    ID_CAMERA_RIGHTSIDE     "Place the camera centrally at the right side of the landing\nCamera to the right side"
+    ID_CAMERA_RIGHTFRONT    "Move the camera to the front right corner of the landing\nCamera to the front right corner"
+    ID_CAMERA_CENTRALFRONT  "Move the camera to the centre of the front side of the landing\nCamera to the front side"
+    ID_CAMERA_LEFTFRONT     "Move the camera to the front left corner of the landing\nCamera to the front left corner"
+    ID_CAMERA_LEFTSIDE      "Place the camera centrally at the left side of the landing\nCamera to the left side"
+    ID_CAMERA_LIFTLEFT      "Move the camera to the next lift car\nCamera to the next lift car"
+    ID_CAMERA_LIFTRIGHT     "Move the camera to the previous lift car\nCamera to the previous lift car"
+    ID_STOREY_ONEUP         "Move the camera one floor up\nCamera one floor up"
+    ID_STOREY_ONEDOWN       "Move the camera one floor down\nCamera one floor down"
     ID_NAVIGATION_CCTV      "This mode emulates a PTZ CCTV camera.\r\rPan - mouse left && right\rTilt - mouse up && down\rZoom - mouse wheel\nCCTV Navigation Mode"
     ID_NAVIGATION_WALK      "Emulates real life experience while walking around the building. Not available in this version.\nWalk Navigation Mode"
 END
@@ -577,9 +586,9 @@ BEGIN
     ID_ACTION_PLAY          "Start the animation\nPlay"
     ID_ACTION_STOP          "Stop the animation and prepare the system to start it again\nStop"
     ID_ACTION_PAUSE         "Pause or resume the animation\nPause"
-    ID_ACTION_SPEEDUP       "Speed the animation pace up\nSpeed up"
+    ID_ACTION_SPEEDUP       "Speed the animation up\nSpeed up"
     ID_ACTION_SLOWDOWN      "Slow the animation down\nSlow down"
-    ID_ACTION_NORMALPACE    "Revert the animation pace\nNormal pace"
+    ID_ACTION_NORMALPACE    "Revert the animation pace to normal\nNormal pace"
     ID_CHARACTER_NOCOLOURCODING 
                             "Display all the characters white\nNo Colour Coding"
     ID_CHARACTER_CURRENTWAITINGTIME 
@@ -590,32 +599,19 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_FILE_OPENSIM         "Open a simulation file and prepare for visualisation"
-    ID_FILE_SAVEIFC         "Export the Building Information Model to IFC compliant file"
-    ID_FILE_DOWNLOAD        "Downloads project from a specified web service or URL"
+    ID_CAMERA_EXT_REAR      "Move the camera for the rear external view of the building\nCamera to the rear of the building"
+    ID_CAMERA_EXT_FRONT     "Move the camera for the front external view of the building\nCamera to the front of the building"
+    ID_CAMERA_EXT_SIDE      "Move the camera for the side external view of the building\nCamera to the side of the building"
 END
 
 STRINGTABLE
 BEGIN
-    ID_HUD_PANEL            "Show or hide HUD (Head On Display) control panel\nToggle HUD Panel"
-    ID_HUD_CAPTION          "Show or hide the view caption plates\nToggle View Captions"
-    ID_HUD_SELECT           "Show or hide the frame for the selected view in multi-view modes\nToggle view selection"
+    ID_STOREY_MENU          "Move the camera to any floor selected from a drop down list\nCamera to any floor"
 END
 
 STRINGTABLE
 BEGIN
-    ID_CAMERA_EXT_REAR      "Place the camera for the rear side external view of the building\nCamera to the rear of the building"
-    ID_CAMERA_EXT_FRONT     "Place the camera for the front side external view of the building\nCamera to the front of the building"
-END
-
-STRINGTABLE
-BEGIN
-    ID_STOREY_MENU          "Choose a floor to go from a drop down menu\nChange Floor"
-END
-
-STRINGTABLE
-BEGIN
-    ID_CAMERA_LIFT_MENU     "Choose a lift from a drop down menu and move the camera there\nCamera to a lift"
+    ID_CAMERA_LIFT_MENU     "Move the camera to any lift selected from a drop down list\nCamera to a lift"
     ID_REPORT_BUG           "Send a bug report or a suggestion of change to the development team\nReport a bug"
 END
 
@@ -623,6 +619,11 @@ STRINGTABLE
 BEGIN
     IDS_DLGVIDEO_OPTION2    "Use the existing file"
     IDS_DLGVIDEO_MESSAGE2   "The specified video file already exists. Do you want to choose another file?"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_PROPERTIESWND   "Shows or hides the Settings side bar\nShow/Hide Settings"
 END
 
 #endif    // English (United States) resources
@@ -845,7 +846,7 @@ END
 
 IDD_ADV_SPLASH DIALOGEX 0, 0, 406, 251
 STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Dupa"
+CAPTION ""
 FONT 8, "Microsoft Sans Serif", 400, 0, 0x0
 BEGIN
     LISTBOX         IDC_DEBUG,7,139,220,103,LBS_NOSEL | NOT WS_BORDER | WS_TABSTOP

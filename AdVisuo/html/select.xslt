@@ -408,7 +408,9 @@
     </div>  <!-- list of projects -->
 
     <div id="idCopyright">
-      Connected to: <xsl:value-of select="Server-Path"/>
+      AdVisuo Version <xsl:value-of select="Software-Version-Major"/>.<xsl:value-of select="Software-Version-Minor"/> Release <xsl:value-of select="Software-Version-Rel"/> (<xsl:value-of select="Software-Version-Date"/>)<br/>
+      Connected to: <xsl:value-of select="Server-Path"/><br/>
+      <xsl:text disable-output-escaping="yes">&amp;copy;</xsl:text> Copyright 2009-2014 Lerch Bates Limited<br/>
     </div>
 
 

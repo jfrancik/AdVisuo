@@ -111,6 +111,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_707C754D9854411AB59FC6E0B880F737"
+        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_817A8C686174413D9A81E17677B62E9F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -159,12 +165,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_A0B80835F4364660B44C0606D11FD3A5"
-        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_A2E8C573E47846A8A8F4014CCEF0B93A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -173,6 +173,12 @@
         {
         "MsmKey" = "8:_A63BCC49A65B4ADA88E2E33647419CA2"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B10EAA189D7049649090A1CB314DF43C"
+        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -191,12 +197,6 @@
         {
         "MsmKey" = "8:_C71122F504F144D386BE8B104B0679C0"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D51334CEEF704F38A95CB9D6074DEF85"
-        "OwnerKey" = "8:_10B54625FC6B4DDC873D65E342D8248E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1238,15 +1238,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:AdVisuo"
-        "ProductCode" = "8:{DE262D66-8CD1-4A96-916D-9235D34E1A60}"
-        "PackageCode" = "8:{28DE7429-F1CC-4074-BDE3-33A726D72574}"
+        "ProductCode" = "8:{1E30640F-CB8A-47CF-BBE2-4F07A9E930FE}"
+        "PackageCode" = "8:{D7037877-84FF-4BEC-B9CD-83B6BCD0FDC2}"
         "UpgradeCode" = "8:{C0274823-104C-4BC9-8FD3-3E2E42F3BC44}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:3.06.14"
+        "ProductVersion" = "8:3.07.00"
         "Manufacturer" = "8:LerchBates"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -2055,7 +2055,7 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_A0B80835F4364660B44C0606D11FD3A5"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_707C754D9854411AB59FC6E0B880F737"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
@@ -2069,7 +2069,7 @@
             "Feature" = "8:"
             "IsolateTo" = "8:"
             }
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_D51334CEEF704F38A95CB9D6074DEF85"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_B10EAA189D7049649090A1CB314DF43C"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:TRUE"
