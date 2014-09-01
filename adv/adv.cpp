@@ -484,6 +484,7 @@ ADV_API HRESULT AVRun(AVULONG nSimulationId)
 			myfile.close();
 		}
 
+		_CrtDumpMemoryLeaks();
 		return Logf(dwStatus, L"AVRun(%d)", nSimulationId);
 	}
 	STD_CATCH(L"AVRun(%d)", nSimulationId);
@@ -511,9 +512,11 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)
 
 		lt.Log(L"AVIFC");
 		Logf(STATUS_GENERIC, L"IFC file saved to: %s", strIFCPathName);
+		_CrtDumpMemoryLeaks();
 		return Logf(dwStatus, L"AVIFC(%d)", nSimulationId);
 	}
 	STD_CATCH(L"AVIFC(%d)", nSimulationId);
+
 }
 
 ADV_API HRESULT AVIFC8(AVULONG nSimulationId, char *pIFCPathName)

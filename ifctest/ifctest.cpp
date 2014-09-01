@@ -9,7 +9,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	CoInitialize(NULL);
 	AVSetupDiagnosticOutput(true, true, false, true, false, false, false);
 
-	AVIFC8(51, "c:\\users\\jarek\\desktop\\test.ifc");
+	AVIFC8(50, "c:\\users\\jarek\\desktop\\test.ifc");
 
 	//AVSaveIFCMesh(L"buffer.ifc");
 	//AVSaveIFCMesh(L"cwt.ifc");

@@ -11,11 +11,21 @@ using namespace std;
 ////////////////////////////////////////
 // main function
 
-void version()
+bool version()
 {
-	AVULONG v = AVGetVersion();
-	AVSTRING s = AVGetRelease();
-	wcout << L"ADV AdVisuo Server Ver " << v / 10000 << L"." << (v % 10000) / 100 << L"."  << v % 100 << L" (" << s << L"). Copyright (C) 2011-14 Lerch Bates" << endl;
+	try
+	{
+		AVULONG v = AVGetVersion();
+		AVSTRING s = AVGetRelease();
+		wcout << L"ADV AdVisuo Server Ver " << v / 10000 << L"." << (v % 10000) / 100 << L"."  << v % 100 << L" (" << s << L"). Copyright (C) 2011-14 Lerch Bates" << endl;
+		return true;
+	}
+	catch (...)
+	{
+		wcout << L"ADV AdVisuo Server. Copyright (C) 2011-14 Lerch Bates" << endl;
+		wcout << L"Version number not found: use adv -c to configure the connection string." << endl;
+		return false;
+	}
 }
 
 void usage()
@@ -142,7 +152,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	if ((option == DEFAULT || option == IFC || option == DEL || option == TEST || option == INIT || option == PROCESS) && nSimulationID <= 0)
 	{
-		if (!bQuiet) version();
+		if (!bQuiet && !version()) { CoUninitialize(); return 0; }
 		if (!bQuiet) wcout << (option == PROCESS ? L"ProjectID: " : L"SimulationID: ");
 		wcin >> nSimulationID;
 		if (nSimulationID <= 0) option = WRONG_2;
