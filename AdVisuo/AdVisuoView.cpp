@@ -1,5 +1,4 @@
-﻿m_loader
-// AdVisuoView.cpp - a part of the AdVisuo Client Software
+﻿// AdVisuoView.cpp - a part of the AdVisuo Client Software
 
 #include "stdafx.h"
 #include "AdVisuo.h"

@@ -96,6 +96,7 @@
     <ClCompile Include="..\CommonFiles\BaseProject.cpp" />
     <ClCompile Include="..\CommonFiles\ConstrLiftGroup.cpp" />
     <ClCompile Include="..\CommonFiles\ConstrProject.cpp" />
+    <ClCompile Include="..\CommonFiles\DBConnStr.cpp" />
     <ClCompile Include="..\CommonFiles\DBTools.cpp" />
     <ClCompile Include="adv.cpp" />
     <ClCompile Include="..\CommonFiles\BaseSimClasses.cpp" />
@@ -133,6 +134,7 @@
     <ClInclude Include="..\CommonFiles\BaseProject.h" />
     <ClInclude Include="..\CommonFiles\ConstrLiftGroup.h" />
     <ClInclude Include="..\CommonFiles\ConstrProject.h" />
+    <ClInclude Include="..\CommonFiles\DBConnStr.h" />
     <ClInclude Include="..\CommonFiles\DBTools.h" />
     <ClInclude Include="adv.h" />
     <ClInclude Include="..\CommonFiles\BaseSimClasses.h" />

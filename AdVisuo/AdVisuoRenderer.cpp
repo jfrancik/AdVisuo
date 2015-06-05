@@ -211,14 +211,14 @@ void CAdVisuoRenderer::RenderSideOuter(CLiftGroupVis *pLiftGroup, AVLONG nLiftRo
 
 void CAdVisuoRenderer::Render(CProjectVis *pProject, CCamera *pCamera)
 {
-	if (!m_pEngine || !pProject || !pCamera || !pCamera->GetCamera()) return;
+	if (pCamera) m_pCamera = pCamera;
+	if (!m_pEngine || !pProject || !m_pCamera || !m_pCamera->GetCamera()) return;
 
-	m_pCamera = pCamera;
 	m_pCamera->CheckLocation();
-	m_pEngine->PutCamera(pCamera->GetCamera());
-	m_pEngine->Render(pCamera->GetCamera());
+	m_pEngine->PutCamera(m_pCamera->GetCamera());
+	m_pEngine->Render(m_pCamera->GetCamera());
 	
-	AVULONG nLiftGroup = pCamera->GetLiftGroup();
+	AVULONG nLiftGroup = m_pCamera->GetLiftGroup();
 
 	m_pEngine->RenderLights();
 
@@ -233,7 +233,7 @@ void CAdVisuoRenderer::Render(CProjectVis *pProject, CCamera *pCamera)
 			RenderSideOuter(pProject->GetLiftGroup(i), i < nLiftGroup ? 0 : 1);
 	}
 
-	switch (pCamera->GetLoc())
+	switch (m_pCamera->GetLoc())
 	{
 	case CAMLOC_LOBBY:
 	case CAMLOC_OVERHEAD:
@@ -244,7 +244,7 @@ void CAdVisuoRenderer::Render(CProjectVis *pProject, CCamera *pCamera)
 		RenderSide(pProject->GetLiftGroup(nLiftGroup));
 		break;
 	default:
-		switch (pCamera->GetYZone())
+		switch (m_pCamera->GetYZone())
 		{
 		case -1:
 			RenderSideOuter(pProject->GetLiftGroup(nLiftGroup), 0);

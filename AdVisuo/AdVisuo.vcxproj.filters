@@ -144,6 +144,9 @@
     <ClCompile Include="SingleInst.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FailureStr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdVisuo.h">
@@ -282,6 +285,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SingleInst.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FailureStr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

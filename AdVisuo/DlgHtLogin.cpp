@@ -55,7 +55,7 @@ END_DISPATCH_MAP()
 ////////////////////////////////////////////////////////////////////////
 // Javascript Bounding
 
-void CDlgHtLogin::OnGotoFailure(CString title, CString text)
+void CDlgHtLogin::OnGotoFailure(CString title, CString text, CString url)
 {
 	m_state = FAILURE;
 	std::wstringstream str;

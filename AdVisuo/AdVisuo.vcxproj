@@ -148,6 +148,7 @@
     <ClCompile Include="DlgHtAbout.cpp" />
     <ClCompile Include="DlgVideo.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="FailureStr.cpp" />
     <ClCompile Include="PropertiesWnd.cpp" />
     <ClCompile Include="RibbonScenarioButton.cpp" />
     <ClCompile Include="SingleInst.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="DlgHtAbout.h" />
     <ClInclude Include="DlgVideo.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="FailureStr.h" />
     <ClInclude Include="PropertiesWnd.h" />
     <ClInclude Include="RibbonScenarioButton.h" />
     <ClInclude Include="SingleInst.h" />
@@ -232,7 +234,9 @@
     <None Include="html\connection.png" />
     <None Include="html\Default.css" />
     <None Include="html\html_png.png" />
-    <None Include="html\login.html" />
+    <None Include="html\login.html">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="html\rep.html" />
     <None Include="html\select.html" />
     <None Include="html\select.xslt" />

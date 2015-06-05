@@ -2,13 +2,12 @@
 #include "_base.h"
 #include "AdVisuoLoader.h"
 #include "xmlrequest.h"
-#include "AdVisuo.h"
 #include "VisProject.h"
 #include "VisSim.h"
 #include "VisLiftGroup.h"
 #include "VisLift.h"
 #include "VisPassenger.h"
-#include "DlgHtBase.h"
+#include "FailureStr.h"
 
 
 CAdVisuoLoader::CAdVisuoLoader(CProjectVis *pProject) : m_pProject(pProject)
@@ -235,33 +234,33 @@ UINT CAdVisuoLoader::WorkerThread()
 	}
 	catch (_prj_error pe)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(pe);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(pe, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(pe);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(pe, m_http.getURL().c_str());
 	}
 	catch (_com_error ce)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(ce);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(ce, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(ce);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(ce, m_http.getURL().c_str());
 	}
 	catch (_xmlreq_error xe)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(xe);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(xe, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(xe);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(xe, m_http.getURL().c_str());
 	}
 	catch (_version_error ve)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(ve);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(ve, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(ve);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(ve, m_http.getURL().c_str());
 	}
 	catch (dbtools::_value_error ve)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(ve);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(ve, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(ve);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(ve, m_http.getURL().c_str());
 	}
 	catch(...)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle();
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle();
+		m_strFailureText  = (LPCTSTR)::GetFailureString(m_http.getURL().c_str());
 	}
 	m_reasonForTermination = FAILED;
 	m_status = TERMINATED;
@@ -326,33 +325,33 @@ CAdVisuoLoader::STATUS CAdVisuoLoader::Update(CEngine *pEngine)
 	}
 	catch (_prj_error pe)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(pe);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(pe, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(pe);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(pe, m_http.getURL().c_str());
 	}
 	catch (_com_error ce)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(ce);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(ce, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(ce);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(ce, m_http.getURL().c_str());
 	}
 	catch (_xmlreq_error xe)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(xe);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(xe, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(xe);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(xe, m_http.getURL().c_str());
 	}
 	catch (_version_error ve)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(ve);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(ve, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(ve);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(ve, m_http.getURL().c_str());
 	}
 	catch (dbtools::_value_error ve)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle(ve);
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(ve, m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle(ve);
+		m_strFailureText  = (LPCTSTR)::GetFailureString(ve, m_http.getURL().c_str());
 	}
 	catch(...)
 	{
-		m_strFailureTitle = (LPCTSTR)CDlgHtFailure::GetFailureTitle();
-		m_strFailureText  = (LPCTSTR)CDlgHtFailure::GetFailureString(m_http.getURL().c_str());
+		m_strFailureTitle = (LPCTSTR)::GetFailureTitle();
+		m_strFailureText  = (LPCTSTR)::GetFailureString(m_http.getURL().c_str());
 	}
 	Fail();
 	return TERMINATED;

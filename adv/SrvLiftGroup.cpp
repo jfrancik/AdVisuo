@@ -175,11 +175,10 @@ HRESULT CLiftGroupSrv::Store(CDataBase db)
 	ins[L"LiftGroupIndex"] = GetIndex();
 	ins.execute();
 
-	std::wstring str = ins.query();
-
 	// retrieve the Building ID
-	sel = db.select(L"SELECT SCOPE_IDENTITY()");
-	SetId(sel[(short)0]);
+	sel = db.select(L"SELECT @@identity");		// used to have SCOPE_IDENTITY() here but it doesn't work with ODBC
+	ULONG nId = sel[(short)0];
+	SetId(nId);
 
 	// store shaft/lift data
 	for (ULONG i = 0; i < GetShaftCount(); i++)

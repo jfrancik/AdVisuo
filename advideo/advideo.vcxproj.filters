@@ -1,0 +1,212 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="_Adv Files">
+      <UniqueIdentifier>{e768b3bd-f59f-4c80-beec-0c7e16847977}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_CommonFiles">
+      <UniqueIdentifier>{0186c1f0-c5aa-48f5-a80f-51dbf8fd7e70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_AdVisuoFiles">
+      <UniqueIdentifier>{dfcf33cc-96e9-4319-837f-67cd7bf8d740}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="advideo.def">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="res\advideo.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="advideo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="video.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\_base.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\AdVisuoLoader.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\VisProject.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\VisSim.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\AdVisuoRenderer.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\Camera.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\Block.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\FailureStr.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\VisElem.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\VisLift.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\VisLiftGroup.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\VisPassenger.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\xmlrequest.cpp">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseLiftGroup.cpp">
+      <Filter>_CommonFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseProject.cpp">
+      <Filter>_CommonFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\BaseSimClasses.cpp">
+      <Filter>_CommonFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\ConstrLiftGroup.cpp">
+      <Filter>_CommonFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\ConstrProject.cpp">
+      <Filter>_CommonFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\DBTools.cpp">
+      <Filter>_CommonFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\XMLTools.cpp">
+      <Filter>_CommonFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\adv\log.cpp">
+      <Filter>_Adv Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonFiles\DBConnStr.cpp">
+      <Filter>_CommonFiles</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="advideo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="video.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\_base.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\AdVisuoLoader.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\AdVisuoRenderer.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\Block.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\Camera.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\FailureStr.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\VisElem.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\VisLift.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\VisLiftGroup.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\VisPassenger.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\VisProject.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\VisSim.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\AdVisuo\xmlrequest.h">
+      <Filter>_AdVisuoFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseLiftGroup.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseProject.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\BaseSimClasses.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\Box.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\ConstrLiftGroup.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\ConstrProject.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\DBTools.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\Vector.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\XMLTools.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\adv\log.h">
+      <Filter>_Adv Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonFiles\DBConnStr.h">
+      <Filter>_CommonFiles</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="advideo.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

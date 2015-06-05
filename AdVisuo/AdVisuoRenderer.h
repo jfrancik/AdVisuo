@@ -12,8 +12,8 @@ class CAdVisuoRenderer
 	CCamera *m_pCamera;
 	CEngine *m_pEngine;
 public:
-	CAdVisuoRenderer(CEngine *pEngine) : m_pEngine(pEngine)	{ }
-	void Render(CProjectVis *pProject, CCamera *pCamera);
+	CAdVisuoRenderer(CEngine *pEngine, CCamera *pCamera = NULL) : m_pEngine(pEngine), m_pCamera(pCamera)	{ }
+	void Render(CProjectVis *pProject, CCamera *pCamera = NULL);
 
 private:
 	void RenderLifts(CLiftGroupVis *pLiftGroup, AVULONG nRow);

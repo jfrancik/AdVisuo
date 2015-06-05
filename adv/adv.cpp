@@ -7,6 +7,7 @@
 #include <fstream>
 #include <algorithm>
 #include "../CommonFiles/DBTools.h"
+#include "../CommonFiles/DBConnStr.h"
 #include "adv.h"
 #include "SrvProject.h"
 #include "SrvLiftGroup.h"
@@ -51,41 +52,15 @@
 	}
 
 
-enum CONNECTIONS { CONN_CONSOLE, CONN_VISUALISATION, CONN_REPORT, CONN_USERS, CONN_SIMQUEUE, CONN_RESERVED };
-AVSTRING GetConnString(enum CONNECTIONS connId)
-{
-	static WCHAR buf[CONN_RESERVED][1024];
-	HKEY hRegKey = NULL; 
-
-	DWORD type, size;
-	HRESULT h;
-	h = RegOpenKey(HKEY_LOCAL_MACHINE, L"Software\\LerchBates\\AdVisuo\\ServerModule", &hRegKey); if (h != 0) return Log(ERROR_COM, h), NULL;
-	size = 1024; 
-	
-	switch (connId)
-	{
-	case CONN_CONSOLE:			h = RegQueryValueEx(hRegKey, L"ConsoleConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
-	case CONN_VISUALISATION:	h = RegQueryValueEx(hRegKey, L"VisualisationConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
-	case CONN_REPORT:			h = RegQueryValueEx(hRegKey, L"ReportsConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
-	case CONN_USERS:			h = RegQueryValueEx(hRegKey, L"UsersConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
-	case CONN_SIMQUEUE:			h = RegQueryValueEx(hRegKey, L"SimQueueConnectionString", 0, &type, (PBYTE)buf[connId], &size); break;
-	}
-	if (h != 0) return Log(ERROR_COM, h), NULL;
-	
-	h = RegCloseKey(hRegKey); if (h != 0) return Log(ERROR_COM, h), NULL;
-
-	return buf[connId];
-}
-
 ADV_API AVULONG AVGetVersion()
 {
-	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
+	AVSTRING pConnStr = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
 	return CProjectSrv::QueryVerInt(pConnStr);
 }
 
 ADV_API AVSTRING AVGetRelease()
 {
-	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
+	AVSTRING pConnStr = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
 	auto str = CProjectSrv::QueryVerStr(pConnStr);
 	static wchar_t buf[128];
 	wcscpy_s(buf, str.c_str());
@@ -208,7 +183,7 @@ ADV_API HRESULT AVSetupDiagnosticOutput(bool bRegisterEventLog, bool bPrintOnScr
 ADV_API HRESULT AVTest(AVULONG nSimulationId)
 {
 	CLogTime lt;
-	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
+	AVSTRING pConnStr = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
 	try
 	{
 		HRESULT h;
@@ -236,7 +211,7 @@ ADV_API HRESULT AVTest(AVULONG nSimulationId)
 ADV_API HRESULT AVDelete(AVULONG nSimulationId)
 {
 	CLogTime lt;
-	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
+	AVSTRING pConnStr = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -253,7 +228,7 @@ ADV_API HRESULT AVDelete(AVULONG nSimulationId)
 ADV_API HRESULT AVDeleteAll()
 {
 	CLogTime lt;
-	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
+	AVSTRING pConnStr = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -270,7 +245,7 @@ ADV_API HRESULT AVDeleteAll()
 ADV_API HRESULT AVDropTables()
 {
 	CLogTime lt;
-	AVSTRING pConnStr = GetConnString(CONN_VISUALISATION);
+	AVSTRING pConnStr = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -286,7 +261,7 @@ ADV_API HRESULT AVDropTables()
 
 ADV_API HRESULT AVWriteReinitBATFile()
 {
-	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
+	AVSTRING pVisConn = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
 
 	std::vector<AVULONG> ids;
 	CProjectSrv::QueryAvailIds(pVisConn, ids);
@@ -302,10 +277,10 @@ ADV_API HRESULT AVWriteReinitBATFile()
 ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 {
 	CLogTime lt;
-	AVSTRING pConsoleConn = GetConnString(CONN_CONSOLE);
-	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
-	AVSTRING pRepConn = GetConnString(CONN_REPORT);
-	AVSTRING pSimQueueConn = GetConnString(CONN_SIMQUEUE);
+	AVSTRING pConsoleConn = dbtools::GetConnString(dbtools::CONN_CONSOLE);
+	AVSTRING pVisConn = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
+	AVSTRING pRepConn = dbtools::GetConnString(dbtools::CONN_REPORT);
+	AVSTRING pSimQueueConn = dbtools::GetConnString(dbtools::CONN_SIMQUEUE);
 		
 	try
 	{
@@ -344,9 +319,9 @@ ADV_API HRESULT AVInit(AVULONG nSimulationId, AVULONG &nProjectID)
 ADV_API HRESULT AVProcess(AVULONG nProjectID)
 {
 	CLogTime ltall, lt;
-	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
-	AVSTRING pRepConn = GetConnString(CONN_REPORT);
-	AVSTRING pSimQueueConn = GetConnString(CONN_SIMQUEUE);
+	AVSTRING pVisConn = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
+	AVSTRING pRepConn = dbtools::GetConnString(dbtools::CONN_REPORT);
+	AVSTRING pSimQueueConn = dbtools::GetConnString(dbtools::CONN_SIMQUEUE);
 	
 	try
 	{
@@ -396,10 +371,10 @@ ADV_API HRESULT AVProcess(AVULONG nProjectID)
 ADV_API HRESULT AVRun(AVULONG nSimulationId)
 {
 	CLogTime ltall, lt;
-	AVSTRING pConsoleConn = GetConnString(CONN_CONSOLE);
-	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
-	AVSTRING pRepConn = GetConnString(CONN_REPORT);
-	AVSTRING pSimQueueConn = GetConnString(CONN_SIMQUEUE);
+	AVSTRING pConsoleConn = dbtools::GetConnString(dbtools::CONN_CONSOLE);
+	AVSTRING pVisConn = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
+	AVSTRING pRepConn = dbtools::GetConnString(dbtools::CONN_REPORT);
+	AVSTRING pSimQueueConn = dbtools::GetConnString(dbtools::CONN_SIMQUEUE);
 	
 	try
 	{
@@ -493,8 +468,8 @@ ADV_API HRESULT AVRun(AVULONG nSimulationId)
 ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)
 {
 	CLogTime lt;
-	AVSTRING pConsoleConn = GetConnString(CONN_CONSOLE);
-	AVSTRING pRepConn = GetConnString(CONN_REPORT);
+	AVSTRING pConsoleConn = dbtools::GetConnString(dbtools::CONN_CONSOLE);
+	AVSTRING pRepConn = dbtools::GetConnString(dbtools::CONN_REPORT);
 
 	try
 	{
@@ -542,8 +517,8 @@ ADV_API HRESULT AVSaveIFCMesh8(char *strIFCPathName, char *strMeshPathName)
 ADV_API HRESULT AVCreateTicket(AVSTRING strUserName, AVSTRING strBuf)
 {
 	CLogTime lt;
-	AVSTRING pUsersConn = GetConnString(CONN_USERS);
-	AVSTRING pVisConn = GetConnString(CONN_VISUALISATION);
+	AVSTRING pUsersConn = dbtools::GetConnString(dbtools::CONN_USERS);
+	AVSTRING pVisConn = dbtools::GetConnString(dbtools::CONN_VISUALISATION);
 	try
 	{
 		DWORD dwStatus = STATUS_OK;
@@ -556,3 +531,4 @@ ADV_API HRESULT AVCreateTicket(AVSTRING strUserName, AVSTRING strBuf)
 	}
 	STD_CATCH(L"AVCreateTicket()", 0);
 }
+

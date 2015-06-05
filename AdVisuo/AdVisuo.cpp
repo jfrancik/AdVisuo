@@ -542,6 +542,13 @@ int CAdVisuoApp::ExitInstance()
 // App command to run the dialog
 void CAdVisuoApp::OnAppAbout()
 {
+	if (m_pSplash)
+	{
+		m_pSplash->OnOK();
+		m_pSplash = NULL;
+		delete m_pSplash;
+	}
+
 	if (AVGetMainWnd()->IsFullScreen()) return;
 	CDlgHtAbout aboutDlg;
 	aboutDlg.DoModal();

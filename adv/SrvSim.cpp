@@ -60,7 +60,7 @@ HRESULT CSimSrv::Store(CDataBase db)
 		
 	// retrieve the Project ID
 	CDataBase::SELECT sel;
-	sel = db.select(L"SELECT SCOPE_IDENTITY()");
+	sel = db.select(L"SELECT @@identity");		// used to have SCOPE_IDENTITY() here but it doesn't work with ODBC
 	SetId(sel[(short)0]);
 
 	return S_OK;

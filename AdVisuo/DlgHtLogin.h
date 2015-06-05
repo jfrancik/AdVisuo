@@ -27,7 +27,7 @@ public:
 	CDlgHtLogin(CXMLRequest *pHttp = NULL, CString strServers = L"", CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDlgHtLogin();
 
-	virtual void OnGotoFailure(CString title, CString text);
+	virtual void OnGotoFailure(CString title, CString text, CString url);
 
 	void GotoLogin();
 	void GotoBadLogin();
