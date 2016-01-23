@@ -17,6 +17,7 @@ CProject::CProject()
 	m_nAVVersionId = 0;
 	m_nMaxTime = 0;
 	m_nTimeSaved = 0;
+	m_bRevitCompatibilityMode = false;
 }
 
 CProject::~CProject()

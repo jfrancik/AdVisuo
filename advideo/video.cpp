@@ -60,13 +60,13 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 		CAdVisuoLoader Loader(&Prj);	// The Project Loader
 		CEngine Engine;
 
-		db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 1, nIncrement++, idVideo);
+		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 1, nIncrement++, idVideo);
 
 		Engine.Create(::GetDesktopWindow(), NULL);
 		Prj.SetEngine(&Engine);
 		Loader.Start(strAdVisuoWebService.c_str(), &Http, idSimulation);
 
-		db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 2, nIncrement++, idVideo);
+		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 2, nIncrement++, idVideo);
 
 		if (!LoadStructure(Loader)) return -1;
 		if (!Build(Engine, Prj)) return -2;
@@ -74,7 +74,7 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 		if (!pCamera) return -3;
 		if (!LoadData(Loader, Engine, nTimeTo)) return -4;
 
-		db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 3, nIncrement++, idVideo);
+		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 3, nIncrement++, idVideo);
 
 		CAdVisuoRenderer renderer(&Engine, pCamera);
 
@@ -86,7 +86,7 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 			Prj.GetLiftGroup(i)->RestoreConfig();
 		}
 
-		db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 4, nIncrement++, idVideo);
+		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 4, nIncrement++, idVideo);
 
 		LONG t = 0;
 
@@ -112,7 +112,7 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 
 		t += 1000 / 25;
 
-		db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 5, nIncrement++, idVideo);
+		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 5, nIncrement++, idVideo);
 
 		LONG iCnt = 0;
 		for (t; t <= nTimeTo; t += Engine.GetAccel() * 1000 / 25)
@@ -132,7 +132,7 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 				// progress reporting...
 				wcout << L".";
 				int percent = 5 + 90 * (t - nTimeFrom) / (nTimeTo - nTimeFrom);
-				db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", percent, nIncrement++, idVideo);
+				if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", percent, nIncrement++, idVideo);
 			}
 
 		}
@@ -229,18 +229,37 @@ CCamera *BuildCamera(CEngine &Engine, CProjectVis &Prj, int nLiftGroup, int nCam
 
 	switch (nCamera)
 	{
-	case 0: pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT); break;
-	case 1: pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTREAR); break;
-	case 2: pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTFRONT); break;
-	case 3: pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTREAR); break;
-	case 4: pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_OUTSIDE, 0); break;
-	case 5: pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_OUTSIDE, 1); break;
-	case 6: pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT);
-	case 7: pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT);
+	case 0: 
+		pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT); 
+		pCamera->Pan(0.12f); pCamera->Move(-15, 10, 0);
+		break;
+	case 1: 
+		pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTREAR); 
+		pCamera->Pan(0.12f); pCamera->Move(-15, 10, 0);
+		break;
+	case 2: 
+		pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_RIGHTFRONT);
+		pCamera->Pan(-0.12f); pCamera->Move(15, 10, 0);
+		break;
+	case 3: 
+		pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTREAR); 
+		pCamera->Pan(-0.12f); pCamera->Move(15, 10, 0);
+		break;
+	case 4: 
+		pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_OUTSIDE, 0); 
+		break;
+	case 5: 
+		pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_OUTSIDE, 1); 
+		break;
+	case 6: 
+		pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, 0); pCamera->MoveTo(CAMLOC_LIFT, nLift); 
+		
+		break;
+	case 7: 
+		pCamera->MoveTo(CAMLOC_LIFTGROUP, nLiftGroup); pCamera->MoveTo(CAMLOC_STOREY, nStorey); pCamera->MoveTo(CAMLOC_LOBBY, ID_CAMERA_LEFTFRONT); 
+		break;
 	}
 	
-	pCamera->Pan(0.12f);
-	pCamera->Move(-15, 10, 0);
 
 	wcout << L"Cameras initialised, ready for rendering." << endl;
 

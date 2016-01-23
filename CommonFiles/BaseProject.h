@@ -20,6 +20,8 @@ class CProject : public dbtools::CCollection
 
 	std::vector<CLiftGroup*> m_groups;
 
+	bool m_bRevitCompatibilityMode;	// Revit 2015 compatibility mode (see ConstrLiftGroup why)
+
 public:
 	CProject();
 	virtual ~CProject();
@@ -31,6 +33,9 @@ public:
 	void SetSimulationId(AVULONG n)				{ m_nSimulationId = n; }
 	void SetId(AVULONG n)						{ m_nId = n; }
 	void SetAVVersionId(AVULONG n)				{ m_nAVVersionId = n; }
+
+	bool GetRevitCompatibilityMode()			{ return m_bRevitCompatibilityMode; }
+	void SetRevitCompatibilityMode(bool b)		{ m_bRevitCompatibilityMode = b; }
 
 	// Time-related functions
 	AVLONG GetMaxTime()							{ return m_nMaxTime; }	// simulation maximum time

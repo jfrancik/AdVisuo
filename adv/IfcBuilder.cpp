@@ -157,28 +157,26 @@ USES_CONVERSION;
 
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);
+	matrix._41 += -fScaleX * Width() / 2;
+	matrix._42 += -fScaleY * Depth() / 2;
+	matrix._43 += fScaleZ * Lower();
 	RotateY(matrix, fRotX);
 	RotateZ(matrix, fRot);
 	matrix._41 += base.x;
 	matrix._42 += -base.y;
 	matrix._43 += base.z;
 
-	// shift
-	double dShiftX = Width() / 4;
-	double dShiftY = Depth() / 4;
-	double dShiftZ = Lower();
-
 	CIFCRevitElem machine(pElem->GetBone(), &matrix);
 	machine.setInfo(pName, pName);
-	int hRes = machine.build(m_hRep, [dShiftX, dShiftY, dShiftZ, fScaleX, fScaleY, fScaleZ] (CIFCModelScanner::ITEM *pItem) 
+	int hRes = machine.build(m_hRep, [fScaleX, fScaleY, fScaleZ] (CIFCModelScanner::ITEM *pItem) 
 								{
 									if (pItem->type == CIFCModelScanner::ITEM::AGGREG && pItem->nIndex >= 0 && pItem->nType == sdaiREAL && pItem->pParent && pItem->pParent->type == CIFCModelScanner::ITEM::INSTANCE && strcmp(pItem->pParent->pstrAttrName, "Coordinates") == 0 && sdaiGetMemberCount(pItem->hAggreg) == 3)
 									{
 										switch (pItem->nIndex)
 										{
-										case 0: pItem->dvalue = (pItem->dvalue - dShiftX) * fScaleX; break;
-										case 1: pItem->dvalue = (pItem->dvalue - dShiftY) * fScaleY; break;
-										case 2: pItem->dvalue = (pItem->dvalue - dShiftZ) * fScaleZ; break;
+										case 0: pItem->dvalue = pItem->dvalue * fScaleX; break;
+										case 1: pItem->dvalue = pItem->dvalue * fScaleY; break;
+										case 2: pItem->dvalue = pItem->dvalue * fScaleZ; break;
 										}
 									}
 								});

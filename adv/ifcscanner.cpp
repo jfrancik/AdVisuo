@@ -54,14 +54,35 @@ void CIFCModelScanner::GetTypeValue(ITEM &item, std::function<void (int nType, V
 		}
 	}
 
+	// Logical Patches:
+	// Scale is REAL even if lookslike an INTEGER
+	// .?. is BOOLEAN even if lookslike STRING
+
 	item.value = NULL;
 	item.dvalue = 0;
 	item.nType = sdaiINSTANCE;		f(item.nType, &item.value); if (item.value) return;
 	item.nType = sdaiAGGR;			f(item.nType, &item.value); if (item.value) return;
 	
-	item.nType = sdaiINTEGER;		f(item.nType, &item.value); if (item.value) return;
-	item.nType = sdaiREAL;			f(item.nType, &item.dvalue); if (item.dvalue)	return;
-	item.nType = sdaiSTRING;		f(item.nType, &item.value); if (item.value) return;
+	item.nType = sdaiINTEGER;		f(item.nType, &item.value); 
+										if (item.value)
+										{
+											if (strcmp(item.pstrAttrName, "Scale") == 0)
+											{
+												item.nType = sdaiREAL;
+												item.dvalue = (int)item.value;
+											}
+											return;
+										}
+
+	item.nType = sdaiREAL;			f(item.nType, &item.dvalue); if (item.dvalue) return;
+	item.nType = sdaiSTRING;		f(item.nType, &item.value); 
+									if (item.value) 
+									{
+										char *pText = (char*)item.value;
+										if (pText[0] == '.' && pText[2] == '.' && pText[3] == '\0')
+											item.nType = sdaiBOOLEAN;
+										return;
+									}
 	item.nType = sdaiBOOLEAN;		f(item.nType, &item.value); if (item.value) return;
 	item.nType = sdaiENUM;			f(item.nType, &item.value); if (item.value) return;
 	item.nType = sdaiLOGICAL;		f(item.nType, &item.value); if (item.value) return;
@@ -485,11 +506,11 @@ void CIFCPointsElem::_buildCartesianPoint(int *hAggregPolygon, double dX, double
 {
 	int hInstCP = sdaiCreateInstanceBN(model, "IfcCartesianPoint");
 	int *fAggrCoord = sdaiCreateAggrBN(hInstCP, "Coordinates");
-	sdaiAppend((int)fAggrCoord, 9, (void*)(&dX));
-	sdaiAppend((int)fAggrCoord, 9, (void*)(&dY));
-	sdaiAppend((int)fAggrCoord, 9, (void*)(&dZ));
-	sdaiPutAttrBN(hInstCP, "Coordinates", 2, (void*)fAggrCoord); 
-	sdaiAppend((int)hAggregPolygon, 6, (void*)hInstCP);
+	sdaiAppend((int)fAggrCoord, sdaiREAL, (void*)(&dX));
+	sdaiAppend((int)fAggrCoord, sdaiREAL, (void*)(&dY));
+	sdaiAppend((int)fAggrCoord, sdaiREAL, (void*)(&dZ));
+	sdaiPutAttrBN(hInstCP, "Coordinates", sdaiAGGR, (void*)fAggrCoord); 
+	sdaiAppend((int)hAggregPolygon, sdaiINSTANCE, (void*)hInstCP);
 }
 
 double *CIFCPointsElem::_buildFace(int *hAggregCfsFaces, double *pData, AVULONG nData)
@@ -504,12 +525,13 @@ double *CIFCPointsElem::_buildFace(int *hAggregCfsFaces, double *pData, AVULONG 
 		_buildCartesianPoint(hAggregPolygon, pData[0], pData[1], pData[2]);
 	
 	// Finishing
-	sdaiPutAttrBN(hInstPolyLoop, "Polygon", 2, (void*)hAggregPolygon); 
-	sdaiPutAttrBN(hInstOuterBound, "Bound", 6, (void*)hInstPolyLoop); 
-	sdaiPutAttrBN(hInstOuterBound, "Orientation", 10, ".T."); 
-	sdaiAppend((int)hAggrBounds, 6, (void*)hInstOuterBound);
-	sdaiPutAttrBN(hInstFace, "Bounds", 2, (void*)hAggrBounds); 
-	sdaiAppend((int)hAggregCfsFaces, 6, (void*)hInstFace);
+	sdaiPutAttrBN(hInstPolyLoop, "Polygon", sdaiAGGR, (void*)hAggregPolygon); 
+	sdaiPutAttrBN(hInstOuterBound, "Bound", sdaiINSTANCE, (void*)hInstPolyLoop); 
+	BOOL _T_= TRUE;
+	sdaiPutAttrBN(hInstOuterBound, "Orientation", sdaiBOOLEAN, ".T.");//sdaiBOOLEAN, (void*)_T_); 
+	sdaiAppend((int)hAggrBounds, sdaiINSTANCE, (void*)hInstOuterBound);
+	sdaiPutAttrBN(hInstFace, "Bounds", sdaiAGGR, (void*)hAggrBounds); 
+	sdaiAppend((int)hAggregCfsFaces, sdaiINSTANCE, (void*)hInstFace);
 
 	return pData;
 }
@@ -522,8 +544,8 @@ double *CIFCPointsElem::_buildConnectedFaceSet(int *hAggregFbsmFaces, double *pD
 	for (AVULONG i = 0; i < nData; i++)
 		pData = _buildFace(hAggregCfsFaces, pData, pnPointsPerFace ? *pnPointsPerFace++ : 4);
 
-	sdaiPutAttrBN(hInstConFaceSets, "CfsFaces", 2, (void*)hAggregCfsFaces); 
-	sdaiAppend((int)hAggregFbsmFaces, 6, (void*)hInstConFaceSets);
+	sdaiPutAttrBN(hInstConFaceSets, "CfsFaces", sdaiAGGR, (void*)hAggregCfsFaces); 
+	sdaiAppend((int)hAggregFbsmFaces, sdaiINSTANCE, (void*)hInstConFaceSets);
 
 	return pData;
 }
@@ -540,50 +562,50 @@ int CIFCPointsElem::_build(AVULONG nFaceSets, AVULONG *pnFacesPerSet, double *pD
 	hAggreg1 = sdaiCreateAggrBN(hInstance0, "Representations");
 	hInstance2 = sdaiCreateInstanceBN(model, "IfcShapeRepresentation");
 	hInstance3 = sdaiCreateInstanceBN(model, "IfcGeometricRepresentationContext");
-	sdaiPutAttrBN(hInstance3, "ContextType", 10, "Model"); 
-	nVal = 3;  sdaiPutAttrBN(hInstance3, "CoordinateSpaceDimension", 7, &nVal); 
-	dVal = 0.000001; sdaiPutAttrBN(hInstance3, "Precision", 9, &dVal); 
+	sdaiPutAttrBN(hInstance3, "ContextType", sdaiSTRING, "Model"); 
+	nVal = 3;  sdaiPutAttrBN(hInstance3, "CoordinateSpaceDimension", sdaiINTEGER, &nVal); 
+	dVal = 0.000001; sdaiPutAttrBN(hInstance3, "Precision", sdaiREAL, &dVal); 
 	hInstance4 = sdaiCreateInstanceBN(model, "IfcAxis2Placement3D");
 	hInstance5 = sdaiCreateInstanceBN(model, "IfcCartesianPoint");
 	hAggreg6 = sdaiCreateAggrBN(hInstance5, "Coordinates");
-	dVal = 0.000000; sdaiAppend((int)hAggreg6, 9, (void*)(&dVal));
-	dVal = 0.000000; sdaiAppend((int)hAggreg6, 9, (void*)(&dVal));
-	dVal = 0.000000; sdaiAppend((int)hAggreg6, 9, (void*)(&dVal));
-	sdaiPutAttrBN(hInstance5, "Coordinates", 2, (void*)hAggreg6); 
-	sdaiPutAttrBN(hInstance4, "Location", 6, (void*)hInstance5); 
-	sdaiPutAttrBN(hInstance3, "WorldCoordinateSystem", 6, (void*)hInstance4); 
-	sdaiPutAttrBN(hInstance2, "ContextOfItems", 6, (void*)hInstance3); 
-	sdaiPutAttrBN(hInstance2, "RepresentationIdentifier", 10, "Body"); 
-	sdaiPutAttrBN(hInstance2, "RepresentationType", 10, "MappedRepresentation"); 
+	dVal = 0.000000; sdaiAppend((int)hAggreg6, sdaiREAL, (void*)(&dVal));
+	dVal = 0.000000; sdaiAppend((int)hAggreg6, sdaiREAL, (void*)(&dVal));
+	dVal = 0.000000; sdaiAppend((int)hAggreg6, sdaiREAL, (void*)(&dVal));
+	sdaiPutAttrBN(hInstance5, "Coordinates", sdaiAGGR, (void*)hAggreg6); 
+	sdaiPutAttrBN(hInstance4, "Location", sdaiINSTANCE, (void*)hInstance5); 
+	sdaiPutAttrBN(hInstance3, "WorldCoordinateSystem", sdaiINSTANCE, (void*)hInstance4); 
+	sdaiPutAttrBN(hInstance2, "ContextOfItems", sdaiINSTANCE, (void*)hInstance3); 
+	sdaiPutAttrBN(hInstance2, "RepresentationIdentifier", sdaiSTRING, "Body"); 
+	sdaiPutAttrBN(hInstance2, "RepresentationType", sdaiSTRING, "MappedRepresentation"); 
 	hAggreg3 = sdaiCreateAggrBN(hInstance2, "Items");
 	hInstance4 = sdaiCreateInstanceBN(model, "IfcMappedItem");
 	hInstance5 = sdaiCreateInstanceBN(model, "IfcRepresentationMap");
 	hInstance6 = sdaiCreateInstanceBN(model, "IfcAxis2Placement3D");
 	hInstance7 = sdaiCreateInstanceBN(model, "IfcCartesianPoint");
 	hAggreg8 = sdaiCreateAggrBN(hInstance7, "Coordinates");
-	dVal = 0.000000; sdaiAppend((int)hAggreg8, 9, (void*)(&dVal));
-	dVal = 0.000000; sdaiAppend((int)hAggreg8, 9, (void*)(&dVal));
-	dVal = 0.000000; sdaiAppend((int)hAggreg8, 9, (void*)(&dVal));
-	sdaiPutAttrBN(hInstance7, "Coordinates", 2, (void*)hAggreg8); 
-	sdaiPutAttrBN(hInstance6, "Location", 6, (void*)hInstance7); 
-	sdaiPutAttrBN(hInstance5, "MappingOrigin", 6, (void*)hInstance6); 
+	dVal = 0.000000; sdaiAppend((int)hAggreg8, sdaiREAL, (void*)(&dVal));
+	dVal = 0.000000; sdaiAppend((int)hAggreg8, sdaiREAL, (void*)(&dVal));
+	dVal = 0.000000; sdaiAppend((int)hAggreg8, sdaiREAL, (void*)(&dVal));
+	sdaiPutAttrBN(hInstance7, "Coordinates", sdaiAGGR, (void*)hAggreg8); 
+	sdaiPutAttrBN(hInstance6, "Location", sdaiINSTANCE, (void*)hInstance7); 
+	sdaiPutAttrBN(hInstance5, "MappingOrigin", sdaiINSTANCE, (void*)hInstance6); 
 	hInstance6 = sdaiCreateInstanceBN(model, "IfcShapeRepresentation");
 	hInstance7 = sdaiCreateInstanceBN(model, "IfcGeometricRepresentationContext");
-	sdaiPutAttrBN(hInstance7, "ContextType", 10, "Model"); 
-	nVal = 3;  sdaiPutAttrBN(hInstance7, "CoordinateSpaceDimension", 7, &nVal); 
-	dVal = 0.000001; sdaiPutAttrBN(hInstance7, "Precision", 9, &dVal); 
+	sdaiPutAttrBN(hInstance7, "ContextType", sdaiSTRING, "Model"); 
+	nVal = 3;  sdaiPutAttrBN(hInstance7, "CoordinateSpaceDimension", sdaiINTEGER, &nVal); 
+	dVal = 0.000001; sdaiPutAttrBN(hInstance7, "Precision", sdaiREAL, &dVal); 
 	hInstance8 = sdaiCreateInstanceBN(model, "IfcAxis2Placement3D");
 	hInstance9 = sdaiCreateInstanceBN(model, "IfcCartesianPoint");
 	hAggreg10 = sdaiCreateAggrBN(hInstance9, "Coordinates");
-	dVal = 0.000000; sdaiAppend((int)hAggreg10, 9, (void*)(&dVal));
-	dVal = 0.000000; sdaiAppend((int)hAggreg10, 9, (void*)(&dVal));
-	dVal = 0.000000; sdaiAppend((int)hAggreg10, 9, (void*)(&dVal));
-	sdaiPutAttrBN(hInstance9, "Coordinates", 2, (void*)hAggreg10); 
-	sdaiPutAttrBN(hInstance8, "Location", 6, (void*)hInstance9); 
-	sdaiPutAttrBN(hInstance7, "WorldCoordinateSystem", 6, (void*)hInstance8); 
-	sdaiPutAttrBN(hInstance6, "ContextOfItems", 6, (void*)hInstance7); 
-	sdaiPutAttrBN(hInstance6, "RepresentationIdentifier", 10, "Body"); 
-	sdaiPutAttrBN(hInstance6, "RepresentationType", 10, "SurfaceModel"); 
+	dVal = 0.000000; sdaiAppend((int)hAggreg10, sdaiREAL, (void*)(&dVal));
+	dVal = 0.000000; sdaiAppend((int)hAggreg10, sdaiREAL, (void*)(&dVal));
+	dVal = 0.000000; sdaiAppend((int)hAggreg10, sdaiREAL, (void*)(&dVal));
+	sdaiPutAttrBN(hInstance9, "Coordinates", sdaiAGGR, (void*)hAggreg10); 
+	sdaiPutAttrBN(hInstance8, "Location", sdaiINSTANCE, (void*)hInstance9); 
+	sdaiPutAttrBN(hInstance7, "WorldCoordinateSystem", sdaiINSTANCE, (void*)hInstance8); 
+	sdaiPutAttrBN(hInstance6, "ContextOfItems", sdaiINSTANCE, (void*)hInstance7); 
+	sdaiPutAttrBN(hInstance6, "RepresentationIdentifier", sdaiSTRING, "Body"); 
+	sdaiPutAttrBN(hInstance6, "RepresentationType", sdaiSTRING, "SurfaceModel"); 
 	hAggreg7 = sdaiCreateAggrBN(hInstance6, "Items");
 	hInstance8 = sdaiCreateInstanceBN(model, "IfcFaceBasedSurfaceModel");
 	hAggreg9 = sdaiCreateAggrBN(hInstance8, "FbsmFaces");
@@ -597,25 +619,25 @@ int CIFCPointsElem::_build(AVULONG nFaceSets, AVULONG *pnFacesPerSet, double *pD
 	}
 
 	// END OF THE FILE SEQ
-	sdaiPutAttrBN(hInstance8, "FbsmFaces", 2, (void*)hAggreg9); 
-	sdaiAppend((int)hAggreg7, 6, (void*)hInstance8);
-	sdaiPutAttrBN(hInstance6, "Items", 2, (void*)hAggreg7); 
-	sdaiPutAttrBN(hInstance5, "MappedRepresentation", 6, (void*)hInstance6); 
-	sdaiPutAttrBN(hInstance4, "MappingSource", 6, (void*)hInstance5); 
+	sdaiPutAttrBN(hInstance8, "FbsmFaces", sdaiAGGR, (void*)hAggreg9); 
+	sdaiAppend((int)hAggreg7, sdaiINSTANCE, (void*)hInstance8);
+	sdaiPutAttrBN(hInstance6, "Items", sdaiAGGR, (void*)hAggreg7); 
+	sdaiPutAttrBN(hInstance5, "MappedRepresentation", sdaiINSTANCE, (void*)hInstance6); 
+	sdaiPutAttrBN(hInstance4, "MappingSource", sdaiINSTANCE, (void*)hInstance5); 
 	hInstance5 = sdaiCreateInstanceBN(model, "IfcCartesianTransformationOperator3D");
 	hInstance6 = sdaiCreateInstanceBN(model, "IfcCartesianPoint");
 	hAggreg7 = sdaiCreateAggrBN(hInstance6, "Coordinates");
-	dVal = 0.000000; sdaiAppend((int)hAggreg7, 9, (void*)(&dVal));
-	dVal = 0.000000; sdaiAppend((int)hAggreg7, 9, (void*)(&dVal));
-	dVal = 0.000000; sdaiAppend((int)hAggreg7, 9, (void*)(&dVal));
-	sdaiPutAttrBN(hInstance6, "Coordinates", 2, (void*)hAggreg7); 
-	sdaiPutAttrBN(hInstance5, "LocalOrigin", 6, (void*)hInstance6); 
-	nVal = 1;  sdaiPutAttrBN(hInstance5, "Scale", 7, &nVal); 
-	sdaiPutAttrBN(hInstance4, "MappingTarget", 6, (void*)hInstance5); 
-	sdaiAppend((int)hAggreg3, 6, (void*)hInstance4);
-	sdaiPutAttrBN(hInstance2, "Items", 2, (void*)hAggreg3); 
-	sdaiAppend((int)hAggreg1, 6, (void*)hInstance2);
-	sdaiPutAttrBN(hInstance0, "Representations", 2, (void*)hAggreg1); 
+	dVal = 0.000000; sdaiAppend((int)hAggreg7, sdaiREAL, (void*)(&dVal));
+	dVal = 0.000000; sdaiAppend((int)hAggreg7, sdaiREAL, (void*)(&dVal));
+	dVal = 0.000000; sdaiAppend((int)hAggreg7, sdaiREAL, (void*)(&dVal));
+	sdaiPutAttrBN(hInstance6, "Coordinates", sdaiAGGR, (void*)hAggreg7); 
+	sdaiPutAttrBN(hInstance5, "LocalOrigin", sdaiINSTANCE, (void*)hInstance6); 
+	dVal = 1.0;  sdaiPutAttrBN(hInstance5, "Scale", sdaiREAL, &dVal);
+	sdaiPutAttrBN(hInstance4, "MappingTarget", sdaiINSTANCE, (void*)hInstance5); 
+	sdaiAppend((int)hAggreg3, sdaiINSTANCE, (void*)hInstance4);
+	sdaiPutAttrBN(hInstance2, "Items", sdaiAGGR, (void*)hAggreg3); 
+	sdaiAppend((int)hAggreg1, sdaiINSTANCE, (void*)hInstance2);
+	sdaiPutAttrBN(hInstance0, "Representations", sdaiAGGR, (void*)hAggreg1); 
 
 	return hInstance0;
 }

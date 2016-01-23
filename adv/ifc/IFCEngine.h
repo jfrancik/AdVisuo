@@ -1,41 +1,31 @@
-////////////////////////////////////////////////////////////////////////
-//  Author:  Peter Bonsma
-//  $Date: 2010-07-30 12:00:24 +0200 (Fri, 30 Jul 2010) $
-//  $Revision: 3330 $
-//  Project: IFC Engine Series (example using DLL)
 //
-//  This code may be used and edited freely,
-//  also for commercial projects in open and closed source software
+//  Author:  Peter Bonsma
+//  $Date: 1999-12-31 23:59:59 +0000 (Wed, 31 Jan 1999) $
+//  $Revision: 3999 $
+//  Project: IFC Engine DLL
 //
 //  In case of use of the DLL:
 //  be aware of license fee for use of this DLL when used commercially
-//  more info for commercial use:	peter.bonsma@tno.nl
+//  more info for commercial use:  peter.bonsma@rdf.bg
 //
-//  more info for using the IFC Engine DLL in other languages
-//	and creation of specific code examples:
-//									pim.vandenhelm@tno.nl
-//								    peter.bonsma@rdf.bg
-////////////////////////////////////////////////////////////////////////
 
-
-#if !defined(AFX_IFCENGINE_H__E61DCDC8_CF8E_48DD_A8A3_C62AB6E95095__INCLUDED_)
-#define AFX_IFCENGINE_H__E61DCDC8_CF8E_48DD_A8A3_C62AB6E95095__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
-//#ifndef __AFXWIN_H__
-//	#error include 'stdafx.h' before including this file for PCH
-//#endif
-
-#ifdef WIN64
-	#define int __int64
-#endif
-
-#ifdef __LP64__
+#ifdef _WINDOWS
+	#if defined(WIN64) || defined(__LP64__)
+		#define int __int64
+	#else
+		#define int __int32
+	#endif
+	#define int64_t __int64
+#else
 	#include <stdint.h>
-	#define int int64_t 
+
+	#if defined(WIN64) || defined(__LP64__)
+		#define int int64_t
+	#else
+		#define int int32_t
+	#endif
 #endif
 
 #ifdef _WINDOWS
@@ -52,12 +42,9 @@
 
 
 #ifdef __cplusplus
-    extern "C" {
+	extern "C" {
 #endif
 
-#ifndef __cplusplus
-    typedef char bool; /* define the boolean type not available in c */
-#endif
 
 #define		sdaiADB					1
 #define		sdaiAGGR				sdaiADB + 1
@@ -71,24 +58,25 @@
 #define		sdaiSTRING				sdaiREAL + 1
 #define		sdaiUNICODE				sdaiSTRING + 1
 #define		sdaiEXPRESSSTRING		sdaiUNICODE + 1
-
-//
-//	Note on sdaiSTRING and sdaiUNICODE
-//
-//	sdaiUNICODE
-//		this will convert all internal strings from/too unicode, the internal representation and what is written to the IFC file is mapped
-//			"\" will be converted into "\\" to enable basic parses to still interpret file paths
-//			"'" will be converted to \X1\hh\X0\ or \X2\00hh\X0\ to prevent basic interpreters to read files with strings containing these characters
-//
-//	sdaiSTRING
-//		this will leave all information as is in the IFC file, the rules are that char's ( int ) 32 to 126 (inclusive) will be kept
-//		all other strings will be converted to \X1\hh\X0\ or \X2\00hh\X0\ 
+#define		engiGLOBALID			sdaiEXPRESSSTRING + 1
 
 
-#define     sdaiARRAY               1
-#define     sdaiLIST                2
-#define     sdaiSET                 3
-#define     sdaiBAG                 4
+/*	Note on sdaiSTRING and sdaiUNICODE
+
+	sdaiUNICODE
+		this will convert all internal strings from/too unicode, the internal representation and what is written to the IFC file is mapped
+			"\" will be converted into "\\" to enable basic parses to still interpret file paths
+			"'" will be converted to \X1\hh\X0\ or \X2\00hh\X0\ to prevent basic interpreters to read files with strings containing these characters
+
+	sdaiSTRING
+		this will leave all information as is in the IFC file, the rules are that char's ( int ) 32 to 126 (inclusive) will be kept
+		all other strings will be converted to \X1\hh\X0\ or \X2\00hh\X0\		*/
+
+
+#define		sdaiARRAY				1
+#define		sdaiLIST				2
+#define		sdaiSET					3
+#define		sdaiBAG					4
 
 typedef	int				* SdaiAggr;
 typedef	void			* SdaiAttr;
@@ -99,532 +87,751 @@ typedef	int				SdaiPrimitiveType;
 typedef	int				* SdaiSet;
 typedef	char			* SdaiString;
 
-int DECL STDC setStringUnicode(
-										bool	unicode
+
+
+//
+//  Calls for File IO
+//
+void	DECL STDC	sdaiCloseModel(
+										int			model
+									);
+
+int		DECL STDC	sdaiCreateModelBN(
+										int			repository,
+										char		* fileName,
+										char		* schemaName
+									);
+
+int		DECL STDC	sdaiCreateModelBNUnicode(
+										int			repository,
+										void		* fileName,
+										void		* schemaName
+									);
+
+int		DECL STDC	sdaiOpenModelBN(
+										int			repository,
+										char		* fileName,
+										char		* schemaName
+									);
+
+int		DECL STDC	sdaiOpenModelBNUnicode(
+										int			repository,
+										void		* fileName,
+										void		* schemaName
+									);
+
+void	DECL STDC	sdaiSaveModelBN(
+										int			model,
+										char		* fileName
+									);
+
+void	DECL STDC	sdaiSaveModelBNUnicode(
+										int			model,
+										void		* fileName
+									);
+
+void	DECL STDC	sdaiSaveModelAsXmlBN(
+										int			model,
+										char		* fileName
+									);
+
+void	DECL STDC	sdaiSaveModelAsXmlBNUnicode(
+										int			model,
+										void		* fileName
+									);
+
+void	DECL STDC	sdaiSaveModelAsSimpleXmlBN(
+										int			model,
+										char		* fileName
+									);
+
+void	DECL STDC	sdaiSaveModelAsSimpleXmlBNUnicode(
+										int			model,
+										void		* fileName
+									);
+
+//
+//  Schema Reading
+//
+int		DECL STDC	sdaiGetEntity(
+										int			model,
+										char		* entityName
+									);
+
+void	DECL STDC	engiGetEntityArgumentName(
+										int			entity,
+										int			index,
+										int			valueType,
+										char		** argumentName
+									);
+
+void	DECL STDC	engiGetEntityArgumentType(
+										int			entity,
+										int			index,
+										int			* argumentType
+									);
+
+int		DECL STDC	engiGetEntityCount(
+										int			model
+									);
+
+int		DECL STDC	engiGetEntityElement(
+										int			model,
+										int			index
+									);
+
+int		DECL * STDC	sdaiGetEntityExtent(
+										int			model,
+										int			entity
 									);
 
-int DECL * STDC xxxxGetEntityAndSubTypesExtent(	//		SdaiSet
-										int		model,					//			SdaiModel
-										int		entity					//			SdaiEntity
+int		DECL * STDC	sdaiGetEntityExtentBN(
+										int			model,
+										char		* entityName
 									);
 
-int DECL * STDC xxxxGetEntityAndSubTypesExtentBN(	//		SdaiAggr
-										int		model,					//			SdaiModel
-										char	* entityName			//			SdaiString
+void	DECL STDC	engiGetEntityName(
+										int			entity,
+										int			valueType,
+										char		** entityName
 									);
 
-int DECL STDC xxxxIsKindOf(                       //      SdaiBoolean
-                                                 int instance, int entity); 
+int		DECL STDC	engiGetEntityNoArguments(
+										int			entity
+									);
+
+int		DECL STDC	engiGetEntityParent(
+										int			entity
+									);
+
+//
+//  Instance Header
+//
+int		DECL STDC	GetSPFFHeaderItem(
+										int			model,
+										int			itemIndex,
+										int			itemSubIndex,
+										int			valueType,
+										char		** value
+									);
+
+void	DECL STDC	SetSPFFHeader(
+										int			model,
+										char		* description,
+										char		* implementationLevel,
+										char		* name,
+										char		* timeStamp,
+										char		* author,
+										char		* organization,
+										char		* preprocessorVersion,
+										char		* originatingSystem,
+										char		* authorization,
+										char		* fileSchema
+									);
+
+int		DECL STDC	SetSPFFHeaderItem(
+										int			model,
+										int			itemIndex,
+										int			itemSubIndex,
+										int			valueType,
+										char		* value
+									);
+
+//
+//  Instance Reading
+//
+int		DECL STDC	sdaiGetADBType(
+										void		* ADB
+									);
+
+char	DECL * STDC	sdaiGetADBTypePath(
+										void		* ADB,
+										int			typeNameNumber
+									);
 
+void	DECL STDC	sdaiGetADBTypePathx(
+										void		* ADB,
+										int			typeNameNumber,
+										char		** result
+									);
 
+void	DECL STDC	sdaiGetADBValue(
+										void		* ADB,
+										int			valueType,
+										void		* value
+									);
 
-int DECL * STDC xxxxGetInstancesUsing(			//		SdaiAggr
-										int		instance				//			SdaiInstance
+void	DECL * STDC	engiGetAggrElement(
+										int			* aggregate,
+										int			elementIndex,
+										int			valueType,
+										void		* value
 									);
 
-int DECL STDC xxxxDeleteFromAggregation(	        //		SdaiAggr
-										int		instance,				//			SdaiInstance
-										int		* aggregate,			//			SdaiAggr
-										int		elementIndex			//			SdaiInteger
+void	DECL STDC	engiGetAggrType(
+										int			* aggregate,
+										int			* aggragateType
 									);
 
-void DECL * STDC xxxxGetAttrDefinitionByValue(	//		SdaiAttr
-										int		instance,				//			SdaiInstance
-										void	* value		            //			void (aggregation or instance)
+void	DECL * STDC	sdaiGetAttr(
+										int			instance,
+										void		* attribute,
+										int			valueType,
+										void		* value
 									);
 
-void DECL STDC xxxxGetAttrNameByIndex(          
-                                        int		instance,				//			SdaiInstance
-										int 	index,			        //			SdaiAttr
-                                        char**  name                    //          name
-                                    );
+void	DECL * STDC	sdaiGetAttrBN(
+										int			instance,
+										char		* attributeName,
+										int			valueType,
+										void		* value
+									);
 
-int DECL STDC xxxxOpenModelByStream(
-										int		repository,
-										void	* callback,
-										char	* schemaName
+void	DECL * STDC	sdaiGetAttrDefinition(
+										int			entity,
+										char		* attributeName
 									);
 
+int		DECL STDC	sdaiGetInstanceType(
+										int			instance
+									);
 
-int DECL STDC sdaiOpenModelBN(
-										int		repository,
-										char	* fileName,
-										char	* schemaName
+int		DECL STDC	sdaiGetMemberCount(
+										int			* aggregate
 									);
 
+int		DECL STDC	sdaiIsKindOf(
+										int			instance,
+										int			entity
+									);
 
-int DECL STDC sdaiCreateModelBN(
-										int		repository,
-										char	* fileName,
-										char	* schemaName
+//
+//  Instance Writing
+//
+void	DECL STDC	sdaiAppend(
+										int			list,
+										int			valueType,
+										void		* value
 									);
 
-int DECL STDC GetSPFFHeaderItem(
-										int		model,
-										int		itemIndex,
-										int		itemSubIndex,
-										int		valueType,
-                                        char    ** value
-                                    );
+void	DECL * STDC	sdaiCreateADB(
+										int			valueType,
+										void		* value
+									);
 
-int DECL STDC SetSPFFHeaderItem(
-										int		model,
-										int		itemIndex,
-										int		itemSubIndex,
-										int		valueType,
-                                        char    * value
-                                    );
+int		DECL * STDC	sdaiCreateAggr(
+										int			instance,
+										void		* attribute
+									);
 
-void DECL STDC SetSPFFHeader(
-										int		model,
-                                        char    * description,
-                                        char    * implementationLevel,
-                                        char    * name,
-                                        char    * timeStamp,
-                                        char    * author,
-                                        char    * organization,
-                                        char    * preprocessorVersion,
-                                        char    * originatingSystem,
-                                        char    * authorization,
-                                        char    * fileSchema
-                                    );
+int		DECL * STDC	sdaiCreateAggrBN(
+										int			instance,
+										char		* attributeName
+									);
 
-void DECL STDC sdaiSaveModelBN(
-										int		model,
-										char	* fileName
+int		DECL STDC	sdaiCreateInstance(
+										int			model,
+										int			entity
 									);
 
-void DECL STDC sdaiSaveModelAsXmlBN(
-										int		model,
-										char	* fileName
+int		DECL STDC	sdaiCreateInstanceBN(
+										int			model,
+										char		* entityName
 									);
 
-void DECL STDC sdaiCloseModel(
-										int		model
+void	DECL STDC	sdaiDeleteInstance(
+										int			instance
 									);
 
-void DECL STDC setPreProcessing(
-										int		model,
-										bool	on
+void	DECL STDC	sdaiPutADBTypePath(
+										void		* ADB,
+										int			pathCount,
+										char		* path
 									);
 
-void DECL STDC setPostProcessing(
-										int		model,
-										bool	on
+void	DECL STDC	sdaiPutAttr(
+										int			instance,
+										void		* attribute,
+										int			valueType,
+										void		* value
 									);
 
-void DECL * STDC engiGetAggrElement(				//		void*
-										int		* aggregate,			//			SdaiAggr
-										int		elementIndex,			//			SdaiInteger
-										int		valueType,				//			SdaiPrimitiveType
-										void	* pValue				//			void*
+void	DECL STDC	sdaiPutAttrBN(
+										int			instance,
+										char		* attributeName,
+										int			valueType,
+										void		* value
 									);
 
-int DECL STDC engiGetInstanceMetaInfo(			//		void*
-										int		* instance,				//			SdaiAppInstance
-										int		* localId,				//			...
-										char	** className,			//			..
-										char	** classNameUC			//			...*
+void	DECL STDC	engiSetComment(
+										int			instance,
+										char		* comment
 									);
 
-void DECL STDC engiGetEntityName(
-										int		entity,					//			...
-										char	** className			//			..
+//
+//  Controling Calls
+//
+void	DECL STDC	circleSegments(
+										int			circles,
+										int			smallCircles
 									);
 
-int DECL STDC engiGetEntityParent(
-										int		entity					//			...
+void	DECL STDC	cleanMemory(
+										int			model,
+										int			mode
 									);
 
-void DECL STDC engiGetEntityProperty(
-										int		entity,					//			...
-										int		index,					//			...
-										char	** propertyName,		//			...
-										int		* optional,				//			...
-										int		* type,					//			...
-										int		* array,				//			...
-										int		* set,					//			...
-										int		* list,					//			...
-										int		* bag,					//			...
-										int		* min,					//			...
-										int		* max,					//			...
-										int		* referenceEntity,		//			...
-										int		* inverse				//			...
+int		DECL STDC	internalGetP21Line(
+										int			instance
 									);
 
-int DECL STDC engiGetInstanceLocalId(				//
-										int		instance				//			SdaiAppInstance
+int		DECL STDC	internalGetInstanceFromP21Line(
+										int			model,
+										int			P21Line
 									);
 
-char DECL * STDC engiGetInstanceClassInfo(		//
-										int		instance				//			SdaiAppInstance
+int		DECL STDC	setStringUnicode(
+										int			unicode
 									);
 
-char DECL * STDC engiGetInstanceClassInfoUC(		//
-										int		instance				//			SdaiAppInstance
+//
+//  Geometry Interaction
+//
+int		DECL STDC	initializeModellingInstance(
+										int			model,
+										int			* noVertices,
+										int			* noIndices,
+										double		scale,
+										int			instance
 									);
-	
 
-void DECL STDC sdaiAppend(						//		void
-										int		list,					//			SdaiList
-										int		valueType,				//			SdaiPrimitiveType
-										void	* value					//			void*
+int		DECL STDC	finalizeModelling(
+										int			model,
+										float		* vertices,
+										int			* indices,
+										int			FVF
 									);
 
-void DECL STDC sdaiBeginning(						//		void
-										int		iterator				//			SdaiIterator
+int		DECL STDC	getInstanceInModelling(
+										int			model,
+										int			instance,
+										int			mode,
+										int			* startVertex,
+										int			* startIndex,
+										int			* primitiveCount
 									);
 
-void DECL * STDC sdaiCreateADB(					//		void*
-										int		valueType,				//			SdaiPrimitive
-										void	* value					//			void*
+void	DECL STDC	setVertexOffset(
+										int			model,
+										double		x,
+										double		y,
+										double		z
 									);
 
-int DECL * STDC sdaiCreateAggr(					//		SdaiAggr
-										int		instance,				//			SdaiAppInstance
-										void	* attribute				//			SdaiAttr
+void	DECL STDC	setFilter(
+										int			model,
+										int			setting,
+										int			mask
 									);
 
-int DECL * STDC sdaiCreateAggrBN(					//		SdaiAggr
-										int		instance,				//			SdaiAppInstance
-										char	* attributeName			//			SdaiString
+void	DECL STDC	setFormat(
+										int			model,
+										int			setting,
+										int			mask
 									);
 
-int DECL STDC sdaiCreateInstance(					//		SdaiAppInstance
-										int		model,					//			SdaiModel
-										int		entity					//			SdaiEntity
+int		DECL STDC	getConceptualFaceCnt(
+										int			instance
 									);
 
-int DECL STDC sdaiCreateInstanceEI(					//		SdaiAppInstance
-										int		model,					//			SdaiModel
-										int		entity,					//			SdaiEntity
-										int		express_id				//			
+int		DECL STDC	getConceptualFaceEx(
+										int			instance,
+										int			index,
+										int			* startIndexTriangles,
+										int			* noIndicesTriangles,
+										int			* startIndexLines,
+										int			* noIndicesLines,
+										int			* startIndexPoints,
+										int			* noIndicesPoints,
+										int			* startIndexFacesPolygons,
+										int			* noIndicesFacesPolygons,
+										int			* startIndexConceptualFacePolygons,
+										int			* noIndicesConceptualFacePolygons
 									);
 
-int DECL STDC sdaiCreateInstanceBN(				//		SdaiAppInstance
-										int		model,					//			SdaiModel
-										char	* entityName			//			SdaiString
+//
+//  Not documented API calls
+//
+int		DECL * STDC	xxxxGetEntityAndSubTypesExtent(
+										int			model,
+										int			entity
 									);
 
-int DECL STDC sdaiCreateInstanceBNEI(				//		SdaiAppInstance
-										int		model,					//			SdaiModel
-										char	* entityName,			//			SdaiString
-										int		express_id				//			
+int		DECL * STDC	xxxxGetEntityAndSubTypesExtentBN(
+										int			model,
+										char		* entityName
 									);
 
-void DECL * STDC sdaiCreateIterator(				//		SdaiIterator
-										int		* aggregate				//			SdaiAggr
+int		DECL * STDC	xxxxGetInstancesUsing(
+										int			instance
 									);
 
-void DECL STDC sdaiDeleteInstance(				//		void
-										int		instance				//			SdaiAppInstance
+int		DECL STDC	xxxxDeleteFromAggregation(
+										int			instance,
+										int			* aggregate,
+										int			elementIndex
 									);
 
-void DECL STDC sdaiDeleteIterator(				//		void
-										int		iterator				//			SdaiIterator
+void	DECL * STDC	xxxxGetAttrDefinitionByValue(
+										int			instance,
+										void		* value
 									);
 
-void DECL STDC sdaiEnd(							//		void
-										int		iterator				//			SdaiIterator
+void	DECL STDC	xxxxGetAttrNameByIndex(
+										int			instance,
+										int			index,
+										char		** name
 									);
 
-int DECL STDC sdaiErrorQuery(						//		SdaiErrorCode
+int		DECL STDC	xxxxOpenModelByStream(
+										int			repository,
+										void		* callback,
+										char		* schemaName
 									);
 
-int DECL  STDC sdaiGetADBType(				//		void
-										void	* ADB	 				//			sdaiADB
+void	DECL * STDC	engiGetAggrElement_I(
+										int			* aggregate,
+										int			elementIndex,
+										int			valueType,
+										void		* value
 									);
 
-char DECL * STDC sdaiGetADBTypePath(				//		void
-										void	* ADB,	 				//			sdaiADB
-										int		typeNameNumber			//			int
+int		DECL STDC	engiGetInstanceMetaInfo(
+										int			* instance,
+										int			* localId,
+										char		** entityName,
+										char		** entityNameUC
 									);
 
-void DECL STDC sdaiGetADBValue(				//		void
-										void	* ADB,	 				//			sdaiADB
-										int		valueType,				//			SdaiPrimitiveType
-										void	* value					//			void*
+void	DECL STDC	engiGetEntityProperty(
+										int			entity,
+										int			index,
+										char		** propertyName,
+										int			* optional,
+										int			* type,
+										int			* _array,
+										int			* set,
+										int			* list,
+										int			* bag,
+										int			* min,
+										int			* max,
+										int			* referenceEntity,
+										int			* inverse
 									);
 
-void DECL * STDC sdaiGetAggrByIterator(			//		void*
-										int		iterator,				//			SdaiIterator
-										int		valueType,				//			SdaiPrimitiveType
-										void	* value					//			void*
+int		DECL STDC	engiGetInstanceLocalId(
+										int			instance
 									);
 
-void DECL * STDC sdaiGetAttr(						//		void*
-										int		instance,				//			SdaiInstance
-										void	* attribute,			//			SdaiAttr
-										int		valueType,				//			SdaiPrimitiveType
-										void	* value					//			void*
+void	DECL STDC	engiGetInstanceClassInfoEx(
+										int			instance,
+										void		** classInfo
 									);
 
-void DECL * STDC	sdaiGetAttrBN(					//		void*
-										int		instance,				//			SdaiInstance
-										char	* attributeName,		//			SdaiString
-										int		valueType,				//			SdaiPrimitiveType
-										void	* value					//			void*
+char	DECL * STDC	engiGetInstanceClassInfo(
+										int			instance
 									);
 
-void DECL * STDC sdaiGetAttrDefinition(			//		SdaiAttr
-										int		entity,					//			SdaiEntity
-										char	* attributeName			//			SdaiString
+char	DECL * STDC	engiGetInstanceClassInfoUC(
+										int			instance
 									);
 
-int DECL STDC	sdaiGetEntity(						//		SdaiEntity
-										int		model,					//			SdaiModel
-										char	* entityName			//			SdaiString
+void	DECL STDC	sdaiBeginning(
+										int			iterator
 									);
 
-int DECL * STDC sdaiGetEntityExtent(				//		SdaiAggr
-										int		model,					//			SdaiModel
-										int		entity					//			SdaiEntity
+int		DECL STDC	sdaiCreateInstanceEI(
+										int			model,
+										int			entity,
+										int			express_id
 									);
 
-int DECL * STDC sdaiGetEntityExtentBN(			//		SdaiAggr
-										int		model,					//			SdaiModel
-										char	* entityName			//			SdaiString
+int		DECL STDC	sdaiCreateInstanceBNEI(
+										int			model,
+										char		* entityName,
+										int			express_id
 									);
 
-int DECL STDC sdaiGetInstanceType(				//		SdaiEntity
-										int		instance				//			SdaiInstance
+void	DECL * STDC	sdaiCreateIterator(
+										int			* aggregate
 									);
 
-int	DECL STDC	sdaiGetMemberCount(					//		SdaiInteger
-										int		* aggregate				//			SdaiAggr
+void	DECL STDC	sdaiDeleteIterator(
+										int			iterator
 									);
 
-int DECL STDC sdaiIsInstanceOf(					//		SdaiBoolean
-										int		instance,				//			SdaiInstance
-										int		entity					//			SdaiEntity
+void	DECL STDC	sdaiEnd(
+										int			iterator
 									);
 
-int DECL STDC sdaiIsInstanceOfBN(				//		SdaiBoolean
-										int		instance,				//			SdaiInstance
-										char	* entityName			//			SdaiString
+int		DECL STDC	sdaiErrorQuery(
 									);
 
-int DECL STDC sdaiNext(							//		SdaiBoolean
-										int		iterator				//			SdaiIterator
+void	DECL * STDC	sdaiGetAggrByIterator(
+										int			iterator,
+										int			valueType,
+										void		* value
 									);
 
-void DECL STDC sdaiPrepend(						//		void
-										int		list,					//			SdaiList
-										int		valueType,				//			SdaiPrimitiveType
-										void	* value					//			void*
+int		DECL STDC	sdaiIsInstanceOf(
+										int			instance,
+										int			entity
 									);
 
-int DECL STDC sdaiPrevious(						//		SdaiBoolean
-										int		iterator				//			SdaiIterator
+int		DECL STDC	sdaiIsInstanceOfBN(
+										int			instance,
+										char		* entityName
 									);
 
-void DECL STDC sdaiPutADBTypePath(				//		void
-										void	* ADB,					//			sdaiADB
-										int		pathCount,				//			int
-										char	* path					//			char*
+int		DECL STDC	sdaiNext(
+										int			iterator
 									);
 
-void DECL STDC sdaiPutAggrByIterator(				//		void
-										int		iterator,				//			SdaiIterator
-										int		valueType,				//			SdaiPrimitiveType
-										void	* value					//			void*
+void	DECL STDC	sdaiPrepend(
+										int			list,
+										int			valueType,
+										void		* value
 									);
 
-void DECL STDC sdaiPutAttr(						//		void
-										int		instance,				//			SdaiInstance
-										void	* attribute,			//			SdaiAttr
-										int		valueType,				//			SdaiPrimitive
-										void	* value					//			void*
+int		DECL STDC	sdaiPrevious(
+										int			iterator
 									);
 
-void DECL STDC sdaiPutAttrBN(						//		void
-										int		instance,				//			SdaiInstance
-										char	* attributeName,		//			SdaiString
-										int		valueType,				//			SdaiPrimitive
-										void	* value					//			void*
+void	DECL STDC	sdaiPutAggrByIterator(
+										int			iterator,
+										int			valueType,
+										void		* value
 									);
 
-int DECL STDC sdaiTestAttr(						//		SdaiBoolean
-										int		instance,				//			SdaiInstance
-										void	* attribute				//			SdaiAttr
+int		DECL STDC	sdaiTestAttr(
+										int			instance,
+										void		* attribute
 									);
 
-int DECL STDC sdaiTestAttrBN(					//		SdaiBoolean
-										int		instance,				//			SdaiInstance
-										char	* attributeName			//			SdaiString
+int		DECL STDC	sdaiTestAttrBN(
+										int			instance,
+										char		* attributeName
 									);
 
+int		DECL STDC	engiGetAttrType(
+										int			instance,
+										void		* attribute
+									);
 
-int DECL STDC initializeModelling(
-										int		model,
-										int		* noVertices,
-										int		* noIndices,
-										double	scale
+int		DECL STDC	engiGetAttrTypeBN(
+										int			instance,
+										char		* attributeName
 									);
 
-int DECL STDC initializeModellingInstance(
-										int		model,
-										int		* noVertices,
-										int		* noIndices,
-										double	scale,
-										int		instance				//			SdaiInstance
+int		DECL STDC	initializeModelling(
+										int			model,
+										int			* noVertices,
+										int			* noIndices,
+										double		scale
 									);
 
-int DECL STDC initializeModellingInstanceEx(
-										int		model,
-										int		* noVertices,
-										int		* noIndices,
-										double	scale,
-										int		instance,				//			SdaiInstance
-										int		instanceList			//			SdaiInstance
+int		DECL STDC	initializeModellingInstanceEx(
+										int			model,
+										int			* noVertices,
+										int			* noIndices,
+										double		scale,
+										int			instance,
+										int			instanceList
 									);
 
-int DECL STDC finalizeModelling(
-										int		model,
-										float	* pVertices,
-										int		* pIndices,
-										int		FVF
+void	DECL STDC	exportModellingAsOWL(
+										int			model,
+										char		* fileName
 									);
 
-int DECL STDC getInstanceInModelling(
-										int		model,
-										int		instance,
-										int		mode,
-										int		* startVertex,
-										int		* startIndex,
-										int		* primitiveCount
+void	DECL STDC	owlGetModel(
+										int			model,
+										int64_t		* owlModel
 									);
 
-int DECL STDC getInstanceDerivedPropertiesInModelling(
-										int		model,
-										int		instance,
-										double	* height,
-										double	* width,
-										double	* thickness
+void	DECL STDC	owlGetInstance(
+										int			model,
+										int			instance,
+										int64_t		* owlInstance
 									);
 
-int DECL STDC getInstanceDerivedBoundingBox(
-										int		model,
-										int		instance,
-										double	* Ox,
-										double	* Oy,
-										double	* Oz,
-										double	* Vx,
-										double	* Vy,
-										double	* Vz
+void	DECL STDC	owlBuildInstance(
+										int			model,
+										int			instance,
+										int64_t		* owlInstance
 									);
 
-int DECL STDC getInstanceDerivedTransformationMatrix(
-										int		model,
-										int		instance,
-										double	* _11,
-										double	* _12,
-										double	* _13,
-										double	* _14,
-										double	* _21,
-										double	* _22,
-										double	* _23,
-										double	* _24,
-										double	* _31,
-										double	* _32,
-										double	* _33,
-										double	* _34,
-										double	* _41,
-										double	* _42,
-										double	* _43,
-										double	* _44
+void	DECL STDC	owlBuildInstances(
+										int			model,
+										int			instance,
+										int64_t		* owlInstanceComplete,
+										int64_t		* owlInstanceSolids,
+										int64_t		* owlInstanceVoids
 									);
 
-void DECL STDC circleSegments(
-										int		circles,
-										int		smallCircles
+void	DECL STDC	owlGetMappedItem(
+										int			model,
+										int			instance,
+										int64_t		* owlInstance,
+										double		* transformationMatrix
 									);
 
-int DECL STDC getTimeStamp(
-										int		model
+int		DECL STDC	getInstanceDerivedPropertiesInModelling(
+										int			model,
+										int			instance,
+										double		* height,
+										double		* width,
+										double		* thickness
 									);
 
-char DECL * STDC getChangedData(
-										int		model,
-										int		* timeStamp
+int		DECL STDC	getInstanceDerivedBoundingBox(
+										int			model,
+										int			instance,
+										double		* Ox,
+										double		* Oy,
+										double		* Oz,
+										double		* Vx,
+										double		* Vy,
+										double		* Vz
 									);
 
-void DECL STDC setChangedData(
-										int		model,
-										int		* timeStamp,
-										char	* changedData
+int		DECL STDC	getInstanceDerivedTransformationMatrix(
+										int			model,
+										int			instance,
+										double		* _11,
+										double		* _12,
+										double		* _13,
+										double		* _14,
+										double		* _21,
+										double		* _22,
+										double		* _23,
+										double		* _24,
+										double		* _31,
+										double		* _32,
+										double		* _33,
+										double		* _34,
+										double		* _41,
+										double		* _42,
+										double		* _43,
+										double		* _44
 									);
 
-void DECL * STDC internalGetBoundingBox(
-										int		model,
-										int		instance
+int		DECL STDC	getTimeStamp(
+										int			model
 									);
 
-void DECL * STDC internalGetCenter(
-										int		model,
-										int		instance
+char	DECL * STDC	getChangedData(
+										int			model,
+										int			* timeStamp
 									);
 
-void DECL STDC internalSetLink(
-										int		instance,				//			SdaiInstance
-										char	* attributeName,		//			SdaiString
-										int		linked_id
+void	DECL STDC	setChangedData(
+										int			model,
+										int			* timeStamp,
+										char		* changedData
 									);
 
-void DECL STDC internalAddAggrLink(				//		void
-										int		list,					//			SdaiList
-										int		linked_id
+void	DECL * STDC	internalGetBoundingBox(
+										int			model,
+										int			instance
 									);
 
-char DECL * STDC sdaiGetStringAttrBN(int instance, char * attributeName);
+void	DECL * STDC	internalGetCenter(
+										int			model,
+										int			instance
+									);
 
-int DECL STDC sdaiGetInstanceAttrBN(int instance, char * attributeName);
+void	DECL STDC	internalSetLink(
+										int			instance,
+										char		* attributeName,
+										int			linked_id
+									);
 
-int DECL STDC sdaiGetAggregationAttrBN(int instance, char * attributeName);
+void	DECL STDC	internalAddAggrLink(
+										int			list,
+										int			linked_id
+									);
 
-int	DECL STDC internalGetP21Line(
-										int		instance				//			SdaiAppInstance
+char	DECL * STDC	sdaiGetStringAttrBN(
+										int			instance,
+										char		* attributeName
 									);
 
-void DECL STDC engiGetNotReferedAggr(int model, int * pValue);
+int		DECL STDC	sdaiGetInstanceAttrBN(
+										int			instance,
+										char		* attributeName
+									);
 
-void DECL STDC engiGetAttributeAggr(int instance, int * pValue);
+int		DECL STDC	sdaiGetAggregationAttrBN(
+										int			instance,
+										char		* attributeName
+									);
 
-void DECL STDC engiGetAggrUnknownElement(		//		void
-										int		* aggregate,			//			SdaiAggr
-										int		elementIndex,			//			SdaiInteger
-										int		* valueType,			//			SdaiPrimitiveType
-										void	* pValue				//			void*
+void	DECL STDC	engiGetNotReferedAggr(
+										int			model,
+										int			* value
 									);
 
-int DECL STDC sdaiIsKindOf(int instance, int entity);
+void	DECL STDC	engiGetAttributeAggr(
+										int			instance,
+										int			* value
+									);
 
-int DECL * STDC sdaiFindInstanceUsers(int instance, int* domain, int* resultList);
+void	DECL STDC	engiGetAggrUnknownElement(
+										int			* aggregate,
+										int			elementIndex,
+										int			* valueType,
+										void		* value
+									);
 
-int DECL * STDC sdaiFindInstanceUsedIn(int instance, int* domain, int* resultList);
+int		DECL * STDC	sdaiFindInstanceUsers(
+										int			instance,
+										int			* domain,
+										int			* resultList
+									);
 
-int DECL STDC sdaiplusGetAggregationType(int instance, int *aggregation);
+int		DECL * STDC	sdaiFindInstanceUsedIn(
+										int			instance,
+										int			* domain,
+										int			* resultList
+									);
 
-int DECL STDC engiGetEntityNoArguments(int entity);
+int		DECL STDC	sdaiplusGetAggregationType(
+										int			instance,
+										int			* aggregation
+									);
 
-char DECL * STDC engiGetEntityArgumentName(int entity, int index);
+int		DECL STDC	iterateOverInstances(
+										int			model,
+										int			instance,
+										int			* entity,
+										void		* entityName
+									);
 
-int DECL STDC engiGetEntityArgumentType(int entity, int index);
+int		DECL STDC	iterateOverProperties(
+										int			entity,
+										int			index
+									);
 
-#undef DECL 
-#undef STDC  
+void	DECL STDC	createGeometryConversion(
+										int			instance,
+										int64_t		* owlInstance
+									);
 
 #ifdef __cplusplus
-}
+	}
 #endif
 
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-
-#ifdef __LP64__
-	#undef int 
-#endif
-
-#endif // !defined(AFX_IFCENGINE_H__E61DCDC8_CF8E_48DD_A8A3_C62AB6E95095__INCLUDED_)
-
+#undef DECL
+#undef STDC
+#undef int

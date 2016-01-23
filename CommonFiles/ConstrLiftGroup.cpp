@@ -577,7 +577,11 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 		// Create skeletal elements (the deck)
 		AVULONG nGroundFloorIndex = GetLiftGroup()->GetBasementStoreyCount();
 		AVFLOAT fLowerDeckHeight = GetLiftGroup()->GetStorey(nGroundFloorIndex + iDeck)->GetLevel() - GetLiftGroup()->GetStorey(nGroundFloorIndex)->GetLevel();
-		m_ppDecks[iDeck] = GetProject()->CreateElement(GetLiftGroup(), m_pElem, CElem::ELEM_DECK, L"Deck_%d", iDeck, Vector(0, 0, fLowerDeckHeight)); 
+
+		if (GetProject()->GetRevitCompatibilityMode())
+			m_ppDecks[iDeck] = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetElement(), CElem::ELEM_DECK, L"Deck_%d", iDeck, GetShaft()->GetLiftPos(nStartingStorey) + Vector(0, 0, fLowerDeckHeight)); 
+		else
+			m_ppDecks[iDeck] = GetProject()->CreateElement(GetLiftGroup(), m_pElem, CElem::ELEM_DECK, L"Deck_%d", iDeck, Vector(0, 0, fLowerDeckHeight)); 
 
 		AVULONG nIndex = MAKELONG(iShaft, iDeck);
 		BOX box = GetShaft()->GetBoxCar() - GetShaft()->GetLiftPos(0);

@@ -343,6 +343,12 @@ int CIFCBeam::build()
 	sdaiPutAttrBN(ifcInstance, "Name", sdaiSTRING, strName);
 	sdaiPutAttrBN(ifcInstance, "Description", sdaiSTRING, strDescription);
 
+	if (fWidth < 0)
+	{
+		fWidth = -fWidth;
+		pMatrix->_42 += fWidth;
+	}
+
 	ifcPlacementInstance = buildLocalPlacementInstance(pMatrix, pParent->getPlacementInstance());
 	sdaiPutAttrBN(ifcInstance, "ObjectPlacement", sdaiINSTANCE, (void*) ifcPlacementInstance);
 

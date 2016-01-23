@@ -124,7 +124,7 @@ int buildOpeningBoundInstance(VECTOR3DSTRUCT  *pVector)
 
 	ifcFaceBoundInstance = sdaiCreateInstanceBN(IFCGetModel(), "IFCFACEBOUND");
 	sdaiPutAttrBN(ifcFaceBoundInstance, "Bound", sdaiINSTANCE, (void *) ifcPolyLoopInstance);
-	sdaiPutAttrBN(ifcFaceBoundInstance, "Orientation", sdaiENUM, "T");
+	sdaiPutAttrBN(ifcFaceBoundInstance, "Orientation", sdaiBOOLEAN, ".T.");
 
 	return ifcFaceBoundInstance;
 }
@@ -165,7 +165,7 @@ int buildFaceOuterBoundInstance(VECTOR3DSTRUCT *pVector)
 
 	ifcFaceOuterBoundInstance = sdaiCreateInstanceBN(IFCGetModel(), "IFCFACEOUTERBOUND");
 	sdaiPutAttrBN(ifcFaceOuterBoundInstance, "Bound", sdaiINSTANCE, (void *) ifcPolyLoopInstance);
-	sdaiPutAttrBN(ifcFaceOuterBoundInstance, "Orientation", sdaiENUM, "T");
+	sdaiPutAttrBN(ifcFaceOuterBoundInstance, "Orientation", sdaiBOOLEAN, ".T.");
 
 	return ifcFaceOuterBoundInstance;
 }

@@ -1062,7 +1062,7 @@ END
 // HTML
 //
 
-IDR_HTML_LOGIN          HTML                    "C:\\Users\\Jarek\\Documents\\_projects\\AdVisuo\\AdVisuo\\html/login.html"
+IDR_HTML_LOGIN          HTML                    "html/login.html"
 IDR_HTML_SPLASH         HTML                    "html/splash.html"
 IDR_HTML_ABOUT          HTML                    "html/about.html"
 IDR_HTML_SELECT         HTML                    "html/select.html"

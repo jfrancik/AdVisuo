@@ -480,6 +480,7 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)
 		h = prj.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
+		prj.SetRevitCompatibilityMode(true);
 		prj.Construct();
 
 		h = prj.SaveAsIFC(strIFCPathName);
