@@ -1,15 +1,14 @@
 // advideo.cpp : Defines the exported functions for the DLL application.
 #include "stdafx.h"
-#include "video.h"
 #include <windows.h>
 #include <iostream>
 #include "../CommonFiles/DBTools.h"
 #include "../CommonFiles/DBConnStr.h"
-#include "../AdVisuo/AdVisuoLoader.h"
 #include "../AdVisuo/VisProject.h"
 #include "../AdVisuo/VisSim.h"
 #include "../AdVisuo/Camera.h"
 #include "../AdVisuo/AdVisuoRenderer.h"
+#include "Video.h"
 #include "Engine.h"
 
 #include <iostream>
@@ -24,7 +23,7 @@ using namespace dbtools;
 
 std::wstring _stdPathModels;
 
-ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, ULONG nCamera, ULONG nLift, ULONG nFloor, ULONG nSize, ULONG _nTimeFrom, ULONG _nDuration, LPCTSTR pFileName)
+ADVIDEO_API LONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, ULONG nCamera, ULONG nLift, ULONG nFloor, ULONG nSize, ULONG _nTimeFrom, ULONG _nDuration, LPCTSTR pFileName)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	int nIncrement = 0;	 // alive control
@@ -32,54 +31,49 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 	try
 	{
 		// Registry-based data
-		wstring strSimQueueConnection = GetConnString(CONN_SIMQUEUE);  // -- strictly to report progress!
-		wstring strAdVisuoWebService;		// AdVisuo Web Service
+		wstring strSimQueueConnection = GetConnString(CONN_SIMQUEUE);			// visualisation database connection string
+		wstring strVisualisationConnection = GetConnString(CONN_VISUALISATION);	// -- strictly to report progress!
 
-		HKEY hRegKey = NULL; 
-		HRESULT h = RegOpenKey(HKEY_LOCAL_MACHINE, L"Software\\LerchBates\\AdVisuo\\ServerModule", &hRegKey); if (h != 0) return -10;
-		BYTE buf[1024];
-		DWORD type, size = 1024;
-		h = RegQueryValueEx(hRegKey, L"AdVisuoWebService", 0, &type, buf, &size); if (h != 0) return -10;
-		strAdVisuoWebService = (LPCTSTR)buf;
-		h = RegCloseKey(hRegKey); if (h != 0) return -10;
-
-		// open database
-		CDataBase db(strSimQueueConnection.c_str());
-
-		// initialise connection
-		CXMLRequest Http;
-		Http.create();
-		Http.set_authorisation_data(L"jarekf", L"A4TosNS1iOjD4Mp1SsALDC+Q2i5=");
-		Http.setURL(strAdVisuoWebService.c_str());
+		// open databases
+		CDataBase dbProgress(strSimQueueConnection.c_str());
+		CDataBase db(strVisualisationConnection.c_str());
 
 		// other preparation
 		LONG nTimeFrom = (LONG)_nTimeFrom;
 		LONG nTimeTo = nTimeFrom + (LONG)_nDuration;
 
 		CProjectVis Prj;				// The Project
-		CAdVisuoLoader Loader(&Prj);	// The Project Loader
-		CEngine Engine;
+		CEngine Engine;					// The Engine
 
-		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 1, nIncrement++, idVideo);
+		// Load the Project
+		std::wstring diagStr;
+		if (!Load(db, &Prj, idSimulation, diagStr))
+		{
+			wcout << diagStr << endl;
+			return -20;
+		}
 
+		if (idVideo > 0) dbProgress.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 1, nIncrement++, idVideo);
+
+		// Create the Project and the Engine
 		Engine.Create(::GetDesktopWindow(), NULL);
 		Prj.SetEngine(&Engine);
-		Loader.Start(strAdVisuoWebService.c_str(), &Http, idSimulation);
 
-		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 2, nIncrement++, idVideo);
+		if (idVideo > 0) dbProgress.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 2, nIncrement++, idVideo);
 
-		if (!LoadStructure(Loader)) return -1;
+		// Build and Update
 		if (!Build(Engine, Prj)) return -2;
 		CCamera *pCamera = BuildCamera(Engine, Prj, nLiftGroup, nCamera, nLift, nFloor);
 		if (!pCamera) return -3;
-		if (!LoadData(Loader, Engine, nTimeTo)) return -4;
-		Loader.Stop();
+		
+		if (idVideo > 0) dbProgress.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 3, nIncrement++, idVideo);
 
-		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 3, nIncrement++, idVideo);
-
+		// Initialise rendering
 		CAdVisuoRenderer renderer(&Engine, pCamera);
+		Engine.StartTargetToVideo(GetStandardSize(nSize), pFileName, 25, GetStandardBitrate(nSize, 25));
+		Engine.SetTargetOffScreen();
 
-		// Rewind
+		// Rewind (required as initialisation ???)
 		Engine.Stop();
 		for (AVULONG i = 0; i < Prj.GetLiftGroupsCount(); i++)
 		{
@@ -87,33 +81,21 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 			Prj.GetLiftGroup(i)->RestoreConfig();
 		}
 
-		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 4, nIncrement++, idVideo);
+		if (idVideo > 0) dbProgress.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 4, nIncrement++, idVideo);
 
+		// Fast Forward to the starting position
 		LONG t = 0;
-
 		for (AVULONG i = 0; i < Prj.GetLiftGroupsCount(); i++)
 			t = Prj.GetLiftGroup(i)->GetCurSim()->FastForward(&Engine, nTimeFrom);
 
-		for ( ; t <= (AVLONG)nTimeFrom; t += 40)
+		for ( ; t < (AVLONG)nTimeFrom; t += 40)
 			Engine.Proceed(t);
-
-		t = nTimeFrom;
 
 		Engine.ResetAccel();
 		Engine.Play(t);
 
-		Engine.StartTargetToVideo(GetStandardSize(nSize), pFileName, 25, "x264");
-
-		Engine.Proceed(t);
-
-		Engine.SetTargetOffScreen();
-		Engine.BeginFrame();
-		renderer.Render(&Prj);
-		Engine.EndFrame();
-
-		t += 1000 / 25;
-
-		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 5, nIncrement++, idVideo);
+		DWORD nmsec = ::GetTickCount();
+		if (idVideo > 0) dbProgress.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 5, nIncrement++, idVideo);
 
 		LONG iCnt = 0;
 		for (t; t <= nTimeTo; t += Engine.GetAccel() * 1000 / 25)
@@ -123,7 +105,6 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 			Engine.Proceed(t);
 			Engine.ProceedAux(t);
 
-			//Engine.SetTargetOffScreen();
 			Engine.BeginFrame();
 			renderer.Render(&Prj);
 			Engine.EndFrame();
@@ -133,24 +114,15 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 				// progress reporting...
 				wcout << L"#";
 				int percent = 5 + 90 * (t - nTimeFrom) / (nTimeTo - nTimeFrom);
-				if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", percent, nIncrement++, idVideo);
+				if (idVideo > 0) dbProgress.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", percent, nIncrement++, idVideo);
 			}
 
 		}
-		wcout << endl;
-
-		//Engine.SetTargetToScreen();
-		Engine.BeginFrame();
-		renderer.Render(&Prj);
-		Engine.EndFrame();
-		for (int i = 0; i < 40; i++)
-		{
-			//Engine.SetTargetOffScreen();
-			Engine.BeginFrame();
-			renderer.Render(&Prj);
-			Engine.EndFrame();
-		}
 		Engine.DoneTargetOffScreen();
+		delete pCamera;
+
+		wcout << endl;
+		wcout << "Execution time: " << ::GetTickCount() - nmsec << endl;
 	}
 	catch (...)
 	{
@@ -160,48 +132,95 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 	return 0;
 }
 
+class _prj_deleted { };
 
-
-bool LoadStructure(CAdVisuoLoader &Loader)
+bool Load(dbtools::CDataBase db, CProjectVis *pProject, AVULONG nProjectId, std::wstring &diagStr)
 {
-	CAdVisuoLoader::STATUS status = CAdVisuoLoader::NOT_STARTED;
-	while ((status = Loader.GetStatus()) <= CAdVisuoLoader::LOADING_STRUCTURE)
-		;
-	if (status == CAdVisuoLoader::TERMINATED && Loader.GetReasonForTermination() == CAdVisuoLoader::FAILED)
+	diagStr = L"OK";
+
+	std::wstring response;
+	try
 	{
-		wcout << L"Project loading failed!!!" << endl;
-		return false;
-	}
-	wcout << L"Structure loaded OK" << endl;
-	return true;
-}
+		dbtools::CDataBase::SELECT sel;
 
-bool LoadData(CAdVisuoLoader &Loader, CEngine &Engine, LONG nTimeMax)
-{
-	wstring STATUS_NAMES[] = { L"NOT_STARTED", L"PREPROCESS", L"LOADING_STRUCTURE", L"LOADING_DATA", L"TERMINATED" };
-	wstring REASON_NAMES[] = { L"NOT_TERMINATED", L"COMPLETE", L"STOPPED", L"FAILED" };
-	CAdVisuoLoader::STATUS status = CAdVisuoLoader::NOT_STARTED;
-	LONG t = 0;
+		// load project
+		sel = db.select(L"SELECT * FROM AVProjects WHERE SimulationId=%d", nProjectId);
+		if (!sel) throw _prj_deleted();
+		pProject->LoadProject(sel);
 
-	while ((status = Loader.GetStatus()) != CAdVisuoLoader::TERMINATED)
-	{
-		if (status !=  CAdVisuoLoader::LOADING_DATA)
-			wcout << L"Status: " << STATUS_NAMES[status] << endl;
-
-		if (t != Loader.GetTimeLoaded())
+		// load lift groups
+		sel = db.select(L"SELECT * FROM AVLiftGroups WHERE ProjectID=%d ORDER BY ID", pProject->GetId());
+		while (sel)
 		{
-			t = Loader.GetTimeLoaded();
-			wcout << L"Time: " << t << endl;
-
-			Loader.Update(&Engine);
+			pProject->LoadLiftGroup(sel);
+			sel++;
 		}
 
-		if (t > nTimeMax)
-			break;
+		// load floors, shafts and sims for each lift group
+		for each (CLiftGroupVis *pGroup in pProject->GetLiftGroups())
+		{
+			sel = db.select(L"SELECT * FROM AVFloors WHERE LiftGroupId=%d ORDER BY ID", pGroup->GetId());
+			while (sel)
+			{
+				pProject->LoadFloor(sel);
+				sel++;
+			}
+
+			sel = db.select(L"SELECT * FROM AVShafts WHERE LiftGroupId=%d ORDER BY ID", pGroup->GetId());
+			while (sel)
+			{
+				pProject->LoadShaft(sel);
+				sel++;
+			}
+
+			sel = db.select(L"SELECT * FROM AVSims WHERE LiftGroupId=%d ORDER BY ID", pGroup->GetId());
+			while (sel)
+			{
+				pProject->LoadSim(sel);
+				sel++;
+			}
+		}
+
+		sel = db.select(L"SELECT * FROM AVJourneys WHERE SimID IN (SELECT s.ID FROM AVSims s, AVLiftGroups g WHERE s.LiftGroupId = g.ID AND g.ProjectId = %d) AND TimeGo < %d ORDER BY ID", pProject->GetId(), pProject->GetMaxTime());
+		while (sel)
+		{
+			pProject->LoadJourney(sel);
+			sel++;
+		}
+		sel = db.select(L"SELECT * FROM AVPassengers WHERE SimID IN (SELECT s.ID FROM AVSims s, AVLiftGroups g WHERE s.LiftGroupId = g.ID AND g.ProjectId = %d) AND TimeBorn < %d ORDER BY ID", pProject->GetId(), pProject->GetMaxTime());
+		while (sel)
+		{
+			pProject->LoadPassenger(sel);
+			sel++;
+		}
+
+		// Completed!
+		return true;
 	}
-	wcout << L"Final Status: " << STATUS_NAMES[status] << endl;
-	wcout << L"Reason for termination: " << REASON_NAMES[Loader.GetReasonForTermination()] << endl;
-	return (status == CAdVisuoLoader::LOADING_DATA || status == CAdVisuoLoader::TERMINATED) && (Loader.GetReasonForTermination() != CAdVisuoLoader::FAILED && Loader.GetReasonForTermination() != CAdVisuoLoader::STOPPED);
+	catch (_prj_deleted)
+	{
+		diagStr = L"Project cannot be accessed and could possibly have been deleted";
+	}
+	catch (_prj_error pe)
+	{
+		diagStr = L"AdVisuo internal data error: " + pe.ErrorMessage();
+	}
+	catch (_com_error ce)
+	{
+		if ((wchar_t*)ce.Description())
+			diagStr = L"Database connection or structure error: " + ce.Description();
+		else
+			diagStr = L"Database connection or structure error";
+	}
+	catch (dbtools::_value_error ve)
+	{
+		diagStr = L"Internal data format error: " + ve.ErrorMessage();
+	}
+	catch(...)
+	{
+		diagStr = L"Unidentified error";
+	}
+	return false;
 }
 
 bool Build(CEngine &Engine, CProjectVis &Prj)
@@ -281,4 +300,25 @@ CSize GetStandardSize(int nSize)
 		{ 1024, 768 },
 	};
 	return CSize(STD_SIZES[nSize][0], STD_SIZES[nSize][1]);
+}
+
+// https://support.google.com/youtube/answer/1722171?hl=en-GB
+AVULONG GetStandardBitrate(int nSize, int nFramerate)
+{
+	if (nSize < 0 || nSize >= 8) nSize = 1;
+	int STD_BITRATES[][2] =
+	{
+		{ 2500000, 4000000 },
+		{ 5000000, 7500000 },
+		{ 8000000, 1200000 },
+		{ 8000000, 1200000 },
+		{ 1000000, 1500000 },
+		{ 2500000, 4000000 },
+		{ 5000000, 7500000 },
+		{ 5000000, 7500000 },
+	};
+	if (nFramerate < 40)
+		return STD_BITRATES[nSize][0];
+	else
+		return STD_BITRATES[nSize][1];
 }

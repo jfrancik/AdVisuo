@@ -56,7 +56,7 @@ class CCamera
 
 	// Lift Group information
 	AVULONG m_nId;					// id
-	BOX m_box;						// the lobby box (no height)
+	XBOX m_box;						// the lobby box (no height)
 	AVFLOAT m_nTripodHeight;		// reference height (max tripod height, equal to lift door height)
 	
 	// Camera position & state information

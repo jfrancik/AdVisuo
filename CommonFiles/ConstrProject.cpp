@@ -3,7 +3,6 @@
 #include "StdAfx.h"
 #include "ConstrProject.h"
 #include "ConstrLiftGroup.h"
-#include "BaseSimClasses.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CBone / CElem
@@ -31,8 +30,9 @@ void CProjectConstr::Construct()
 	if (!m_pElem) return;
 	if (GetLiftGroupsCount() == 0) return;
 
-	BOX _box = GetLiftGroup(0)->GetTotalAreaBox();
+	XBOX _box = GetLiftGroup(0)->GetTotalAreaBox();
 
+	// Create a succession of lift groups, inline, adjusting the Y coordinate so that to alighn the front sides
 	float y = GetLiftGroup(0)->GetTotalAreaBox().RearExt();
 	for each (CLiftGroupConstr *pLiftGroup in GetLiftGroups())
 	{
@@ -42,9 +42,6 @@ void CProjectConstr::Construct()
 		pLiftGroup->Deconstruct();
 		pLiftGroup->Construct(Vector(x, y, 0));
 
-		for each (CSim *pSim in pLiftGroup->GetSims())
-			pSim->SetOffsetVector(Vector(x, y, 0));
-		
 		y = pLiftGroup->GetTotalAreaBox().FrontExt();
 	}
 }

@@ -156,7 +156,7 @@ public:
 	void ResetDevice(HWND hWnd = NULL);
 	void StartTargetToImage(CSize size, LPCTSTR pImgFile, enum BMP_FORMAT);
 	void StartTargetToImage(CSize size, LPCTSTR pImgFile);	// chooses format automatically - after the file ext
-	void StartTargetToVideo(CSize size, LPCTSTR pAviFile, AVULONG nFPS, char *fccCodec = NULL);
+	void StartTargetToVideo(CSize sz, LPCTSTR pFilename, AVULONG nFPS, AVULONG nBitrate);
 	void SetTargetToScreen();
 	void SetTargetOffScreen();
 	void DoneTargetOffScreen();

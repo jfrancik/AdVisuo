@@ -111,8 +111,8 @@ inline void Debug(LPCTSTR fmt, ...) { }
 /////////////////////////////////////////////////////////////
 // Max Number of Lift Decks and Doors
 
-#define DECK_NUM	2
-#define MAX_DOORS	6
+#define DECK_NUM	2	// maximum number of lift decks
+#define MAX_DOORS	6	// maximum number of door panels (3 * 2)
 
 /////////////////////////////////////////////////////////////
 // AdVisuo specific includes

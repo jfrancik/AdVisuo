@@ -184,13 +184,21 @@ USES_CONVERSION;
 	if (!hRes) throw Logf(ERROR_IFC_PRJ, L"revit");
 }
 
-#define __BOX(x1, x2, y1, y2, z1, z2)	\
-		x1, y1, z2,		x2, y1, z2,		x2, y2, z2,		x1, y2, z2,	/* upper */ \
-		x1, y1, z1,		x1, y2, z1,		x1, y2, z2,		x1, y1, z2,	/* left  */ \
-		x1, y1, z1,		x1, y1, z2,		x2, y1, z2,		x2, y1, z1,	/* front */ \
-		x2, y1, z1,		x2, y1, z2,		x2, y2, z2,		x2, y2, z1,	/* right */ \
-		x1, y2, z1,		x1, y2, z2,		x2, y2, z2,		x2, y2, z1,	/* rear  */ \
-		x1, y1, z1,		x1, y2, z1,		x2, y2, z1,		x2, y1, z1,	/* lower */
+#define __BOXUP(x1, x2, y1, y2, z1, z2)	x1, y1, z2,		x2, y1, z2,		x2, y2, z2,		x1, y2, z2,	/* upper */ 
+#define __BOXLT(x1, x2, y1, y2, z1, z2)	x1, y1, z1,		x1, y2, z1,		x1, y2, z2,		x1, y1, z2,	/* left  */
+#define __BOXFT(x1, x2, y1, y2, z1, z2)	x1, y1, z1,		x1, y1, z2,		x2, y1, z2,		x2, y1, z1,	/* front */
+#define __BOXRT(x1, x2, y1, y2, z1, z2)	x2, y1, z1,		x2, y1, z2,		x2, y2, z2,		x2, y2, z1,	/* right */
+#define __BOXRR(x1, x2, y1, y2, z1, z2)	x1, y2, z1,		x1, y2, z2,		x2, y2, z2,		x2, y2, z1,	/* rear  */
+#define __BOXLR(x1, x2, y1, y2, z1, z2)	x1, y1, z1,		x1, y2, z1,		x2, y2, z1,		x2, y1, z1,	/* lower */
+#define __BOX(x1, x2, y1, y2, z1, z2)	__BOXUP(x1, x2, y1, y2, z1, z2) __BOXLT(x1, x2, y1, y2, z1, z2) __BOXFT(x1, x2, y1, y2, z1, z2) __BOXRT(x1, x2, y1, y2, z1, z2) __BOXRR(x1, x2, y1, y2, z1, z2) __BOXLR(x1, x2, y1, y2, z1, z2) 
+
+//#define __BOX(x1, x2, y1, y2, z1, z2)	\
+//		x1, y1, z2,		x2, y1, z2,		x2, y2, z2,		x1, y2, z2,	/* upper */ \
+//		x1, y1, z1,		x1, y2, z1,		x1, y2, z2,		x1, y1, z2,	/* left  */ \
+//		x1, y1, z1,		x1, y1, z2,		x2, y1, z2,		x2, y1, z1,	/* front */ \
+//		x2, y1, z1,		x2, y1, z2,		x2, y2, z2,		x2, y2, z1,	/* right */ \
+//		x1, y2, z1,		x1, y2, z2,		x2, y2, z2,		x2, y2, z1,	/* rear  */ \
+//		x1, y1, z1,		x1, y2, z1,		x2, y2, z1,		x2, y1, z1,	/* lower */
 
 void CIfcBuilder::buildSill(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot, AVFLOAT fRotX)
 {
@@ -291,7 +299,7 @@ USES_CONVERSION;
 
 	if (!pElem->GetBone()) return;
 
-	AVVECTOR base = box.CentreExtLower();
+	AVVECTOR base = box.CentreLower();
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);
 	RotateY(matrix, fRotX);
@@ -302,8 +310,8 @@ USES_CONVERSION;
 
 	box -= base;
 
-	double x1 = box.LeftExt(), x2 = box.RightExt();
-	double y1 = max(box.FrontExt(), box.RearExt()), y2 = min(box.FrontExt(), box.RearExt());
+	double x1 = box.Left(), x2 = box.Right();
+	double y1 = max(box.Front(), box.Rear()), y2 = min(box.Front(), box.Rear());
 	double z1 = box.Lower(), z2 = box.Upper();
 	double dx = 50, dy = -50, dz = 50;
 
@@ -605,7 +613,7 @@ USES_CONVERSION;
 
 	if (nRungs == 0) return;	// no ladder if no rungs
 
-	AVVECTOR base = box.CentreExtLower();
+	AVVECTOR base = box.CentreLower();
 	transformationMatrixStruct matrix;
 	identityMatrix(&matrix);
 	RotateY(matrix, fRotX);
@@ -616,8 +624,8 @@ USES_CONVERSION;
 
 	box -= base;
 
-	double x1 = box.LeftExt(), x2 = box.RightExt();
-	double y1 = max(box.FrontExt(), box.RearExt()), y2 = min(box.FrontExt(), box.RearExt());
+	double x1 = box.Left(), x2 = box.Right();
+	double y1 = max(box.Front(), box.Rear()), y2 = min(box.Front(), box.Rear());
 	double z1 = box.Lower(), z2 = box.Upper();
 	double dx = 50, dy = -50, dz = 50;
 
@@ -679,11 +687,48 @@ USES_CONVERSION;
 	machine.setInfo(pName, pName);
 	int hRes = machine.build(6 + nRungs, faces, pData, points);
 	if (!hRes) throw Logf(ERROR_IFC_PRJ, L"revit");
-
-
-
-
-
-
 }
 
+void CIfcBuilder::buildCombinationBracket(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVULONG bLHS, AVFLOAT fBracketWidth)
+{
+USES_CONVERSION;
+	char *pName = OLE2A((LPOLESTR)strName);
+
+	if (!pElem->GetBone()) return;
+	if (fBracketWidth == 0) return;	// no bracket
+
+	AVVECTOR base = box.CentreLower();
+	transformationMatrixStruct matrix;
+	identityMatrix(&matrix);
+	matrix._41 += base.x;
+	matrix._42 += -base.y;
+	matrix._43 += base.z;
+
+	box -= base;
+
+	double x1 = box.Left(), x2 = box.Right();
+	double y1 = min(box.Front(), box.Rear()), y2 = max(box.Front(), box.Rear());
+	double z1 = box.Lower(), z2 = box.Upper();
+	double w = fBracketWidth, h = fBracketWidth;
+
+	AVULONG faces [] = { 18 };
+
+	double pDataLHS[] = 
+	{
+		__BOX(x1, x2, y1-w, y1, z1, z2)
+		__BOX(x1, x2, y2, y2+w, z1, z2)
+		__BOX(x2, x2+w, y1-w, y2+w, z1, z2)
+	};
+
+	double pDataRHS[] = 
+	{
+		__BOX(x1-w, x1, y1-w, y2+w, z1, z2)
+		__BOX(x1, x2, y1-w, y1, z1, z2)
+		__BOX(x1, x2, y2, y2+w, z1, z2)
+	};
+
+	CIFCPointsElem machine(pElem->GetBone(), &matrix);
+	machine.setInfo(pName, pName);
+	int hRes = machine.build(sizeof(faces) / sizeof(AVULONG), faces, bLHS ? pDataLHS : pDataRHS);
+	if (!hRes) throw Logf(ERROR_IFC_PRJ, L"revit");
+}

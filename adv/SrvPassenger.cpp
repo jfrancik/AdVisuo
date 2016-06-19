@@ -100,17 +100,17 @@ void CPassengerSrv::Play()
 
 	if (pSHAFT)
 	{
-		AVFLOAT WShaft = abs(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_SHAFT).Width());
-		AVFLOAT WLift = abs(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_CAR).Width());
-		AVFLOAT DLift = abs(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_CAR).Depth());
-		AVFLOAT WDoor = abs(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_DOOR).Width());
+		AVFLOAT WShaft = abs(pSHAFT->GetBox().Width());
+		AVFLOAT WLift = abs(pSHAFT->GetBoxCar().Width());
+		AVFLOAT DLift = abs(pSHAFT->GetBoxCar().Depth());
+		AVFLOAT WDoor = abs(pSHAFT->GetBoxDoor().Width());
 		AVFLOAT WOpt = (WShaft + WLift) / 2;	// more optimal zone (should be even overlapping?) - 8/8/11
 	
 		AVFLOAT YLiftFront = DLobby * 0.4f;											// 8/8/11: DLobby/3  ==>  DLobby * 0.4
-		AVFLOAT YLiftDoor = -pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_DOOR).Front();
+		AVFLOAT YLiftDoor = -pSHAFT->GetBoxDoor().Front();
 	
-		AVFLOAT XLift  = (pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_DOOR).Left()+pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_DOOR).Right())/2;
-		AVFLOAT YLift = -(pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_CAR).Front()+pSHAFT->GetBox(CLiftGroupSrv::SHAFT::BOX_CAR).Rear())/2;
+		AVFLOAT XLift  = (pSHAFT->GetBoxDoor().Left()+pSHAFT->GetBoxDoor().Right())/2;
+		AVFLOAT YLift = -(pSHAFT->GetBoxCar().Front()+pSHAFT->GetBoxCar().Rear())/2;
 		AVFLOAT XLiftDoor = XLift;
 
 		switch (flagBehaviour)

@@ -2,6 +2,10 @@
 
 rmdir /S /Q Debug
 rmdir /S /Q Release
+rmdir /S /Q ipch
+
+del AdVisuo.sdf
+del /A:H AdVisuo.suo
 
 cd AdVisuo
 rmdir /S /Q Debug

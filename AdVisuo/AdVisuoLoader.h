@@ -72,6 +72,8 @@ public:
 	// Main Operations:
 	// Start - starts the load process, then continues in a thread
 	void Start(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG nProjectId);
+	// Load the project in synchronous mode
+	UINT LoadSynchronous(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG nProjectId);
 	// Updates the project with the latest loaded data - to be called from a timer proc
 	CAdVisuoLoader::STATUS Update(CEngine *pEngine);
 	// Safely stops the thread

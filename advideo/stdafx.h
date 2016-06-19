@@ -4,6 +4,8 @@
 
 #pragma once
 
+#define _CRTDBG_MAP_ALLOC
+
 #ifndef VC_EXTRALEAN
 #define VC_EXTRALEAN            // Exclude rarely-used stuff from Windows headers
 #endif

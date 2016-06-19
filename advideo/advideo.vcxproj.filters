@@ -48,9 +48,6 @@
     <ClCompile Include="..\AdVisuo\_base.cpp">
       <Filter>_AdVisuoFiles</Filter>
     </ClCompile>
-    <ClCompile Include="..\AdVisuo\AdVisuoLoader.cpp">
-      <Filter>_AdVisuoFiles</Filter>
-    </ClCompile>
     <ClCompile Include="..\AdVisuo\VisProject.cpp">
       <Filter>_AdVisuoFiles</Filter>
     </ClCompile>
@@ -110,6 +107,9 @@
     </ClCompile>
     <ClCompile Include="..\CommonFiles\DBConnStr.cpp">
       <Filter>_CommonFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\AdVisuo\AdVisuoLoader.cpp">
+      <Filter>_AdVisuoFiles</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

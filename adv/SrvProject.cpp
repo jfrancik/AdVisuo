@@ -180,6 +180,7 @@ HRESULT CProjectSrv::LoadFromConsole(dbtools::CDataBase dbConsole, dbtools::CDat
 	if (!sel) throw ERROR_PROJECT;
 	sel >> ME;
 
+	long mst = sel[L"MaxSimulationTime"];
 	SetMaxTime(sel[L"MaxSimulationTime"].msec());
 
 	return S_OK;

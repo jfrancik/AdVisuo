@@ -56,6 +56,98 @@ std::wstring _prj_error::ErrorMessage()
 //////////////////////////////////////////////////////////////////////////////////
 // Load from XML
 
+void CProjectVis::LoadProject(dbtools::CDataBase::SELECT &sel)
+{
+	sel >> ME;
+	ResolveMe();
+}
+
+void CProjectVis::LoadLiftGroup(dbtools::CDataBase::SELECT &sel)
+{
+	CLiftGroupVis *pGroup = AddLiftGroup();
+	sel >> *pGroup ;
+	pGroup ->ResolveMe();
+}
+
+void CProjectVis::LoadFloor(dbtools::CDataBase::SELECT &sel)
+{
+	AVULONG nLiftGroupId = sel[L"LiftGroupId"];
+	CLiftGroupVis *pGroup = FindLiftGroup(nLiftGroupId);
+	if (!pGroup || pGroup->GetSim(0)) 
+		throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+	CLiftGroup::STOREY *pStorey = pGroup->AddStorey();
+	sel >> *pStorey;
+}
+
+void CProjectVis::LoadShaft(dbtools::CDataBase::SELECT &sel)
+{
+	AVULONG nLiftGroupId = sel[L"LiftGroupId"];
+	CLiftGroupVis *pGroup = FindLiftGroup(nLiftGroupId);
+	if (!pGroup || pGroup->GetSim(0)) 
+		throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+	CLiftGroup::SHAFT *pShaft = pGroup->AddShaft();
+	sel >> *pShaft;
+}
+
+void CProjectVis::LoadSim(dbtools::CDataBase::SELECT &sel)
+{
+	AVULONG nLiftGroupId = sel[L"LiftGroupId"];
+	CLiftGroupVis *pGroup = FindLiftGroup(nLiftGroupId);
+	if (!pGroup /*|| pGroup->GetSim()*/) 
+		throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+
+	pGroup->AddExtras();
+	CSimVis *pSim = pGroup->AddSim();
+	pGroup->ResolveMe();
+	pGroup->Create();
+	pGroup->Scale(0.04f);
+
+	sel >> *pSim;
+	pSim->ResolveMe();
+
+	for (AVULONG i = 0; i < pGroup->GetShaftCount(); i++)
+		pSim->AddLift(pSim->CreateLift(i));
+}
+
+void CProjectVis::LoadJourney(dbtools::CDataBase::SELECT &sel)
+{
+	AVULONG nSimId = sel[L"SimID"];
+	CSimVis *pSim = FindSim(nSimId);
+	if (!pSim || !pSim->GetLiftGroup()) 
+		throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+	CLiftGroupVis *pGroup = pSim->GetLiftGroup();
+
+	JOURNEY journey;
+	AVULONG nLiftID = sel[L"LiftID"];
+	journey.m_shaftFrom = sel[L"ShaftFrom"];
+	journey.m_shaftTo = sel[L"ShaftTo"];
+	journey.m_floorFrom = sel[L"FloorFrom"];
+	journey.m_floorTo = sel[L"FloorTo"];
+	journey.m_timeGo = sel[L"TimeGo"];
+	journey.m_timeDest = sel[L"TimeDest"];
+	journey.ParseDoorCycles(sel[L"DC"]);
+				  
+	if (nLiftID >= pGroup->GetLiftCount() || nLiftID >= LIFT_MAXNUM || journey.m_shaftFrom >= pGroup->GetShaftCount() || journey.m_shaftTo >= pGroup->GetShaftCount()) 
+		throw _prj_error(_prj_error::E_PRJ_LIFTS);
+	if (nLiftID >= pSim->GetLiftCount()) 
+		throw _prj_error(_prj_error::E_PRJ_LIFTS);
+
+	pSim->GetLift(nLiftID)->AddJourney(journey);
+}
+
+void CProjectVis::LoadPassenger(dbtools::CDataBase::SELECT &sel)
+{
+	AVULONG nSimId = sel[L"SimID"];
+	CSimVis *pSim = FindSim(nSimId);
+	if (!pSim || !pSim->GetLiftGroup()) 
+		throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
+
+	CPassengerVis *pPassenger = (CPassengerVis*)pSim->CreatePassenger(0);
+	sel >> *pPassenger;
+	pPassenger->ResolveMe();
+	pSim->AddPassenger(pPassenger);
+}
+
 void CProjectVis::Load(xmltools::CXmlReader reader)
 {
 	AVULONG iShaft = 0, iStorey = 0;

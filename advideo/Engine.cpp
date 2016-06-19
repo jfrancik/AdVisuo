@@ -45,11 +45,12 @@ CEngine::CEngine()
 
 CEngine::~CEngine()
 {
-//	ReleaseAllMats();
-//	ReleaseFloorPlateMats();
-//	ReleaseLiftPlateMats();
+	ReleaseAllMats();
+	ReleaseFloorPlateMats();
+	ReleaseLiftPlateMats();
 	remove_all();
 	delete [] m_pfps;
+	if (m_pAuxActionTick) m_pAuxActionTick->UnSubscribeAll();
 	if (m_pAuxActionTick) m_pAuxActionTick->Release();
 	if (m_pActionTick) m_pActionTick->UnSubscribeAll();
 	if (m_pActionTick) m_pActionTick->Release();
@@ -601,11 +602,11 @@ void CEngine::StartTargetToImage(CSize size, LPCTSTR pImgFile)
 	StartTargetToImage(size, pImgFile, fmt);
 }
 
-void CEngine::StartTargetToVideo(CSize sz, LPCTSTR pAviFile, FWULONG nFPS, char *fccCodec)
+void CEngine::StartTargetToVideo(CSize sz, LPCTSTR pFilename, FWULONG nFPS, FWULONG nBitrate)
 {
 	m_pFWDevice->EnableErrorException(TRUE);
 	m_pRenderer->InitOffScreen(sz.cx, sz.cy);
-	m_pRenderer->OpenMovieFileWithCodec(pAviFile, nFPS, (signed char*)fccCodec);
+	m_pRenderer->OpenMovieFile(pFilename, nFPS, nBitrate);
 }
 
 void CEngine::SetTargetToScreen()			{ m_pRenderer->SetTargetToScreen(); }

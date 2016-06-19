@@ -604,7 +604,7 @@ void CEngine::StartTargetToVideo(CSize sz, LPCTSTR pAviFile, FWULONG nFPS)
 {
 	m_pFWDevice->EnableErrorException(TRUE);
 	m_pRenderer->InitOffScreen(sz.cx, sz.cy);
-	m_pRenderer->OpenMovieFile(pAviFile, nFPS);
+	m_pRenderer->OpenMovieFile(pAviFile, nFPS, 0);
 }
 
 void CEngine::SetTargetToScreen()			{ m_pRenderer->SetTargetToScreen(); }

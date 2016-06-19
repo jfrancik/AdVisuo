@@ -130,13 +130,15 @@ AVLONG CLiftVis::FastForward(CEngine *pEngine, AVLONG nTime)
 
 	AVLONG nEarliestTime = 0x7FFFFFFF;
 
+	MoveToInitialPosition();
+
 	// Plan journeys
 	for (AVULONG i = 0; i < GetJourneyCount(); i++)
 	{
 		JOURNEY *pJ = GetJourney(i);
 		if ((AVLONG)pJ->m_timeDest >= nTime)
 		{
-			if (i == 0) MoveToInitialPosition();	// do it once in every cycle!
+			//if (i == 0) MoveToInitialPosition();	// do it once in every cycle!
 
 			ASSERT(pJ->m_floorFrom != UNDEF && pJ->m_floorTo != UNDEF);
 

@@ -45,5 +45,6 @@ public:
 	static void buildSill(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVFLOAT fRotX = 0);
 	static void buildHandrail(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVFLOAT fRot = 0, AVFLOAT fRotX = 0);
 	static void buildLadder(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVULONG nRungs, AVFLOAT fLowerBracket, AVFLOAT fUpperBracket, AVFLOAT fRot = 0, AVFLOAT fRotX = 0);
+	static void buildCombinationBracket(CElemIfc *pElem, AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX box, AVULONG bLHS, AVFLOAT fBracketWidth);
 };
 

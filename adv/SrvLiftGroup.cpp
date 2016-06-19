@@ -43,7 +43,8 @@ HRESULT CLiftGroupSrv::LoadFromConsole(CDataBase db, ULONG nLiftGroupId)
 	sel >> *this;
 
 	// Query for Shaft Data and add /load shafts
-	sel = db.select(L"SELECT * FROM Lifts l, Doors d WHERE LiftGroupId=%d  AND d.LiftId = l.LiftId AND d.DoorConfigurationId=1 ORDER BY LiftNumber", nLiftGroupId);
+//	sel = db.select(L"SELECT * FROM Lifts l, Doors d WHERE LiftGroupId=%d  AND d.LiftId = l.LiftId AND d.DoorConfigurationId=1 ORDER BY LiftNumber", nLiftGroupId);
+	sel = db.select(L"SELECT * FROM Lifts WHERE LiftGroupId=%d ORDER BY LiftNumber", nLiftGroupId);
 	while (sel)
 	{
 		SHAFT *pShaft = AddShaft();

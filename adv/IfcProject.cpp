@@ -231,7 +231,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 	case MODEL_BUFFER_CAR:
 		p = new CIfcBuilder(L"buffer.ifc"); 
 		if (!p) return;
-		box = BOX(box.CentreX() - fParam1/2, box.CentreY() - fParam1/2, 0, fParam1, fParam1, fParam2);
+		box = XBOX(box.CentreX() - fParam1/2, box.CentreY() - fParam1/2, 0, fParam1, fParam1, fParam2);
 		if (nParam == 1)
 			p->build(this, nModelId, strName, nIndex, box, fRot);
 		else
@@ -247,7 +247,7 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		b = abs(box.Width()) > abs(box.Depth());
 		p = new CIfcBuilder(L"buffer.ifc"); 
 		if (!p) return;
-		box = BOX(box.CentreX() - fParam1/2, box.CentreY() - fParam1/2, 0, fParam1, fParam1, fParam2);
+		box = XBOX(box.CentreX() - fParam1/2, box.CentreY() - fParam1/2, 0, fParam1, fParam1, fParam2);
 		if (nParam == 1)
 			p->build(this, nModelId, strName, nIndex, box, fRot);
 		else
@@ -267,6 +267,12 @@ void CElemIfc::BuildModel(AVULONG nModelId, AVSTRING strName, AVLONG nIndex, BOX
 		p->build(this, nModelId, strName, nIndex, centre, fRot);
 		delete p;
 		break;
+
+	case MODEL_COMBINATION_BRACKET:
+		// meaning of parameters: nParam = LHS bracket; fParam1 = bracket width
+		CIfcBuilder::buildCombinationBracket(this, nModelId, strName, nIndex, box, nParam, fParam1);
+		break;
+	
 	case MODEL_LIGHT:
 		p = new CIfcBuilder(L"light.ifc"); 
 		if (!p) return;

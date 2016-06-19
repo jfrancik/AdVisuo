@@ -50,6 +50,23 @@ void CAdVisuoLoader::Start(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG
 	m_pThread = AfxBeginThread(::WorkerThread, this);
 }
 
+UINT CAdVisuoLoader::LoadSynchronous(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG nProjectId)
+{
+	m_http.create();
+	m_http.setURL(strUrl);
+	m_http.take_authorisation_from(pAuthAgent);
+	m_nProjectId = nProjectId;
+
+	m_timeReceived = 0;			// m_pProject->GetMinSimulationTime();
+	m_timeLoaded = 0;
+	m_hEvCompleted = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	UINT res = WorkerThread();
+	WaitForSingleObject(m_hEvCompleted, 5000);
+	return res;
+}
+
+
 void CAdVisuoLoader::Stop()
 {
 	if (m_pThread == NULL) return;

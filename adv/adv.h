@@ -181,5 +181,5 @@ ADV_API HRESULT AVCreateTicket(AVSTRING strUserName, AVSTRING strBuf);
 // Bridge
 // The only sense of this function is to provide a bridging service to advideo.dll
 
-ADV_API ULONG AVVideo8(ULONG idSimulation, ULONG nLiftGroup, ULONG nCamera, ULONG nLift, ULONG nFloor, ULONG nSize, ULONG nTimeFrom, ULONG nTimeTo, char *pFileName);
+ADV_API LONG AVVideo8(ULONG idSimulation, ULONG nLiftGroup, ULONG nCamera, ULONG nLift, ULONG nFloor, ULONG nSize, ULONG nTimeFrom, ULONG nTimeTo, char *pFileName);
 

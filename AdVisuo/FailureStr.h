@@ -10,7 +10,7 @@ namespace dbtools
 
 inline CString GetFailureTitle(_version_error &ve)			{ return L"VERSION MISMATCH"; }
 inline CString GetFailureTitle(_prj_error &pe)				{ return L"INTERNAL ERROR"; }
-inline CString GetFailureTitle(_com_error &ce)				{ return L"CONNECTION ERROR"; }
+inline CString GetFailureTitle(_com_error &ce)				{ return L"CONNECTION OR DATABASE ERROR"; }
 inline CString GetFailureTitle(_xmlreq_error &xe)			{ return L"HTTP ERROR"; }
 inline CString GetFailureTitle(dbtools::_value_error &ve)	{ return L"INTERNAL ERROR"; }
 inline CString GetFailureTitle()							{ return L"ERROR"; }

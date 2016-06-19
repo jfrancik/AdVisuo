@@ -480,7 +480,7 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)
 		h = prj.LoadFromConsole(pConsoleConn, nSimulationId);
 		if WARNED(h) dwStatus = STATUS_WARNING;
 
-		prj.SetRevitCompatibilityMode(true);
+		prj.SetRevitCompatibilityMode_(true);
 		prj.Construct();
 
 		h = prj.SaveAsIFC(strIFCPathName);
@@ -488,11 +488,11 @@ ADV_API HRESULT AVIFC(AVULONG nSimulationId, AVSTRING strIFCPathName)
 
 		lt.Log(L"AVIFC");
 		Logf(STATUS_GENERIC, L"IFC file saved to: %s", strIFCPathName);
-		_CrtDumpMemoryLeaks();
 		return Logf(dwStatus, L"AVIFC(%d)", nSimulationId);
 	}
 	STD_CATCH(L"AVIFC(%d)", nSimulationId);
 
+	//_CrtDumpMemoryLeaks();
 }
 
 ADV_API HRESULT AVIFC8(AVULONG nSimulationId, char *pIFCPathName)

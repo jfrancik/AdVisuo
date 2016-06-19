@@ -461,7 +461,7 @@ void CCamera::SetLiftGroup(AVULONG nGroup, bool bKeepCoord)
 	if (pLiftGroup->GetLobbyArrangement() == CLiftGroupVis::LOBBY_DEADEND_LEFT)  nLWall = pLiftGroup->GetBox().LeftThickness();
 	if (pLiftGroup->GetLobbyArrangement() == CLiftGroupVis::LOBBY_DEADEND_RIGHT) nRWall = pLiftGroup->GetBox().RightThickness();
 
-	m_box = BOX(
+	m_box = XBOX(
 		pLiftGroup->GetBox().Left() + 2 + nLWall,
 		pLiftGroup->GetBox().Front() + 10,
 		pLiftGroup->GetBox().Width() - 4 - nLWall - nRWall, 
@@ -706,7 +706,7 @@ CCamera::CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLO
 		cp.camloc = camloc;
 		cp.nId = nId;
 
-		BOX box = pLiftGroup->GetLift(nId)->GetShaft()->GetBoxCar();
+		XBOX box = pLiftGroup->GetLift(nId)->GetShaft()->GetBoxCar();
 		AVFLOAT nCarHeight = box.Height();
 		AVFLOAT fEyeHeight = min(nCarHeight - 20, m_nTripodHeight);
 		AVFLOAT fTargetDist = box.Depth();					// distance to the point the camera is looking at
@@ -728,7 +728,7 @@ CCamera::CAMPARAMS CCamera::GetDefCameraParams(CAMLOC camloc, AVULONG nId, AVFLO
 		cp.nId = 0;
 		cp.fAspectRatio = fAspect;
 
-		BOX lbox = pLiftGroup->GetShaft(0)->GetBoxCar();
+		XBOX lbox = pLiftGroup->GetShaft(0)->GetBoxCar();
 
 		AVFLOAT yFront = (pLiftGroup->GetShaftLinesCount() == 1) ? m_box.Rear() : pLiftGroup->GetShaft(pLiftGroup->GetShaftCount(0))->GetBox().RearExt();
 		AVFLOAT yRear  = pLiftGroup->GetShaft(0)->GetBox().RearExt();

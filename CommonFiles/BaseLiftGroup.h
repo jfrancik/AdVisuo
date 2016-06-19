@@ -22,7 +22,7 @@ class CLiftGroup : public dbtools::CCollection
 public:
 	enum SHAFT_ARRANG		{ SHAFT_INLINE = 1, SHAFT_OPPOSITE, SHAFT_UNKNOWN = -1 };
 	enum LOBBY_ARRANG		{ LOBBY_THROUGH = 1, LOBBY_OPENPLAN, LOBBY_DEADEND_LEFT, LOBBY_DEADEND_RIGHT, LOBBY_UNKNOWN = -1 };
-	enum DOOR_TYPE			{ DOOR_CENTRE = 1, DOOR_LSIDE, DOOR_RSIDE, DOOR_CENTRE_2, DOOR_LSIDE_2, DOOR_RSIDE_2, DOOR_CENTRE_3, DOOR_LSIDE_3, DOOR_RSIDE_3, DOOR_UNKNOWN = -1 };
+	enum DOOR_TYPE			{ DOOR_CENTRE_CAR = 1, DOOR_CENTRE_SHAFT = 2, DOOR_SIDE_LEFT = 3, DOOR_SIDE_RIGHT = 4, DOOR_UNKNOWN = -1 };
 //	enum TYPE_OF_LIFT		{ LIFT_CONVENTIONAL = 1, LIFT_MRL, LIFT_UNKNOWN };
 //	enum TYPE_OF_DECK		{ DECK_SINGLE = 1, DECK_DOUBLE, DECK_TWIN, DECK_UNKNOWN = -1 };
 	enum CAR_ENTRANCES		{ CAR_FRONT = 1, CAR_REAR = 999, CAR_BOTH = 2, CAR_UNKNOWN = -1 };
@@ -38,7 +38,7 @@ public:
 		std::wstring m_strName;					// storey name
 
 		AVFLOAT m_fLevel;						// lobby floor level
-		BOX m_box;								// lobby floor plan (the same as lift group's, but includes storey height - from floor to ceiling
+		XBOX m_box;								// lobby floor plan (the same as lift group's, but includes storey height - from floor to ceiling
 		
 	public:
 		STOREY(CLiftGroup *pLiftGroup, AVULONG nId) : m_pLiftGroup(pLiftGroup), m_nId(nId), m_fLevel(0)	{ }
@@ -61,7 +61,7 @@ public:
 
 		AVVECTOR GetLiftPos(AVULONG nShaft)		{ return GetLiftGroup()->GetShaft(nShaft)->GetBoxCar() + Vector(0, 0, GetLevel()); }
 
-		BOX &GetBox()							{ return m_box; }
+		XBOX &GetBox()							{ return m_box; }
 		bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
 		bool Within(AVVECTOR &pos)				{ return pos.z >= GetLevel() && pos.z < GetLevel() + GetHeight(); }
 
@@ -86,8 +86,8 @@ public:
 		void Create();
 
 		AVFLOAT GetExt();
-		BOX GetBoxMain();
-		BOX GetBoxExt();
+		XBOX GetBoxMain();
+		XBOX GetBoxExt();
 	};
 
 	class PIT : public STOREY
@@ -102,10 +102,11 @@ public:
 	// Shaft Layout data
 	class SHAFT : public dbtools::CCollection
 	{
+		// Identification and Relations
 		AVULONG m_nId;							// Shaft Id
 		CLiftGroup *m_pLiftGroup;				// lift group
-		AVULONG m_nShaftLine;					// 0 for SHAFT_INLINE and 0 or 1 for SHAFT_OPPOSITE
 
+		// Directly from the Console DB
 		AVLONG m_nOpeningTime;					// door opening time
 		AVLONG m_nClosingTime;					// door closing time
 		AVLONG m_nLoadingTime;
@@ -116,28 +117,43 @@ public:
 		AVLONG m_nMotorStartDelayTime;			// motor delay time [ms]
 		AVULONG m_nReopenings;					// max limit for reopenings
 
+		AVFLOAT m_fCapacity;					// capacity & kinematic parameters
+		AVFLOAT m_fSpeed;
+		AVFLOAT m_fAcceleration;
+		AVFLOAT m_fJerk;
+
+		AVULONG m_nLiftType;					// 1 = conventional, 2 = MRL
+		AVULONG m_nDeckType;					// 
+		AVULONG m_nDoorType;					// door type (1 = centre car; 2 = centre shaft; 3 = side left; 4 = side right)
+		AVULONG m_nDoorPanels;					// door panel number
+		AVULONG m_nCounterWeightPosition;		// counterweight position (1 = rear, 2 = left, 3 - right)
+
+		// Not currently in DB: FOR FUTURE EXTENSION - MULTI-CAR SHAFTS)
+		AVULONG m_nLiftCount;					// usually 1, may be more for multiple lifts options
+
+		// Special Value: modelled in CLiftGroupSrv::LoadFromConsole
 		std::wstring m_strStoreysServed;		// storeys served; "0" for not served, "1" for served
 
-		AVULONG m_nLiftCount;					// usually 1, may be more for multiple lifts options
+		// Derived Values
+		AVULONG m_nShaftLine;					// 0 for SHAFT_INLINE and 0 or 1 for SHAFT_OPPOSITE
 		AVULONG m_nLiftBegin;					// index of the first lift, usually m_nId but may be different for multiple lifts options
 
 		// Dimensions and similar
-		BOX m_boxShaft;							// shaft box (including ext walls thickness)
+		XBOX m_boxShaft;						// shaft box (including ext walls thickness)
 		AVFLOAT m_fWallLtStart, m_fWallRtStart;	// Y-coordinate where left & right walls start, 0 if no wall
 		AVFLOAT m_fBeamLtHeight, m_fBeamRtHeight;// Height of the Left/Right Int Beam
 		BOX m_boxDoor[2];						// shaft external door (thickness = 0)
-		BOX m_boxCar;							// lift car (including car walls thickness)
+		XBOX m_boxCar;							// lift car (including car walls thickness)
 		BOX m_boxCarDoor[2];					// car internal door (thickness = 0)
 		BOX m_boxCwt;							// counterweight
+		XBOX m_boxCombinationBracket;			// combination bracket
 		BOX m_boxGovernor;						// governors
 		BOX m_boxLadder;						// pit ladder
 		BOX m_boxPanelCtrl;						// control panel
 		BOX m_boxPanelDrv;						// drive panel
 		BOX m_boxPanelIso;						// isolator panel (may be 0-size)
 
-		AVULONG m_nLiftType;					// 1 = conventional, 2 = MRL
-		AVULONG m_nDeckType;					// 
-		AVFLOAT m_fShaftOrientation;			// machine orientation (0 for line 0, M_PI for line 1)
+		AVFLOAT m_fShaftOrientation;			// shaft orientation (0 for line 0, M_PI for line 1)
 		AVULONG m_nMachineType;					// machine type (1 - 4)
 		AVFLOAT m_fMachineOrientation;			// machine orientation
 		AVULONG m_nPanelCtrlType, m_nPanelDrvType, m_nPanelIsoType;		// control/drive/isolator panel type
@@ -148,7 +164,6 @@ public:
 		AVULONG m_nBufferDiameter;				// diameter of the buffers
 		AVULONG m_nBufferHeight;				// height of the buffers
 		AVFLOAT m_fLightingXPos;				// position of the lighting
-		AVULONG m_nDoorType;					// door type - see GetDoorType() and GetDoorPanelsCount()
 
 	public:
 
@@ -176,6 +191,10 @@ public:
 		AVLONG GetPreOpeningTime()				{ return m_nPreOpeningTime; }
 		AVLONG GetMotorStartDelayTime()			{ return m_nMotorStartDelayTime; }
 		AVULONG GetReopenings()					{ return m_nReopenings; }
+		AVFLOAT GetCapacity()					{ return m_fCapacity; }
+		AVFLOAT GetSpeed()						{ return m_fSpeed; }
+		AVFLOAT GetAcceleration()				{ return m_fAcceleration; }
+		AVFLOAT GetJerk()						{ return m_fJerk; }
 
 		bool IsStoreyServed(AVULONG nStorey)	{ return (nStorey < m_strStoreysServed.length() && m_strStoreysServed[nStorey] == '1') ? true : false; }
 		AVULONG GetHighestStoreyServed()		{ return m_strStoreysServed.find_last_of('1'); }
@@ -186,12 +205,13 @@ public:
 		AVULONG GetLiftEnd()					{ return m_nLiftBegin + m_nLiftCount; }
 		void SetLiftRange(AVULONG i, AVULONG n)	{ m_nLiftBegin = i; m_nLiftCount = n; } 
 
-		enum SHAFT_BOX { BOX_SHAFT, BOX_DOOR, BOX_CAR, BOX_CARDOOR, BOX_MOUNTING, BOX_CW, BOX_GOVERNOR, BOX_LADDER, BOX_PANEL_CTRL, BOX_PANEL_DRV, BOX_PANEL_ISO };
-		BOX &GetBox(enum SHAFT_BOX n = BOX_SHAFT, AVULONG i = 0);
+		XBOX &GetBox()							{ return m_boxShaft; }
 		BOX &GetBoxDoor(AVULONG i = 0)			{ return m_boxDoor[i]; }
-		BOX &GetBoxCar()						{ return m_boxCar; }
+		XBOX &GetBoxCar()						{ return m_boxCar; }
 		BOX &GetBoxCarDoor(AVULONG i = 0)		{ return m_boxCarDoor[i]; }
 		BOX &GetBoxCwt()						{ return m_boxCwt; }
+		XBOX &GetCombinationBracketBox()		{ return m_boxCombinationBracket; }
+		XBOX &GetCombBox()						{ return m_boxCombinationBracket; }
 		BOX &GetBoxGovernor()					{ return m_boxGovernor; }
 		BOX &GetBoxLadder()						{ return m_boxLadder; }
 		AVFLOAT GetWallLtStart()				{ return m_fWallLtStart; }
@@ -221,17 +241,19 @@ public:
 		AVULONG GetBufferDiameter()				{ return m_nBufferDiameter; }
 		AVULONG GetBufferHeight()				{ return m_nBufferHeight; }
 		AVFLOAT GetLightingXPos()				{ return m_fLightingXPos; }
-		AVULONG GetDoorType()					{ return (m_nDoorType - 1) % 3; }		// 0 = center; 1 = left; 2 = right
-		AVULONG GetDoorPanelsCount()			{ AVULONG n = (m_nDoorType - 1) / 3 + 1; return min(n, 3); }	// 1, 2, or 3 (no zero and never more than 3)
+		AVULONG GetDoorType()					{ return m_nDoorType; }					// 1 = centre car; 2 = centre shaft; 3 = side left; 4 = side right
+		AVULONG GetDoorPanelsCount()			{ return m_nDoorPanels; }				// number of panels per door (between 1 and 6)
+		AVULONG GetDoorPanelsPerDoor()			{ return m_nDoorType <= 2 ? m_nDoorPanels / 2 : m_nDoorPanels; }	// number of panels per door (1, 2, or 3)
+		AVULONG GetCounterWeightPosition()		{ return m_nCounterWeightPosition; }	// (1 = rear, 2 = left, 3 - right)
 
 		AVVECTOR GetLiftPos(AVULONG nStorey)	{ return GetBoxCar() + Vector(0, 0, GetLiftGroup()->GetStorey(nStorey)->GetLevel()); }
 
 		// raw data functions
-		AVFLOAT GetRawWidth()					{ return (*this)[L"ShaftWidth"]; }
-		AVFLOAT GetRawBeamWidth()				{ return (*this)[L"DividingBeamWidth"]; }
+//		AVFLOAT GetRawWidth()					{ return (*this)[L"ShaftWidth"]; }
+//		AVFLOAT GetRawBeamWidth()				{ return (*this)[L"DividingBeamWidth"]; }
 
 		// checks if point within the shaft, beam or door box
-		bool InBox(AVVECTOR &pt)							{ return GetBox().InBoxExt(pt) || GetBox(BOX_DOOR).InBoxExt(pt); }
+		bool InBox(AVVECTOR &pt)							{ return GetBox().InBoxExt(pt) || GetBoxDoor().InBox(pt); }
 		// checks if x coordinate within the shaft or beam width
 		bool InWidth(AVFLOAT x)								{ return GetBox().InWidthExt(x); }
 
@@ -270,7 +292,7 @@ public:
 		// checks if pos is within the lift car bounds, given the lift position posLift
 		bool Within(AVVECTOR pos, AVVECTOR posLift)			
 		{
-			BOX box(posLift.x, posLift.y, posLift.z, GetShaft()->GetBoxCar().Width(), GetShaft()->GetBoxCar().Depth(), GetShaft()->GetBoxCar().Height());
+			XBOX box(posLift.x, posLift.y, posLift.z, GetShaft()->GetBoxCar().Width(), GetShaft()->GetBoxCar().Depth(), GetShaft()->GetBoxCar().Height());
 			return box.InWidth(pos.x) && box.InDepth(pos.y) && box.InHeight(pos.z);
 		}
 
@@ -294,10 +316,10 @@ private:
 	LOBBY_ARRANG m_LobbyArrangement;	// Lobby arrangement
 
 	// the lobby box
-	BOX m_box;							// scaled lobby floor plan (size of the lobby & its walls, zero height)
+	XBOX m_box;							// scaled lobby floor plan (size of the lobby & its walls, zero height)
 	
 	// machine room layout
-	BOX m_boxMR;						// scaled floor plan and level for the machine room
+	XBOX m_boxMR;						// scaled floor plan and level for the machine room
 	AVFLOAT m_fMRLevel;					// machine room level
 	AVFLOAT m_fMRDoorOffset;			// machine room door offset value
 	AVFLOAT m_fLiftingBeamHeight;		// lifting beam height
@@ -310,7 +332,7 @@ private:
 	AVFLOAT m_fPanelGrpOrientation;
 
 	// pit level layout
-	BOX m_boxPit;						// scaled floor plan and level for the pit level
+	XBOX m_boxPit;						// scaled floor plan and level for the pit level
 	AVFLOAT m_fPitLevel;
 
 	// main floors (a.k.a. lobbies)
@@ -350,12 +372,12 @@ public:
 	AVFLOAT GetScale()						{ return m_fScale; }
 
 	// the box
-	BOX &GetBox()							{ return m_box; }
+	XBOX &GetBox()							{ return m_box; }
 	bool InBox(AVVECTOR &pt)				{ return m_box.InBoxExt(pt); }
 
 	// other info
 	bool IsMRL()							{ for (AVULONG i = 0; i < GetShaftCount(); i++) if (!GetShaft(i)->IsMRL()) return false; return true; }
-	BOX GetTotalAreaBox();
+	XBOX GetTotalAreaBox();
 
 	// collection generic
 	std::vector<STOREY*> &GetStoreys()		{ return m_storeys; }
@@ -378,7 +400,7 @@ public:
 	// MR
 	MR *GetMR()								{ return m_pMR; }
 
-	BOX &GetBoxMR()							{ return m_boxMR; }
+	XBOX &GetBoxMR()						{ return m_boxMR; }
 	bool InBoxMR(AVVECTOR &pt)				{ return m_boxMR.InBoxExt(pt); }
 	BOX &GetBoxPanelGrp()					{ return m_boxPanelGrp; }
 	AVFLOAT GetPanelGrpOrientation()		{ return m_fPanelGrpOrientation; }
@@ -401,7 +423,7 @@ public:
 	// Pit
 	PIT *GetPit()							{ return m_pPit; }
 
-	BOX &GetBoxPit()						{ return m_boxPit; }
+	XBOX &GetBoxPit()						{ return m_boxPit; }
 	bool InBoxPit(AVVECTOR &pt)				{ return m_boxPit.InBoxExt(pt); }
 
 	AVFLOAT GetPitLevel()					{ return m_fPitLevel; }

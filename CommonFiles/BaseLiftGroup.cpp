@@ -33,13 +33,13 @@ CLiftGroup::~CLiftGroup()
 	DeleteSims();
 }
 
-BOX CLiftGroup::GetTotalAreaBox()
+XBOX CLiftGroup::GetTotalAreaBox()
 {
-	BOX box = GetBox();
+	XBOX box = GetBox();
 	box.SetLeft(0); box.SetRight(0); box.SetLeftThickness(0); box.SetRightThickness(0);
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
 	{
-		BOX s = GetShaft(i)->GetBox();
+		XBOX s = GetShaft(i)->GetBox();
 		box += s;
 	}
 	return box;
@@ -252,7 +252,7 @@ void CLiftGroup::ConsoleCreate()
 	m_pnShaftCount[0] = GetShaftCount();
 	m_pnShaftCount[1] = 0;
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
-		fLobbyWidth += (i == 0 ? 0 : max(GetShaft(i-1)->GetRawBeamWidth(), GetShaft(i)->GetRawBeamWidth())) + GetShaft(i)->GetRawWidth();
+		fLobbyWidth += (i == 0 ? 0 : max((AVFLOAT)(*GetShaft(i-1))[L"DividingBeamWidth"], (AVFLOAT)(*GetShaft(i))[L"DividingBeamWidth"])) + (AVFLOAT)(*GetShaft(i))[L"ShaftWidth"];
 
 	// if lifts opposite, sort the lifts into two lines
 	if (GetLiftShaftArrang() == SHAFT_OPPOSITE)
@@ -264,10 +264,10 @@ void CLiftGroup::ConsoleCreate()
 		{
 			SHAFT *pShaft = GetShaft(i);
 			// take the first lift in line 1 to line 0
-			if (i > 0) fLineWidth[0] += max(GetShaft(i-1)->GetRawBeamWidth(), GetShaft(i)->GetRawBeamWidth());
-			fLineWidth[0] += pShaft->GetRawWidth();
-			fLineWidth[1] -= pShaft->GetRawWidth();
-			if (i < GetShaftCount() - 1) fLineWidth[1] -= max(GetShaft(i)->GetRawBeamWidth(), GetShaft(i+1)->GetRawBeamWidth());
+			if (i > 0) fLineWidth[0] += max((AVFLOAT)(*GetShaft(i-1))[L"DividingBeamWidth"], (AVFLOAT)(*GetShaft(i))[L"DividingBeamWidth"]);
+			fLineWidth[0] += (AVFLOAT)(*pShaft)[L"ShaftWidth"];
+			fLineWidth[1] -= (AVFLOAT)(*pShaft)[L"ShaftWidth"];
+			if (i < GetShaftCount() - 1) fLineWidth[1] -= max((AVFLOAT)(*GetShaft(i))[L"DividingBeamWidth"], (AVFLOAT)(*GetShaft(i+1))[L"DividingBeamWidth"]);
 			if (max(fLineWidth[0], fLineWidth[1]) > fLobbyWidth)
 				break;
 			fLobbyWidth = max(fLineWidth[0], fLineWidth[1]);
@@ -283,7 +283,7 @@ void CLiftGroup::ConsoleCreate()
 	AVFLOAT fLt = 0; if (m_LobbyArrangement == LOBBY_DEADEND_LEFT)  fLt = fSideWallThickness;
 	AVFLOAT fRt = 0; if (m_LobbyArrangement == LOBBY_DEADEND_RIGHT) fRt = fSideWallThickness;
 
-	m_box = BOX(-fLobbyWidth/2 + fLt, -fLobbyDepth/2, 0, fLobbyWidth - fLt - fRt, fLobbyDepth, 0);
+	m_box = XBOX(-fLobbyWidth/2 + fLt, -fLobbyDepth/2, 0, fLobbyWidth - fLt - fRt, fLobbyDepth, 0);
 	m_box.SetThickness(fLt, fRt, fFrontWallThickness, (m_LobbyArrangement == LOBBY_OPENPLAN) ? 0 : fFrontWallThickness, 2, fLobbyCeilingSlabHeight);
 
 	// Resolve Shafts and Storeys
@@ -390,7 +390,7 @@ void CLiftGroup::ConsoleCreate()
 	}
 
 	// calculate machine room box & level; including panel box sizes but not positions
-	m_boxMR = BOX(0, 0, 0, 0, 0, 0);
+	m_boxMR = XBOX(0, 0, 0, 0, 0, 0);
 	AVFLOAT fHeadroom = 0;
 	m_boxMR = GetTotalAreaBox();
 	for (AVULONG i = 0; i < GetShaftCount(); i++)
@@ -813,20 +813,20 @@ AVFLOAT CLiftGroup::MR::GetExt()
 	return max(f, 0);
 }
 
-BOX CLiftGroup::MR::GetBoxMain()
+XBOX CLiftGroup::MR::GetBoxMain()
 {
-	BOX box = m_box;
+	XBOX box = m_box;
 	AVFLOAT fExt = GetExt();
 	box.SetRight(box.Right() - fExt);
 	box.SetRightExt(box.RightExt() - fExt);
 	return box;
 }
 
-BOX CLiftGroup::MR::GetBoxExt()
+XBOX CLiftGroup::MR::GetBoxExt()
 {
 	AVFLOAT fExt = GetExt();
 
-	BOX box = m_box;
+	XBOX box = m_box;
 	box.SetLeft(GetLiftGroup()->GetBox().RightExt());
 	box.SetLeftThickness(0);
 
@@ -861,24 +861,6 @@ void CLiftGroup::PIT::Create()
 //////////////////////////////////////////////////////////////////////////////////
 // CLiftGroup::SHAFT
 
-BOX &CLiftGroup::SHAFT::GetBox(CLiftGroup::SHAFT::SHAFT_BOX n, AVULONG i)
-{
-	switch (n)
-	{
-	case BOX_SHAFT:		return m_boxShaft;
-	case BOX_DOOR:		return m_boxDoor[i];
-	case BOX_CAR:		return m_boxCar;
-	case BOX_CARDOOR:	return m_boxCarDoor[i];
-	case BOX_CW:		return m_boxCwt;
-	case BOX_GOVERNOR:	return m_boxGovernor;
-	case BOX_LADDER:	return m_boxLadder;
-	case BOX_PANEL_CTRL:return m_boxPanelCtrl;
-	case BOX_PANEL_DRV:	return m_boxPanelDrv;
-	case BOX_PANEL_ISO:	return m_boxPanelIso;
-	default:			return m_boxShaft;
-	}
-}
-
 void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaftPosX, AVFLOAT fShaftPosY, AVFLOAT fFrontWall, AVFLOAT fRearWall)
 {
 	m_nId = nId;
@@ -886,18 +868,10 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 	//m_nId = ME[L"LiftIndex"];
 	m_nShaftLine = nLine;
 
-	// Patch over Krzysztof's new door types for MRL
-	switch ((AVULONG)ME[L"DoorTypeId"])
-	{
-	case 11: ME[L"DoorTypeId"] = (AVULONG)1; break;
-	case 12: ME[L"DoorTypeId"] = (AVULONG)4; break;
-	case 14: ME[L"DoorTypeId"] = (AVULONG)5; break;
-	case 15: ME[L"DoorTypeId"] = (AVULONG)6; break;
-	}
-
 	m_nLiftType = ME[L"LiftTypeId"];
 	m_nDeckType = ME[L"DecksId"];
 	m_nDoorType = ME[L"DoorTypeId"];
+	m_nDoorPanels = ME[L"DoorPanels"];
 
 	m_nOpeningTime = ME[L"OpeningTime"].msec();
 	m_nClosingTime = ME[L"ClosingTime"].msec();
@@ -909,25 +883,43 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 	m_nMotorStartDelayTime = ME[L"MotorStartDelay"].msec();
 	m_nReopenings = ME[L"Reopenings"];
 
-	m_strStoreysServed = ME[L"StoreysServed"];
+	m_fCapacity = ME[L"Capacity"];
+	m_fSpeed = ME[L"Speed"];
+	m_fAcceleration = ME[L"Acceleration"];
+	m_fJerk = ME[L"Jerk"];
+
+	m_nCounterWeightPosition = ME[L"CounterWeightPositionId"];
+
+	m_strStoreysServed = ME[L"StoreysServed"];	// special value modelled in CLiftGroupSrv::LoadFromConsole
 
 	// ### To resolve the problem quickly
 	ME[L"LiftsPerShaft"] = (AVULONG)1;
-
 	m_nLiftCount = max(1, (AVULONG)ME[L"LiftsPerShaft"]);
 
-	AVFLOAT ShaftWidth = ME[L"ShaftWidth"];
-	AVFLOAT ShaftDepth = ME[L"ShaftDepth"];
-	AVFLOAT CarDepth = ME[L"CarDepth"];
-	AVFLOAT CarWidth = ME[L"CarWidth"];
-	AVFLOAT CarHeight = ME[L"CarCeilingHeight"];
-	AVFLOAT LiftDoorHeight = ME[L"DoorHeight"];
-	AVFLOAT LiftDoorWidth = ME[L"DoorWidth"];
 
-	AVFLOAT fVoidRear = ME[L"ClearanceCarToShaftWallOnDepth"];
-	AVFLOAT fVoidLeft = ME[L"ClearanceCarToShaftWallOnWidthLHS"];
-	AVFLOAT fVoidRight = ME[L"ClearanceCarToShaftWallOnWidthRHS"];
-	AVFLOAT fCarRearWallThickness = ME[L"CarDepthWallThickness"];
+	// various dimensions (to be further calculated - non-member variables
+	AVFLOAT fShaftWidth = ME[L"ShaftWidth"];
+	AVFLOAT fShaftDepth = ME[L"ShaftDepth"];
+	AVFLOAT fCarDepth = ME[L"CarDepth"];
+	AVFLOAT fCarWidth = ME[L"CarWidth"];
+	AVFLOAT fCarHeight = ME[L"CarCeilingHeight"];
+	AVFLOAT fLiftDoorHeight = ME[L"DoorHeight"];
+	AVFLOAT fLiftDoorWidth = ME[L"DoorWidth"];
+	AVFLOAT fDoorOffCentreCarOffset = ME[L"DoorOffCentreCarOffset"];
+	if (m_nShaftLine == 1) fDoorOffCentreCarOffset = -fDoorOffCentreCarOffset;
+
+	AVFLOAT fClearanceForCombinationBracket = ME[L"ClearanceForCombinationBracket"];
+	AVFLOAT fClearanceForCounterWeight = ME[L"ClearanceForCounterWeight"];
+	AVFLOAT fCombinationBracketWidth = ME[L"CombinationBracketWidth"];
+	AVFLOAT fDivBeamHeight = ME[L"DividingBeamHeight"];
+
+
+	AVFLOAT fClearanceCarToShaftWallOnDepth = ME[L"ClearanceCarToShaftWallOnDepth"];
+	AVFLOAT fClearanceCarToShaftWallOnWidthLHS = ME[L"ClearanceCarToShaftWallOnWidthLHS"];
+	AVFLOAT fClearanceCarToShaftWallOnWidthRHS = ME[L"ClearanceCarToShaftWallOnWidthRHS"];
+	AVFLOAT fAdditionalClearanceForDoorLHS = ME[L"AdditionalClearanceForDoorLHS"];
+	AVFLOAT fAdditionalClearanceForDoorRHS = ME[L"AdditionalClearanceForDoorRHS"];
+	AVFLOAT fCarRearWallThickness = ME[L"CarRearWallThickness"];
 	AVFLOAT fCarFrontWallThickness = ME[L"CarFrontReturnDepth"];
 	AVFLOAT fCarSideWallThickness = ME[L"CarSideWallThickness"];
 	AVFLOAT fLightingVoidHeight = ME[L"LightingVoidHeight"];
@@ -936,25 +928,26 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 
 	AVFLOAT fCarFloorThickness = 150;
 
-	// Capacity/Speed related values
-	AVFLOAT fCapacity = ME[L"Capacity"];
-	AVFLOAT fSpeed = ME[L"Speed"];
-	AVULONG nCwtPos = ME[L"CounterWeightPositionId"];
+	
 
-	AVFLOAT cwtw = 200;		// cwt width (depth)
-	AVFLOAT cwtl = 1000;	// cwt length (width)
-	AVFLOAT cwtx = 50;		// cwt extra from the shaft wall
-	AVFLOAT slingb = 400;	// sling bottom height
-	AVFLOAT slingt = 1000;	// sling top height
-	if (fSpeed >= 2.5) cwtl = 1200; if (fSpeed >= 4) cwtl = 1500;
-	if (fSpeed >= 4) cwtx = 100;
-	if (fCapacity >= 1275) slingb = 600; if (fCapacity >= 1800) slingb = 800;
+	// Additional Calculations - dependent on capacity and speed
+
+	// counterweight & sling size
+	AVFLOAT fCwtWidth = 200;		// cwt width (depth)
+	AVFLOAT fCwtLen = 1000;	// cwt length (width)
+	AVFLOAT fSlingBottom = 400;	// sling bottom height
+	AVFLOAT fSlingTop = 1000;	// sling top height
+	if (m_fSpeed >= 2.5) fCwtLen = 1200; 
+	if (m_fSpeed >= 4) fCwtLen = 1500;
+	if (m_fCapacity >= 1275) fSlingBottom = 600; 
+	if (m_fCapacity >= 1800) fSlingBottom = 800;
+	if (fClearanceForCounterWeight - fCwtWidth < 50) fCwtWidth = fClearanceForCounterWeight - 50;	// this keeps at least 50mm clearance between cwt and wall
 
 	// determine machine & panel types
 	                          m_nMachineType = 1; m_nPanelCtrlType = 1; m_nPanelDrvType = 1; m_nPanelIsoType = 1; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1000, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1000, 1300, 2200);
-	if (fCapacity >= 1800)	{ m_nMachineType = 2; m_nPanelCtrlType = 1; m_nPanelDrvType = 2; m_nPanelIsoType = 2; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1500, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1250, 1300, 2200); }
-	if (fSpeed >= 2.5)		{ m_nMachineType = 3; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1700, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1600, 1300, 2200); }
-	if (fSpeed >= 5)		{ m_nMachineType = 4; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1700, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1600, 1300, 2200); }
+	if (m_fCapacity >= 1800){ m_nMachineType = 2; m_nPanelCtrlType = 1; m_nPanelDrvType = 2; m_nPanelIsoType = 2; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1500, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1250, 1300, 2200); }
+	if (m_fSpeed >= 2.5)	{ m_nMachineType = 3; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1700, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1600, 1300, 2200); }
+	if (m_fSpeed >= 5)		{ m_nMachineType = 4; m_nPanelCtrlType = 1; m_nPanelDrvType = 3; m_nPanelIsoType = 3; m_boxPanelCtrl = BOX(0, 0, 0, 700, 1300, 2200); m_boxPanelDrv = BOX(0, 0, 0, 1700, 1300, 2200); m_boxPanelIso = BOX(0, 0, 0, 1600, 1300, 2200); }
 
 	// additional tuning for the isolator type: isolators are set for every fourth shaft
 	AVULONG nId4th = (GetId() / 4) * 4;	// index of the master: first in each four (0, 4, 8 ...)
@@ -972,46 +965,47 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 
 	// determine rails size
 	m_fRailWidth = 125; m_fRailLength = 82;
-	if (fCapacity >= 1275) { m_fRailWidth = 127; m_fRailLength = 89; }
-	if (fCapacity >= 1800) { m_fRailWidth = 140; m_fRailLength = 102; }
+	if (m_fCapacity >= 1275) { m_fRailWidth = 127; m_fRailLength = 89; }
+	if (m_fCapacity >= 1800) { m_fRailWidth = 140; m_fRailLength = 102; }
 
 	// determine buffer num & size
 	m_nBufferNum = 1;
-	if (fSpeed >= 3.5) m_nBufferNum = 2;
+	if (m_fSpeed >= 3.5) m_nBufferNum = 2;
 	m_nBufferDiameter = 200; m_nBufferHeight = 540;
-	if (fSpeed >= 2.0) m_nBufferHeight = 777;
-	if (fSpeed >= 2.5) m_nBufferHeight = 1203;
-	if (fSpeed >= 3.0) m_nBufferHeight = 1705;
-	if (fSpeed >= 3.5) m_nBufferHeight = 2100;
-	if (fSpeed >= 4.0) m_nBufferHeight = 2100;
-	if (fSpeed >= 5.0) m_nBufferHeight = 2692;
-	if (fSpeed >= 6.0) m_nBufferHeight = 2692;
-	if (fSpeed >= 7.0) m_nBufferHeight = 4216;
-	if (fSpeed >= 8.0) m_nBufferHeight = 6181;
-	if (fSpeed >= 9.0) m_nBufferHeight = 6181;
-	if (fSpeed >= 10.0) m_nBufferHeight = 7374;
+	if (m_fSpeed >= 2.0) m_nBufferHeight = 777;
+	if (m_fSpeed >= 2.5) m_nBufferHeight = 1203;
+	if (m_fSpeed >= 3.0) m_nBufferHeight = 1705;
+	if (m_fSpeed >= 3.5) m_nBufferHeight = 2100;
+	if (m_fSpeed >= 4.0) m_nBufferHeight = 2100;
+	if (m_fSpeed >= 5.0) m_nBufferHeight = 2692;
+	if (m_fSpeed >= 6.0) m_nBufferHeight = 2692;
+	if (m_fSpeed >= 7.0) m_nBufferHeight = 4216;
+	if (m_fSpeed >= 8.0) m_nBufferHeight = 6181;
+	if (m_fSpeed >= 9.0) m_nBufferHeight = 6181;
+	if (m_fSpeed >= 10.0) m_nBufferHeight = 7374;
 	
-//	MachRoomExt = ME[L"MachRoomExt"];
-//	if (MachRoomExt == -1.0f)
-//		if (TypeOfLift == LIFT_DOUBLE_DECK) MachRoomExt = 1000.0; else MachRoomExt = 0;
-
-	if (m_nShaftLine == 1) fShaftPosX -= ShaftWidth;
-	m_boxShaft = BOX(fShaftPosX, abs(fShaftPosY), ShaftWidth, ShaftDepth);
+	
+	// Shaft Box
+	if (m_nShaftLine == 1) fShaftPosX -= fShaftWidth;
+	m_boxShaft = XBOX(fShaftPosX, abs(fShaftPosY), fShaftWidth, fShaftDepth);
 	m_boxShaft.SetThickness(0, 0, fFrontWall, fRearWall);
 	
-	AVFLOAT fVoid = (m_nShaftLine == 0) ? fVoidLeft : fVoidRight;
-	m_boxCar = BOX(m_boxShaft.Left() + fVoid + fCarSideWallThickness, m_boxShaft.Front() + fLandingDoorDepth + fCarDoorDepth + fCarFrontWallThickness, 0, CarWidth, CarDepth, CarHeight);
+	// Car Box
+	if (m_nShaftLine == 0)
+		m_boxCar = XBOX(m_boxShaft.Left() + fClearanceCarToShaftWallOnWidthLHS + fAdditionalClearanceForDoorLHS + fCarSideWallThickness, m_boxShaft.Front() + fLandingDoorDepth + fCarDoorDepth + fCarFrontWallThickness, 0, fCarWidth, fCarDepth, fCarHeight);
+	else
+		m_boxCar = XBOX(m_boxShaft.Left() + fClearanceCarToShaftWallOnWidthRHS + fAdditionalClearanceForDoorRHS + fCarSideWallThickness, m_boxShaft.Front() + fLandingDoorDepth + fCarDoorDepth + fCarFrontWallThickness, 0, fCarWidth, fCarDepth, fCarHeight);
 	m_boxCar.SetThickness(fCarSideWallThickness, fCarSideWallThickness, fCarFrontWallThickness, fCarRearWallThickness, fCarFloorThickness, fLightingVoidHeight);
 
-	m_boxDoor[0] =    BOX(m_boxCar.CentreX() - LiftDoorWidth / 2, m_boxShaft.Front(),    0, LiftDoorWidth, fLandingDoorDepth, LiftDoorHeight);
-	m_boxDoor[1] =    BOX(m_boxCar.CentreX() - LiftDoorWidth / 2, m_boxShaft.Rear(),     0, LiftDoorWidth, fFrontWall, LiftDoorHeight);
-	m_boxCarDoor[0] = BOX(m_boxCar.CentreX() - LiftDoorWidth / 2, m_boxCar.FrontExt() - fCarDoorDepth,   0, LiftDoorWidth, fCarDoorDepth, LiftDoorHeight);
-	m_boxCarDoor[1] = BOX(m_boxCar.CentreX() - LiftDoorWidth / 2, m_boxCar.Rear(),       0, LiftDoorWidth, fCarRearWallThickness, LiftDoorHeight);
+	// Door Boxes ([1] are rear doors, currently not in use)
+	m_boxDoor[0] =    BOX(m_boxCar.CentreX() - fLiftDoorWidth / 2 + fDoorOffCentreCarOffset, m_boxShaft.Front(),    0, fLiftDoorWidth, fLandingDoorDepth, fLiftDoorHeight);
+	m_boxDoor[1] =    BOX(m_boxCar.CentreX() - fLiftDoorWidth / 2 + fDoorOffCentreCarOffset, m_boxShaft.Rear(),     0, fLiftDoorWidth, fFrontWall, fLiftDoorHeight);
+	m_boxCarDoor[0] = BOX(m_boxCar.CentreX() - fLiftDoorWidth / 2 + fDoorOffCentreCarOffset, m_boxCar.FrontExt() - fCarDoorDepth,   0, fLiftDoorWidth, fCarDoorDepth, fLiftDoorHeight);
+	m_boxCarDoor[1] = BOX(m_boxCar.CentreX() - fLiftDoorWidth / 2 + fDoorOffCentreCarOffset, m_boxCar.Rear(),       0, fLiftDoorWidth, fCarRearWallThickness, fLiftDoorHeight);
 
 	// resolve left-right side
-
 	AVLONG nMachineOrientation = 0;	// 0 = forward, 1 = left, 2 = backward, 3 = right
-	switch (nCwtPos)
+	switch (GetCounterWeightPosition())
 	{
 	case 1: nMachineOrientation = 0; break;
 	case 2: nMachineOrientation = 1; break;
@@ -1023,34 +1017,43 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 	m_fMachineOrientation = nMachineOrientation * M_PI_2;
 	m_fPanelIsoOrientation = (AVFLOAT)M_PI;	
 
+	// various equipment boxes - counterweight (cwt), governor, lighting, ladder
 	switch (nMachineOrientation)
 	{	case 0:	// forward (first line of lifts): cwt in the rear, gov on the right, light asymetrically, ladder on the left
-			m_boxCwt = BOX(m_boxCar.CentreX() - cwtl/2, m_boxShaft.Rear() - cwtx - cwtw, 0, cwtl, cwtw, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt);
+			m_boxCwt = BOX(m_boxCar.CentreX() - fCwtLen/2, m_boxShaft.Rear() - fClearanceForCounterWeight, 0, fCwtLen, fCwtWidth, fCarHeight + fLightingVoidHeight + fCarFloorThickness + fSlingBottom + fSlingTop);
 			m_boxGovernor = BOX(m_boxCar.RightExt(), m_boxCar.CentreY(), 0, 200, m_boxCar.DepthExt() / 2, 0);
 			m_fLightingXPos = (m_boxCwt.CentreX() >= m_boxShaft.CentreX()) ? (m_boxCwt.Left() + m_boxShaft.Left()) / 2 : (m_boxCwt.Right() + m_boxShaft.Right()) / 2;
 			m_boxLadder = BOX(m_boxShaft.Left(), m_boxCar.FrontExt(), 0, 132, 610, 0);
+			// no combination bracket in this configuration
 			break;
 		case 2:	// backward (second line of lifts): cwt in the rear of line 2, gov on the left, light asymetrically, ladder on the right
-			m_boxCwt = BOX(m_boxCar.CentreX() - cwtl/2, m_boxShaft.Rear() - cwtx - cwtw, 0, cwtl, cwtw, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt);
+			m_boxCwt = BOX(m_boxCar.CentreX() - fCwtLen/2, m_boxShaft.Rear() - fClearanceForCounterWeight, 0, fCwtLen, fCwtWidth, fCarHeight + fLightingVoidHeight + fCarFloorThickness + fSlingBottom + fSlingTop);
 			m_boxGovernor = BOX(m_boxCar.LeftExt() - 200, m_boxCar.CentreY(), 0, 200, m_boxCar.DepthExt() / 2, 0);
 			m_fLightingXPos = (m_boxCwt.CentreX() >= m_boxShaft.CentreX()) ? (m_boxCwt.Left() + m_boxShaft.Left()) / 2 : (m_boxCwt.Right() + m_boxShaft.Right()) / 2;
 			m_boxLadder = BOX(m_boxShaft.Right() - 132, m_boxCar.FrontExt(), 0, 132, 610, 0);
+			// no combination bracket in this configuration
 			break;
 		case 1:	// heading to the left: cwt on the left, gov in the rear, light centrally, ladder on the right
-			m_boxCwt = BOX(m_boxShaft.Left() + cwtx, m_boxCar.CentreY() - cwtl/2, 0, cwtw, cwtl, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt);
+			m_boxCwt = BOX(m_boxShaft.Left() + fClearanceForCounterWeight - fCwtWidth, m_boxCar.CentreY() - fCwtLen/2, 0, fCwtWidth, fCwtLen, fCarHeight + fLightingVoidHeight + fCarFloorThickness + fSlingBottom + fSlingTop);
 			m_boxGovernor = BOX(m_boxCar.CentreX(), m_boxCar.Rear(), 0, m_boxCar.WidthExt() / 2, 200, 0);
-			if (m_nShaftLine == 0) m_boxGovernor.MoveY(200); 
-			m_fLightingXPos = m_boxDoor[0].CentreX();
+//			if (m_nShaftLine == 0) m_boxGovernor.MoveY(200); 
+			m_fLightingXPos = m_boxCar.CentreX();
 			m_boxLadder = BOX(m_boxShaft.Right() - 132, m_boxCar.FrontExt(), 0, 132, 610, 0);
+			m_boxCombinationBracket = XBOX(m_boxShaft.Left(), m_boxCar.CentreY() - fCwtLen/2 - GetRailLength(), -(fDivBeamHeight + fCombinationBracketWidth) / 2, fClearanceForCounterWeight + fClearanceForCombinationBracket, fCwtLen + 2 * GetRailLength(), fCombinationBracketWidth);
+			m_boxCombinationBracket.SetThickness(0, fCombinationBracketWidth, fCombinationBracketWidth, fCombinationBracketWidth);
 			break;
 		case 3:	// heading to the right: cwt on the right, gov in the rear, light centrally, ladder on the left
-			m_boxCwt = BOX(m_boxShaft.Right() - cwtx - cwtw, m_boxCar.CentreY() - cwtl/2, 0, cwtw, cwtl, CarHeight + fLightingVoidHeight + fCarFloorThickness + slingb + slingt); 
+			m_boxCwt = BOX(m_boxShaft.Right() - fClearanceForCounterWeight, m_boxCar.CentreY() - fCwtLen/2, 0, fCwtWidth, fCwtLen, fCarHeight + fLightingVoidHeight + fCarFloorThickness + fSlingBottom + fSlingTop); 
 			m_boxGovernor = BOX(m_boxCar.CentreX(), m_boxCar.Rear(), 0, m_boxCar.WidthExt() / 2, 200, 0);
-			if (m_nShaftLine == 1) m_boxGovernor.MoveY(200); 
-			m_fLightingXPos = m_boxDoor[0].CentreX();
+//			if (m_nShaftLine == 1) m_boxGovernor.MoveY(200); 
+			m_fLightingXPos = m_boxCar.CentreX();
 			m_boxLadder = BOX(m_boxShaft.Left(), m_boxCar.FrontExt(), 0, 132, 610, 0);
+			m_boxCombinationBracket = XBOX(m_boxShaft.Right() - fClearanceForCounterWeight - fClearanceForCombinationBracket, m_boxCar.CentreY() - fCwtLen/2 - GetRailLength(), -(fDivBeamHeight + fCombinationBracketWidth) / 2, fClearanceForCounterWeight + fClearanceForCombinationBracket, fCwtLen + 2 * GetRailLength(), fCombinationBracketWidth);
+			m_boxCombinationBracket.SetThickness(fCombinationBracketWidth, 0, fCombinationBracketWidth, fCombinationBracketWidth);
 			break;
 	}
+
+	// additionally, panel boxes are setup by the GroupLift
 
 	if (fShaftPosY < 0)
 		Reflect();
@@ -1058,24 +1061,24 @@ void CLiftGroup::SHAFT::ConsoleCreate(AVULONG nId, AVULONG nLine, AVFLOAT fShaft
 
 void CLiftGroup::SHAFT::ConsoleCreateBeam(AVULONG side, CLiftGroup::SHAFT *pNeighbour)
 {
-	AVFLOAT fIntDivBeamWidth = ME[L"DividingBeamWidth"];
-	AVFLOAT fIntDivBeamHeight = ME[L"DividingBeamHeight"];
+	AVFLOAT fDivBeamWidth = ME[L"DividingBeamWidth"];
+	AVFLOAT fDivBeamHeight = ME[L"DividingBeamHeight"];
 
-	if (pNeighbour && (AVFLOAT)(*pNeighbour)[L"DividingBeamWidth"] > fIntDivBeamWidth) fIntDivBeamWidth = (*pNeighbour)[L"DividingBeamWidth"];
-	if (pNeighbour && (AVFLOAT)(*pNeighbour)[L"DividingBeamHeight"] > fIntDivBeamHeight) fIntDivBeamHeight = (*pNeighbour)[L"DividingBeamHeight"];
+	if (pNeighbour && (AVFLOAT)(*pNeighbour)[L"DividingBeamWidth"] > fDivBeamWidth) fDivBeamWidth = (*pNeighbour)[L"DividingBeamWidth"];
+	if (pNeighbour && (AVFLOAT)(*pNeighbour)[L"DividingBeamHeight"] > fDivBeamHeight) fDivBeamHeight = (*pNeighbour)[L"DividingBeamHeight"];
 
-	//AVVECTOR pos = (side == SIDE_LEFT) ? m_boxShaft.LeftFrontLower() + Vector(-fIntDivBeamWidth, 0, 0): m_boxShaft.RightFrontLower();
-	//m_boxBeam = BOX(pos, fIntDivBeamWidth, GetBox().Depth(), fIntDivBeamHeight );
+	//AVVECTOR pos = (side == SIDE_LEFT) ? m_boxShaft.LeftFrontLower() + Vector(-fDivBeamWidth, 0, 0): m_boxShaft.RightFrontLower();
+	//m_boxBeam = BOX(pos, fDivBeamWidth, GetBox().Depth(), fDivBeamHeight );
 
 	if (side == SIDE_LEFT)
 	{
-		m_boxShaft.SetLeftThickness(fIntDivBeamWidth);
-		m_fBeamLtHeight = fIntDivBeamHeight;
+		m_boxShaft.SetLeftThickness(fDivBeamWidth);
+		m_fBeamLtHeight = fDivBeamHeight;
 	}
 	else
 	{
-		m_boxShaft.SetRightThickness(fIntDivBeamWidth);
-		m_fBeamRtHeight = fIntDivBeamHeight;
+		m_boxShaft.SetRightThickness(fDivBeamWidth);
+		m_fBeamRtHeight = fDivBeamHeight;
 	}
 }
 
@@ -1109,6 +1112,7 @@ void CLiftGroup::SHAFT::ConsoleCreateAmend()
 	ME[L"BoxCarDoor0"] = m_boxCarDoor[0].Stringify();
 	ME[L"BoxCarDoor1"] = m_boxCarDoor[1].Stringify();
 	ME[L"BoxCwt"] = m_boxCwt.Stringify();
+	ME[L"BoxCombinationBracket"] = m_boxCombinationBracket.Stringify();
 	ME[L"BoxGovernor"] = m_boxGovernor.Stringify();
 	ME[L"BoxLadder"] = m_boxLadder.Stringify();
 
@@ -1156,6 +1160,27 @@ void CLiftGroup::SHAFT::ConsoleCreateAmend()
 
 	erase(L"MachineRoomHeight");
 	erase(L"PitDepth");
+
+	erase(L"CarRearWallThickness");
+	erase(L"ClearanceForCombinationBracket");
+	erase(L"ClearanceForCounterWeight");
+	erase(L"ClearanceForDoorPanel");
+	erase(L"ClearanceToCarWallOnDepth");
+	erase(L"ClearanceToCarWallOnWidthLHS");
+	erase(L"ClearanceToCarWallOnWidthRHS");
+	erase(L"CombinationBracketWidth");
+	erase(L"FrontReturnWidth");
+
+	erase(L"AvailableCarArea");
+	erase(L"CarCallDwellTime");		// WHAT IS IT FOR???
+	erase(L"CarShapeId");
+	erase(L"IsISOCompliant");
+	erase(L"MaximumAvailableCarArea");
+	erase(L"MinimumAvailableCarArea");
+
+	erase(L"AdditionalClearanceForDoorLHS");
+	erase(L"AdditionalClearanceForDoorRHS");
+	erase(L"DoorOffCentreCarOffset");
 }
 
 void CLiftGroup::SHAFT::Scale(AVFLOAT f)
@@ -1171,6 +1196,7 @@ void CLiftGroup::SHAFT::Scale(AVFLOAT f)
 	m_boxCarDoor[0].Scale(f);
 	m_boxCarDoor[1].Scale(f);
 	m_boxCwt.Scale(f);
+	m_boxCombinationBracket.Scale(f);
 	m_boxGovernor.Scale(f);
 	m_boxLadder.Scale(f);
 	m_boxPanelCtrl.Scale(f);
@@ -1194,6 +1220,7 @@ void CLiftGroup::SHAFT::Reflect()
 	m_boxCarDoor[0].Scale(1, -1, 1);
 	m_boxCarDoor[1].Scale(1, -1, 1);
 	m_boxCwt.Scale(1, -1, 1);
+	m_boxCombinationBracket.Scale(1, -1, 1);
 	m_boxGovernor.Scale(1, -1, 1);
 	m_boxLadder.Scale(1, -1, 1);
 //	m_boxPanelCtrl.Scale(1, -1, 1);
@@ -1212,6 +1239,7 @@ void CLiftGroup::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 	m_boxCarDoor[0].Move(x, y, z);
 	m_boxCarDoor[1].Move(x, y, z);
 	m_boxCwt.Move(x, y, z);
+	m_boxCombinationBracket.Move(x, y, z);
 	m_boxGovernor.Move(x, y, z);
 	m_boxLadder.Move(x, y, z);
 	m_boxPanelCtrl.Move(x, y, z);
@@ -1222,19 +1250,11 @@ void CLiftGroup::SHAFT::Move(AVFLOAT x, AVFLOAT y, AVFLOAT z)
 
 void CLiftGroup::SHAFT::Create()
 {
-	// Patch over Krzysztof's new door types for MRL
-	switch ((AVULONG)ME[L"DoorTypeId"])
-	{
-	case 11: ME[L"DoorTypeId"] = (AVULONG)1; break;
-	case 12: ME[L"DoorTypeId"] = (AVULONG)4; break;
-	case 14: ME[L"DoorTypeId"] = (AVULONG)5; break;
-	case 15: ME[L"DoorTypeId"] = (AVULONG)6; break;
-	}
-
 	m_nId = ME[L"ShaftId"];
 	m_nLiftType = ME[L"LiftTypeId"];
 	m_nDeckType = ME[L"DecksId"];
 	m_nDoorType = ME[L"DoorTypeId"];
+	m_nDoorPanels = ME[L"DoorPanels"];
 
 	m_nOpeningTime = ME[L"OpeningTime"].msec();
 	m_nClosingTime = ME[L"ClosingTime"].msec();
@@ -1245,6 +1265,11 @@ void CLiftGroup::SHAFT::Create()
 	m_nPreOpeningTime = ME[L"PreOpeningTime"].msec();
 	m_nMotorStartDelayTime = ME[L"MotorStartDelay"].msec();
 	m_nReopenings = ME[L"Reopenings"];
+	m_fCapacity = ME[L"Capacity"];
+	m_fSpeed = ME[L"Speed"];
+	m_fAcceleration = ME[L"Acceleration"];
+	m_fJerk = ME[L"Jerk"];
+	m_nCounterWeightPosition = ME[L"CounterWeightPositionId"];
 
 	m_nLiftCount = max(1, (AVULONG)ME[L"LiftsPerShaft"]);
 	m_nShaftLine = ME[L"ShaftLine"];
@@ -1255,6 +1280,7 @@ void CLiftGroup::SHAFT::Create()
 	m_boxCarDoor[0].ParseFromString(ME[L"BoxCarDoor0"]);
 	m_boxCarDoor[1].ParseFromString(ME[L"BoxCarDoor1"]);
 	m_boxCwt.ParseFromString(ME[L"BoxCwt"]);
+	m_boxCombinationBracket.ParseFromString(ME[L"BoxCombinationBracket"]);
 	m_boxGovernor.ParseFromString(ME[L"BoxGovernor"]);
 	m_boxLadder.ParseFromString(ME[L"BoxLadder"]);
 	m_fWallLtStart = ME[L"LeftWallStart"];
@@ -1282,4 +1308,3 @@ void CLiftGroup::SHAFT::Create()
 
 	m_strStoreysServed = ME[L"StoreysServed"];
 }
-

@@ -31,4 +31,5 @@ protected:
 
 	friend class CProjectVis;
 	friend class CAdVisuoLoader;
+	friend class CTempLoader;
 };

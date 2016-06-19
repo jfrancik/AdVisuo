@@ -3,6 +3,7 @@
 #include "StdAfx.h"
 #include "ConstrLiftGroup.h"
 #include "ConstrProject.h"
+#include "BaseSimClasses.h"
 #include "DBTools.h"
 #include <math.h>
 
@@ -58,9 +59,7 @@ void CLiftGroupConstr::STOREY::Construct(AVULONG iStorey)
 		AVVECTOR v;
 
 		// build walls
-		BOX boxFloor = GetBox().LowerSlab();
-		boxFloor.SetHeight(0.05f);
-		m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Floor",   iStorey2, boxFloor);
+		m_pElem->BuildWall(CElem::WALL_FLOOR,   L"Floor",   iStorey2, GetBox().LowerSlab().SetHeight(0.05f));
 		m_pElem->BuildWall(CElem::WALL_CEILING, L"Ceiling", iStorey2, GetBox().UpperSlab());
 
 		if (GetLiftGroup()->bFastLoad) return;
@@ -90,7 +89,7 @@ void CLiftGroupConstr::STOREY::Construct(AVULONG iStorey)
 	{
 		AVFLOAT h1 = GetLiftGroup()->GetMRLevel() - GetLiftGroup()->GetMRSlabThickness() - GetLiftGroup()->GetStorey(iStorey)->GetLevel();
 		AVFLOAT h = GetLiftGroup()->GetStorey(iStorey)->GetBox().HeightExt();
-		BOX box = GetBox();
+		XBOX box = GetBox();
 		box.SetHeight(h1 - h);
 		box.Move(0, 0, h);
 		if (box.FrontThickness() > 0)
@@ -128,8 +127,8 @@ void CLiftGroupConstr::MR::Construct()
 	}
 
 	// auxiliary boxes
-	BOX boxMain = GetBoxMain();
-	BOX boxExt = GetBoxExt();
+	XBOX boxMain = GetBoxMain();
+	XBOX boxExt = GetBoxExt();
 	AVFLOAT fExt = GetExt();
 
 	// build the slab
@@ -153,7 +152,7 @@ void CLiftGroupConstr::MR::Construct()
 		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RearWallExt", 0, boxExt.FrontWall());
 		m_pElem->BuildWall(CElem::WALL_SHAFT, L"FrontWallExt", 0, boxExt.RearWall(), Vector(0, 0, F_PI));
 
-		BOX boxAux = boxMain;
+		XBOX boxAux = boxMain;
 		boxAux.SetRear(GetLiftGroup()->GetMRIndentFront()); boxAux.SetRearThickness(0);
 		m_pElem->BuildWall(CElem::WALL_SHAFT, L"RightWall_1", 0, boxAux.RightWall(), Vector(0, 0, -F_PI_2));
 
@@ -222,7 +221,10 @@ void CLiftGroupConstr::SHAFT::Construct(AVULONG iStorey)
 	AVFLOAT fScale = GetLiftGroup()->GetScale();
 	AVULONG nShaftLine = GetShaftLine();
 
-	AVLONG iStorey2 = iStorey - GetLiftGroup()->GetBasementStoreyCount();
+	bool bFlip = (nShaftLine == 1);
+	AVULONG doorType = GetDoorType(), panelsCount = GetDoorPanelsCount(), panelsPerDoor = GetDoorPanelsPerDoor();
+
+	BOX box;	AVLONG iStorey2 = iStorey - GetLiftGroup()->GetBasementStoreyCount();
 
 	// create skeletal structure (object & bone)
 	if (m_pStoreyBones == NULL)
@@ -290,50 +292,61 @@ void CLiftGroupConstr::SHAFT::Construct(AVULONG iStorey)
 					BOX(GetBoxDoor().CentreFrontUpper() + Vector(5, 0, 15), 10, 0.5, 10), Vector(0, F_PI, 0));
 
 			// Door
-			AVFLOAT fGap = nShaftLine ? 5 * fScale : -5 * fScale;
+			//AVFLOAT fGap = nShaftLine ? 5 * fScale : -5 * fScale;
 			for (AVULONG iIndex = 0; iIndex < 2; iIndex++)	// 0 = left; 1 = right
 			{
-				if (iIndex == 0 && GetDoorType() == 2 || iIndex == 1 && GetDoorType() == 1)
-					continue;	// no of this type of doors
-				for (AVULONG iPanel = 0; iPanel < GetDoorPanelsCount(); iPanel++)
+				if (iIndex == 0 && doorType == DOOR_SIDE_RIGHT)
+					continue;	// no left door in this configuration
+				if (iIndex == 1 && doorType == DOOR_SIDE_LEFT)
+					continue;	// no right door in this configuration
+
+				for (AVULONG iPanel = 0; iPanel < panelsPerDoor; iPanel++)
 				{
 					CElem *&pElem = m_pStoreyBones[iStorey].m_ppDoors[iPanel * 2 + iIndex];
 					pElem = GetProject()->CreateElement(GetLiftGroup(), GetElementLobbySide(iStorey), CElem::ELEM_BONE, L"Landing Door %d", iPanel * 2 + iIndex, Vector(0));
-					BOX box = GetBoxDoor(); box.SetFront(box.Front() + fGap); box.SetRear(box.Rear() - 2*fGap); 
-					box = box.Door(GetDoorType(), GetDoorPanelsCount(), iIndex, iPanel, false, nShaftLine ? true : false);
+					//BOX box = GetBoxDoor(); box.SetFront(box.Front() + fGap); box.SetRear(box.Rear() - 2*fGap); 
+					BOX box = GetBoxDoor().DoorPanel(panelsCount, panelsPerDoor, iIndex, iPanel, false, bFlip);
 					pElem->BuildWall(CElem::WALL_DOOR, L"Landing Door %d", iPanel * 2 + iIndex, box);
 				}
 			}
 
 			// Jamb
-			if (nShaftLine == 0 && GetDoorType() == 1 || nShaftLine == 1 && GetDoorType() == 2)
+			if (nShaftLine == 0 && doorType == DOOR_SIDE_LEFT || nShaftLine == 1 && doorType == DOOR_SIDE_RIGHT)
 			{
-				BOX box = GetBoxDoor().RightWall(); 
-				box.SetDepth(-100 * fScale);
+				BOX box = BOX(GetBoxDoor().RightRearLower(), GetBoxDoor().Depth(), -100 * fScale, GetBoxDoor().Height());
 				GetElementLobbySide(iStorey)->BuildModel(CElem::MODEL_JAMB, L"Landing Door Jamb", GetId(), box, -F_PI_2);
 			}
-			if (nShaftLine == 0 && GetDoorType() == 2 || nShaftLine == 1 && GetDoorType() == 1)
+			if (nShaftLine == 0 && doorType == DOOR_SIDE_RIGHT || nShaftLine == 1 && doorType == DOOR_SIDE_LEFT)
 			{
-				BOX box = GetBoxDoor().LeftWall(); box.SetDepth(-100 * fScale);
+				BOX box = BOX(GetBoxDoor().LeftFrontLower(), GetBoxDoor().Depth(), -100 * fScale, GetBoxDoor().Height());
 				GetElementLobbySide(iStorey)->BuildModel(CElem::MODEL_JAMB, L"Landing Door Jamb", GetId(), box, F_PI_2);
 			}
 
 			// Heading
-			BOX box = GetBoxDoor().DoorExtended(GetDoorType(), GetDoorPanelsCount(), 100 * fScale, nShaftLine ? true : false);
+			BOX box = GetBoxDoor().DoorWithExtension(doorType, panelsCount, panelsPerDoor, 100 * fScale, bFlip);
 			box.Move(0, 0, box.Height()); box.SetHeight(100 * fScale);
-			box.SetRear(box.Rear() - fGap); 
+			// box.SetRear(box.Rear() - fGap); 
 			GetElementLobbySide(iStorey)->BuildModel(CElem::MODEL_HEADING, L"Landing Door Heading", GetId(), box);
 
 			// Sill
 			AVFLOAT fAngle = GetShaftLine() ? F_PI : 0;
-			box = GetBoxDoor().DoorExtended(GetDoorType(), GetDoorPanelsCount(), 100 * fScale, nShaftLine ? true : false);
+			box = GetBoxDoor().DoorWithExtension(doorType, panelsCount, panelsPerDoor, 100 * fScale, bFlip);
 			box.Move(0, 0, -100 * fScale); box.SetHeight(100 * fScale);
-			box.SetRear(box.Rear() - fGap); 
+			// box.SetRear(box.Rear() - fGap); 
 			GetElementLobbySide(iStorey)->BuildModel(CElem::MODEL_SILL, L"Landing Door Sill", GetId(), box, fAngle);
 		}
 
+		// Combination Bracket: meaning of parameters: nParam = LHS bracket; fParam1 = bracket width
+		BOX box = GetCombBox().GetInnerBox();
+		if (iStorey == 0 && GetLiftGroup()->IsPitLadder())	// on ground floor, place the beam to fit the pit ladder top bracket
+		{
+			box.Move(0, 0, -box.Lower());	// cancel any previous elevation...
+			box.Move(0, 0, GetLiftGroup()->GetPitLadderUpperBracket() + GetLiftGroup()->GetPitLevel() - box.Height() / 2);	// re-fit the vertical position here
+		}
+		GetElement(iStorey)->BuildModel(CElem::MODEL_COMBINATION_BRACKET, L"Combination Bracket", GetId(), box, 0, GetCombBox().LeftThickness() == 0, abs(GetCombBox().FrontThickness()));
+
 		// Light
-		BOX box = BOX(GetLightingXPos(), GetBox().Rear(), 0, 0, 0, 0);
+		box = BOX(GetLightingXPos(), GetBox().Rear(), 0, 0, 0, 0);
 		AVFLOAT fAngle = M_PI * (GetShaftLine() ? -1 : 1) / 2;
 		GetElement(iStorey)->BuildModel(CElem::MODEL_LIGHT, L"Lighting", GetId(), box, fAngle);
 	}
@@ -345,9 +358,9 @@ void CLiftGroupConstr::SHAFT::Construct(AVULONG iStorey)
 		AVFLOAT h = GetLiftGroup()->GetStorey(iStorey)->GetBox().HeightExt();
 
 		// top level beams & side walls
-		BOX box = GetBox();
-		box.SetHeight(h1 - h);
-		box.Move(0, 0, h);
+		XBOX boxShaft = GetBox();
+		boxShaft.SetHeight(h1 - h);
+		boxShaft.Move(0, 0, h);
 		if (GetBox().LeftThickness() != 0)
 			if (GetBeamLtHeight() > 0)
 			{
@@ -358,7 +371,7 @@ void CLiftGroupConstr::SHAFT::Construct(AVULONG iStorey)
 				GetElement(iStorey)->BuildWall(CElem::WALL_BEAM, L"BeamL (HR)", nIndex, box, Vector(0, 0, F_PI_2));
 			}
 			else // lhs wall segment
-				GetElementLeft(iStorey)->BuildWall(CElem::WALL_SHAFT, L"LeftWall (HR)", nIndex, box.LeftWall(GetWallLtStart()), Vector(0, 0, F_PI_2));
+				GetElementLeft(iStorey)->BuildWall(CElem::WALL_SHAFT, L"LeftWall (HR)", nIndex, boxShaft.LeftWall(GetWallLtStart()), Vector(0, 0, F_PI_2));
 
 		if (GetBox().RightThickness() != 0)
 			if (GetBeamRtHeight() > 0)
@@ -370,11 +383,16 @@ void CLiftGroupConstr::SHAFT::Construct(AVULONG iStorey)
 				GetElement(iStorey)->BuildWall(CElem::WALL_BEAM, L"BeamR (HR)", nIndex, box, Vector(0, 0, -F_PI_2));
 			}
 			else // rhs wall segment
-				GetElementRight(iStorey)->BuildWall(CElem::WALL_SHAFT, L"RightWall (HR)", nIndex, box.RightWall(0, -GetWallRtStart()), Vector(0, 0, -F_PI_2));
+				GetElementRight(iStorey)->BuildWall(CElem::WALL_SHAFT, L"RightWall (HR)", nIndex, boxShaft.RightWall(0, -GetWallRtStart()), Vector(0, 0, -F_PI_2));
 	
 		// Top level Rear & Front Walls
-		if (box.RearThickness() != 0)
-			GetElement(iStorey)->BuildWall(CElem::WALL_SHAFT, L"RearWall (HR)", nIndex, box.RearWall(), Vector(0, 0, F_PI));
+		if (boxShaft.RearThickness() != 0)
+			GetElement(iStorey)->BuildWall(CElem::WALL_SHAFT, L"RearWall (HR)", nIndex, boxShaft.RearWall(), Vector(0, 0, F_PI));
+
+		// Combination Bracket: meaning of parameters: nParam = LHS bracket; fParam1 = bracket width
+		BOX box = GetCombBox().GetInnerBox();
+		box.Move(0, 0, h1 - 500 * fScale);	// re-fit the vertical position here
+		GetElement(iStorey)->BuildModel(CElem::MODEL_COMBINATION_BRACKET, L"Combination Bracket (HR)", GetId(), box, 0, GetCombBox().LeftThickness() == 0, abs(GetCombBox().FrontThickness()));
 
 		// light
 		box = BOX(GetLightingXPos(), GetBox().Rear(), 0, 0, 0, 0);
@@ -401,11 +419,11 @@ void CLiftGroupConstr::SHAFT::ConstructMREquipment()
 	GetMachineElement()->BuildModel(CElem::MODEL_DRIVE_PANEL, _name, GetId(), GetBoxPanelDrv(), GetPanelDrvOrientation(), GetPanelDrvType());
 
 	_snwprintf_s(_name, 256, L"Isolator Panel Type %d", GetPanelIsoType());
-	if (GetBoxPanelIso().WidthExt() > 1)
+	if (GetBoxPanelIso().Width() > 1)
 		GetMachineElement()->BuildModel(CElem::MODEL_ISOLATOR, _name, GetId(), GetBoxPanelIso(), GetPanelIsoOrientation(), GetPanelIsoType());
 
 	_snwprintf_s(_name, 256, L"Machine Type %d", GetMachineType());
-	GetMachineElement()->BuildModel(CElem::MODEL_MACHINE, _name, GetId(), GetBoxCar(), GetMachineOrientation() + M_PI_2, GetMachineType());
+	GetMachineElement()->BuildModel(CElem::MODEL_MACHINE, _name, GetId(), GetBoxCar().GetLargeBox(), GetMachineOrientation() + M_PI_2, GetMachineType());
 
 	GetMachineElement()->BuildModel(CElem::MODEL_OVERSPEED, L"Overspeed Governor", GetId(), GetBoxGovernor(), GetMachineOrientation() + M_PI_2);
 	
@@ -439,9 +457,9 @@ void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
 	m_PitBones.m_pElemLeft = GetProject()->CreateElement(GetLiftGroup(),      pParent, CElem::ELEM_EXTRA, L"LeftSide",  0, Vector(0, 0, -h));
 	m_PitBones.m_pElemRight = GetProject()->CreateElement(GetLiftGroup(),     pParent, CElem::ELEM_EXTRA, L"RightSide", 0, Vector(0, 0, -h));
 
-	BOX box = GetBox();
-	box.SetHeight(h);
-	box.SetFrontThickness(box.RearThickness());
+	XBOX boxPit = GetBox();
+	boxPit.SetHeight(h);
+	boxPit.SetFrontThickness(boxPit.RearThickness());
 
 	if (GetBox().LeftThickness() != 0)
 		if (GetBeamLtHeight() > 0)
@@ -456,7 +474,7 @@ void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
 			GetPitElement()->BuildWall(CElem::WALL_BEAM, L"BeamL", 0, box, Vector(0, 0, F_PI_2));
 		}
 		else // lhs wall segment
-			GetPitElementLeft()->BuildWall(CElem::WALL_SHAFT, L"LeftWall", 0, box.LeftWall(GetWallLtStart()), Vector(0, 0, F_PI_2));
+			GetPitElementLeft()->BuildWall(CElem::WALL_SHAFT, L"LeftWall", 0, boxPit.LeftWall(GetWallLtStart()), Vector(0, 0, F_PI_2));
 
 	if (GetBox().RightThickness() != 0)
 		if (GetBeamRtHeight() > 0)
@@ -471,21 +489,21 @@ void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
 			GetPitElement()->BuildWall(CElem::WALL_BEAM, L"BeamR", 0, box, Vector(0, 0, -F_PI_2));
 		}
 		else // rhs wall segment
-			GetPitElementRight()->BuildWall(CElem::WALL_SHAFT, L"RightWall", 0, box.RightWall(0, -(GetWallRtStart())), Vector(0, 0, -F_PI_2));
+			GetPitElementRight()->BuildWall(CElem::WALL_SHAFT, L"RightWall", 0, boxPit.RightWall(0, -(GetWallRtStart())), Vector(0, 0, -F_PI_2));
 
 	// Front & Rear Wall
-	if (box.RearThickness() != 0)
-		GetPitElement()->BuildWall(CElem::WALL_SHAFT, L"RearWall", 0, box.RearWall(), Vector(0, 0, F_PI));
+	if (boxPit.RearThickness() != 0)
+		GetPitElement()->BuildWall(CElem::WALL_SHAFT, L"RearWall", 0, boxPit.RearWall(), Vector(0, 0, F_PI));
 
 	// Components
 
 	bool bCwtRear = abs(GetBoxCwt().Width()) > abs(GetBoxCwt().Depth());
 
 	// Governor Tension Pulley
-	GetPitElement()->BuildModel(CElem::MODEL_PULLEY, L"Governor Tension Pulley", GetId(), GetBoxGovernor(), F_PI/2);
+	GetPitElement()->BuildModel(CElem::MODEL_PULLEY, L"Governor Tension Pulley", GetId(), GetBoxGovernor(), GetMachineOrientation() + F_PI/2);
 
 	// Buffers
-	GetPitElement()->BuildModel(CElem::MODEL_BUFFER_CAR, L"Car Buffer", GetId(), GetBoxCar(), 0, GetBufferNum(), GetBufferDiameter(), min(GetBufferHeight(), h - 250)); 
+	GetPitElement()->BuildModel(CElem::MODEL_BUFFER_CAR, L"Car Buffer", GetId(), GetBoxCar().GetLargeBox(), 0, GetBufferNum(), GetBufferDiameter(), min(GetBufferHeight(), h - 250)); 
 	GetPitElement()->BuildModel(CElem::MODEL_BUFFER_CWT, L"Counterweight Buffer", GetId(), GetBoxCwt(), 0, GetBufferNum(), GetBufferDiameter(), min(GetBufferHeight(), h - 250)); 
 
 	// Ladder
@@ -496,6 +514,8 @@ void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
 	AVFLOAT rw = GetRailWidth();
 	AVFLOAT rl = GetRailLength();
 
+	BOX box;
+	
 	box = BOX(GetBoxCar().LeftExt() - 50 * fScale - rl, GetBoxCar().CentreY() - rw/2, 0, rl, rw, 0);
 	box.SetHeight(h + GetLiftGroup()->GetMRLevel() - GetLiftGroup()->GetMRSlabThickness());
 	GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Car Guide Rail 1", GetId(), box, F_PI);
@@ -505,20 +525,20 @@ void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
 	// cwt rails
 	if (bCwtRear)
 	{
-		box = BOX(GetBoxCwt().LeftExt() - rl, GetBoxCwt().CentreY() - rw/2, 0, rl, rw, 0);
+		box = BOX(GetBoxCwt().Left() - rl, GetBoxCwt().CentreY() - rw/2, 0, rl, rw, 0);
 		box.SetHeight(h + GetLiftGroup()->GetMRLevel() - GetLiftGroup()->GetMRSlabThickness());
 		GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Counterweight Guide Rail 1", GetId(), box, F_PI);
-		box.Move(GetBoxCwt().WidthExt() + rl, 0, 0);
+		box.Move(GetBoxCwt().Width() + rl, 0, 0);
 		GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Counterweight Guide Rail 2", GetId(), box, 0);
 	}
 	else
 	{
 		if (GetShaftLine() == 0) rl = -rl;
 
-		box = BOX(GetBoxCwt().CentreX() - rw/2, GetBoxCwt().FrontExt() - rl, 0, rw, rl, 0);
+		box = BOX(GetBoxCwt().CentreX() - rw/2, GetBoxCwt().Front() - rl, 0, rw, rl, 0);
 		box.SetHeight(h + GetLiftGroup()->GetMRLevel() - GetLiftGroup()->GetMRSlabThickness());
 		GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Counterweight Guide Rail 1", GetId(), box, 3*F_PI/2);
-		box.Move(0, GetBoxCwt().DepthExt() + rl, 0);
+		box.Move(0, GetBoxCwt().Depth() + rl, 0);
 		GetPitElement()->BuildModel(CElem::MODEL_RAIL, L"Counterweight Guide Rail 2", GetId(), box, F_PI/2);
 	}
 
@@ -527,10 +547,21 @@ void CLiftGroupConstr::SHAFT::ConstructPitEquipment()
 	box.Move(0, 0, h + GetLiftGroup()->GetStorey(GetLiftGroup()->GetHighestStoreyServed() - GetLiftGroup()->GetBasementStoreyCount())->GetLevel());
 	GetPitElement()->BuildModel(CElem::MODEL_CWT, L"Counterweight", GetId(), box);
 
+	// Combination Bracket: meaning of parameters: nParam = LHS bracket; fParam1 = bracket width
+	box = GetCombBox().GetInnerBox();
+	if (GetLiftGroup()->IsPitLadder())
+	{
+		box.Move(0, 0, -box.Lower());	// cancel any previous elevation...
+		box.Move(0, 0, GetLiftGroup()->GetPitLadderLowerBracket() - box.Height()/2);
+	}
+	else
+		box.Move(0, 0, -2 * box.Lower() - box.Height() + 500 * fScale);
+	GetPitElement()->BuildModel(CElem::MODEL_COMBINATION_BRACKET, L"Combination Bracket (HR)", GetId(), box, 0, GetCombBox().LeftThickness() == 0, abs(GetCombBox().FrontThickness()));
+
 	// light
 	box = BOX(GetLightingXPos(), GetBox().Rear(), 0, 0, 0, 0);
 	fAngle = M_PI * (GetShaftLine() ? -1 : 1) / 2;
-	GetPitElement()->BuildModel(CElem::MODEL_LIGHT, L"Lighting", GetId(), box, fAngle, 1, /* pit */ h);
+	GetPitElement()->BuildModel(CElem::MODEL_LIGHT, L"Lighting (Pit)", GetId(), box, fAngle, 1, /* pit */ h);
 }
 
 void CLiftGroupConstr::SHAFT::Deconstruct()
@@ -569,8 +600,14 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 	AVULONG nShaftLine = GetShaft()->GetShaftLine();
 	AVULONG nStartingStorey = GetLiftGroup()->GetBasementStoreyCount();
 
+	bool bFlip = (nShaftLine == 1);
+	AVULONG doorType = GetShaft()->GetDoorType(), panelsCount = GetShaft()->GetDoorPanelsCount(), panelsPerDoor = GetShaft()->GetDoorPanelsPerDoor();
+
+	BOX box;
+
 	// Create skeletal elements (entire lift)
-	m_pElem = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetElement(), CElem::ELEM_LIFT, (LPOLESTR)GetName().c_str(), iShaft, GetShaft()->GetLiftPos(nStartingStorey));
+	if (!GetProject()->GetRevitCompatibilityMode_())
+		m_pElem = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetElement(), CElem::ELEM_LIFT, (LPOLESTR)GetName().c_str(), iShaft, GetShaft()->GetLiftPos(nStartingStorey));
 
 	for (AVULONG iDeck = 0; iDeck < GetShaft()->GetDeckCount(); iDeck++)
 	{
@@ -578,13 +615,16 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 		AVULONG nGroundFloorIndex = GetLiftGroup()->GetBasementStoreyCount();
 		AVFLOAT fLowerDeckHeight = GetLiftGroup()->GetStorey(nGroundFloorIndex + iDeck)->GetLevel() - GetLiftGroup()->GetStorey(nGroundFloorIndex)->GetLevel();
 
-		if (GetProject()->GetRevitCompatibilityMode())
-			m_ppDecks[iDeck] = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetElement(), CElem::ELEM_DECK, L"Deck_%d", iDeck, GetShaft()->GetLiftPos(nStartingStorey) + Vector(0, 0, fLowerDeckHeight)); 
+		if (GetProject()->GetRevitCompatibilityMode_())
+		{
+			std::wstring name = GetName() + L" Deck %d";
+			m_ppDecks[iDeck] = GetProject()->CreateElement(GetLiftGroup(), GetLiftGroup()->GetElement(), CElem::ELEM_DECK, (LPOLESTR)name.c_str(), iDeck, GetShaft()->GetLiftPos(nStartingStorey) + Vector(0, 0, fLowerDeckHeight)); 
+		}
 		else
-			m_ppDecks[iDeck] = GetProject()->CreateElement(GetLiftGroup(), m_pElem, CElem::ELEM_DECK, L"Deck_%d", iDeck, Vector(0, 0, fLowerDeckHeight)); 
+			m_ppDecks[iDeck] = GetProject()->CreateElement(GetLiftGroup(), m_pElem, CElem::ELEM_DECK, L"Deck %d", iDeck, Vector(0, 0, fLowerDeckHeight)); 
 
 		AVULONG nIndex = MAKELONG(iShaft, iDeck);
-		BOX box = GetShaft()->GetBoxCar() - GetShaft()->GetLiftPos(0);
+		XBOX box = GetShaft()->GetBoxCar() - GetShaft()->GetLiftPos(0);
 		BOX boxDoor0 = GetShaft()->GetBoxCarDoor(0) - GetShaft()->GetLiftPos(0);
 		AVFLOAT door[] = { boxDoor0.Left() - box.LeftExt(), boxDoor0.Width(), boxDoor0.Height() };
 
@@ -592,42 +632,41 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 		m_ppDecks[iDeck]->BuildWall(CElem::WALL_LIFT_CEILING, L"Ceiling %d",   iShaft + 1000*iDeck, box.UpperSlab());
 
 		// Door
-		AVFLOAT fGap = nShaftLine ? 5 * fScale : -5 * fScale;
+		// AVFLOAT fGap = nShaftLine ? 5 * fScale : -5 * fScale;
 		for (AVULONG iIndex = 0; iIndex < 2; iIndex++)	// 0 = left; 1 = right
 		{
-			if (iIndex == 0 && GetShaft()->GetDoorType() == 2 || iIndex == 1 && GetShaft()->GetDoorType() == 1)
+			if (iIndex == 0 && doorType == DOOR_SIDE_RIGHT || iIndex == 1 && doorType == DOOR_SIDE_LEFT)
 				continue;	// no of this type of doors
-			for (AVULONG iPanel = 0; iPanel < GetShaft()->GetDoorPanelsCount(); iPanel++)
+			for (AVULONG iPanel = 0; iPanel < panelsPerDoor; iPanel++)
 			{
 				CElem *&pElem = m_ppDoors[iDeck * MAX_DOORS + iPanel * 2 + iIndex];
 				pElem = GetProject()->CreateElement(GetLiftGroup(), m_ppDecks[iDeck], CElem::ELEM_BONE, L"Car Door %d", iPanel * 2 + iIndex, Vector(0));
-				BOX box = boxDoor0; box.SetFront(box.Front() + fGap); box.SetRear(box.Rear() - fGap); 
-				box = box.Door(GetShaft()->GetDoorType(), GetShaft()->GetDoorPanelsCount(), iIndex, iPanel, true, nShaftLine ? true : false);
+				// BOX box = boxDoor0; box.SetFront(box.Front() + fGap); box.SetRear(box.Rear() - fGap); 
+				BOX box = boxDoor0.DoorPanel(panelsCount, panelsPerDoor, iIndex, iPanel, true, bFlip);
 				pElem->BuildWall(CElem::WALL_LIFT_DOOR, L"Car Door %d", iDeck * 100 + iPanel * 2 + iIndex, box);
 			}
 		}
 
 		// Jamb
-		if (nShaftLine == 0 && GetShaft()->GetDoorType() == 1 || nShaftLine == 1 && GetShaft()->GetDoorType() == 2)
+		if (nShaftLine == 0 && doorType == 1 || nShaftLine == 1 && doorType == 2)
 		{
-			BOX box = boxDoor0.RightWall(); 
-			box.SetDepth(-100 * fScale);
+			BOX box = BOX(boxDoor0.RightRearLower(), boxDoor0.Depth(), -100 * fScale, boxDoor0.Height());
 			m_ppDecks[iDeck]->BuildModel(CElem::MODEL_JAMB, L"Car Door Jamb %d", iShaft + 1000*iDeck, box, -F_PI_2);
 		}
-		if (nShaftLine == 0 && GetShaft()->GetDoorType() == 2 || nShaftLine == 1 && GetShaft()->GetDoorType() == 1)
+		if (nShaftLine == 0 && doorType == 2 || nShaftLine == 1 && doorType == 1)
 		{
-			BOX box = boxDoor0.LeftWall(); box.SetDepth(-100 * fScale);
+			BOX box = BOX(boxDoor0.LeftFrontLower(), boxDoor0.Depth(), -100 * fScale, boxDoor0.Height());
 			m_ppDecks[iDeck]->BuildModel(CElem::MODEL_JAMB, L"Car Door Jamb %d", iShaft + 1000*iDeck, box, F_PI_2);
 		}
 
 		// Heading
-		BOX boxH = boxDoor0.DoorExtended(GetShaft()->GetDoorType(), GetShaft()->GetDoorPanelsCount(), 100 * fScale, nShaftLine ? true : false);
+		BOX boxH = boxDoor0.DoorWithExtension(doorType, panelsCount, panelsPerDoor, 100 * fScale, bFlip);
 		boxH.Move(0, 0, boxH.Height()); boxH.SetHeight(100 * fScale);
 		m_ppDecks[iDeck]->BuildModel(CElem::MODEL_HEADING, L"Car Door Heading %d", iShaft + 1000*iDeck, boxH);
 
 		// Sill
 		AVFLOAT fAngle = GetShaft()->GetShaftLine() ? 0 : F_PI;
-		BOX boxA = boxDoor0.DoorExtended(GetShaft()->GetDoorType(), GetShaft()->GetDoorPanelsCount(), 100 * fScale, nShaftLine ? true : false);
+		BOX boxA = boxDoor0.DoorWithExtension(doorType, panelsCount, panelsPerDoor, 100 * fScale, bFlip);
 		boxA.Move(0, 0, -100 * fScale); boxA.SetHeight(100 * fScale);
 		m_ppDecks[iDeck]->BuildModel(CElem::MODEL_SILL_CAR, L"Car Door Sill %d", iShaft + 1000*iDeck, boxA, fAngle);
 
@@ -640,7 +679,7 @@ void CLiftGroupConstr::LIFT::Construct(AVULONG iShaft)
 		// Handrail
 		if (iDeck == GetShaft()->GetDeckCount() - 1)
 		{
-			BOX boxHR = box;
+			BOX boxHR = box.GetLargeBox();
 			boxHR.Move(0, 0, box.Height() + box.UpperThickness());
 			boxHR.SetHeight(fScale * 1000);
 			m_ppDecks[iDeck]->BuildModel(CElem::MODEL_HANDRAIL, L"Handrail", iShaft + 1000*iDeck, boxHR, fAngle);
@@ -665,6 +704,10 @@ void CLiftGroupConstr::Construct(AVVECTOR vec)
 	Move(vec.x, vec.y, vec.z);
 
 	m_pElem = GetProject()->CreateElement(this, GetProject()->GetSiteElement(), CElem::ELEM_LIFTGROUP, (LPOLESTR)GetName().c_str(), 0, Vector(0));
+
+	// apply the shift vector to all sims
+	for each (CSim *pSim in GetSims())
+		pSim->SetOffsetVector(vec);
 
 	// Lifts
 	for (AVULONG iLift = 0; iLift < GetLiftCount(); iLift++)

@@ -56,6 +56,15 @@ public:
 	void LoadFromFile(LPCOLESTR pFileName)									{ Load((std::wstring)pFileName); }
 	void Load(xmltools::CXmlReader reader);
 
+	void LoadProject(dbtools::CDataBase::SELECT &sel);
+	void LoadLiftGroup(dbtools::CDataBase::SELECT &sel);
+	void LoadFloor(dbtools::CDataBase::SELECT &sel);
+	void LoadShaft(dbtools::CDataBase::SELECT &sel);
+	void LoadSim(dbtools::CDataBase::SELECT &sel);
+	void LoadJourney(dbtools::CDataBase::SELECT &sel);
+	void LoadPassenger(dbtools::CDataBase::SELECT &sel);
+	
+
 	void StoreToFile(LPCOLESTR pFileName)									{ Store((std::wstring)pFileName); }
 	void StoreToBuf(LPOLESTR pBuffer, size_t nSize)							{ ASSERT(FALSE); } // not implemented at the moment
 	void Store(xmltools::CXmlWriter writer);
