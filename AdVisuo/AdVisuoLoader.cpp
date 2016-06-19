@@ -17,6 +17,7 @@ CAdVisuoLoader::CAdVisuoLoader(CProjectVis *pProject) : m_pProject(pProject)
 	m_posInQueue = 0;
 	m_requestToStop = false;
 	m_requestToFail = false;
+	m_timeReceived = 0;
 	m_timeLoaded = 0;
 	m_timeStep = 120000;
 	m_pThread = NULL;
@@ -42,7 +43,8 @@ void CAdVisuoLoader::Start(std::wstring strUrl, CXMLRequest *pAuthAgent, AVULONG
 	m_http.take_authorisation_from(pAuthAgent);
 	m_nProjectId = nProjectId;
 
-	m_timeLoaded = 0;			// m_pProject->GetMinSimulationTime();
+	m_timeReceived = 0;			// m_pProject->GetMinSimulationTime();
+	m_timeLoaded = 0;
 	m_hEvCompleted = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	m_pThread = AfxBeginThread(::WorkerThread, this);
@@ -106,11 +108,14 @@ void CAdVisuoLoader::Fail()
 #define PROGRESS_QUEUED		0xC0000000
 
 
+//#include <iostream>
+//using namespace std;
 UINT CAdVisuoLoader::WorkerThread()
 {
 	std::wstring response;
 	try
 	{
+		//cout << "Worker Thread Started" << endl;
 		// Phase 0 - Authorisation and Pre-Load Checks
 		m_status = PREPROCESS;
 
@@ -142,6 +147,7 @@ UINT CAdVisuoLoader::WorkerThread()
 
 		// Phase 1 - Load Structure
 		m_status = LOADING_STRUCTURE;
+		//cout << "THREAD: Loading structure." << endl;
 
 		// load project
 		m_http.AVProject(m_nProjectId);
@@ -184,10 +190,11 @@ UINT CAdVisuoLoader::WorkerThread()
 //			Sleep(500);
 
 		// Phase 2 - Load Data
+		//cout << "THREAD: Loading data." << endl;
 		m_status = LOADING_DATA;
 
 		std::wstring response;
-		while (m_timeLoaded < m_pProject->GetMaxTime() && !m_requestToStop && !m_requestToFail)
+		while (m_timeReceived < m_pProject->GetMaxTime() && !m_requestToStop && !m_requestToFail)
 		{
 			// ensure the authorisation
 			if (m_http.AVIsAuthorised() <= 0)
@@ -195,7 +202,7 @@ UINT CAdVisuoLoader::WorkerThread()
 
 			// synchronise - wait for the current chunk to be entirely saved
 			progress = m_http.AVPrjProgress(m_nProjectId);
-			while ((progress & PROGRESS_MASK) == PROGRESS_STORING && (AVLONG)(progress & 0x3fffffff) < m_timeLoaded + m_timeStep)
+			while ((progress & PROGRESS_MASK) == PROGRESS_STORING && (AVLONG)(progress & 0x3fffffff) < m_timeReceived + m_timeStep)
 			{
 				Sleep(250);
 				progress = m_http.AVPrjProgress(m_nProjectId);
@@ -205,14 +212,17 @@ UINT CAdVisuoLoader::WorkerThread()
 			ASSERT((progress & PROGRESS_MASK) == PROGRESS_STORING || (progress & PROGRESS_MASK) == PROGRESS_READY);
 
 			// Load data
-			m_http.AVPrjData(m_pProject->GetId(), m_timeLoaded, m_timeLoaded + m_timeStep);
+			m_http.AVPrjData(m_pProject->GetId(), m_timeReceived, m_timeReceived + m_timeStep);
 
 			Load(response.c_str());
 			m_http.get_response(response);
 
-			m_timeLoaded += m_timeStep;
+			m_timeLoaded = m_timeReceived;
+			m_timeReceived += m_timeStep;
+			//cout << "THREAD: Loaded until " << m_timeReceived << endl;
 		}
 		Load(response.c_str());
+		m_timeLoaded = m_timeReceived;
 
 		// Completed!
 		if (m_requestToFail)
@@ -223,6 +233,7 @@ UINT CAdVisuoLoader::WorkerThread()
 			m_reasonForTermination = COMPLETE;
 		m_status = TERMINATED;
 		SetEvent(m_hEvCompleted);
+		//cout << "THREAD: TERMINATING" << endl;
 		return 0;
 	}
 	catch (_prj_deleted)
@@ -361,6 +372,7 @@ void CAdVisuoLoader::Load(xmltools::CXmlReader reader)
 {
 	AVULONG iShaft = 0, iStorey = 0;
 
+	//cout << "Consuming data:";
 	while (reader.read())
 	{
 		if (reader.getName() == L"AVJourney")
@@ -382,6 +394,7 @@ void CAdVisuoLoader::Load(xmltools::CXmlReader reader)
 			m_journeyLiftId.push_back(nLiftID);
 			m_journeys.push_back(journey);
 			LeaveCriticalSection(&m_csJourney);
+			//cout << ".";
 		}
 		else
 		if (reader.getName() == L"AVPassenger")
@@ -399,6 +412,7 @@ void CAdVisuoLoader::Load(xmltools::CXmlReader reader)
 			m_passengerSimId.push_back(nSimId);
 			m_passengers.push_back(pPassenger);
 			LeaveCriticalSection(&m_csPassenger);
+			//cout << ".";
 		}
 		else
 		if (reader.getName() == L"AVProject"
@@ -408,5 +422,6 @@ void CAdVisuoLoader::Load(xmltools::CXmlReader reader)
 		|| reader.getName() == L"AVSim")
 			throw _prj_error(_prj_error::E_PRJ_FILE_STRUCT);
 	}
+	//cout << endl;
 }
 

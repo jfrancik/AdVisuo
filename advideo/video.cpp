@@ -73,6 +73,7 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 		CCamera *pCamera = BuildCamera(Engine, Prj, nLiftGroup, nCamera, nLift, nFloor);
 		if (!pCamera) return -3;
 		if (!LoadData(Loader, Engine, nTimeTo)) return -4;
+		Loader.Stop();
 
 		if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", 3, nIncrement++, idVideo);
 
@@ -130,7 +131,7 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 			if (++iCnt % 25 == 0)
 			{
 				// progress reporting...
-				wcout << L".";
+				wcout << L"#";
 				int percent = 5 + 90 * (t - nTimeFrom) / (nTimeTo - nTimeFrom);
 				if (idVideo > 0) db.execute(L"UPDATE Queue SET Progress = %d, Increment = %d WHERE VideoId = %d", percent, nIncrement++, idVideo);
 			}
@@ -150,8 +151,6 @@ ADVIDEO_API ULONG AVVideo(ULONG idVideo, ULONG idSimulation, ULONG nLiftGroup, U
 			Engine.EndFrame();
 		}
 		Engine.DoneTargetOffScreen();
-
-		Loader.Stop();
 	}
 	catch (...)
 	{

@@ -39,7 +39,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		ULONG nFloor = 0;
 		ULONG nSize = 0;
 		ULONG nTimeFrom = 0;
-		ULONG nDuration = 2000;
+		ULONG nDuration = 10000;
 
 
 		// process

@@ -37,7 +37,8 @@ private:
 	ProtectedVariable<std::wstring>				m_strFailureTitle;
 	ProtectedVariable<std::wstring>				m_strFailureText;
 
-	// other params	
+	// other params
+	AVLONG m_timeReceived;
 	AVLONG m_timeLoaded;
 	AVLONG m_timeStep;
 
